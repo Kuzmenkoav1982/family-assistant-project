@@ -29,6 +29,7 @@ interface MenuItem {
   path?: string;
   action?: () => void;
   inDev?: boolean;
+  badge?: string;
 }
 
 interface SidebarProps {
@@ -233,6 +234,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-slate-50 dark:bg-slate-800/40',
       hubPath: '/state-hub',
       items: [
+        { id: 'support-navigator', label: 'Навигатор мер поддержки', icon: 'Sparkles', path: '/support-navigator', badge: 'Новое' },
         { id: 'what-is-family', label: 'Что такое семья', icon: 'Users', path: '/what-is-family' },
         { id: 'family-code', label: 'Семейный кодекс РФ', icon: 'Scale', path: '/family-code' },
         { id: 'state-support', label: 'Господдержка семей', icon: 'HandHeart', path: '/state-support' },
@@ -449,6 +451,11 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                     >
                       <Icon name={item.icon} size={15} className={isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'} />
                       <span className="text-[13px]">{item.label}</span>
+                      {item.badge && !item.inDev && (
+                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full ml-auto">
+                          {item.badge}
+                        </span>
+                      )}
                       {item.inDev && (
                         <span className="text-[9px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded-full ml-auto">
                           DEV
