@@ -42,7 +42,7 @@ const LAYERS: LayerDef[] = [
   },
   {
     key: 'strategy',
-    label: 'СТРАТЕГИЯ 615-р',
+    label: 'СТРАТЕГИЯ\u00A0615\u2011р',
     sublabel: 'Модули до 2036',
     color: '#7c3aed',
     bg: 'bg-purple-50',
@@ -80,7 +80,7 @@ const LAYERS: LayerDef[] = [
       { name: 'Госуслуги / ЕСИА', icon: 'Landmark', status: 'planned', audiences: ['B2C', 'B2G'] },
       { name: 'Соцказначейство', icon: 'Database', status: 'planned', audiences: ['B2G'] },
       { name: 'СМЭВ · Регионы', icon: 'Network', status: 'planned', audiences: ['B2G'] },
-      { name: 'Telegram-бот', icon: 'Send', status: 'dev', audiences: ['B2C'] },
+      { name: 'MAX-бот', icon: 'Send', status: 'dev', audiences: ['B2C'] },
       { name: 'Web · PWA', icon: 'Globe', status: 'live', audiences: ['B2C', 'B2G', 'B2B2C'] },
       { name: 'API регионам', icon: 'Code', status: 'planned', audiences: ['B2G'] },
       { name: 'HR-системы', icon: 'Briefcase', status: 'planned', audiences: ['B2B2C'] },
