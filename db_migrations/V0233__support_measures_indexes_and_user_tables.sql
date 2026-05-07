@@ -1,0 +1,8 @@
+CREATE INDEX IF NOT EXISTS idx_support_measures_category ON support_measures(category);
+CREATE INDEX IF NOT EXISTS idx_support_measures_level ON support_measures(level);
+CREATE INDEX IF NOT EXISTS idx_support_measures_active ON support_measures(is_active);
+CREATE TABLE IF NOT EXISTS support_navigator_profiles (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, family_id INTEGER, region_code VARCHAR(10) DEFAULT '77', children_count INTEGER DEFAULT 0, children_ages JSONB DEFAULT '[]'::jsonb, is_pregnant BOOLEAN DEFAULT FALSE, is_single_parent BOOLEAN DEFAULT FALSE, is_low_income BOOLEAN DEFAULT FALSE, has_disability BOOLEAN DEFAULT FALSE, is_military_family BOOLEAN DEFAULT FALSE, is_student BOOLEAN DEFAULT FALSE, has_mortgage BOOLEAN DEFAULT FALSE, monthly_income_per_capita INTEGER, parent_age INTEGER, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id));
+CREATE INDEX IF NOT EXISTS idx_support_profiles_user ON support_navigator_profiles(user_id);
+CREATE TABLE IF NOT EXISTS support_user_measures (id SERIAL PRIMARY KEY, user_id INTEGER NOT NULL, measure_id INTEGER NOT NULL, status VARCHAR(20) DEFAULT 'pending', note TEXT, deadline_at DATE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, UNIQUE(user_id, measure_id));
+CREATE INDEX IF NOT EXISTS idx_support_user_measures_user ON support_user_measures(user_id);
+CREATE INDEX IF NOT EXISTS idx_support_user_measures_status ON support_user_measures(status);

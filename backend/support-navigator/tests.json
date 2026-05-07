@@ -1,0 +1,34 @@
+{
+  "tests": [
+    {
+      "name": "List all measures",
+      "method": "GET",
+      "path": "/?action=measures",
+      "expectedStatus": 200
+    },
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Recommend without user returns measures",
+      "method": "GET",
+      "path": "/?action=recommend",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Profile without auth",
+      "method": "GET",
+      "path": "/?action=profile",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Unknown action",
+      "method": "GET",
+      "path": "/?action=foo",
+      "expectedStatus": 400
+    }
+  ]
+}

@@ -310,6 +310,24 @@ export default function StateSupport() {
           backPath="/state-hub"
         />
 
+        <Card
+          className="cursor-pointer overflow-hidden border-emerald-200 bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:shadow-xl transition-all"
+          onClick={() => navigate('/support-navigator')}
+        >
+          <CardContent className="p-5 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+              <Icon name="Sparkles" size={28} className="text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg leading-tight">Узнайте, что положено вашей семье</h3>
+              <p className="text-emerald-50 text-sm mt-1">
+                Персональный навигатор · 40+ федеральных мер · подбор за 1 минуту
+              </p>
+            </div>
+            <Icon name="ChevronRight" size={24} className="text-white/80 shrink-0" />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardContent className="pt-6">
             <div className="space-y-4">

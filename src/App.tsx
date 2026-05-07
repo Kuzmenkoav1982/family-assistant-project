@@ -122,6 +122,7 @@ const TripWishlist = lazy(() => import("./pages/TripWishlist"));
 const Leisure = lazy(() => import("./pages/Leisure"));
 const TelegramServices = lazy(() => import("./pages/TelegramServices"));
 const StateSupport = lazy(() => import("./pages/StateSupport"));
+const SupportNavigator = lazy(() => import("./pages/SupportNavigator"));
 const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
 const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
 const FamilyNews = lazy(() => import("./pages/FamilyNews"));
@@ -359,6 +360,7 @@ const App = () => {
                       <Route path="/chat" element={<FamilyChat />} />
                       <Route path="/family-chat" element={<FamilyChat />} />
                       <Route path="/state-support" element={<StateSupport />} />
+                      <Route path="/support-navigator" element={<SupportNavigator />} />
                       <Route path="/family-policy" element={<FamilyPolicy />} />
                       <Route path="/what-is-family" element={<WhatIsFamily />} />
                       <Route path="/family-news" element={<FamilyNews />} />

@@ -19,6 +19,17 @@ interface SubSection {
 
 const subSections: SubSection[] = [
   {
+    id: 'support-navigator',
+    title: 'Навигатор мер поддержки',
+    description: 'Персональный подбор: что положено именно вашей семье. 40+ федеральных мер.',
+    icon: 'Sparkles',
+    path: '/support-navigator',
+    gradient: 'from-emerald-500 to-green-600',
+    badge: 'Новое',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
+  },
+  {
     id: 'what-is-family',
     title: 'Что такое семья',
     description: 'Философия семьи, определения и исторический контекст',
