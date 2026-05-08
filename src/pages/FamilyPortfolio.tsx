@@ -188,6 +188,21 @@ export default function FamilyPortfolio() {
             })}
           </div>
         )}
+
+        <div className="mt-12 flex flex-col items-center gap-3">
+          <p className="text-sm text-muted-foreground text-center max-w-md">
+            Хотите посмотреть, как выглядит готовое портфолио? Откройте демо-профиль Ильи, 5 лет.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate('/portfolio/000000d1-0000-0000-0000-000000000001')}
+            className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white border-0 shadow-md gap-2 px-8"
+          >
+            <Icon name="Sparkles" size={18} />
+            Песочница
+            <span className="text-xs opacity-80 ml-1">(демо: Илья 5 лет)</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
