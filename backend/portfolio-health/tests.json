@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Forbidden without token",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 403,
+      "expectedBody": { "code": "staff_only" },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Forbidden with invalid token",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "totally-fake-token" },
+      "expectedStatus": 403
+    },
+    {
+      "name": "Method not allowed",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 405
+    }
+  ]
+}

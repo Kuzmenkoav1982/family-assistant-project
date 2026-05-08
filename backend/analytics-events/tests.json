@@ -1,0 +1,48 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Valid event accepted",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event_name": "portfolio_widget_open",
+        "page": "/",
+        "session_id": "test-session-1",
+        "props": { "source": "dashboard" }
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "ok": true },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unknown event rejected",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event_name": "totally_unknown_event"
+      },
+      "expectedStatus": 400,
+      "expectedBody": { "code": "invalid_event" },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Empty event_name rejected",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "Method not allowed",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 405
+    }
+  ]
+}
