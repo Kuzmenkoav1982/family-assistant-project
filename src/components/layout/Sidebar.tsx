@@ -62,6 +62,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/family-hub',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
+        { id: 'portfolio', label: 'Портфолио семьи', icon: 'Sparkles', path: '/portfolio', badge: 'Новое' },
         { id: 'tree', label: 'Семейное древо', icon: 'GitBranch', path: '/tree' },
         { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
         { id: 'family-tracker', label: 'Семейный маячок', icon: 'MapPin', path: '/family-tracker' },
@@ -335,20 +336,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
               <Icon name="LayoutDashboard" size={15} className="text-cyan-600" />
             </div>
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Дашборд</span>
-          </button>
-          <button
-            onClick={() => { navigate('/portfolio'); onVisibilityChange(false); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
-              location.pathname.startsWith('/portfolio')
-                ? 'bg-purple-50 dark:bg-purple-950/40'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-100 to-fuchsia-100 dark:from-purple-900/30 dark:to-fuchsia-900/30 flex items-center justify-center">
-              <Icon name="Sparkles" size={15} className="text-purple-600" />
-            </div>
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Портфолио</span>
-            <span className="ml-auto text-[10px] font-bold text-purple-600 bg-purple-100 dark:bg-purple-950/40 px-1.5 py-0.5 rounded-full">NEW</span>
           </button>
           <button
             onClick={() => { navigate('/referral'); onVisibilityChange(false); }}
