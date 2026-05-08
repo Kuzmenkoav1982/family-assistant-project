@@ -7,6 +7,7 @@ import { NutritionWidget } from '@/components/widgets/NutritionWidget';
 import { WeeklyMenuWidget } from '@/components/widgets/WeeklyMenuWidget';
 import { MedicationsWidget } from '@/components/widgets/MedicationsWidget';
 import { CalendarWidget } from '@/components/widgets/CalendarWidget';
+import { PortfolioWidget } from '@/components/widgets/PortfolioWidget';
 import type { CalendarEvent } from '@/types/family.types';
 
 interface WidgetsSidebarProps {
@@ -37,6 +38,10 @@ export default function WidgetsSidebar({
       
       {isWidgetEnabled('calendar') && (
         <CalendarWidget calendarEvents={calendarEvents || []} />
+      )}
+
+      {isWidgetEnabled('portfolio') && (
+        <PortfolioWidget />
       )}
 
       {isWidgetEnabled('tasks') && (

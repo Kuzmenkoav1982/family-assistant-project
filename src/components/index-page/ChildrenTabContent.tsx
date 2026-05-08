@@ -113,6 +113,29 @@ export default function ChildrenTabContent({
                     <p className="text-xs font-medium text-orange-900">Достижений</p>
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => navigate(`/portfolio/${child.childId || child.id}`)}
+                  className="w-full flex items-center justify-between gap-2 p-3 rounded-lg bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 border-2 border-primary/20 hover:border-primary/40 transition-colors group"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center flex-shrink-0">
+                      <Icon name="Sparkles" size={16} className="text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold">Паспорт развития</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        8 сфер · бейджи · цели · ИИ-наблюдения
+                      </p>
+                    </div>
+                  </div>
+                  <Icon
+                    name="ArrowRight"
+                    size={16}
+                    className="text-primary group-hover:translate-x-1 transition-transform"
+                  />
+                </button>
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>

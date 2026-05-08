@@ -29,6 +29,13 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
     description: 'Ближайшие события и мероприятия семьи'
   },
   {
+    id: 'portfolio',
+    name: 'Портфолио развития',
+    icon: 'Sparkles',
+    enabled: true,
+    description: 'Топ-сферы и точки внимания каждого ребёнка'
+  },
+  {
     id: 'tasks',
     name: 'Задачи семьи',
     icon: 'CheckSquare',

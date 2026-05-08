@@ -1435,6 +1435,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             limit = int(params.get('limit', '12'))
             data = get_history(member_id, limit)
         elif action == 'cron_snapshot':
+            secret = params.get('secret') or event.get('headers', {}).get('X-Cron-Secret')
+            expected = os.environ.get('CRON_SECRET')
+            if expected and secret != expected:
+                return {'statusCode': 403, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'forbidden'})}
             data = cron_snapshot_all()
         elif action == 'plan_create':
             if not member_id:
