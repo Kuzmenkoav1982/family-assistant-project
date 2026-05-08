@@ -77,9 +77,15 @@ export default function FamilyPortfolio() {
             </span>
             Портфолио семьи
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-4">
             Паспорт развития каждого члена семьи. Сравнение с собой во времени, без рейтингов.
           </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate('/portfolio/compare')}>
+              <Icon name="GitCompare" size={14} className="mr-1" />
+              Сравнить участников
+            </Button>
+          </div>
         </div>
 
         {error && (

@@ -87,7 +87,7 @@ export default function MemberPortfolio() {
 
         <KeyHighlights data={data} />
 
-        <div className="flex flex-wrap gap-2 justify-end items-center">
+        <div className="flex flex-wrap gap-2 justify-end items-center print:hidden">
           <button
             type="button"
             onClick={handleRefresh}
@@ -103,6 +103,16 @@ export default function MemberPortfolio() {
             Обновлено {formatTimeAgo(data.last_aggregated_at)}
           </button>
           <SourcesDrawer data={data} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.print()}
+            className="gap-1.5"
+            title="Сохранить как PDF (через диалог печати)"
+          >
+            <Icon name="FileDown" size={14} />
+            Скачать PDF
+          </Button>
         </div>
 
         <SpheresRadar data={data} />
@@ -114,7 +124,11 @@ export default function MemberPortfolio() {
         <DevelopmentTable data={data} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ActiveDevelopmentPlan data={data} />
+          <ActiveDevelopmentPlan
+            data={data}
+            memberId={memberId}
+            onChanged={handleRefresh}
+          />
           <AchievementsWall data={data} />
         </div>
 

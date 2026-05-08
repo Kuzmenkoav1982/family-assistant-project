@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import type { PortfolioData, DevelopmentPlan } from '@/types/portfolio.types';
+import PlanEditor from './PlanEditor';
 
 interface ActiveDevelopmentPlanProps {
   data: PortfolioData;
+  memberId?: string;
+  onChanged?: () => void;
 }
 
 function pluralGoals(n: number): string {
@@ -95,8 +100,24 @@ function formatDeadline(targetDate: string): { text: string; tone: string } {
   return { text: `до ${date}`, tone: 'text-muted-foreground' };
 }
 
-export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanProps) {
+export default function ActiveDevelopmentPlan({ data, memberId, onChanged }: ActiveDevelopmentPlanProps) {
   const plans = data.plans.slice(0, 3);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editing, setEditing] = useState<DevelopmentPlan | null>(null);
+
+  const openCreate = () => {
+    setEditing(null);
+    setEditorOpen(true);
+  };
+  const openEdit = (plan: DevelopmentPlan) => {
+    setEditing(plan);
+    setEditorOpen(true);
+  };
+  const handleSaved = () => {
+    onChanged?.();
+  };
+
+  const canEdit = !!memberId;
 
   return (
     <Card className="border-0 shadow-sm">
@@ -104,9 +125,20 @@ export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanPro
         <CardTitle className="text-lg flex items-center gap-2">
           <Icon name="Target" size={20} className="text-primary" />
           Активный план развития
-          <Badge variant="secondary" className="ml-auto text-xs">
+          <Badge variant="secondary" className="ml-1 text-xs">
             {plans.length} {pluralGoals(plans.length)}
           </Badge>
+          {canEdit && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={openCreate}
+              className="ml-auto h-7 text-xs"
+            >
+              <Icon name="Plus" size={14} className="mr-1" />
+              Цель
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -114,7 +146,13 @@ export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanPro
           <div className="text-center py-8 text-muted-foreground">
             <Icon name="Sparkles" size={32} className="mx-auto mb-2 opacity-50" />
             <p className="text-sm">Активных целей пока нет</p>
-            <p className="text-xs">Создайте первый план развития</p>
+            <p className="text-xs mb-3">Создайте первый план развития</p>
+            {canEdit && (
+              <Button size="sm" variant="outline" onClick={openCreate}>
+                <Icon name="Plus" size={14} className="mr-1" />
+                Добавить цель
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
@@ -127,7 +165,9 @@ export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanPro
               return (
                 <div
                   key={plan.id}
-                  className="p-4 rounded-xl border bg-gradient-to-br from-background to-muted/20 hover:shadow-sm transition-shadow"
+                  className={`p-4 rounded-xl border bg-gradient-to-br from-background to-muted/20 hover:shadow-sm transition-shadow ${canEdit ? 'cursor-pointer hover:border-primary/40' : ''}`}
+                  onClick={canEdit ? () => openEdit(plan) : undefined}
+                  role={canEdit ? 'button' : undefined}
                 >
                   <div className="flex items-start gap-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -194,6 +234,17 @@ export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanPro
           </div>
         )}
       </CardContent>
+
+      {canEdit && memberId && (
+        <PlanEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          memberId={memberId}
+          sphereLabels={data.sphere_labels_child}
+          initial={editing}
+          onSaved={handleSaved}
+        />
+      )}
     </Card>
   );
 }

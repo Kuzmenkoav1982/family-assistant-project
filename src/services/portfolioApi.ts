@@ -16,6 +16,19 @@ async function call<T>(params: Record<string, string>): Promise<T> {
   return res.json();
 }
 
+async function callPost<T>(params: Record<string, string>, body: unknown): Promise<T> {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${PORTFOLIO_URL}?${qs}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  if (!res.ok) {
+    throw new Error(`Portfolio API error ${res.status}`);
+  }
+  return res.json();
+}
+
 export const portfolioApi = {
   get: (memberId: string) =>
     call<PortfolioData>({ action: 'get', member_id: memberId }),
@@ -54,7 +67,73 @@ export const portfolioApi = {
       member_id: memberId,
       limit: String(limit),
     }),
+
+  planCreate: (memberId: string, plan: PlanInput) =>
+    callPost<{ id: string; status: string }>(
+      { action: 'plan_create', member_id: memberId },
+      plan,
+    ),
+
+  planUpdate: (planId: string, plan: Partial<PlanInput> & { status?: string; progress?: number }) =>
+    callPost<{ id: string; status: string }>(
+      { action: 'plan_update', plan_id: planId },
+      plan,
+    ),
+
+  planDelete: (planId: string) =>
+    call<{ id: string; status: string }>({
+      action: 'plan_delete',
+      plan_id: planId,
+    }),
+
+  autoBadges: (memberId: string) =>
+    call<{ created: number; badges: { badge_key: string; title: string }[] }>({
+      action: 'auto_badges',
+      member_id: memberId,
+    }),
+
+  compare: (familyId: string) =>
+    call<CompareResponse>({
+      action: 'compare',
+      family_id: familyId,
+    }),
+
+  aiInsights: (memberId: string) =>
+    call<{ insights: import('@/types/portfolio.types').Insight[]; count: number; error?: string }>({
+      action: 'ai_insights',
+      member_id: memberId,
+    }),
 };
+
+export interface PlanInput {
+  sphere_key: string;
+  title: string;
+  description?: string | null;
+  milestone?: string | null;
+  target_date?: string | null;
+  next_step?: string | null;
+  progress?: number;
+}
+
+export interface CompareMember {
+  id: string;
+  name: string;
+  role: string | null;
+  age: number | null;
+  photo_url: string | null;
+  avatar: string | null;
+  completeness: number;
+  scores: Record<string, number>;
+  confidence: Record<string, number>;
+  has_portfolio: boolean;
+}
+
+export interface CompareResponse {
+  family_id: string;
+  members: CompareMember[];
+  sphere_labels_child: Record<string, string>;
+  sphere_icons: Record<string, string>;
+}
 
 export interface PortfolioHistoryPoint {
   id: string;

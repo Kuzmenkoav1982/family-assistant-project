@@ -64,6 +64,7 @@ const Community = lazy(() => import("./pages/Community"));
 const MemberProfile = lazy(() => import("./pages/MemberProfile"));
 const MemberPortfolio = lazy(() => import("./pages/MemberPortfolio"));
 const FamilyPortfolio = lazy(() => import("./pages/FamilyPortfolio"));
+const PortfolioCompare = lazy(() => import("./pages/PortfolioCompare"));
 const FamilyCode = lazy(() => import("./pages/FamilyCode"));
 const FamilyChat = lazy(() => import("./pages/FamilyChat"));
 const Presentation = lazy(() => import("./pages/Presentation"));
@@ -361,6 +362,11 @@ const App = () => {
                       <Route path="/portfolio" element={
                         <ProtectedRoute>
                           <FamilyPortfolio />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/portfolio/compare" element={
+                        <ProtectedRoute>
+                          <PortfolioCompare />
                         </ProtectedRoute>
                       } />
                       <Route path="/portfolio/:memberId" element={

@@ -642,7 +642,7 @@ def aggregate(member_id: str) -> Dict[str, Any]:
                 updated_at = CURRENT_TIMESTAMP
         """)
 
-        return {
+        result = {
             'member': {
                 'id': str(member['id']),
                 'name': member['name'],
@@ -665,6 +665,12 @@ def aggregate(member_id: str) -> Dict[str, Any]:
     finally:
         cur.close()
         conn.close()
+
+    try:
+        auto_generate_badges(member_id)
+    except Exception:
+        pass
+    return result
 
 
 def get_portfolio(member_id: str) -> Dict[str, Any]:
@@ -953,6 +959,359 @@ def list_achievements(member_id: str) -> Dict[str, Any]:
         conn.close()
 
 
+def gen_ai_insights(member_id: str) -> Dict[str, Any]:
+    """AI-инсайты через YandexGPT на основе текущего состояния портфолио."""
+    import urllib.request
+    import urllib.error
+
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    if not api_key or not folder_id:
+        return {'insights': [], 'count': 0, 'note': 'AI not configured'}
+
+    agg = aggregate(member_id)
+    if 'error' in agg:
+        return agg
+
+    member = agg['member']
+    age = member.get('age')
+    name = member.get('name', 'Ребёнок')
+
+    # Готовим компактную сводку для LLM
+    summary_lines = [f'Возраст: {age} лет' if age else 'Возраст: не указан']
+    for sphere, label in SPHERE_LABELS_CHILD.items():
+        score = round(agg['scores'].get(sphere, 0))
+        conf = round(agg['confidence'].get(sphere, 0))
+        summary_lines.append(f'- {label}: {score}/100 (достоверность {conf}%)')
+    summary = '\n'.join(summary_lines)
+
+    prompt = (
+        f'Ты — детский психолог и педагог. Проанализируй портфолио развития ребёнка по имени {name}. '
+        f'Дай 3 коротких практичных наблюдения (по 1-2 предложения). Тон — добрый, без алармизма. '
+        f'Формат ответа: строго JSON-массив объектов вида '
+        f'[{{"title":"короткий заголовок","text":"наблюдение","suggestion":"что сделать","severity":"info|success|warning"}}]. '
+        f'Без лишнего текста вокруг JSON.\n\nПортфолио:\n{summary}'
+    )
+
+    payload = {
+        'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+        'completionOptions': {'stream': False, 'temperature': 0.4, 'maxTokens': 800},
+        'messages': [
+            {'role': 'system', 'text': 'Ты эксперт по развитию детей. Отвечай только JSON.'},
+            {'role': 'user', 'text': prompt},
+        ],
+    }
+    req = urllib.request.Request(
+        'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+        data=json.dumps(payload).encode('utf-8'),
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Api-Key {api_key}',
+        },
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+        return {'insights': [], 'count': 0, 'error': f'AI request failed: {str(e)[:200]}'}
+
+    text = ''
+    try:
+        text = data['result']['alternatives'][0]['message']['text']
+    except (KeyError, IndexError):
+        return {'insights': [], 'count': 0, 'error': 'Invalid AI response'}
+
+    text = text.strip()
+    if text.startswith('```'):
+        text = text.strip('`').strip()
+        if text.startswith('json'):
+            text = text[4:].strip()
+
+    try:
+        parsed = json.loads(text)
+        if not isinstance(parsed, list):
+            parsed = []
+    except json.JSONDecodeError:
+        # Попытка достать JSON из произвольного текста
+        start = text.find('[')
+        end = text.rfind(']')
+        if start >= 0 and end > start:
+            try:
+                parsed = json.loads(text[start:end + 1])
+            except json.JSONDecodeError:
+                parsed = []
+        else:
+            parsed = []
+
+    insights = []
+    for item in parsed:
+        if not isinstance(item, dict):
+            continue
+        sev = item.get('severity', 'info')
+        if sev not in ('info', 'success', 'warning'):
+            sev = 'info'
+        insights.append({
+            'sphere': None,
+            'sphere_label': 'AI-наблюдение',
+            'severity': sev,
+            'rule_key': 'ai',
+            'title': str(item.get('title', ''))[:120],
+            'text': str(item.get('text', ''))[:400],
+            'suggestion': str(item.get('suggestion', ''))[:300] if item.get('suggestion') else None,
+        })
+
+    # Сохраняем в portfolio_insights
+    if insights:
+        try:
+            conn = get_conn()
+            cur = conn.cursor()
+            try:
+                cur.execute(f"""
+                    DELETE FROM {SCHEMA}.portfolio_insights
+                    WHERE member_id = {esc(member_id)}::uuid AND generated_by = 'ai'
+                """)
+                for ins in insights:
+                    cur.execute(f"""
+                        INSERT INTO {SCHEMA}.portfolio_insights
+                            (member_id, insight_type, severity, rule_key, title, text, suggestion, generated_by, created_at)
+                        VALUES (
+                            {esc(member_id)}::uuid,
+                            'ai_observation',
+                            {esc(ins['severity'])},
+                            'ai',
+                            {esc(ins['title'])},
+                            {esc(ins['text'])},
+                            {esc(ins['suggestion']) if ins['suggestion'] else 'NULL'},
+                            'ai',
+                            CURRENT_TIMESTAMP
+                        )
+                    """)
+            finally:
+                cur.close()
+                conn.close()
+        except Exception:
+            pass
+
+    return {'insights': insights, 'count': len(insights), 'generated_by': 'ai'}
+
+
+def auto_generate_badges(member_id: str) -> Dict[str, Any]:
+    """Создаёт бейджи на основе текущего состояния портфолио."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    created: List[Dict[str, Any]] = []
+    try:
+        cur.execute(f"""
+            SELECT mp.current_scores, mp.confidence_scores, mp.completeness, fm.family_id
+            FROM {SCHEMA}.member_portfolios mp
+            JOIN {SCHEMA}.family_members fm ON fm.id = mp.member_id
+            WHERE mp.member_id = {esc(member_id)}::uuid LIMIT 1
+        """)
+        row = cur.fetchone()
+        if not row:
+            return {'error': 'Portfolio not found'}
+        scores = row.get('current_scores') or {}
+        confs = row.get('confidence_scores') or {}
+        completeness = int(row.get('completeness') or 0)
+        family_id = str(row['family_id'])
+
+        rules = [
+            ('first_data', 'Первые данные', 'Sparkles', 'milestone', None,
+             lambda: completeness >= 10),
+            ('completeness_50', 'Половина пути', 'Hourglass', 'path', None,
+             lambda: completeness >= 50),
+            ('completeness_80', 'Полный профиль', 'CheckCircle2', 'milestone', None,
+             lambda: completeness >= 80),
+        ]
+        for sphere in SPHERE_KEYS:
+            score = float(scores.get(sphere, 0))
+            conf = float(confs.get(sphere, 0))
+            label = SPHERE_LABELS_CHILD[sphere]
+            rules.append((
+                f'{sphere}_strong', f'Сильная сфера: {label}', SPHERE_ICONS[sphere], 'milestone', sphere,
+                lambda s=score, c=conf: s >= 80 and c >= 60,
+            ))
+            rules.append((
+                f'{sphere}_growing', f'Растёт: {label}', 'TrendingUp', 'path', sphere,
+                lambda s=score, c=conf: s >= 60 and c >= 50,
+            ))
+
+        cur.execute(f"""
+            SELECT badge_key FROM {SCHEMA}.member_achievements
+            WHERE member_id = {esc(member_id)}::uuid
+        """)
+        existing = {r['badge_key'] for r in cur.fetchall()}
+
+        for badge_key, title, icon, category, sphere, predicate in rules:
+            if badge_key in existing:
+                continue
+            try:
+                if not predicate():
+                    continue
+            except Exception:
+                continue
+            cur.execute(f"""
+                INSERT INTO {SCHEMA}.member_achievements
+                    (member_id, family_id, badge_key, title, icon, sphere_key, category, earned_at)
+                VALUES (
+                    {esc(member_id)}::uuid,
+                    {esc(family_id)}::uuid,
+                    {esc(badge_key)},
+                    {esc(title)},
+                    {esc(icon)},
+                    {esc(sphere) if sphere else 'NULL'},
+                    {esc(category)},
+                    CURRENT_TIMESTAMP
+                )
+                ON CONFLICT (member_id, badge_key) DO NOTHING
+            """)
+            created.append({'badge_key': badge_key, 'title': title})
+        return {'created': len(created), 'badges': created}
+    finally:
+        cur.close()
+        conn.close()
+
+
+def compare_members(family_id: str) -> Dict[str, Any]:
+    """Сравнение всех членов семьи: scores по сферам в одном объекте."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT fm.id, fm.name, fm.role, fm.age, fm.photo_url, fm.avatar,
+                   mp.current_scores, mp.confidence_scores, mp.completeness
+            FROM {SCHEMA}.family_members fm
+            LEFT JOIN {SCHEMA}.member_portfolios mp ON mp.member_id = fm.id
+            WHERE fm.family_id = {esc(family_id)}::uuid
+            ORDER BY fm.age DESC NULLS LAST, fm.name
+        """)
+        rows = cur.fetchall()
+        members = []
+        for r in rows:
+            scores = r.get('current_scores') or {}
+            confs = r.get('confidence_scores') or {}
+            members.append({
+                'id': str(r['id']),
+                'name': r['name'],
+                'role': r.get('role'),
+                'age': r.get('age'),
+                'photo_url': r.get('photo_url'),
+                'avatar': r.get('avatar'),
+                'completeness': int(r.get('completeness') or 0),
+                'scores': {k: float(scores.get(k, 0)) for k in SPHERE_KEYS},
+                'confidence': {k: float(confs.get(k, 0)) for k in SPHERE_KEYS},
+                'has_portfolio': r.get('current_scores') is not None,
+            })
+        return {
+            'family_id': family_id,
+            'members': members,
+            'sphere_labels_child': SPHERE_LABELS_CHILD,
+            'sphere_icons': SPHERE_ICONS,
+        }
+    finally:
+        cur.close()
+        conn.close()
+
+
+def plan_create(member_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    sphere = body.get('sphere_key')
+    title = body.get('title')
+    if not sphere or not title:
+        return {'error': 'sphere_key and title required'}
+    description = body.get('description')
+    milestone = body.get('milestone')
+    target_date = body.get('target_date')
+    next_step = body.get('next_step')
+    progress = int(body.get('progress') or 0)
+
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT family_id FROM {SCHEMA}.family_members WHERE id = {esc(member_id)}::uuid
+        """)
+        fm = cur.fetchone()
+        if not fm:
+            return {'error': 'Member not found'}
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.member_development_plans
+                (member_id, family_id, sphere_key, title, description, milestone,
+                 target_date, status, progress, next_step)
+            VALUES (
+                {esc(member_id)}::uuid,
+                {esc(str(fm['family_id']))}::uuid,
+                {esc(sphere)},
+                {esc(title)},
+                {esc(description) if description else 'NULL'},
+                {esc(milestone) if milestone else 'NULL'},
+                {esc(target_date) + '::date' if target_date else 'NULL'},
+                'active',
+                {progress},
+                {esc(next_step) if next_step else 'NULL'}
+            )
+            RETURNING id
+        """)
+        new = cur.fetchone()
+        return {'id': str(new['id']), 'status': 'created'}
+    finally:
+        cur.close()
+        conn.close()
+
+
+def plan_update(plan_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    fields = []
+    for k in ('title', 'description', 'milestone', 'next_step', 'status'):
+        if k in body and body[k] is not None:
+            fields.append(f"{k} = {esc(body[k])}")
+    if 'progress' in body and body['progress'] is not None:
+        fields.append(f"progress = {int(body['progress'])}")
+    if 'sphere_key' in body and body['sphere_key']:
+        fields.append(f"sphere_key = {esc(body['sphere_key'])}")
+    if 'target_date' in body:
+        td = body['target_date']
+        fields.append(f"target_date = {esc(td) + '::date' if td else 'NULL'}")
+    if not fields:
+        return {'error': 'no fields to update'}
+    fields.append('updated_at = CURRENT_TIMESTAMP')
+    if body.get('status') == 'completed':
+        fields.append('completed_at = CURRENT_TIMESTAMP')
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            UPDATE {SCHEMA}.member_development_plans
+            SET {', '.join(fields)}
+            WHERE id = {esc(plan_id)}::uuid
+            RETURNING id
+        """)
+        row = cur.fetchone()
+        if not row:
+            return {'error': 'Plan not found'}
+        return {'id': str(row['id']), 'status': 'updated'}
+    finally:
+        cur.close()
+        conn.close()
+
+
+def plan_delete(plan_id: str) -> Dict[str, Any]:
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            DELETE FROM {SCHEMA}.member_development_plans
+            WHERE id = {esc(plan_id)}::uuid
+            RETURNING id
+        """)
+        row = cur.fetchone()
+        if not row:
+            return {'error': 'Plan not found'}
+        return {'id': str(row['id']), 'status': 'deleted'}
+    finally:
+        cur.close()
+        conn.close()
+
+
 def get_history(member_id: str, limit: int = 12) -> Dict[str, Any]:
     """Полная история snapshots для построения графика динамики."""
     conn = get_conn()
@@ -1077,6 +1436,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             data = get_history(member_id, limit)
         elif action == 'cron_snapshot':
             data = cron_snapshot_all()
+        elif action == 'plan_create':
+            if not member_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'member_id required'})}
+            body_str = event.get('body') or '{}'
+            body = json.loads(body_str) if body_str else {}
+            data = plan_create(member_id, body)
+        elif action == 'plan_update':
+            plan_id = params.get('plan_id')
+            if not plan_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'plan_id required'})}
+            body_str = event.get('body') or '{}'
+            body = json.loads(body_str) if body_str else {}
+            data = plan_update(plan_id, body)
+        elif action == 'plan_delete':
+            plan_id = params.get('plan_id')
+            if not plan_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'plan_id required'})}
+            data = plan_delete(plan_id)
+        elif action == 'auto_badges':
+            if not member_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'member_id required'})}
+            data = auto_generate_badges(member_id)
+        elif action == 'ai_insights':
+            if not member_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'member_id required'})}
+            data = gen_ai_insights(member_id)
+        elif action == 'compare':
+            if not family_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'family_id required'})}
+            data = compare_members(family_id)
         else:
             return {'statusCode': 400, 'headers': cors_headers(),
                     'body': json.dumps({'error': f'Unknown action: {action}'})}
