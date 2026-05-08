@@ -8,6 +8,25 @@ interface DevelopmentTableProps {
   data: PortfolioData;
 }
 
+function pluralSources(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'источник';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'источника';
+  return 'источников';
+}
+
+function formatLastDate(iso: string): string {
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return '';
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'сегодня';
+  if (diffDays === 1) return 'вчера';
+  if (diffDays < 7) return `${diffDays} дн. назад`;
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+
 function levelLabel(score: number, conf: number): string {
   if (conf < 40) return 'Недостаточно данных';
   if (score >= 80) return 'Высокий';
@@ -27,6 +46,16 @@ function levelColor(score: number, conf: number): string {
 export default function DevelopmentTable({ data }: DevelopmentTableProps) {
   const planBySphere = new Map(data.plans.map((p) => [p.sphere_key, p]));
   const actionBySphere = new Map(data.next_actions.map((a) => [a.sphere, a]));
+
+  const metricsBySphere = new Map<SphereKey, { count: number; lastDate: string | null }>();
+  for (const m of data.recent_metrics) {
+    const cur = metricsBySphere.get(m.sphere_key) || { count: 0, lastDate: null };
+    cur.count += 1;
+    if (!cur.lastDate || new Date(m.measured_at) > new Date(cur.lastDate)) {
+      cur.lastDate = m.measured_at;
+    }
+    metricsBySphere.set(m.sphere_key, cur);
+  }
 
   return (
     <Card className="border-0 shadow-sm">
@@ -108,7 +137,7 @@ export default function DevelopmentTable({ data }: DevelopmentTableProps) {
                       {dim ? (
                         <span className="text-muted-foreground">—</span>
                       ) : delta === 0 ? (
-                        <span className="text-muted-foreground">→ 0</span>
+                        <span className="text-muted-foreground text-xs">без изменений</span>
                       ) : delta > 0 ? (
                         <span className="text-green-600">↗ +{delta.toFixed(1)}</span>
                       ) : (
@@ -116,13 +145,28 @@ export default function DevelopmentTable({ data }: DevelopmentTableProps) {
                       )}
                     </td>
                     <td className="p-3 hidden lg:table-cell">
-                      <span className="text-xs text-muted-foreground">
-                        {data.recent_metrics
-                          .filter((m) => m.sphere_key === sphere)
-                          .slice(0, 1)
-                          .map(() => `${data.sphere_labels_child[sphere]}: ${data.recent_metrics.filter((m) => m.sphere_key === sphere).length} источников`)
-                          .join('') || '—'}
-                      </span>
+                      {(() => {
+                        const meta = metricsBySphere.get(sphere);
+                        if (!meta || meta.count === 0) {
+                          return (
+                            <span className="text-xs text-muted-foreground italic">
+                              данных нет
+                            </span>
+                          );
+                        }
+                        return (
+                          <div className="text-xs text-muted-foreground leading-tight">
+                            <div>
+                              {meta.count} {pluralSources(meta.count)}
+                            </div>
+                            {meta.lastDate && (
+                              <div className="text-[10px] opacity-80">
+                                последний: {formatLastDate(meta.lastDate)}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="p-3 hidden md:table-cell">
                       {plan ? (
