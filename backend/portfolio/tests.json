@@ -1,0 +1,52 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Aggregate Ilya 200",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get Ilya portfolio 200",
+      "method": "GET",
+      "path": "/?action=get&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Insights for Ilya 200",
+      "method": "GET",
+      "path": "/?action=insights&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Achievements wall 200",
+      "method": "GET",
+      "path": "/?action=achievements&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200
+    },
+    {
+      "name": "List family portfolios 200",
+      "method": "GET",
+      "path": "/?action=list&family_id=00000000-0000-0000-0000-000000000001",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Bad action 400",
+      "method": "GET",
+      "path": "/?action=unknown",
+      "expectedStatus": 400
+    },
+    {
+      "name": "Get without member_id 400",
+      "method": "GET",
+      "path": "/?action=get",
+      "expectedStatus": 400
+    }
+  ]
+}

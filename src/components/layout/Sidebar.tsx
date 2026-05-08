@@ -62,6 +62,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/family-hub',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
+        { id: 'portfolio', label: 'Портфолио семьи', icon: 'Sparkles', path: '/portfolio', badge: 'Новое' },
         { id: 'tree', label: 'Семейное древо', icon: 'GitBranch', path: '/tree' },
         { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
         { id: 'family-tracker', label: 'Семейный маячок', icon: 'MapPin', path: '/family-tracker' },

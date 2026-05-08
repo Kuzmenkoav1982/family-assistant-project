@@ -62,6 +62,8 @@ const Calendar = lazy(() => import("./pages/Calendar"));
 const PermissionsManagement = lazy(() => import("./pages/PermissionsManagement"));
 const Community = lazy(() => import("./pages/Community"));
 const MemberProfile = lazy(() => import("./pages/MemberProfile"));
+const MemberPortfolio = lazy(() => import("./pages/MemberPortfolio"));
+const FamilyPortfolio = lazy(() => import("./pages/FamilyPortfolio"));
 const FamilyCode = lazy(() => import("./pages/FamilyCode"));
 const FamilyChat = lazy(() => import("./pages/FamilyChat"));
 const Presentation = lazy(() => import("./pages/Presentation"));
@@ -356,6 +358,16 @@ const App = () => {
                       <Route path="/permissions" element={<PermissionsManagement />} />
                       <Route path="/community" element={<Community />} />
                       <Route path="/member/:memberId" element={<MemberProfile />} />
+                      <Route path="/portfolio" element={
+                        <ProtectedRoute>
+                          <FamilyPortfolio />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/portfolio/:memberId" element={
+                        <ProtectedRoute>
+                          <MemberPortfolio />
+                        </ProtectedRoute>
+                      } />
                       <Route path="/family-code" element={<FamilyCode />} />
                       <Route path="/chat" element={<FamilyChat />} />
                       <Route path="/family-chat" element={<FamilyChat />} />
