@@ -10,6 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
+import {
+  getSourceTypeLabel,
+  getMetricKeyLabel,
+  formatMetricValue,
+} from '@/utils/portfolioLabels';
 
 interface SourcesDrawerProps {
   data: PortfolioData;
@@ -89,19 +94,18 @@ export default function SourcesDrawer({ data }: SourcesDrawerProps) {
                     </span>
                   </div>
                   <Badge variant="outline" className="text-[10px]">
-                    {m.source_type}
+                    {getSourceTypeLabel(m.source_type)}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{m.metric_key}</span>
-                  <div className="flex items-center gap-2">
-                    {m.metric_value !== null && (
-                      <span className="font-semibold">{m.metric_value}</span>
-                    )}
-                    {m.metric_unit && (
-                      <span className="text-muted-foreground">{m.metric_unit}</span>
-                    )}
-                  </div>
+                <div className="flex items-center justify-between text-xs gap-2">
+                  <span className="text-muted-foreground truncate">
+                    {getMetricKeyLabel(m.metric_key)}
+                  </span>
+                  {m.metric_value !== null && (
+                    <span className="font-semibold whitespace-nowrap">
+                      {formatMetricValue(m.metric_value, m.metric_unit)}
+                    </span>
+                  )}
                 </div>
                 {m.raw_value && (
                   <p className="text-xs text-muted-foreground mt-1 italic">{m.raw_value}</p>
