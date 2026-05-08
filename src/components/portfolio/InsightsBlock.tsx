@@ -8,6 +8,7 @@ import type { Insight } from '@/types/portfolio.types';
 
 interface InsightsBlockProps {
   memberId: string;
+  aiEnabled?: boolean;
 }
 
 interface SeverityMeta {
@@ -50,7 +51,7 @@ function pluralInsights(n: number): string {
   return 'наблюдений';
 }
 
-export default function InsightsBlock({ memberId }: InsightsBlockProps) {
+export default function InsightsBlock({ memberId, aiEnabled = true }: InsightsBlockProps) {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [aiInsights, setAiInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,16 +166,18 @@ export default function InsightsBlock({ memberId }: InsightsBlockProps) {
           <Badge variant="secondary" className="text-xs">
             {insights.length + aiInsights.length} {pluralInsights(insights.length + aiInsights.length)}
           </Badge>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleAskAi}
-            disabled={aiLoading}
-            className="ml-auto h-7 text-xs"
-          >
-            <Icon name={aiLoading ? 'Loader' : 'Sparkles'} size={14} className={`mr-1 ${aiLoading ? 'animate-spin' : ''}`} />
-            {aiLoading ? 'Думаю…' : aiInsights.length ? 'Обновить ИИ' : 'Спросить ИИ'}
-          </Button>
+          {aiEnabled && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleAskAi}
+              disabled={aiLoading}
+              className="ml-auto h-7 text-xs"
+            >
+              <Icon name={aiLoading ? 'Loader' : 'Sparkles'} size={14} className={`mr-1 ${aiLoading ? 'animate-spin' : ''}`} />
+              {aiLoading ? 'Думаю…' : aiInsights.length ? 'Обновить ИИ' : 'Спросить ИИ'}
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>

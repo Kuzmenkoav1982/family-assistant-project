@@ -19,6 +19,7 @@ import { formatTimeAgo } from '@/utils/timeAgo';
 import { shareToFamilyChat } from '@/services/familyChatShare';
 import { buildPortfolioChatMessage } from '@/utils/portfolioShare';
 import { useToast } from '@/hooks/use-toast';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 
 export default function MemberPortfolio() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -29,6 +30,8 @@ export default function MemberPortfolio() {
   const [refreshing, setRefreshing] = useState(false);
   const [sharing, setSharing] = useState(false);
   const { toast } = useToast();
+  const pdfEnabled = useFeatureFlag('portfolio_pdf_export', true);
+  const aiEnabled = useFeatureFlag('portfolio_ai_insights', true);
 
   useEffect(() => {
     if (!memberId) return;
@@ -146,21 +149,23 @@ export default function MemberPortfolio() {
             />
             {sharing ? 'Отправляю…' : 'В чат семьи'}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.print()}
-            className="gap-1.5"
-            title="Сохранить как PDF (через диалог печати)"
-          >
-            <Icon name="FileDown" size={14} />
-            Скачать PDF
-          </Button>
+          {pdfEnabled && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="gap-1.5"
+              title="Сохранить как PDF (через диалог печати)"
+            >
+              <Icon name="FileDown" size={14} />
+              Скачать PDF
+            </Button>
+          )}
         </div>
 
         <SpheresRadar data={data} />
 
-        {memberId && <InsightsBlock memberId={memberId} />}
+        {memberId && <InsightsBlock memberId={memberId} aiEnabled={aiEnabled} />}
 
         {memberId && <HistoryChart memberId={memberId} />}
 

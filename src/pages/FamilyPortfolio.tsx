@@ -10,13 +10,19 @@ import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { FamilyPortfolioListItem } from '@/types/portfolio.types';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { isAdultMember } from '@/utils/familyRole';
 
 export default function FamilyPortfolio() {
   const navigate = useNavigate();
-  const { familyId } = useFamilyMembersContext();
+  const { familyId, members, currentMemberId } = useFamilyMembersContext();
   const [items, setItems] = useState<FamilyPortfolioListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const compareEnabled = useFeatureFlag('portfolio_compare_enabled', false);
+  const currentMember = members.find((m) => m.id === currentMemberId) || null;
+  const isAdult = isAdultMember(currentMember);
+  const showCompare = compareEnabled && isAdult;
 
   useEffect(() => {
     if (!familyId) {
@@ -80,12 +86,14 @@ export default function FamilyPortfolio() {
           <p className="text-muted-foreground mb-4">
             Паспорт развития каждого члена семьи. Сравнение с собой во времени, без рейтингов.
           </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/portfolio/compare')}>
-              <Icon name="GitCompare" size={14} className="mr-1" />
-              Сравнить участников
-            </Button>
-          </div>
+          {showCompare && (
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate('/portfolio/compare')}>
+                <Icon name="LayoutGrid" size={14} className="mr-1" />
+                Семейный обзор
+              </Button>
+            </div>
+          )}
         </div>
 
         {error && (

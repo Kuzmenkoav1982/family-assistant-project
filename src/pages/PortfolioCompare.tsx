@@ -18,6 +18,9 @@ import {
 } from 'recharts';
 import { portfolioApi, type CompareMember } from '@/services/portfolioApi';
 import { SPHERE_ORDER } from '@/types/portfolio.types';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { isAdultMember } from '@/utils/familyRole';
 
 const PALETTE = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -30,6 +33,12 @@ export default function PortfolioCompare() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const compareEnabled = useFeatureFlag('portfolio_compare_enabled', false);
+  const { members: familyMembers, currentMemberId } = useFamilyMembersContext();
+  const currentMember = familyMembers.find((m) => m.id === currentMemberId) || null;
+  const isAdult = isAdultMember(currentMember);
+  const accessGranted = compareEnabled && isAdult;
 
   useEffect(() => {
     const stored = localStorage.getItem('familyId') || localStorage.getItem('family_id');
@@ -77,6 +86,25 @@ export default function PortfolioCompare() {
     });
   };
 
+  if (!accessGranted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center">
+            <Icon name="Lock" size={48} className="mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-lg font-bold mb-2">Семейный обзор недоступен</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              {!compareEnabled
+                ? 'Раздел временно отключён администратором.'
+                : 'Этот раздел доступен только взрослым членам семьи. Это аналитика, а не соревнование между детьми.'}
+            </p>
+            <Button onClick={() => navigate('/portfolio')}>К портфолио семьи</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!familyId) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -117,7 +145,7 @@ export default function PortfolioCompare() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
-      <SEOHead title="Сравнение портфолио семьи" description="Сравнение развития членов семьи" />
+      <SEOHead title="Семейный обзор" description="Аналитика портфолио всех участников семьи" />
       <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8 space-y-6">
         <div className="flex items-center justify-between gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/portfolio')}>
@@ -125,11 +153,14 @@ export default function PortfolioCompare() {
             К списку
           </Button>
           <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-            <Icon name="GitCompare" size={22} className="text-primary" />
-            Сравнение портфолио
+            <Icon name="LayoutGrid" size={22} className="text-primary" />
+            Семейный обзор
           </h1>
           <div className="w-[80px]" />
         </div>
+        <p className="text-xs text-muted-foreground -mt-3 text-center">
+          Аналитический срез для взрослых. Это не соревнование, а общая картина семьи.
+        </p>
 
         {members.length === 0 ? (
           <Card>

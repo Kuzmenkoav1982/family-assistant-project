@@ -209,6 +209,7 @@ export default function AdminDashboard() {
     { icon: 'Trophy', label: 'Топ семей', tab: 'top', color: 'from-yellow-400 to-orange-500' },
     { icon: 'ToggleRight', label: 'Фич-флаги', tab: 'flags', color: 'from-slate-400 to-gray-500' },
     { icon: 'Newspaper', label: 'Блог', tab: 'blog-link', color: 'from-orange-400 to-pink-500', href: '/admin/blog' },
+    { icon: 'Sparkles', label: 'Портфолио', tab: 'portfolio-health', color: 'from-violet-400 to-purple-500', href: '/admin/portfolio-health' },
   ];
 
   return (

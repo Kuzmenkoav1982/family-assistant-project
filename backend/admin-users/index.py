@@ -589,6 +589,10 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             body = json.loads(event.get('body') or '{}')
             return _ok(errors_add(body), headers)
 
+        # Публичный read-only эндпоинт — список фич-флагов для клиента
+        if resource == 'public_flags' and method == 'GET':
+            return _ok(flags_list(), headers)
+
         admin_token = (event.get('headers') or {}).get('x-admin-token') or \
                       (event.get('headers') or {}).get('X-Admin-Token')
         if admin_token != 'admin_authenticated':
