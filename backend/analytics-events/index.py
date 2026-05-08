@@ -34,12 +34,17 @@ ALLOWED_EVENTS = {
     'portfolio_empty_state_cta_click',
     'portfolio_templates_open',
     'portfolio_template_apply',
+    'portfolio_about_open',
+    'portfolio_why_suggested_open',
+    'portfolio_source_deep_link_click',
+    'portfolio_improve_cta_click',
 }
 
 ALLOWED_PROP_KEYS = {
     'sphere', 'severity', 'count', 'has_ai', 'completeness_bucket',
     'confidence_bucket', 'source', 'success', 'duration_ms', 'badge_key',
     'is_owner', 'plan_status', 'age_band', 'template_id',
+    'source_type', 'route', 'level',
 }
 
 

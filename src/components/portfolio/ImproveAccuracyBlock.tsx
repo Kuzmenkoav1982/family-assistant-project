@@ -9,6 +9,7 @@ import {
   getActionableSourcesForSphere,
   type SourceRegistryEntry,
 } from '@/data/portfolioSourcesRegistry';
+import { track } from '@/lib/analytics';
 
 interface ImproveAccuracyBlockProps {
   data: PortfolioData;
@@ -132,6 +133,16 @@ export default function ImproveAccuracyBlock({ data }: ImproveAccuracyBlockProps
                     <Link
                       key={src.source_type}
                       to={src.route as string}
+                      onClick={() =>
+                        track('portfolio_improve_cta_click', {
+                          props: {
+                            sphere: s.sphere,
+                            source_type: src.source_type,
+                            route: src.route as string,
+                            level: s.level,
+                          },
+                        })
+                      }
                       className="flex items-center gap-2 p-2 rounded-md border bg-card hover:border-primary/40 hover:bg-primary/5 transition-colors group"
                     >
                       <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15">
@@ -155,6 +166,11 @@ export default function ImproveAccuracyBlock({ data }: ImproveAccuracyBlockProps
                   ))}
                   <Link
                     to="/portfolio/about"
+                    onClick={() =>
+                      track('portfolio_about_open', {
+                        props: { source: 'improve_block' },
+                      })
+                    }
                     className="inline-flex items-center gap-1 mt-1 text-[11px] text-muted-foreground hover:text-foreground"
                   >
                     <Icon name="HelpCircle" size={11} />

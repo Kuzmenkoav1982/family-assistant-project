@@ -4,6 +4,7 @@ import Icon from '@/components/ui/icon';
 import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
 import { getConfidenceMeta, getNextStepText } from '@/utils/portfolioConfidence';
 import WhySuggestedPopover, { buildPopoverContext } from './WhySuggestedPopover';
+import HowToReadPopover from './HowToReadPopover';
 
 interface DevelopmentTableProps {
   data: PortfolioData;
@@ -64,6 +65,7 @@ export default function DevelopmentTable({ data }: DevelopmentTableProps) {
         <CardTitle className="text-lg flex items-center gap-2">
           <Icon name="LayoutGrid" size={20} className="text-primary" />
           Сводная таблица развития
+          <HowToReadPopover context="table" />
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">

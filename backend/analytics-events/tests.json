@@ -21,6 +21,39 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "New trust event accepted (portfolio_about_open)",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event_name": "portfolio_about_open",
+        "page": "/portfolio/about",
+        "session_id": "test-session-trust",
+        "props": { "source": "trust_block" }
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "ok": true },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Improve CTA event accepted with new props",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "event_name": "portfolio_improve_cta_click",
+        "page": "/portfolio/abc",
+        "session_id": "test-session-improve",
+        "props": {
+          "sphere": "emotions",
+          "source_type": "children_mood_entries",
+          "route": "/health",
+          "level": "low"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": { "ok": true },
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Unknown event rejected",
       "method": "POST",
       "path": "/",

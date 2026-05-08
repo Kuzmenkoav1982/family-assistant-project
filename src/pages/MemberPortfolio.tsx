@@ -23,6 +23,7 @@ import { shareToFamilyChat } from '@/services/familyChatShare';
 import { buildPortfolioChatMessage } from '@/utils/portfolioShare';
 import { useToast } from '@/hooks/use-toast';
 import { useFeatureFlag } from '@/hooks/useFeatureFlags';
+import { track } from '@/lib/analytics';
 
 export default function MemberPortfolio() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -119,7 +120,7 @@ export default function MemberPortfolio() {
       <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8 space-y-6">
         <PortfolioHeader data={data} />
 
-        <TrustBlock />
+        <TrustBlock memberId={memberId} />
 
         <KeyHighlights data={data} />
 
@@ -200,6 +201,12 @@ export default function MemberPortfolio() {
               </p>
               <Link
                 to="/portfolio/about"
+                onClick={() =>
+                  track('portfolio_about_open', {
+                    member_id: memberId,
+                    props: { source: 'bottom_info_card' },
+                  })
+                }
                 className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-primary hover:underline"
               >
                 Подробнее о методике

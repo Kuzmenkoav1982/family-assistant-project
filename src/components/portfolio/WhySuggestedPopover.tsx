@@ -2,6 +2,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import Icon from '@/components/ui/icon';
 import { Link } from 'react-router-dom';
 import type { NextAction, SphereKey } from '@/types/portfolio.types';
+import { track, bucketConfidence } from '@/lib/analytics';
 
 interface WhySuggestedPopoverProps {
   action: NextAction;
@@ -82,7 +83,19 @@ export default function WhySuggestedPopover({
   const isLowData = confidence < 40;
 
   return (
-    <Popover>
+    <Popover
+      onOpenChange={(open) => {
+        if (open) {
+          track('portfolio_why_suggested_open', {
+            props: {
+              sphere: action.sphere,
+              source: action.source,
+              confidence_bucket: bucketConfidence(confidence),
+            },
+          });
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <button
           type="button"
@@ -121,6 +134,11 @@ export default function WhySuggestedPopover({
         )}
         <Link
           to="/portfolio/about"
+          onClick={() =>
+            track('portfolio_about_open', {
+              props: { source: 'why_suggested_popover' },
+            })
+          }
           className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium text-primary hover:underline"
         >
           Как работает Портфолио

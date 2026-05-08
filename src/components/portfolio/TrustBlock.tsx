@@ -1,8 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { track } from '@/lib/analytics';
 
-export default function TrustBlock() {
+interface TrustBlockProps {
+  memberId?: string;
+}
+
+export default function TrustBlock({ memberId }: TrustBlockProps = {}) {
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
       <CardContent className="p-4 sm:p-5">
@@ -21,6 +26,12 @@ export default function TrustBlock() {
             </p>
             <Link
               to="/portfolio/about"
+              onClick={() =>
+                track('portfolio_about_open', {
+                  member_id: memberId,
+                  props: { source: 'trust_block' },
+                })
+              }
               className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-primary hover:underline"
             >
               Как это работает

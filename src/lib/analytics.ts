@@ -26,7 +26,11 @@ export type PortfolioEvent =
   | 'portfolio_onboarding_complete'
   | 'portfolio_empty_state_cta_click'
   | 'portfolio_templates_open'
-  | 'portfolio_template_apply';
+  | 'portfolio_template_apply'
+  | 'portfolio_about_open'
+  | 'portfolio_why_suggested_open'
+  | 'portfolio_source_deep_link_click'
+  | 'portfolio_improve_cta_click';
 
 const URL = (func2url as Record<string, string>)['analytics-events'];
 
@@ -82,6 +86,9 @@ export interface TrackProps {
   plan_status?: string;
   age_band?: string;
   template_id?: string;
+  source_type?: string;
+  route?: string;
+  level?: string;
 }
 
 export interface TrackOptions {

@@ -13,6 +13,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
+import HowToReadPopover from './HowToReadPopover';
 import { getConfidenceMeta } from '@/utils/portfolioConfidence';
 
 interface SpheresRadarProps {
@@ -38,6 +39,7 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
         <CardTitle className="text-lg flex items-center gap-2">
           <Icon name="Radar" size={20} className="text-primary" />
           Радар развития
+          <HowToReadPopover context="radar" />
         </CardTitle>
         {hasPrev && (
           <div className="inline-flex items-center rounded-full border bg-muted/30 p-0.5 text-xs">
