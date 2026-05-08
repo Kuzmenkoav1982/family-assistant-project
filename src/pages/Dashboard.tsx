@@ -9,6 +9,7 @@ import DomovoyTip from '@/components/dashboard/DomovoyTip';
 import Confetti from '@/components/dashboard/Confetti';
 import FamilyRatingWidget from '@/components/dashboard/FamilyRatingWidget';
 import RatingCampaignWidget from '@/components/dashboard/RatingCampaignWidget';
+import PortfolioDashboardWidget from '@/components/dashboard/PortfolioDashboardWidget';
 import { SectionHelp } from '@/components/children/SectionHelp';
 import type { DashboardData, Hub } from '@/components/dashboard/types';
 
@@ -270,6 +271,7 @@ export default function Dashboard() {
         </div>
 
         <div className="mt-4 space-y-3">
+          <PortfolioDashboardWidget />
           <RatingCampaignWidget userId={String(userId)} />
           <FamilyRatingWidget userId={String(userId)} />
         </div>

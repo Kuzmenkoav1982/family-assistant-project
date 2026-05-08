@@ -17,6 +17,7 @@ const TYPE_META: Record<string, { icon: string; color: string; label: string }> 
   geofence: { icon: 'MapPin', color: 'text-indigo-500 bg-indigo-50', label: 'Геозоны' },
   leisure: { icon: 'Sparkles', color: 'text-cyan-500 bg-cyan-50', label: 'Досуг' },
   subscription: { icon: 'CreditCard', color: 'text-violet-500 bg-violet-50', label: 'Подписка' },
+  achievement: { icon: 'Trophy', color: 'text-amber-600 bg-amber-50', label: 'Достижения' },
 };
 
 const FILTER_TABS = [

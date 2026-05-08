@@ -16,6 +16,9 @@ import SourcesDrawer from '@/components/portfolio/SourcesDrawer';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { PortfolioData } from '@/types/portfolio.types';
 import { formatTimeAgo } from '@/utils/timeAgo';
+import { shareToFamilyChat } from '@/services/familyChatShare';
+import { buildPortfolioChatMessage } from '@/utils/portfolioShare';
+import { useToast } from '@/hooks/use-toast';
 
 export default function MemberPortfolio() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -24,6 +27,8 @@ export default function MemberPortfolio() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!memberId) return;
@@ -49,6 +54,29 @@ export default function MemberPortfolio() {
       setError(String(e));
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!data || sharing) return;
+    setSharing(true);
+    try {
+      const message = buildPortfolioChatMessage(data);
+      const r = await shareToFamilyChat(message);
+      if (r.ok) {
+        toast({
+          title: 'Отправлено в семейный чат',
+          description: 'Карточка портфолио опубликована в семье',
+        });
+      } else {
+        toast({
+          title: 'Не получилось отправить',
+          description: r.reason || 'Попробуйте ещё раз',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -103,6 +131,21 @@ export default function MemberPortfolio() {
             Обновлено {formatTimeAgo(data.last_aggregated_at)}
           </button>
           <SourcesDrawer data={data} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleShare}
+            disabled={sharing}
+            className="gap-1.5"
+            title="Отправить карточку в семейный чат"
+          >
+            <Icon
+              name={sharing ? 'Loader' : 'Share2'}
+              size={14}
+              className={sharing ? 'animate-spin' : ''}
+            />
+            {sharing ? 'Отправляю…' : 'В чат семьи'}
+          </Button>
           <Button
             variant="outline"
             size="sm"

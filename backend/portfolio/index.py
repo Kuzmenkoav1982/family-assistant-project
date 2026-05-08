@@ -1096,6 +1096,37 @@ def gen_ai_insights(member_id: str) -> Dict[str, Any]:
     return {'insights': insights, 'count': len(insights), 'generated_by': 'ai'}
 
 
+def _notify_family_owners(cur, family_id: str, member_name: str, badge_title: str) -> None:
+    """Создаёт push-уведомление всем владельцам/взрослым семьи о новом бейдже."""
+    try:
+        cur.execute(f"""
+            SELECT DISTINCT user_id FROM {SCHEMA}.family_members
+            WHERE family_id = {esc(family_id)}::uuid
+              AND user_id IS NOT NULL
+              AND COALESCE(account_type, 'full') = 'full'
+        """)
+        owner_ids = [str(r['user_id']) for r in cur.fetchall()]
+        for uid in owner_ids:
+            cur.execute(f"""
+                INSERT INTO {SCHEMA}.notifications
+                    (user_id, family_id, type, title, message, target_url, channel, status, sent_at, created_at)
+                VALUES (
+                    {esc(uid)}::uuid,
+                    {esc(family_id)},
+                    'achievement',
+                    {esc('Новое достижение: ' + badge_title)},
+                    {esc(member_name + ' получил(а) бейдж «' + badge_title + '» в портфолио развития.')},
+                    '/portfolio',
+                    'push',
+                    'sent',
+                    CURRENT_TIMESTAMP,
+                    CURRENT_TIMESTAMP
+                )
+            """)
+    except Exception:
+        pass
+
+
 def auto_generate_badges(member_id: str) -> Dict[str, Any]:
     """Создаёт бейджи на основе текущего состояния портфолио."""
     conn = get_conn()
@@ -1103,7 +1134,7 @@ def auto_generate_badges(member_id: str) -> Dict[str, Any]:
     created: List[Dict[str, Any]] = []
     try:
         cur.execute(f"""
-            SELECT mp.current_scores, mp.confidence_scores, mp.completeness, fm.family_id
+            SELECT mp.current_scores, mp.confidence_scores, mp.completeness, fm.family_id, fm.name AS member_name
             FROM {SCHEMA}.member_portfolios mp
             JOIN {SCHEMA}.family_members fm ON fm.id = mp.member_id
             WHERE mp.member_id = {esc(member_id)}::uuid LIMIT 1
@@ -1115,6 +1146,7 @@ def auto_generate_badges(member_id: str) -> Dict[str, Any]:
         confs = row.get('confidence_scores') or {}
         completeness = int(row.get('completeness') or 0)
         family_id = str(row['family_id'])
+        member_name = row.get('member_name') or 'Участник'
 
         rules = [
             ('first_data', 'Первые данные', 'Sparkles', 'milestone', None,
@@ -1167,6 +1199,7 @@ def auto_generate_badges(member_id: str) -> Dict[str, Any]:
                 ON CONFLICT (member_id, badge_key) DO NOTHING
             """)
             created.append({'badge_key': badge_key, 'title': title})
+            _notify_family_owners(cur, family_id, member_name, title)
         return {'created': len(created), 'badges': created}
     finally:
         cur.close()
