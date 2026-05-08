@@ -14,6 +14,7 @@ import ActiveDevelopmentPlan from '@/components/portfolio/ActiveDevelopmentPlan'
 import AchievementsWall from '@/components/portfolio/AchievementsWall';
 import SourcesDrawer from '@/components/portfolio/SourcesDrawer';
 import TrustBlock from '@/components/portfolio/TrustBlock';
+import ImproveAccuracyBlock from '@/components/portfolio/ImproveAccuracyBlock';
 import { Link } from 'react-router-dom';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { PortfolioData } from '@/types/portfolio.types';
@@ -168,6 +169,8 @@ export default function MemberPortfolio() {
         </div>
 
         <SpheresRadar data={data} />
+
+        <ImproveAccuracyBlock data={data} />
 
         {memberId && <InsightsBlock memberId={memberId} aiEnabled={aiEnabled} />}
 

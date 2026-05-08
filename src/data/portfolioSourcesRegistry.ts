@@ -256,3 +256,18 @@ export function getSourcesForSphere(sphere: SphereKey): SourceRegistryEntry[] {
     .filter((s) => s.spheres.includes(sphere))
     .sort((a, b) => b.priority - a.priority);
 }
+
+/**
+ * Возвращает топ-N источников с подтверждённым маршрутом для сферы.
+ * Используется в блоке «Что добавить, чтобы оценка стала точнее».
+ * Источники с route=null отфильтровываются — не показываем CTA, ведущий в никуда.
+ */
+export function getActionableSourcesForSphere(
+  sphere: SphereKey,
+  limit = 3,
+): SourceRegistryEntry[] {
+  return Object.values(SOURCES_REGISTRY)
+    .filter((s) => s.spheres.includes(sphere) && s.route !== null)
+    .sort((a, b) => b.priority - a.priority)
+    .slice(0, limit);
+}
