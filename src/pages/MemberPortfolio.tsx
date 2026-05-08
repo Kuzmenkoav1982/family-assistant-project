@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import PortfolioHeader from '@/components/portfolio/PortfolioHeader';
+import KeyHighlights from '@/components/portfolio/KeyHighlights';
 import SpheresRadar from '@/components/portfolio/SpheresRadar';
 import DevelopmentTable from '@/components/portfolio/DevelopmentTable';
 import ActiveDevelopmentPlan from '@/components/portfolio/ActiveDevelopmentPlan';
@@ -12,6 +13,7 @@ import AchievementsWall from '@/components/portfolio/AchievementsWall';
 import SourcesDrawer from '@/components/portfolio/SourcesDrawer';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { PortfolioData } from '@/types/portfolio.types';
+import { formatTimeAgo } from '@/utils/timeAgo';
 
 export default function MemberPortfolio() {
   const { memberId } = useParams<{ memberId: string }>();
@@ -38,7 +40,7 @@ export default function MemberPortfolio() {
     if (!memberId) return;
     setRefreshing(true);
     try {
-      const fresh = await portfolioApi.aggregate(memberId);
+      await portfolioApi.aggregate(memberId);
       const full = await portfolioApi.get(memberId);
       setData(full);
     } catch (e) {
@@ -81,22 +83,24 @@ export default function MemberPortfolio() {
       <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8 space-y-6">
         <PortfolioHeader data={data} />
 
-        <div className="flex flex-wrap gap-2 justify-end">
-          <SourcesDrawer data={data} />
-          <Button
-            variant="outline"
-            size="sm"
+        <KeyHighlights data={data} />
+
+        <div className="flex flex-wrap gap-2 justify-end items-center">
+          <button
+            type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="gap-2"
+            title="Обновить"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
           >
             <Icon
               name="RefreshCw"
-              size={14}
+              size={12}
               className={refreshing ? 'animate-spin' : ''}
             />
-            Пересчитать
-          </Button>
+            Обновлено {formatTimeAgo(data.last_aggregated_at)}
+          </button>
+          <SourcesDrawer data={data} />
         </div>
 
         <SpheresRadar data={data} />

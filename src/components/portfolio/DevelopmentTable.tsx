@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
+import { getConfidenceMeta, getNextStepText } from '@/utils/portfolioConfidence';
 
 interface DevelopmentTableProps {
   data: PortfolioData;
@@ -90,11 +91,18 @@ export default function DevelopmentTable({ data }: DevelopmentTableProps) {
                           {levelLabel(score, conf)}
                         </span>
                       </div>
-                      {!dim && conf < 70 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          предварительно
-                        </span>
-                      )}
+                      {(() => {
+                        const cm = getConfidenceMeta(conf);
+                        return (
+                          <div
+                            className={`inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] border ${cm.bg} ${cm.color}`}
+                            title={`${cm.label} · ${Math.round(conf)}%`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${cm.dot}`} />
+                            {cm.short}
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="p-3 hidden md:table-cell">
                       {dim ? (
@@ -127,7 +135,7 @@ export default function DevelopmentTable({ data }: DevelopmentTableProps) {
                     </td>
                     <td className="p-3">
                       <p className="text-xs text-foreground/80 max-w-xs">
-                        {action?.action || 'Нет рекомендаций'}
+                        {getNextStepText(action?.action, score, conf)}
                       </p>
                     </td>
                   </tr>

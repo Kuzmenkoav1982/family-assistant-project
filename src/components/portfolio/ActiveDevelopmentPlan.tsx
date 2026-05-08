@@ -8,6 +8,14 @@ interface ActiveDevelopmentPlanProps {
   data: PortfolioData;
 }
 
+function pluralGoals(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'цель';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'цели';
+  return 'целей';
+}
+
 export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanProps) {
   const plans = data.plans.slice(0, 3);
 
@@ -18,7 +26,7 @@ export default function ActiveDevelopmentPlan({ data }: ActiveDevelopmentPlanPro
           <Icon name="Target" size={20} className="text-primary" />
           Активный план развития
           <Badge variant="secondary" className="ml-auto text-xs">
-            {plans.length} {plans.length === 1 ? 'цель' : 'целей'}
+            {plans.length} {pluralGoals(plans.length)}
           </Badge>
         </CardTitle>
       </CardHeader>

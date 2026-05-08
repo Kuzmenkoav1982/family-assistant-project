@@ -13,6 +13,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
+import { getConfidenceMeta } from '@/utils/portfolioConfidence';
 
 interface SpheresRadarProps {
   data: PortfolioData;
@@ -46,7 +47,7 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
             className="text-xs"
           >
             <Icon name="History" size={14} className="mr-1" />
-            {showPrev ? 'Скрыть прошлое' : 'Показать прошлое'}
+            {showPrev ? 'Только сейчас' : 'Показать динамику'}
           </Button>
         )}
       </CardHeader>
@@ -99,13 +100,21 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
             const conf = data.confidence[sphere] ?? 0;
             const delta = data.deltas[sphere] ?? 0;
             const dim = conf < 40;
+            const cm = getConfidenceMeta(conf);
             return (
               <div
                 key={sphere}
-                className={`p-2 rounded-lg border ${dim ? 'opacity-50' : ''}`}
+                className={`p-2 rounded-lg border ${dim ? 'opacity-60' : ''}`}
+                title={`${cm.label} · ${Math.round(conf)}%`}
               >
                 <div className="flex items-center justify-between gap-1">
-                  <Icon name={data.sphere_icons[sphere]} size={14} className="text-primary" />
+                  <div className="flex items-center gap-1">
+                    <Icon name={data.sphere_icons[sphere]} size={14} className="text-primary" />
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${cm.dot}`}
+                      aria-label={cm.label}
+                    />
+                  </div>
                   <span className="text-base font-bold">
                     {dim ? '—' : Math.round(score)}
                   </span>
@@ -125,6 +134,21 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
               </div>
             );
           })}
+        </div>
+
+        <div className="flex flex-wrap gap-3 mt-3 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+            Достоверно
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Предварительно
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+            Мало данных
+          </span>
         </div>
       </CardContent>
     </Card>
