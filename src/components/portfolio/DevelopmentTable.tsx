@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
 import { getConfidenceMeta, getNextStepText } from '@/utils/portfolioConfidence';
+import WhySuggestedPopover, { buildPopoverContext } from './WhySuggestedPopover';
 
 interface DevelopmentTableProps {
   data: PortfolioData;
@@ -28,7 +29,7 @@ function formatLastDate(iso: string): string {
 }
 
 function levelLabel(score: number, conf: number): string {
-  if (conf < 40) return 'Недостаточно данных';
+  if (conf < 40) return 'Данных пока мало';
   if (score >= 80) return 'Высокий';
   if (score >= 60) return 'Хороший';
   if (score >= 40) return 'Средний';
@@ -178,9 +179,18 @@ export default function DevelopmentTable({ data }: DevelopmentTableProps) {
                       )}
                     </td>
                     <td className="p-3">
-                      <p className="text-xs text-foreground/80 max-w-xs">
-                        {getNextStepText(action?.action, score, conf)}
-                      </p>
+                      <div className="flex items-start gap-1.5 max-w-xs">
+                        <p className="text-xs text-foreground/80 flex-1">
+                          {getNextStepText(action?.action, score, conf)}
+                        </p>
+                        {action && (
+                          <WhySuggestedPopover
+                            action={action}
+                            sphereLabel={action.sphere_label}
+                            {...buildPopoverContext(data, action.sphere)}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

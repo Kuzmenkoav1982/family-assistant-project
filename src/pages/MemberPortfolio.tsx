@@ -13,6 +13,8 @@ import DevelopmentTable from '@/components/portfolio/DevelopmentTable';
 import ActiveDevelopmentPlan from '@/components/portfolio/ActiveDevelopmentPlan';
 import AchievementsWall from '@/components/portfolio/AchievementsWall';
 import SourcesDrawer from '@/components/portfolio/SourcesDrawer';
+import TrustBlock from '@/components/portfolio/TrustBlock';
+import { Link } from 'react-router-dom';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { PortfolioData } from '@/types/portfolio.types';
 import { formatTimeAgo } from '@/utils/timeAgo';
@@ -116,6 +118,8 @@ export default function MemberPortfolio() {
       <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8 space-y-6">
         <PortfolioHeader data={data} />
 
+        <TrustBlock />
+
         <KeyHighlights data={data} />
 
         <div className="flex flex-wrap gap-2 justify-end items-center print:hidden">
@@ -183,14 +187,21 @@ export default function MemberPortfolio() {
         <Card className="border-dashed border-2 bg-muted/20">
           <CardContent className="p-4 flex items-start gap-3">
             <Icon name="Info" size={20} className="text-muted-foreground flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground flex-1">
               <p className="font-medium mb-1 text-foreground">Как читать портфолио</p>
               <p>
-                Это <span className="font-medium">паспорт развития</span> {data.member.name}.
+                Это <span className="font-medium">карта развития</span> {data.member.name}.
                 Сравнение идёт <span className="font-medium">с самим собой во времени</span>,
                 а не с другими. Если по сфере мало данных — балл не показывается, чтобы не делать
                 поспешных выводов.
               </p>
+              <Link
+                to="/portfolio/about"
+                className="inline-flex items-center gap-1 mt-2 text-xs font-medium text-primary hover:underline"
+              >
+                Подробнее о методике
+                <Icon name="ArrowRight" size={12} />
+              </Link>
             </div>
           </CardContent>
         </Card>

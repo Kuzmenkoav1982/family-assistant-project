@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import type { PortfolioData, SphereKey } from '@/types/portfolio.types';
+import WhySuggestedPopover, { buildPopoverContext } from './WhySuggestedPopover';
 
 interface KeyHighlightsProps {
   data: PortfolioData;
@@ -93,10 +94,17 @@ export default function KeyHighlights({ data }: KeyHighlightsProps) {
               <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
                 <Icon name={actionMeta.icon} size={16} className="text-primary" />
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
-                  Активный фокус
-                </p>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Активный фокус
+                  </p>
+                  <WhySuggestedPopover
+                    action={topAction}
+                    sphereLabel={topAction.sphere_label}
+                    {...buildPopoverContext(data, topAction.sphere)}
+                  />
+                </div>
                 <p className="text-sm font-semibold leading-snug line-clamp-2">
                   {topAction.action}
                 </p>

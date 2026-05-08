@@ -133,10 +133,12 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
                 </div>
                 <div className="p-3 rounded-lg border bg-muted/20">
                   <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
-                    Достоверность
+                    Полнота картины
                   </p>
                   <p className="text-2xl font-bold">{avgConf}%</p>
-                  <p className="text-[10px] text-muted-foreground">в среднем по сферам</p>
+                  <p className="text-[10px] text-muted-foreground leading-tight">
+                    зависит от полноты, свежести и разнообразия данных
+                  </p>
                 </div>
                 {topDelta.d !== 0 && (
                   <div className="p-3 rounded-lg border bg-muted/20">
@@ -206,7 +208,7 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
         <div className="flex flex-wrap gap-3 mt-3 text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            Достоверно
+            Полная картина
           </span>
           <span className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
@@ -214,7 +216,7 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
           </span>
           <span className="flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
-            Мало данных
+            Данных мало
           </span>
         </div>
       </CardContent>
