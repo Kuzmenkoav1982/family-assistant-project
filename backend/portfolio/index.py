@@ -281,6 +281,307 @@ def calc_completeness(scores: Dict[str, float], confidences: Dict[str, float]) -
     return round(avg_conf)
 
 
+# =========================================================================
+# PULL-COLLECTOR: подтягиваем метрики из реальных таблиц хабов
+# =========================================================================
+
+_ACTIVITY_TO_SPHERE = {
+    'sport': 'body', 'спорт': 'body', 'физ': 'body',
+    'art': 'creativity', 'творч': 'creativity', 'муз': 'creativity', 'рисов': 'creativity', 'театр': 'creativity',
+    'lang': 'intellect', 'язык': 'intellect', 'математ': 'intellect', 'школ': 'intellect',
+    'social': 'social',
+}
+
+_SKILL_CATEGORY_TO_SPHERE = {
+    'cognitive': 'intellect', 'speech': 'intellect', 'language': 'intellect',
+    'motor': 'body', 'physical': 'body',
+    'social': 'social', 'communication': 'social',
+    'emotional': 'emotions', 'emotion': 'emotions',
+    'creative': 'creativity', 'art': 'creativity',
+    'self_care': 'life_skills', 'independence': 'life_skills',
+    'finance': 'finance', 'money': 'finance',
+    'values': 'values', 'morals': 'values',
+}
+
+_SKILL_LEVEL_SCORES = {
+    'не освоен': 20, 'не_освоен': 20, 'low': 20, 'beginner': 20,
+    'осваивает': 50, 'осваивается': 50, 'medium': 50, 'middle': 50,
+    'освоен': 80, 'good': 80, 'high': 80, 'advanced': 80,
+    'мастер': 95, 'отлично': 95, 'excellent': 95, 'highest': 95,
+}
+
+_MOOD_SCORES = {
+    'sad': 20, 'грустно': 20, 'плохо': 20,
+    'tired': 35, 'устал': 35,
+    'neutral': 50, 'нормально': 50,
+    'happy': 80, 'хорошо': 80, 'радость': 80,
+    'excited': 95, 'отлично': 95, 'супер': 95,
+}
+
+
+def _upsert_metric(cur, member_id, sphere, metric_key, value, unit, source_type, source_id, measured_at, raw_value=None):
+    cur.execute(f"""
+        DELETE FROM {SCHEMA}.member_portfolio_metrics
+        WHERE member_id = {esc(member_id)}::uuid
+          AND source_type = {esc(source_type)}
+          AND source_id = {esc(source_id)}
+          AND metric_key = {esc(metric_key)}
+    """)
+    cur.execute(f"""
+        INSERT INTO {SCHEMA}.member_portfolio_metrics
+            (member_id, sphere_key, metric_key, metric_value, metric_unit,
+             source_type, source_id, measured_at, raw_value)
+        VALUES (
+            {esc(member_id)}::uuid, {esc(sphere)}, {esc(metric_key)},
+            {value}, {esc(unit)}, {esc(source_type)}, {esc(source_id)},
+            {esc(measured_at)}::timestamp,
+            {esc(raw_value) if raw_value else 'NULL'}
+        )
+    """)
+
+
+def collect_metrics_inline(cur, member_id: str) -> None:
+    """Подтягиваем метрики из реальных таблиц хабов в member_portfolio_metrics."""
+
+    # Vitals (рост, вес, прочее)
+    try:
+        cur.execute(f"""
+            SELECT id, type, value, unit, date FROM {SCHEMA}.vital_records
+            WHERE profile_id = {esc(member_id)}
+            ORDER BY date DESC LIMIT 100
+        """)
+        rows = cur.fetchall()
+        by_type: Dict[str, List[Any]] = {}
+        for r in rows:
+            by_type.setdefault(r['type'], []).append(r)
+        for t, items in by_type.items():
+            if t in ('height', 'weight'):
+                last = items[0]
+                try:
+                    val = float(last['value'])
+                    unit = last.get('unit') or ('см' if t == 'height' else 'кг')
+                    _upsert_metric(cur, member_id, 'body', f'vital_{t}', val, unit,
+                                   'vital_records', str(last['id']),
+                                   str(last['date']), f'{last["value"]}{unit}')
+                except (ValueError, TypeError):
+                    continue
+            else:
+                _upsert_metric(cur, member_id, 'body', f'vital_{t}_count', float(len(items)), 'count',
+                               'vital_records', f'agg_{t}_{member_id}',
+                               str(items[0]['date']), f'{len(items)} замеров')
+    except Exception:
+        pass
+
+    # Прививки
+    try:
+        cur.execute(f"""
+            SELECT id, date, vaccine FROM {SCHEMA}.children_vaccinations
+            WHERE member_id = {esc(member_id)}
+            ORDER BY date DESC LIMIT 50
+        """)
+        rows = cur.fetchall()
+        if rows:
+            _upsert_metric(cur, member_id, 'body', 'vaccinations', float(len(rows)), 'count',
+                           'children_vaccinations', f'agg_{member_id}',
+                           str(rows[0]['date']), f'{len(rows)} прививок')
+    except Exception:
+        pass
+
+    # Визиты к врачу
+    try:
+        cur.execute(f"""
+            SELECT id, date, doctor FROM {SCHEMA}.children_doctor_visits
+            WHERE member_id = {esc(member_id)}
+            ORDER BY date DESC LIMIT 50
+        """)
+        rows = cur.fetchall()
+        if rows:
+            _upsert_metric(cur, member_id, 'body', 'doctor_visits', float(len(rows)), 'count',
+                           'children_doctor_visits', f'agg_{member_id}',
+                           str(rows[0]['date']), f'{len(rows)} визитов')
+    except Exception:
+        pass
+
+    # Дневник настроения
+    try:
+        cur.execute(f"""
+            SELECT id, mood, entry_date FROM {SCHEMA}.children_mood_entries
+            WHERE member_id = {esc(member_id)}::uuid
+              AND entry_date >= CURRENT_DATE - INTERVAL '90 days'
+            ORDER BY entry_date DESC LIMIT 200
+        """)
+        rows = cur.fetchall()
+        if rows:
+            scores = []
+            for r in rows:
+                m = (r.get('mood') or '').lower().strip()
+                if m in _MOOD_SCORES:
+                    scores.append(_MOOD_SCORES[m])
+            if scores:
+                avg = sum(scores) / len(scores)
+                _upsert_metric(cur, member_id, 'emotions', 'mood_average', round(avg, 1), 'score',
+                               'children_mood_entries', f'agg_{member_id}',
+                               str(rows[0]['entry_date']), f'{len(scores)} записей')
+            _upsert_metric(cur, member_id, 'emotions', 'mood_diary_count', float(len(rows)), 'count',
+                           'children_mood_entries', f'agg_count_{member_id}',
+                           str(rows[0]['entry_date']), f'{len(rows)} записей')
+    except Exception:
+        pass
+
+    # Навыки из child_skills
+    try:
+        cur.execute(f"""
+            SELECT s.id, s.category, s.skill_level, s.created_at, a.assessment_date
+            FROM {SCHEMA}.child_skills s
+            JOIN {SCHEMA}.child_development_assessments a ON s.assessment_id = a.id
+            WHERE a.child_id = {esc(member_id)}
+            ORDER BY a.assessment_date DESC LIMIT 200
+        """)
+        rows = cur.fetchall()
+        if rows:
+            by_sphere: Dict[str, List[int]] = {}
+            for r in rows:
+                cat = (r.get('category') or '').lower().strip()
+                sphere = _SKILL_CATEGORY_TO_SPHERE.get(cat)
+                if not sphere:
+                    for k, v in _SKILL_CATEGORY_TO_SPHERE.items():
+                        if k in cat:
+                            sphere = v; break
+                if not sphere:
+                    continue
+                lvl = (r.get('skill_level') or '').lower().strip()
+                score = _SKILL_LEVEL_SCORES.get(lvl)
+                if score is None:
+                    for k, v in _SKILL_LEVEL_SCORES.items():
+                        if k in lvl:
+                            score = v; break
+                if score is None:
+                    continue
+                by_sphere.setdefault(sphere, []).append(score)
+            last_date = str(rows[0].get('assessment_date') or rows[0].get('created_at'))
+            for sphere, sc in by_sphere.items():
+                avg = sum(sc) / len(sc)
+                _upsert_metric(cur, member_id, sphere, 'skills_average', round(avg, 1), 'score',
+                               'child_skills', f'agg_{sphere}_{member_id}',
+                               last_date, f'{len(sc)} навыков')
+    except Exception:
+        pass
+
+    # Активности (кружки)
+    try:
+        cur.execute(f"""
+            SELECT a.id, a.type, a.name, a.created_at, d.area
+            FROM {SCHEMA}.children_activities a
+            JOIN {SCHEMA}.children_development d ON a.development_id = d.id
+            WHERE d.member_id = {esc(member_id)}
+              AND COALESCE(a.status, '') NOT IN ('cancelled', 'отменено')
+        """)
+        rows = cur.fetchall()
+        if rows:
+            by_sphere: Dict[str, int] = {}
+            for r in rows:
+                text = ((r.get('type') or '') + ' ' + (r.get('name') or '') + ' ' + (r.get('area') or '')).lower()
+                sphere = None
+                for key, sph in _ACTIVITY_TO_SPHERE.items():
+                    if key in text:
+                        sphere = sph; break
+                if not sphere:
+                    sphere = 'creativity'
+                by_sphere[sphere] = by_sphere.get(sphere, 0) + 1
+            last_date = str(rows[0].get('created_at') or datetime.now())
+            for sphere, count in by_sphere.items():
+                _upsert_metric(cur, member_id, sphere, 'activities', float(count), 'count',
+                               'children_activities', f'agg_{sphere}_{member_id}',
+                               last_date, f'{count} занятий')
+    except Exception:
+        pass
+
+    # Задачи tasks_v2
+    try:
+        cur.execute(f"""
+            SELECT id, points, completed_date, created_at FROM {SCHEMA}.tasks_v2
+            WHERE assignee_id = {esc(member_id)}::uuid
+              AND completed = TRUE
+              AND COALESCE(completed_date, created_at) >= CURRENT_DATE - INTERVAL '90 days'
+        """)
+        rows = cur.fetchall()
+        if rows:
+            count = len(rows)
+            total_points = sum(int(r.get('points') or 0) for r in rows)
+            last_date = rows[0].get('completed_date') or rows[0].get('created_at')
+            _upsert_metric(cur, member_id, 'life_skills', 'household_tasks', float(count), 'count',
+                           'tasks_v2', f'agg_count_{member_id}',
+                           str(last_date), f'{count} задач')
+            if total_points > 0:
+                _upsert_metric(cur, member_id, 'life_skills', 'task_points', float(total_points), 'score',
+                               'tasks_v2', f'agg_points_{member_id}',
+                               str(last_date), f'{total_points} баллов')
+    except Exception:
+        pass
+
+    # Финансы — копилка
+    try:
+        cur.execute(f"""
+            SELECT id, balance FROM {SCHEMA}.children_piggybank
+            WHERE member_id = {esc(member_id)} LIMIT 1
+        """)
+        pb = cur.fetchone()
+        if pb:
+            _upsert_metric(cur, member_id, 'finance', 'piggybank_balance', float(pb['balance'] or 0), 'score',
+                           'children_piggybank', str(pb['id']),
+                           datetime.now(timezone.utc).isoformat(), f"{pb['balance']} ₽")
+            cur.execute(f"""
+                SELECT id, date FROM {SCHEMA}.children_transactions
+                WHERE piggybank_id = {esc(pb['id'])}
+                ORDER BY date DESC LIMIT 50
+            """)
+            txs = cur.fetchall()
+            if txs:
+                _upsert_metric(cur, member_id, 'finance', 'piggybank_transactions', float(len(txs)), 'count',
+                               'children_transactions', f'agg_{member_id}',
+                               str(txs[0]['date']), f'{len(txs)} операций')
+    except Exception:
+        pass
+
+    # Календарь (события ребёнка → social)
+    try:
+        cur.execute(f"""
+            SELECT id, date FROM {SCHEMA}.calendar_events
+            WHERE child_id = {esc(member_id)}::uuid
+              AND date >= CURRENT_DATE - INTERVAL '90 days'
+              AND date <= CURRENT_DATE + INTERVAL '30 days'
+        """)
+        rows = cur.fetchall()
+        if rows:
+            _upsert_metric(cur, member_id, 'social', 'calendar_events', float(len(rows)), 'count',
+                           'calendar_events', f'agg_{member_id}',
+                           str(rows[0]['date']), f'{len(rows)} событий')
+    except Exception:
+        pass
+
+    # Семейные традиции (общие на семью → values)
+    try:
+        cur.execute(f"""
+            SELECT family_id FROM {SCHEMA}.family_members
+            WHERE id = {esc(member_id)}::uuid LIMIT 1
+        """)
+        row = cur.fetchone()
+        if row:
+            family_id = str(row['family_id'])
+            cur.execute(f"""
+                SELECT id, created_at FROM {SCHEMA}.traditions
+                WHERE family_id::text = {esc(family_id)}
+            """)
+            rows = cur.fetchall()
+            if rows:
+                last_date = max((r.get('created_at') for r in rows if r.get('created_at')), default=datetime.now())
+                _upsert_metric(cur, member_id, 'values', 'family_rituals', float(len(rows)), 'count',
+                               'traditions', f'agg_{family_id}',
+                               str(last_date), f'{len(rows)} традиций')
+    except Exception:
+        pass
+
+
 def aggregate(member_id: str) -> Dict[str, Any]:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -288,6 +589,12 @@ def aggregate(member_id: str) -> Dict[str, Any]:
         member = fetch_member(cur, member_id)
         if not member:
             return {'error': 'Member not found'}
+
+        # Pull-коллектор: подтягиваем актуальные данные из хабов перед расчётом
+        try:
+            collect_metrics_inline(cur, member_id)
+        except Exception:
+            pass
 
         age_group = age_to_group(member.get('age'))
         rules = fetch_rules(cur, age_group)
@@ -646,6 +953,70 @@ def list_achievements(member_id: str) -> Dict[str, Any]:
         conn.close()
 
 
+def get_history(member_id: str, limit: int = 12) -> Dict[str, Any]:
+    """Полная история snapshots для построения графика динамики."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT id, snapshot_date, snapshot_type, scores, confidence, summary, source_count, trigger_event
+            FROM {SCHEMA}.member_portfolio_snapshots
+            WHERE member_id = {esc(member_id)}::uuid
+            ORDER BY snapshot_date DESC
+            LIMIT {int(limit)}
+        """)
+        rows = cur.fetchall()
+        history = []
+        for r in rows:
+            history.append({
+                'id': str(r['id']),
+                'date': str(r['snapshot_date']),
+                'type': r.get('snapshot_type'),
+                'scores': r.get('scores') or {},
+                'confidence': r.get('confidence') or {},
+                'summary': r.get('summary') or {},
+                'source_count': r.get('source_count'),
+                'trigger': r.get('trigger_event'),
+            })
+        history.reverse()  # от старого к новому
+        return {'history': history, 'count': len(history)}
+    finally:
+        cur.close()
+        conn.close()
+
+
+def cron_snapshot_all() -> Dict[str, Any]:
+    """Cron: создаёт snapshot для всех участников, у кого последний > 25 дней назад."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT mp.member_id
+            FROM {SCHEMA}.member_portfolios mp
+            LEFT JOIN (
+                SELECT member_id, MAX(snapshot_date) AS last_snap
+                FROM {SCHEMA}.member_portfolio_snapshots
+                GROUP BY member_id
+            ) s ON s.member_id = mp.member_id
+            WHERE s.last_snap IS NULL OR s.last_snap < CURRENT_DATE - INTERVAL '25 days'
+        """)
+        member_ids = [str(r['member_id']) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+    created = 0
+    errors = []
+    for mid in member_ids:
+        try:
+            r = create_snapshot(mid, trigger_event='cron_monthly')
+            if 'error' not in r:
+                created += 1
+        except Exception as e:
+            errors.append({'member_id': mid, 'error': str(e)[:200]})
+    return {'created': created, 'total_candidates': len(member_ids), 'errors': errors}
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Главный обработчик. Действия:
@@ -698,6 +1069,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {'statusCode': 400, 'headers': cors_headers(),
                         'body': json.dumps({'error': 'member_id required'})}
             data = list_achievements(member_id)
+        elif action == 'history':
+            if not member_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'member_id required'})}
+            limit = int(params.get('limit', '12'))
+            data = get_history(member_id, limit)
+        elif action == 'cron_snapshot':
+            data = cron_snapshot_all()
         else:
             return {'statusCode': 400, 'headers': cors_headers(),
                     'body': json.dumps({'error': f'Unknown action: {action}'})}

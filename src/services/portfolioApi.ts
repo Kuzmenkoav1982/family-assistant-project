@@ -47,4 +47,22 @@ export const portfolioApi = {
       member_id: memberId,
       trigger,
     }),
+
+  history: (memberId: string, limit = 12) =>
+    call<{ history: PortfolioHistoryPoint[]; count: number }>({
+      action: 'history',
+      member_id: memberId,
+      limit: String(limit),
+    }),
 };
+
+export interface PortfolioHistoryPoint {
+  id: string;
+  date: string;
+  type: string;
+  scores: Record<string, number>;
+  confidence: Record<string, number>;
+  summary: Record<string, unknown>;
+  source_count: number | null;
+  trigger: string;
+}

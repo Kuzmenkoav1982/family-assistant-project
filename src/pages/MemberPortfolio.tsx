@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import PortfolioHeader from '@/components/portfolio/PortfolioHeader';
 import KeyHighlights from '@/components/portfolio/KeyHighlights';
 import InsightsBlock from '@/components/portfolio/InsightsBlock';
+import HistoryChart from '@/components/portfolio/HistoryChart';
 import SpheresRadar from '@/components/portfolio/SpheresRadar';
 import DevelopmentTable from '@/components/portfolio/DevelopmentTable';
 import ActiveDevelopmentPlan from '@/components/portfolio/ActiveDevelopmentPlan';
@@ -107,6 +108,8 @@ export default function MemberPortfolio() {
         <SpheresRadar data={data} />
 
         {memberId && <InsightsBlock memberId={memberId} />}
+
+        {memberId && <HistoryChart memberId={memberId} />}
 
         <DevelopmentTable data={data} />
 

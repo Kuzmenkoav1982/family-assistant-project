@@ -1,0 +1,26 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing params returns 400",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Collect by member_id returns 200",
+      "method": "GET",
+      "path": "/?member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200,
+      "expectedBody": {"by_source": {}},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
