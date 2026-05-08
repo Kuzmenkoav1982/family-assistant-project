@@ -24,7 +24,9 @@ export type PortfolioEvent =
   | 'portfolio_family_overview_open'
   | 'portfolio_badge_open'
   | 'portfolio_onboarding_complete'
-  | 'portfolio_empty_state_cta_click';
+  | 'portfolio_empty_state_cta_click'
+  | 'portfolio_templates_open'
+  | 'portfolio_template_apply';
 
 const URL = (func2url as Record<string, string>)['analytics-events'];
 
@@ -78,6 +80,8 @@ export interface TrackProps {
   badge_key?: string;
   is_owner?: boolean;
   plan_status?: string;
+  age_band?: string;
+  template_id?: string;
 }
 
 export interface TrackOptions {

@@ -32,12 +32,14 @@ ALLOWED_EVENTS = {
     'portfolio_badge_open',
     'portfolio_onboarding_complete',
     'portfolio_empty_state_cta_click',
+    'portfolio_templates_open',
+    'portfolio_template_apply',
 }
 
 ALLOWED_PROP_KEYS = {
     'sphere', 'severity', 'count', 'has_ai', 'completeness_bucket',
     'confidence_bucket', 'source', 'success', 'duration_ms', 'badge_key',
-    'is_owner', 'plan_status',
+    'is_owner', 'plan_status', 'age_band', 'template_id',
 }
 
 

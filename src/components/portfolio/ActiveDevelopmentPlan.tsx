@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import type { PortfolioData, DevelopmentPlan } from '@/types/portfolio.types';
 import PlanEditor from './PlanEditor';
+import PlanTemplatesDialog from './PlanTemplatesDialog';
+import { track } from '@/lib/analytics';
+import { ageToBand } from '@/data/portfolioPlanTemplates';
 
 interface ActiveDevelopmentPlanProps {
   data: PortfolioData;
@@ -104,6 +107,7 @@ export default function ActiveDevelopmentPlan({ data, memberId, onChanged }: Act
   const plans = data.plans.slice(0, 3);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<DevelopmentPlan | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   const openCreate = () => {
     setEditing(null);
@@ -118,6 +122,18 @@ export default function ActiveDevelopmentPlan({ data, memberId, onChanged }: Act
   };
 
   const canEdit = !!memberId;
+  const memberAge = data.member?.age ?? null;
+
+  const openTemplates = () => {
+    setTemplatesOpen(true);
+    track('portfolio_templates_open', {
+      member_id: memberId,
+      props: {
+        age_band: ageToBand(memberAge) || 'unknown',
+        source: plans.length === 0 ? 'empty_state' : 'header_button',
+      },
+    });
+  };
 
   return (
     <Card className="border-0 shadow-sm">
@@ -129,15 +145,27 @@ export default function ActiveDevelopmentPlan({ data, memberId, onChanged }: Act
             {plans.length} {pluralGoals(plans.length)}
           </Badge>
           {canEdit && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={openCreate}
-              className="ml-auto h-7 text-xs"
-            >
-              <Icon name="Plus" size={14} className="mr-1" />
-              Цель
-            </Button>
+            <div className="ml-auto flex items-center gap-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={openTemplates}
+                className="h-7 text-xs"
+                title="Готовые планы по возрасту"
+              >
+                <Icon name="Library" size={14} className="mr-1" />
+                Шаблоны
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={openCreate}
+                className="h-7 text-xs"
+              >
+                <Icon name="Plus" size={14} className="mr-1" />
+                Цель
+              </Button>
+            </div>
           )}
         </CardTitle>
       </CardHeader>
@@ -146,12 +174,20 @@ export default function ActiveDevelopmentPlan({ data, memberId, onChanged }: Act
           <div className="text-center py-8 text-muted-foreground">
             <Icon name="Sparkles" size={32} className="mx-auto mb-2 opacity-50" />
             <p className="text-sm">Активных целей пока нет</p>
-            <p className="text-xs mb-3">Создайте первый план развития</p>
+            <p className="text-xs mb-3">
+              Возьмите готовый план под возраст или создайте свой
+            </p>
             {canEdit && (
-              <Button size="sm" variant="outline" onClick={openCreate}>
-                <Icon name="Plus" size={14} className="mr-1" />
-                Добавить цель
-              </Button>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button size="sm" onClick={openTemplates}>
+                  <Icon name="Library" size={14} className="mr-1" />
+                  Готовые планы
+                </Button>
+                <Button size="sm" variant="outline" onClick={openCreate}>
+                  <Icon name="Plus" size={14} className="mr-1" />
+                  Свою цель
+                </Button>
+              </div>
             )}
           </div>
         ) : (
@@ -236,14 +272,25 @@ export default function ActiveDevelopmentPlan({ data, memberId, onChanged }: Act
       </CardContent>
 
       {canEdit && memberId && (
-        <PlanEditor
-          open={editorOpen}
-          onOpenChange={setEditorOpen}
-          memberId={memberId}
-          sphereLabels={data.sphere_labels_child}
-          initial={editing}
-          onSaved={handleSaved}
-        />
+        <>
+          <PlanEditor
+            open={editorOpen}
+            onOpenChange={setEditorOpen}
+            memberId={memberId}
+            sphereLabels={data.sphere_labels_child}
+            initial={editing}
+            onSaved={handleSaved}
+          />
+          <PlanTemplatesDialog
+            open={templatesOpen}
+            onOpenChange={setTemplatesOpen}
+            memberId={memberId}
+            age={memberAge}
+            sphereLabels={data.sphere_labels_child}
+            sphereIcons={data.sphere_icons}
+            onCreated={handleSaved}
+          />
+        </>
       )}
     </Card>
   );
