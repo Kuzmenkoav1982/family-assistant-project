@@ -54,6 +54,33 @@ export const METRIC_KEY_LABELS: Record<string, string> = {
   score: 'Оценка',
 };
 
+export const RAW_VALUE_LABELS: Record<string, string> = {
+  highest: 'максимальный',
+  high: 'высокий',
+  great: 'отлично',
+  good: 'хорошо',
+  basic: 'базовый',
+  low: 'низкий',
+  shy: 'застенчивый',
+  kind: 'добрый',
+  understanding: 'отзывчивый',
+  completed: 'выполнено',
+  'check-up': 'плановый осмотр',
+  excellent: 'превосходно',
+  fair: 'удовлетворительно',
+  poor: 'слабо',
+  average: 'средне',
+  medium: 'средний',
+};
+
+export function humanizeRawValue(value: string | null | undefined): string {
+  if (!value) return '';
+  const trimmed = value.trim();
+  const lower = trimmed.toLowerCase();
+  if (RAW_VALUE_LABELS[lower]) return RAW_VALUE_LABELS[lower];
+  return trimmed;
+}
+
 export const METRIC_UNIT_LABELS: Record<string, string> = {
   count: 'событий',
   score: '/ 100',

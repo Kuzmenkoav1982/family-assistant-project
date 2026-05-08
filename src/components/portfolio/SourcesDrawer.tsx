@@ -14,6 +14,7 @@ import {
   getSourceTypeLabel,
   getMetricKeyLabel,
   formatMetricValue,
+  humanizeRawValue,
 } from '@/utils/portfolioLabels';
 
 interface SourcesDrawerProps {
@@ -108,7 +109,9 @@ export default function SourcesDrawer({ data }: SourcesDrawerProps) {
                   )}
                 </div>
                 {m.raw_value && (
-                  <p className="text-xs text-muted-foreground mt-1 italic">{m.raw_value}</p>
+                  <p className="text-xs text-muted-foreground mt-1 italic">
+                    {humanizeRawValue(m.raw_value)}
+                  </p>
                 )}
                 <p className="text-[10px] text-muted-foreground mt-1">
                   {new Date(m.measured_at).toLocaleDateString('ru-RU', {

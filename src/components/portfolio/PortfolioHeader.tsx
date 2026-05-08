@@ -5,7 +5,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
-import type { PortfolioData } from '@/types/portfolio.types';
+import type { PortfolioData, SphereKey } from '@/types/portfolio.types';
+import { SPHERE_ORDER } from '@/types/portfolio.types';
 
 interface PortfolioHeaderProps {
   data: PortfolioData;
@@ -20,10 +21,26 @@ const AGE_GROUP_LABELS: Record<string, string> = {
   '18+': 'Взрослый',
 };
 
+const EARLY_AGE_SOFT_SPHERES: SphereKey[] = ['finance', 'values', 'life_skills'];
+
 export default function PortfolioHeader({ data }: PortfolioHeaderProps) {
   const navigate = useNavigate();
   const m = data.member;
   const initials = m.name?.slice(0, 2).toUpperCase() || '??';
+
+  const isEarlyAge = m.age !== null && m.age <= 6;
+  const allEarlyAgeSoft =
+    isEarlyAge &&
+    data.growth_zones.length > 0 &&
+    data.growth_zones.every((g) => EARLY_AGE_SOFT_SPHERES.includes(g.sphere));
+  const growthTitle = allEarlyAgeSoft ? 'Сферы для старта' : 'Зоны роста';
+
+  const lowSpheres: SphereKey[] = SPHERE_ORDER.filter((s) => (data.confidence[s] ?? 0) < 40);
+  const lowSphereLabels = lowSpheres.map((s) => data.sphere_labels_child[s]);
+  const completenessTooltip =
+    lowSphereLabels.length === 0
+      ? 'Все сферы заполнены — анализ максимально точный'
+      : `Не хватает данных по: ${lowSphereLabels.slice(0, 4).join(', ')}${lowSphereLabels.length > 4 ? '…' : ''}`;
 
   return (
     <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 via-background to-purple-500/5 overflow-hidden">
@@ -93,7 +110,7 @@ export default function PortfolioHeader({ data }: PortfolioHeaderProps) {
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
                   <Icon name="TrendingUp" size={12} className="text-blue-500" />
-                  Зоны роста
+                  {growthTitle}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {data.growth_zones.length === 0 && (
@@ -116,17 +133,19 @@ export default function PortfolioHeader({ data }: PortfolioHeaderProps) {
             </div>
 
             {/* Заполненность портфолио */}
-            <div>
+            <div title={completenessTooltip}>
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                <span className="text-xs uppercase tracking-wide text-muted-foreground flex items-center gap-1">
                   Заполненность портфолио
+                  <Icon name="Info" size={11} className="text-muted-foreground/60" />
                 </span>
                 <span className="text-sm font-semibold">{data.completeness}%</span>
               </div>
               <Progress value={data.completeness} className="h-2" />
-              {data.completeness < 60 && (
+              {data.completeness < 80 && lowSphereLabels.length > 0 && (
                 <p className="text-xs text-muted-foreground mt-1.5">
-                  Добавляйте данные в хабах платформы — анализ будет точнее
+                  Не хватает данных по: {lowSphereLabels.slice(0, 3).join(', ')}
+                  {lowSphereLabels.length > 3 && ` и ещё ${lowSphereLabels.length - 3}`}
                 </p>
               )}
             </div>

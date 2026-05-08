@@ -7,6 +7,14 @@ interface AchievementsWallProps {
   data: PortfolioData;
 }
 
+function pluralBadges(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return 'бейдж';
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'бейджа';
+  return 'бейджей';
+}
+
 const CATEGORY_GRADIENTS: Record<string, string> = {
   milestone: 'from-amber-400 to-orange-500',
   path: 'from-emerald-400 to-teal-500',
@@ -23,7 +31,7 @@ export default function AchievementsWall({ data }: AchievementsWallProps) {
           <Icon name="Trophy" size={20} className="text-amber-500" />
           Стена достижений
           <Badge variant="secondary" className="ml-auto text-xs">
-            {data.achievements.length} {data.achievements.length === 1 ? 'бейдж' : 'бейджей'}
+            {data.achievements.length} {pluralBadges(data.achievements.length)}
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -41,18 +49,18 @@ export default function AchievementsWall({ data }: AchievementsWallProps) {
               return (
                 <div
                   key={a.id}
-                  className="group relative p-3 rounded-xl border bg-card hover:shadow-md transition-all hover:-translate-y-0.5"
-                  title={a.description || a.title}
+                  className="group relative p-3 rounded-xl border bg-card hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col items-center min-h-[130px]"
+                  title={`${a.title}${a.description ? ` — ${a.description}` : ''}`}
                 >
                   <div
-                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center mb-2 mx-auto shadow-sm`}
+                    className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center mb-2 shadow-sm flex-shrink-0`}
                   >
                     <Icon name={a.icon} size={22} className="text-white" />
                   </div>
-                  <p className="text-xs font-semibold text-center leading-tight line-clamp-2">
+                  <p className="text-xs font-semibold text-center leading-tight line-clamp-2 flex-1">
                     {a.title}
                   </p>
-                  <p className="text-[10px] text-muted-foreground text-center mt-1">
+                  <p className="text-[10px] text-muted-foreground text-center mt-1.5">
                     {new Date(a.earned_at).toLocaleDateString('ru-RU', {
                       day: 'numeric',
                       month: 'short',

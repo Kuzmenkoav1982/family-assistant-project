@@ -40,58 +40,125 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
           Радар развития
         </CardTitle>
         {hasPrev && (
-          <Button
-            variant={showPrev ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setShowPrev((v) => !v)}
-            className="text-xs"
-          >
-            <Icon name="History" size={14} className="mr-1" />
-            {showPrev ? 'Только сейчас' : 'Показать динамику'}
-          </Button>
+          <div className="inline-flex items-center rounded-full border bg-muted/30 p-0.5 text-xs">
+            <button
+              type="button"
+              onClick={() => setShowPrev(false)}
+              className={`px-2.5 py-1 rounded-full transition-colors ${
+                !showPrev ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'
+              }`}
+            >
+              Только сейчас
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPrev(true)}
+              className={`px-2.5 py-1 rounded-full transition-colors flex items-center gap-1 ${
+                showPrev ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground'
+              }`}
+            >
+              <Icon name="History" size={11} />
+              С динамикой
+            </button>
+          </div>
         )}
       </CardHeader>
       <CardContent>
-        <div className="w-full h-[400px] md:h-[480px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={chartData} margin={{ top: 24, right: 32, bottom: 24, left: 32 }}>
-              <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis
-                dataKey="label"
-                tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
-              />
-              <PolarRadiusAxis
-                angle={90}
-                domain={[0, 100]}
-                tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-              />
-              {showPrev && hasPrev && (
-                <Radar
-                  name="Было 3 мес. назад"
-                  dataKey="Было 3 мес. назад"
-                  stroke="hsl(var(--muted-foreground))"
-                  fill="hsl(var(--muted-foreground))"
-                  fillOpacity={0.15}
-                  strokeDasharray="4 4"
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4 items-center">
+          <div className="w-full h-[420px] md:h-[500px] lg:h-[460px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={chartData} margin={{ top: 16, right: 24, bottom: 16, left: 24 }}>
+                <PolarGrid stroke="hsl(var(--border))" />
+                <PolarAngleAxis
+                  dataKey="label"
+                  tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
                 />
-              )}
-              <Radar
-                name="Сейчас"
-                dataKey="Сейчас"
-                stroke="hsl(var(--primary))"
-                fill="hsl(var(--primary))"
-                fillOpacity={0.35}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: 'hsl(var(--background))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: 12,
-                }}
-              />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-            </RadarChart>
-          </ResponsiveContainer>
+                <PolarRadiusAxis
+                  angle={90}
+                  domain={[0, 100]}
+                  tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                />
+                {showPrev && hasPrev && (
+                  <Radar
+                    name="Было 3 мес. назад"
+                    dataKey="Было 3 мес. назад"
+                    stroke="hsl(var(--muted-foreground))"
+                    fill="hsl(var(--muted-foreground))"
+                    fillOpacity={0.15}
+                    strokeDasharray="4 4"
+                  />
+                )}
+                <Radar
+                  name="Сейчас"
+                  dataKey="Сейчас"
+                  stroke="hsl(var(--primary))"
+                  fill="hsl(var(--primary))"
+                  fillOpacity={0.35}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: 'hsl(var(--background))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: 12,
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {(() => {
+            const scoreVals = SPHERE_ORDER.map((s) => data.scores[s] ?? 0);
+            const confVals = SPHERE_ORDER.map((s) => data.confidence[s] ?? 0);
+            const avgScore = Math.round(
+              scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length,
+            );
+            const avgConf = Math.round(
+              confVals.reduce((a, b) => a + b, 0) / confVals.length,
+            );
+            const topDelta = SPHERE_ORDER
+              .map((s) => ({ s, d: data.deltas[s] ?? 0 }))
+              .reduce(
+                (best, cur) => (Math.abs(cur.d) > Math.abs(best.d) ? cur : best),
+                { s: SPHERE_ORDER[0], d: 0 },
+              );
+            return (
+              <div className="space-y-3">
+                <div className="p-3 rounded-lg border bg-muted/20">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                    Средний уровень
+                  </p>
+                  <p className="text-2xl font-bold text-primary">{avgScore}</p>
+                  <p className="text-[10px] text-muted-foreground">из 100</p>
+                </div>
+                <div className="p-3 rounded-lg border bg-muted/20">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                    Достоверность
+                  </p>
+                  <p className="text-2xl font-bold">{avgConf}%</p>
+                  <p className="text-[10px] text-muted-foreground">в среднем по сферам</p>
+                </div>
+                {topDelta.d !== 0 && (
+                  <div className="p-3 rounded-lg border bg-muted/20">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                      Главная динамика
+                    </p>
+                    <p
+                      className={`text-base font-semibold ${
+                        topDelta.d > 0 ? 'text-green-600' : 'text-orange-600'
+                      }`}
+                    >
+                      {topDelta.d > 0 ? '↗ +' : '↘ '}
+                      {topDelta.d.toFixed(1)}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate">
+                      {data.sphere_labels_child[topDelta.s]}
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4 pt-4 border-t">

@@ -1,19 +1,45 @@
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import type { PortfolioData } from '@/types/portfolio.types';
+import type { PortfolioData, SphereKey } from '@/types/portfolio.types';
 
 interface KeyHighlightsProps {
   data: PortfolioData;
 }
 
+const EARLY_AGE_SOFT_SPHERES: SphereKey[] = ['finance', 'values', 'life_skills'];
+
+function getGrowthLabel(sphere: SphereKey, age: number | null, score: number): string {
+  if (age !== null && age <= 6 && EARLY_AGE_SOFT_SPHERES.includes(sphere)) {
+    return 'Можно начать развивать';
+  }
+  if (score < 30) return 'Можно начать развивать';
+  return 'Точка внимания';
+}
+
+function getActionMeta(source: string | null | undefined): { label: string; icon: string } {
+  if (source === 'plan') return { label: 'Шаг по плану', icon: 'Target' };
+  if (source === 'rule_low_score') return { label: 'Совет по сфере', icon: 'Lightbulb' };
+  if (source === 'rule_low_data') return { label: 'Совет', icon: 'Info' };
+  return { label: 'Активный фокус', icon: 'ArrowRight' };
+}
+
 export default function KeyHighlights({ data }: KeyHighlightsProps) {
   const topStrength = data.strengths[0];
   const topGrowth = data.growth_zones[0];
-  const topAction = data.next_actions.find((a) => a.source === 'plan')
-    || data.next_actions.find((a) => a.source === 'rule_low_score')
-    || data.next_actions[0];
+
+  const topAction =
+    (topGrowth && data.next_actions.find((a) => a.sphere === topGrowth.sphere)) ||
+    data.next_actions.find((a) => a.source === 'plan') ||
+    data.next_actions.find((a) => a.source === 'rule_low_score') ||
+    data.next_actions[0];
 
   if (!topStrength && !topGrowth && !topAction) return null;
+
+  const age = data.member.age;
+  const growthLabel = topGrowth
+    ? getGrowthLabel(topGrowth.sphere, age, topGrowth.score)
+    : 'Точка внимания';
+  const actionMeta = getActionMeta(topAction?.source);
 
   return (
     <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 via-background to-amber-500/5">
@@ -50,7 +76,7 @@ export default function KeyHighlights({ data }: KeyHighlightsProps) {
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
-                  Точка внимания
+                  {growthLabel}
                 </p>
                 <p className="text-sm font-semibold truncate">
                   {topGrowth.label}
@@ -65,17 +91,17 @@ export default function KeyHighlights({ data }: KeyHighlightsProps) {
           {topAction && (
             <div className="flex items-start gap-2.5 p-3 rounded-lg bg-primary/5 border border-primary/15">
               <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0">
-                <Icon name="ArrowRight" size={16} className="text-primary" />
+                <Icon name={actionMeta.icon} size={16} className="text-primary" />
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
-                  Следующий шаг
+                  Активный фокус
                 </p>
                 <p className="text-sm font-semibold leading-snug line-clamp-2">
                   {topAction.action}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {topAction.sphere_label}
+                  {actionMeta.label} · {topAction.sphere_label}
                 </p>
               </div>
             </div>
