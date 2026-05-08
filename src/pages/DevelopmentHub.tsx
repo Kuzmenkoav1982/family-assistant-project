@@ -19,12 +19,23 @@ interface SubSection {
 
 const subSections: SubSection[] = [
   {
+    id: 'portfolio',
+    title: 'Портфолио развития',
+    description: 'Живая карта по 8 сферам для каждого члена семьи: радар, источники данных, подсказки. Не оценка и не диагноз — карта роста.',
+    icon: 'Sparkles',
+    path: '/portfolio',
+    gradient: 'from-emerald-500 via-teal-500 to-cyan-600',
+    badge: 'Новое',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
+  },
+  {
     id: 'development',
     title: 'Развитие семьи',
     description: 'Планы развития, навыки и достижения каждого члена семьи',
     icon: 'TrendingUp',
     path: '/development',
-    gradient: 'from-emerald-500 to-teal-600',
+    gradient: 'from-blue-500 to-indigo-600',
     ready: true,
   },
   {

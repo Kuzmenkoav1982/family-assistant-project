@@ -65,7 +65,7 @@ export function PortfolioWidget() {
           <Icon name="Sparkles" size={28} className="mx-auto mb-2 text-primary/60" />
           <p className="text-sm font-semibold mb-1">Портфолио развития</p>
           <p className="text-xs text-muted-foreground mb-3">
-            Паспорт каждого ребёнка по 8 сферам
+            Карта развития каждого члена семьи по 8 сферам
           </p>
           <Button size="sm" variant="outline" onClick={() => navigate('/portfolio')}>
             <Icon name="ArrowRight" size={12} className="mr-1" />

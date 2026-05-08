@@ -129,7 +129,7 @@ export default function WhySuggestedPopover({
           </p>
         ) : (
           <p className="text-[10px] text-muted-foreground border-t pt-2 leading-snug">
-            Подсказки строятся по текущей картине, возрасту ребёнка и активным планам развития.
+            Подсказки строятся по текущей картине, возрасту члена семьи и активным планам развития.
           </p>
         )}
         <Link

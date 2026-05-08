@@ -59,7 +59,7 @@ export default function PortfolioAbout() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
       <SEOHead
         title="Как работает Портфолио развития"
-        description="Карта развития ребёнка на основе данных семьи"
+        description="Карта развития каждого члена семьи на основе данных семьи"
       />
       <div className="container mx-auto max-w-3xl px-4 py-6 md:py-10">
         <button
@@ -87,12 +87,13 @@ export default function PortfolioAbout() {
         <div className="space-y-4">
           <Section num={1} icon="MapPin" title="Что такое Портфолио">
             <p>
-              Портфолио — это <span className="font-medium">карта развития ребёнка</span> по
+              Портфолио — это <span className="font-medium">карта развития каждого члена семьи</span> по
               данным вашей семьи. Не экзамен, не оценка личности и не диагноз.
             </p>
             <p>
-              Это инструмент, который помогает увидеть, где ребёнок чувствует себя сильно, а где
-              нужно немного внимания, и подсказывает следующий полезный шаг.
+              Раздел работает и для детей, и для взрослых: помогает увидеть, где человек
+              чувствует себя сильно, а где нужно немного внимания, и подсказывает следующий
+              полезный шаг.
             </p>
           </Section>
 
@@ -100,7 +101,7 @@ export default function PortfolioAbout() {
             <ul className="space-y-1.5 list-none">
               <li className="flex items-start gap-2">
                 <Icon name="Check" size={14} className="text-primary mt-0.5 flex-shrink-0" />
-                <span>увидеть сильные стороны ребёнка;</span>
+                <span>увидеть сильные стороны каждого члена семьи;</span>
               </li>
               <li className="flex items-start gap-2">
                 <Icon name="Check" size={14} className="text-primary mt-0.5 flex-shrink-0" />
@@ -148,14 +149,14 @@ export default function PortfolioAbout() {
               </li>
             </ul>
             <p className="text-xs text-muted-foreground mt-2">
-              Все данные остаются в вашей семье и не используются для сравнения с другими детьми.
+              Все данные остаются в вашей семье и не используются для сравнения с другими.
             </p>
           </Section>
 
           <Section num={4} icon="Layers" title="8 сфер развития">
             <p className="mb-3">
               Картина строится по 8 сферам — это привычные ориентиры, в которых развивается любой
-              ребёнок:
+              человек, и ребёнок, и взрослый:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <SphereCard
@@ -181,12 +182,12 @@ export default function PortfolioAbout() {
               <SphereCard
                 icon="Users"
                 title="Общение"
-                description="Дружба, командная игра, навыки разговора и сопереживания."
+                description="Дружба, командная работа, навыки разговора и сопереживания."
               />
               <SphereCard
                 icon="Wallet"
                 title="Финансы"
-                description="Понимание денег, планирование трат, первые накопления."
+                description="Отношения с деньгами, планирование трат, накопления."
               />
               <SphereCard
                 icon="Compass"
@@ -200,18 +201,18 @@ export default function PortfolioAbout() {
               />
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              Подробности по каждой сфере видны прямо в профиле ребёнка и в источниках данных.
+              Подробности по каждой сфере видны прямо в профиле члена семьи и в источниках данных.
             </p>
           </Section>
 
           <Section num={5} icon="Gauge" title="Как читать баллы по сферам">
             <p>
               Балл по сфере — это <span className="font-medium">ориентир</span> по тем данным,
-              которые сейчас есть в семье. Это не итоговая оценка ребёнка и не норма.
+              которые сейчас есть в семье. Это не итоговая оценка человека и не норма.
             </p>
             <p>
               Сравнение всегда идёт <span className="font-medium">с самим собой во времени</span>:
-              что изменилось за месяц, за квартал. Не сравниваем детей между собой.
+              что изменилось за месяц, за квартал. Не сравниваем людей между собой.
             </p>
             <p>
               Если по сфере данных мало — балл может не показываться, чтобы не делать поспешных
@@ -243,7 +244,7 @@ export default function PortfolioAbout() {
 
           <Section num={7} icon="Lightbulb" title="Откуда берутся рекомендации">
             <p>
-              Подсказки появляются на основе текущей картины по сфере, возраста ребёнка,
+              Подсказки появляются на основе текущей картины по сфере, возраста члена семьи,
               динамики и активных планов развития.
             </p>
             <p>
@@ -283,15 +284,15 @@ export default function PortfolioAbout() {
                   <ul className="space-y-1.5 text-sm text-foreground/80">
                     <li className="flex items-start gap-2">
                       <Icon name="X" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      не ставит ребёнку диагноз;
+                      не ставит человеку диагноз;
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="X" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      не клеит ярлык и не определяет «какой ребёнок»;
+                      не клеит ярлык и не определяет «какой человек»;
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="X" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      не сравнивает детей между собой;
+                      не сравнивает членов семьи между собой и с другими;
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="X" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
@@ -299,7 +300,7 @@ export default function PortfolioAbout() {
                     </li>
                     <li className="flex items-start gap-2">
                       <Icon name="X" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
-                      не является итоговой оценкой развития ребёнка.
+                      не является итоговой оценкой развития человека.
                     </li>
                   </ul>
                 </div>
@@ -312,7 +313,7 @@ export default function PortfolioAbout() {
               <Icon name="Sparkles" size={24} className="text-primary mx-auto mb-2" />
               <h3 className="font-semibold mb-1">Готовы начать?</h3>
               <p className="text-sm text-muted-foreground mb-3">
-                Откройте профиль ребёнка и посмотрите, как складывается картина по 8 сферам.
+                Откройте профиль члена семьи и посмотрите, как складывается картина по 8 сферам.
               </p>
               <Button asChild>
                 <Link to="/portfolio">

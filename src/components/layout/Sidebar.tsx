@@ -62,7 +62,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/family-hub',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
-        { id: 'portfolio', label: 'Портфолио семьи', icon: 'Sparkles', path: '/portfolio', badge: 'Новое' },
         { id: 'tree', label: 'Семейное древо', icon: 'GitBranch', path: '/tree' },
         { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
         { id: 'family-tracker', label: 'Семейный маячок', icon: 'MapPin', path: '/family-tracker' },
@@ -183,6 +182,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-violet-50 dark:bg-violet-950/40',
       hubPath: '/development-hub',
       items: [
+        { id: 'portfolio', label: 'Портфолио развития', icon: 'Sparkles', path: '/portfolio', badge: 'Новое' },
         { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
         { id: 'psychologist', label: 'Психолог ИИ', icon: 'BrainCircuit', path: '/psychologist' },
         { id: 'life-road', label: 'Мастерская жизни', icon: 'Hammer', path: '/life-road' }

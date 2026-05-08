@@ -110,7 +110,7 @@ const hubs = [
     color: 'from-indigo-500 to-purple-500',
     bg: 'bg-indigo-50',
     border: 'border-indigo-200',
-    sections: ['Развитие', 'Психолог ИИ', 'Мастерская жизни'],
+    sections: ['Портфолио развития', 'Развитие', 'Психолог ИИ', 'Мастерская жизни'],
   },
   {
     name: 'Семейный код',
