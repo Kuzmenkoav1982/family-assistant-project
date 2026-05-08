@@ -32,6 +32,7 @@ const slides = [
     subtitle: 'Всё в одном приложении',
     points: [
       '🪪 Семейный ID — единый цифровой профиль семьи для банков и маркетплейсов',
+      '🌱 Портфолио развития ребёнка — карта по 8 сферам с радаром, источниками и подсказками',
       '💳 Общие расходы и счета — совместный бюджет и трекинг трат всей семьи',
       '🎁 Бонусные программы семьи — единый кошелёк лояльности всех платформ',
       '🗓️ Единый семейный календарь с напоминаниями',
@@ -46,6 +47,26 @@ const slides = [
   },
   {
     id: 4,
+    type: 'portfolio',
+    title: '🌱 Портфолио развития ребёнка',
+    subtitle: 'Карта развития, а не оценка',
+    description: 'Каждый ребёнок в семье получает живое портфолио по 8 сферам развития. Это не диагноз и не ярлык — это карта, которая показывает сильные стороны, точки внимания и следующий полезный шаг. Картина строится из данных семьи: наблюдений родителя, привычек, достижений и активностей.',
+    pillars: [
+      { icon: '🎯', title: '8 сфер развития', desc: 'Интеллект, эмоции, тело, творчество, общение, финансы, ценности, навыки жизни' },
+      { icon: '📡', title: 'Радар + полнота', desc: 'Видна не только оценка, но и насколько хватает данных по каждой сфере' },
+      { icon: '🔗', title: 'Маршрутизатор', desc: '40+ типов источников с deep-link «Открыть раздел и добавить запись»' },
+      { icon: '🤖', title: 'Совет ИИ + правила', desc: 'Подсказки родителю с маркировкой типа: совет ИИ, правило, наблюдение' },
+    ],
+    metrics: [
+      { value: '8', label: 'сфер развития' },
+      { value: '40+', label: 'типов источников данных' },
+      { value: '15', label: 'компонентов раздела' },
+      { value: '4', label: 'уровня доверия' },
+    ],
+    moat: 'Уникальная ценность для родителей: спокойствие вместо тревоги. Ни один конкурент в России не строит карту развития по данным семьи с прозрачностью источников и этикой «карта, а не диагноз».'
+  },
+  {
+    id: 5,
     type: 'familyid',
     title: '🪪 Семейный ID',
     subtitle: 'Семья как единый клиент — новая парадигма',
@@ -59,35 +80,35 @@ const slides = [
     b2b: 'Банки и маркетплейсы платят за доступ к Семейному ID — это B2B2C монетизация поверх семейного кошелька'
   },
   {
-    id: 5,
+    id: 6,
     type: 'traction',
     title: '📈 Текущие показатели',
     stats: [
       { label: 'Активных семей', value: '89', icon: 'Users' },
       { label: 'Пользователей', value: '78', icon: 'UserCheck' },
-      { label: 'Backend API', value: '97', icon: 'Server' },
-      { label: 'Таблиц БД', value: '175', icon: 'Database' },
+      { label: 'Backend API', value: '110+', icon: 'Server' },
+      { label: 'Таблиц БД', value: '245', icon: 'Database' },
       { label: 'Хабов', value: '12', icon: 'LayoutGrid' },
-      { label: 'Экранов', value: '170+', icon: 'Zap' }
+      { label: 'Экранов', value: '165+', icon: 'Zap' }
     ],
     note: "Production-ready · ИС защищена n'RIS №518-830-027 · заявка в Реестр российского ПО подана"
   },
   {
-    id: 6,
+    id: 7,
     type: 'tech',
     title: '🛠️ Технологии',
     subtitle: 'Современный технологический стек',
     tech: [
-      { name: 'React + TypeScript', desc: '435+ компонентов, 170+ экранов' },
-      { name: 'Python Backend', desc: '97 облачных функций' },
-      { name: 'PostgreSQL', desc: '175 миграций / таблиц' },
+      { name: 'React + TypeScript', desc: '460+ компонентов, 165+ экранов' },
+      { name: 'Python Backend', desc: '110+ облачных функций' },
+      { name: 'PostgreSQL', desc: '245 таблиц, 290 миграций' },
       { name: 'PWA', desc: 'Работает как мобильное приложение' },
       { name: 'Яндекс.Алиса + MAX-бот', desc: 'Голос + мессенджер VK' },
       { name: 'ЮКасса + СБП', desc: 'Интеграция платежей' }
     ]
   },
   {
-    id: 7,
+    id: 8,
     type: 'market',
     title: '🌍 Рынок',
     data: {
@@ -103,7 +124,7 @@ const slides = [
     ]
   },
   {
-    id: 8,
+    id: 9,
     type: 'business',
     title: '💰 Бизнес-модель',
     subtitle: 'Семейный кошелёк — pay-per-use',
@@ -122,7 +143,7 @@ const slides = [
     ]
   },
   {
-    id: 9,
+    id: 10,
     type: 'valuation',
     title: '💎 Оценка проекта',
     current: {
@@ -148,14 +169,14 @@ const slides = [
     }
   },
   {
-    id: 10,
+    id: 11,
     type: 'roadmap',
     title: '🗺️ План развития',
     phases: [
       {
         period: 'Сегодня · Q2 2026',
         goals: [
-          '89 семей · 78 пользователей · 97 backend-функций',
+          '89 семей · 78 пользователей · 110+ backend-функций',
           'Навигатор мер господдержки (40+ федеральных мер) — в продакшене',
           'Реал-тайм чат семьи + интеграция с MAX-ботом',
           'Заявка в Реестр российского ПО подана'
@@ -196,7 +217,7 @@ const slides = [
     ]
   },
   {
-    id: 11,
+    id: 12,
     type: 'ask',
     title: '🚀 Инвестиционный раунд',
     ask: '₽10,000,000',
@@ -317,6 +338,41 @@ export default function InvestorDeck() {
                       <p className="text-gray-800">{point}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+
+            {slide.type === 'portfolio' && (
+              <div>
+                <div className="text-xs font-semibold text-emerald-600 uppercase tracking-widest mb-2">Флагманская фича · 2026</div>
+                <h2 className="text-2xl sm:text-4xl font-bold mb-2 text-gray-900">{slide.title}</h2>
+                <p className="text-base sm:text-xl text-gray-500 mb-2">{slide.subtitle}</p>
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed">{slide.description}</p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+                  {slide.metrics?.map((mt, idx) => (
+                    <div key={idx} className="text-center p-2 sm:p-3 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+                      <div className="text-xl sm:text-3xl font-bold text-emerald-700 mb-0.5">{mt.value}</div>
+                      <div className="text-[10px] sm:text-xs text-gray-600 leading-tight">{mt.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  {slide.pillars?.map((p, idx) => (
+                    <div key={idx} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200">
+                      <div className="text-2xl sm:text-3xl">{p.icon}</div>
+                      <div>
+                        <div className="font-bold text-gray-900 mb-1">{p.title}</div>
+                        <div className="text-sm text-gray-600">{p.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-900 to-teal-800 rounded-xl text-white text-center">
+                  <Icon name="ShieldCheck" size={24} className="mx-auto mb-2 text-emerald-200" />
+                  <p className="font-semibold text-sm sm:text-base leading-relaxed">{slide.moat}</p>
                 </div>
               </div>
             )}
