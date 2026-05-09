@@ -184,6 +184,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const AdminBlog = lazy(() => import("./pages/AdminBlog"));
 const AdminMaxInstructions = lazy(() => import("./pages/AdminMaxInstructions"));
 const AdminPortfolioHealth = lazy(() => import("./pages/AdminPortfolioHealth"));
+const AdminAtlas = lazy(() => import("./pages/AdminAtlas"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -423,6 +424,7 @@ const App = () => {
                       <Route path="/admin/valuation" element={<AdminValuation />} />
                       <Route path="/admin/panel" element={<AdminPanel />} />
                       <Route path="/admin/portfolio-health" element={<AdminPortfolioHealth />} />
+                      <Route path="/admin/atlas" element={<AdminAtlas />} />
                       <Route path="/admin/marketing" element={<MarketingStrategy />} />
                       <Route path="/admin/marketing-sale" element={<MarketingSale />} />
                       <Route path="/alice" element={<AliceIntegration />} />
