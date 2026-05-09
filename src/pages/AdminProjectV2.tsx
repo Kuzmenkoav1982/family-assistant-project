@@ -11,11 +11,14 @@ import {
   LAYERS_V2,
   LAYER_ORDER_V2,
   COMPARISON_ROWS,
+  DATA_FLOWS,
+  FLOW_STYLE,
   getSectionsByLayer,
   getSectionsByHub,
   getLayerConfig,
   type SectionV2,
   type ArchLayer,
+  type DataFlow,
 } from "@/data/projectV2/sections";
 
 // ─────────────────────────────────────────
@@ -139,14 +142,185 @@ function AsIsMode({ onSectionClick }: { onSectionClick: (s: SectionV2) => void }
 // ─────────────────────────────────────────
 // РЕЖИМ 2: После изменений — Древо по слоям
 // ─────────────────────────────────────────
+type FlowVisibility = "none" | "layers" | "section";
+
+// Получаем потоки между двумя конкретными слоями
+function getFlowsBetween(from: ArchLayer, to: ArchLayer): DataFlow[] {
+  return DATA_FLOWS.filter((f) => f.from === from && f.to === to);
+}
+
+// Потоки, которые затрагивают выбранный раздел
+function getSectionFlows(section: SectionV2): DataFlow[] {
+  return DATA_FLOWS.filter(
+    (f) => f.from === section.layer || f.to === section.layer
+  );
+}
+
+function FlowArrow({
+  flow,
+  isActive,
+  isDimmed,
+  onClick,
+}: {
+  flow: DataFlow;
+  isActive: boolean;
+  isDimmed: boolean;
+  onClick: (flow: DataFlow) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const st = FLOW_STYLE[flow.color];
+  const highlighted = isActive || hovered;
+
+  return (
+    <div className="relative flex flex-col items-center select-none">
+      {/* Линия сверху */}
+      <div
+        className={`w-0.5 h-3 border-l-2 border-dashed transition-all ${
+          highlighted ? st.line : isDimmed ? "border-slate-200" : "border-slate-300"
+        }`}
+      />
+
+      {/* Кнопка стрелки */}
+      <button
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onClick={() => onClick(flow)}
+        className={`relative flex items-center gap-1.5 px-3 py-1 rounded-full border-2 text-[11px] font-semibold transition-all cursor-pointer ${
+          highlighted
+            ? `${st.bg} ${st.border} ${st.text} shadow-md scale-105`
+            : isDimmed
+            ? "bg-white border-slate-100 text-slate-300"
+            : "bg-white border-slate-200 text-slate-500 hover:shadow-sm"
+        }`}
+      >
+        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${highlighted ? st.dot : isDimmed ? "bg-slate-200" : "bg-slate-300"}`} />
+        {flow.label}
+        <Icon name="ChevronDown" size={10} className={highlighted ? st.text : "text-slate-300"} />
+
+        {/* Tooltip */}
+        {hovered && !isActive && (
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-56 bg-slate-900 text-white text-[10px] leading-relaxed rounded-xl px-3 py-2 shadow-xl z-50 pointer-events-none">
+            <p className="font-bold mb-0.5 text-[11px]">{flow.from} → {flow.to}</p>
+            {flow.tooltip}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+          </div>
+        )}
+      </button>
+
+      {/* Линия снизу */}
+      <div
+        className={`w-0.5 h-3 border-l-2 border-dashed transition-all ${
+          highlighted ? st.line : isDimmed ? "border-slate-200" : "border-slate-300"
+        }`}
+      />
+      <div className={`w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] transition-all ${
+        highlighted ? st.line.replace("border-", "border-t-") : isDimmed ? "border-t-slate-200" : "border-t-slate-300"
+      }`} />
+    </div>
+  );
+}
+
+// Панель детального потока (по клику на стрелку)
+function FlowDetailPanel({ flow, onClose }: { flow: DataFlow; onClose: () => void }) {
+  const st = FLOW_STYLE[flow.color];
+  const relatedConflicts = OVERLAP_CASES.filter((c) => flow.conflictIds.includes(c.id));
+  const LAYER_NAME: Record<ArchLayer, string> = {
+    codes: "Кодексы", reflection: "Осмысление", panorama: "Панорамы",
+    execution: "Исполнение", sources: "Источники", service: "Служебные",
+  };
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* Шапка */}
+      <div className={`flex items-center justify-between gap-2 px-4 py-3 ${st.bg} border-b ${st.border}`}>
+        <div>
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${st.dot}`} />
+            <span className={`text-xs font-bold uppercase tracking-wider ${st.text}`}>Поток данных</span>
+          </div>
+          <h3 className="text-sm font-bold text-slate-900 mt-0.5">
+            {LAYER_NAME[flow.from]} → {LAYER_NAME[flow.to]}
+          </h3>
+          <p className="text-[11px] text-slate-500">{flow.label}</p>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 shrink-0">
+          <Icon name="X" size={14} />
+        </Button>
+      </div>
+
+      <div className="p-4 flex flex-col gap-4">
+        {/* Что передаётся */}
+        <div>
+          <p className="text-[10px] font-bold uppercase text-slate-400 mb-2">Что передаётся</p>
+          <div className="flex flex-wrap gap-1.5">
+            {flow.what.map((w, i) => (
+              <span key={i} className={`text-[11px] px-2 py-0.5 rounded-full border font-medium ${st.bg} ${st.border} ${st.text}`}>{w}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Разделы */}
+        <div>
+          <p className="text-[10px] font-bold uppercase text-slate-400 mb-2">Главные участники</p>
+          <div className="flex flex-col gap-1">
+            {flow.sections.map((s, i) => (
+              <div key={i} className="flex items-center gap-1.5 text-xs text-slate-700">
+                <div className={`w-1 h-1 rounded-full ${st.dot} shrink-0`} />
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Сценарии */}
+        <div>
+          <p className="text-[10px] font-bold uppercase text-slate-400 mb-2">Примеры маршрутов</p>
+          <div className="flex flex-col gap-2">
+            {flow.scenarios.map((sc, i) => (
+              <div key={i} className={`rounded-lg border ${st.border} ${st.bg} p-2`}>
+                <p className={`text-[10px] font-bold ${st.text} mb-1`}>{sc.title}</p>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {sc.path.map((step, j) => (
+                    <span key={j} className="flex items-center gap-1">
+                      <span className="text-[11px] bg-white border border-slate-200 px-1.5 py-0.5 rounded-md text-slate-700">{step}</span>
+                      {j < sc.path.length - 1 && <Icon name="ArrowRight" size={10} className="text-slate-400" />}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Конфликты */}
+        {relatedConflicts.length > 0 && (
+          <div>
+            <p className="text-[10px] font-bold uppercase text-slate-400 mb-2">Конфликтные узлы</p>
+            {relatedConflicts.map((c) => (
+              <div key={c.id} className="rounded-lg border border-amber-200 bg-amber-50 px-2 py-1.5 mb-1">
+                <p className="text-[11px] font-semibold text-amber-800">{c.sharedFunction}</p>
+                <p className="text-[10px] text-amber-600">{c.sectionA} ↔ {c.sectionB}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SectionChip({
   section,
   onClick,
   isSelected,
+  isHighlighted,
+  isDimmed,
 }: {
   section: SectionV2;
   onClick: () => void;
   isSelected: boolean;
+  isHighlighted?: boolean;
+  isDimmed?: boolean;
 }) {
   const hasConflict = section.conflicts.length > 0;
   return (
@@ -154,16 +328,20 @@ function SectionChip({
       onClick={onClick}
       className={`group flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all ${
         isSelected
-          ? "bg-violet-600 text-white border-violet-600 shadow-md"
+          ? "bg-violet-600 text-white border-violet-600 shadow-md scale-105"
+          : isHighlighted
+          ? "bg-violet-50 text-violet-800 border-violet-400 shadow-sm ring-2 ring-violet-200"
+          : isDimmed
+          ? "bg-white text-slate-300 border-slate-100"
           : "bg-white text-slate-700 border-slate-200 hover:border-violet-300 hover:shadow-sm"
       }`}
     >
-      <Icon name={section.icon} size={12} className={isSelected ? "text-white" : "text-slate-400"} />
+      <Icon name={section.icon} size={12} className={isSelected ? "text-white" : isHighlighted ? "text-violet-600" : "text-slate-400"} />
       <span>{section.labelNew ?? section.label}</span>
       {section.labelNew && section.labelNew !== section.label && !isSelected && (
         <span className="text-[9px] text-amber-500">↑</span>
       )}
-      {hasConflict && !isSelected && (
+      {hasConflict && !isSelected && !isDimmed && (
         <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
       )}
     </button>
@@ -173,52 +351,189 @@ function SectionChip({
 function AfterMode({
   selectedSection,
   onSectionClick,
+  selectedFlow,
+  onFlowClick,
 }: {
   selectedSection: SectionV2 | null;
   onSectionClick: (s: SectionV2) => void;
+  selectedFlow: DataFlow | null;
+  onFlowClick: (f: DataFlow) => void;
 }) {
+  const [flowVis, setFlowVis] = useState<FlowVisibility>("layers");
+
+  // Вычисляем подсвеченные/приглушённые разделы при выборе раздела
+  const activeLayers = selectedSection
+    ? new Set([
+        selectedSection.layer,
+        ...DATA_FLOWS.filter((f) => f.from === selectedSection.layer || f.to === selectedSection.layer).flatMap((f) => [f.from, f.to]),
+      ])
+    : null;
+
+  // Подсвеченные разделы = те, с которыми выбранный раздел связан данными
+  const linkedSectionLabels = selectedSection
+    ? new Set([...selectedSection.dataFrom, ...selectedSection.dataTo])
+    : null;
+
+  const VIS_OPTS: Array<{ id: FlowVisibility; label: string }> = [
+    { id: "none",    label: "Скрыть связи" },
+    { id: "layers",  label: "Потоки слоёв" },
+    { id: "section", label: "Путь раздела" },
+  ];
+
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-        Разделы расположены по архитектурным слоям — не по хабам.
-        <span className="text-amber-600 font-medium"> ↑ = переименование · </span>
-        <span className="text-red-500 font-medium">● = открытый конфликт</span>.
-        Кликни на раздел — увидишь полную карточку.
-      </p>
+      {/* Подсказка + переключатель */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+        <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex-1">
+          Разделы по архитектурным слоям.
+          <span className="text-amber-600 font-medium"> ↑ = переименование · </span>
+          <span className="text-red-500 font-medium">● = конфликт</span>.
+          {flowVis === "layers" && " Кликни на стрелку — откроется панель потока."}
+          {flowVis === "section" && selectedSection && <span className="text-violet-600 font-medium"> Подсвечен путь: {selectedSection.labelNew ?? selectedSection.label}</span>}
+        </p>
+        {/* Переключатель отображения связей */}
+        <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden shrink-0">
+          {VIS_OPTS.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setFlowVis(opt.id)}
+              className={`px-2.5 py-1.5 text-[11px] font-medium border-r border-slate-100 last:border-0 transition-colors ${
+                flowVis === opt.id ? "bg-violet-600 text-white" : "text-slate-500 hover:bg-slate-50"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Легенда */}
+      {flowVis === "layers" && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-[10px] text-slate-400 font-medium">Тип потока:</span>
+          {([
+            { color: "blue",   label: "данные / факты" },
+            { color: "green",  label: "исполнение" },
+            { color: "violet", label: "смыслы / мостики" },
+            { color: "amber",  label: "новые факты (петля)" },
+          ] as const).map((item) => (
+            <div key={item.color} className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${FLOW_STYLE[item.color].dot}`} />
+              <span className={`text-[10px] font-medium ${FLOW_STYLE[item.color].text}`}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Дерево слоёв */}
       {LAYER_ORDER_V2.map((layerId, idx) => {
         const cfg = getLayerConfig(layerId);
         const sections = getSectionsByLayer(layerId);
+        const isLayerActive = !activeLayers || activeLayers.has(layerId);
+
+        // Потоки от этого слоя к следующему
+        const nextLayer = LAYER_ORDER_V2[idx + 1];
+        const flowsBetween = nextLayer ? getFlowsBetween(layerId, nextLayer) : [];
+        // Обратная петля: Исполнение → Источники
+        const loopFlows = layerId === "execution" ? getFlowsBetween("execution", "sources") : [];
+
         return (
           <div key={layerId} className="flex flex-col items-center gap-0">
-            <div className={`w-full rounded-2xl border-2 ${cfg.borderColor} ${cfg.bgColor} p-3`}>
+            {/* Блок слоя */}
+            <div
+              className={`w-full rounded-2xl border-2 transition-all ${cfg.borderColor} ${cfg.bgColor} p-3 ${
+                !isLayerActive ? "opacity-30" : ""
+              }`}
+            >
               <div className="flex items-center gap-2 mb-2">
                 <span className={`text-xs font-bold uppercase tracking-widest ${cfg.textColor}`}>{cfg.name}</span>
-                <span className={`text-[11px] ${cfg.textColor} opacity-70`}>— {cfg.description}</span>
+                <span className={`text-[11px] ${cfg.textColor} opacity-60`}>— {cfg.description}</span>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {sections.map((s) => (
-                  <SectionChip
-                    key={s.id}
-                    section={s}
-                    onClick={() => onSectionClick(s)}
-                    isSelected={selectedSection?.id === s.id}
-                  />
-                ))}
+                {sections.map((s) => {
+                  const isSelected = selectedSection?.id === s.id;
+                  const isHighlighted = flowVis === "section" && selectedSection && !isSelected
+                    ? linkedSectionLabels?.has(s.label) || linkedSectionLabels?.has(s.labelNew ?? s.label)
+                    : false;
+                  const isDimmed = flowVis === "section" && selectedSection && !isSelected && !isHighlighted;
+                  return (
+                    <SectionChip
+                      key={s.id}
+                      section={s}
+                      onClick={() => onSectionClick(s)}
+                      isSelected={isSelected}
+                      isHighlighted={!!isHighlighted}
+                      isDimmed={!!isDimmed}
+                    />
+                  );
+                })}
               </div>
             </div>
+
+            {/* Стрелки между слоями */}
             {idx < LAYER_ORDER_V2.length - 1 && (
-              <div className="flex flex-col items-center py-0.5">
-                <div className="w-px h-3 bg-slate-300" />
-                <Icon name="ChevronDown" size={13} className="text-slate-400" />
-                <div className="w-px h-3 bg-slate-300" />
+              <div className="flex flex-col items-center gap-0 py-0">
+                {flowVis === "none" && (
+                  <>
+                    <div className="w-px h-3 bg-slate-200" />
+                    <Icon name="ChevronDown" size={13} className="text-slate-300" />
+                    <div className="w-px h-3 bg-slate-200" />
+                  </>
+                )}
+                {flowVis !== "none" && flowsBetween.map((flow) => {
+                  const sectionFlows = selectedSection ? getSectionFlows(selectedSection) : [];
+                  const isActive = flowVis === "section"
+                    ? sectionFlows.some((f) => f.id === flow.id)
+                    : selectedFlow?.id === flow.id;
+                  const isDimmed = flowVis === "section" && selectedSection
+                    ? !sectionFlows.some((f) => f.id === flow.id)
+                    : false;
+                  return (
+                    <FlowArrow
+                      key={flow.id}
+                      flow={flow}
+                      isActive={isActive}
+                      isDimmed={isDimmed}
+                      onClick={onFlowClick}
+                    />
+                  );
+                })}
+                {/* Петля: Исполнение → Источники (показываем рядом с последней стрелкой вниз) */}
+                {layerId === "execution" && flowVis !== "none" && loopFlows.map((flow) => {
+                  const sectionFlows = selectedSection ? getSectionFlows(selectedSection) : [];
+                  const isActive = flowVis === "section"
+                    ? sectionFlows.some((f) => f.id === flow.id)
+                    : selectedFlow?.id === flow.id;
+                  return (
+                    <div key={flow.id} className="mt-1 flex items-center gap-1">
+                      <div className="flex flex-col items-center">
+                        <div className="flex items-center gap-1.5">
+                          <Icon name="RefreshCcw" size={12} className={isActive ? FLOW_STYLE[flow.color].text : "text-slate-300"} />
+                          <button
+                            onClick={() => onFlowClick(flow)}
+                            className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold transition-all ${
+                              isActive
+                                ? `${FLOW_STYLE[flow.color].bg} ${FLOW_STYLE[flow.color].border} ${FLOW_STYLE[flow.color].text} shadow-sm`
+                                : "bg-white border-slate-200 text-slate-400 hover:border-amber-300"
+                            }`}
+                          >
+                            → {flow.label}
+                          </button>
+                        </div>
+                        <p className="text-[9px] text-slate-400 mt-0.5">Петля: Исполнение → Источники</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         );
       })}
+
       {/* Служебные */}
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-        <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">Служебные</p>
+        <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">Служебные (вне основной архитектуры)</p>
         <div className="flex gap-2 flex-wrap text-xs text-gray-500">
           {["Полезные статьи", "В разработке"].map((n) => (
             <span key={n} className="bg-white border border-gray-200 px-2 py-1 rounded-lg">{n}</span>
@@ -559,14 +874,26 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
 export default function AdminProjectV2() {
   const [mode, setMode] = useState<Mode>("as-is");
   const [selectedSection, setSelectedSection] = useState<SectionV2 | null>(null);
+  const [selectedFlow, setSelectedFlow] = useState<DataFlow | null>(null);
 
   const handleSectionClick = (s: SectionV2) => {
+    setSelectedFlow(null);
     setSelectedSection((prev) => (prev?.id === s.id ? null : s));
   };
-  const handleClose = () => setSelectedSection(null);
+  const handleFlowClick = (f: DataFlow) => {
+    setSelectedSection(null);
+    setSelectedFlow((prev) => (prev?.id === f.id ? null : f));
+  };
+  const handleClose = () => {
+    setSelectedSection(null);
+    setSelectedFlow(null);
+  };
 
   const openConflicts = OVERLAP_CASES.filter((c) => c.status === "open").length;
   const renamed = SECTIONS_V2.filter((s) => s.labelNew && s.labelNew !== s.label).length;
+
+  const hasRightPanel = (selectedSection && (mode === "as-is" || mode === "after"))
+    || (selectedFlow && mode === "after");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/20">
@@ -605,9 +932,9 @@ export default function AdminProjectV2() {
         </div>
 
         {/* Переключатель режимов */}
-        <div className="flex rounded-xl border border-slate-200 bg-white overflow-hidden w-fit shadow-sm">
+        <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white overflow-hidden w-fit shadow-sm">
           {MODES.map((m) => (
-            <button key={m.id} onClick={() => { setMode(m.id); setSelectedSection(null); }}
+            <button key={m.id} onClick={() => { setMode(m.id); handleClose(); }}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors border-r border-slate-100 last:border-0 ${
                 mode === m.id ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-50"
               }`}>
@@ -625,18 +952,26 @@ export default function AdminProjectV2() {
         {/* Основной контент */}
         <div className="flex flex-col lg:flex-row gap-4">
           {/* Левая часть: основной режим */}
-          <div className={`transition-all ${selectedSection ? "lg:w-[45%]" : "w-full"}`}>
+          <div className={`transition-all duration-200 ${hasRightPanel ? "lg:w-[45%]" : "w-full"}`}>
             {mode === "as-is"     && <AsIsMode onSectionClick={handleSectionClick} />}
-            {mode === "after"     && <AfterMode selectedSection={selectedSection} onSectionClick={handleSectionClick} />}
+            {mode === "after"     && (
+              <AfterMode
+                selectedSection={selectedSection}
+                onSectionClick={handleSectionClick}
+                selectedFlow={selectedFlow}
+                onFlowClick={handleFlowClick}
+              />
+            )}
             {mode === "compare"   && <CompareMode />}
             {mode === "conflicts" && <ConflictsMode />}
           </div>
 
-          {/* Правая панель: карточка раздела */}
-          {selectedSection && (mode === "as-is" || mode === "after") && (
+          {/* Правая панель */}
+          {hasRightPanel && (
             <div className="lg:w-[55%]">
               <Card className="overflow-hidden sticky top-4 max-h-[88vh]">
-                <SectionDetailPanel section={selectedSection} onClose={handleClose} />
+                {selectedSection && <SectionDetailPanel section={selectedSection} onClose={handleClose} />}
+                {selectedFlow && !selectedSection && <FlowDetailPanel flow={selectedFlow} onClose={handleClose} />}
               </Card>
             </div>
           )}

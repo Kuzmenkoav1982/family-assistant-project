@@ -779,6 +779,146 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
 ];
 
 // ─────────────────────────────────────────
+// 7 ПОТОКОВ ДАННЫХ МЕЖДУ СЛОЯМИ
+// ─────────────────────────────────────────
+export type FlowColor = 'blue' | 'green' | 'violet' | 'amber';
+
+export interface DataFlow {
+  id: string;
+  from: ArchLayer;
+  to: ArchLayer;
+  label: string;           // короткая подпись на стрелке
+  tooltip: string;         // hover-подсказка
+  color: FlowColor;
+  what: string[];          // что передаётся
+  sections: string[];      // какие разделы участвуют чаще всего
+  scenarios: Array<{ title: string; path: string[] }>;  // примеры маршрутов
+  conflictIds: string[];   // конфликтные узлы
+}
+
+export const DATA_FLOWS: DataFlow[] = [
+  {
+    id: 'sources-to-panorama',
+    from: 'sources',
+    to: 'panorama',
+    label: 'факты и данные',
+    tooltip: 'Фактические данные из Дети, Финансы, Питание и др. собираются в обзорные разделы — Портфолио и Финансовый пульс',
+    color: 'blue',
+    what: ['факты', 'профили', 'события', 'показатели', 'наблюдения', 'транзакции'],
+    sections: ['Дети', 'Здоровье', 'Питание', 'Финансы (данные)', 'Практики развития', 'Семья'],
+    scenarios: [
+      { title: 'Дети → Портфолио развития', path: ['Дети', 'Портфолио развития'] },
+      { title: 'Финансы → Финансовый пульс', path: ['Финансы (данные)', 'Финансовый пульс'] },
+      { title: 'Здоровье + Питание → Портфолио', path: ['Здоровье', 'Питание', 'Портфолио развития'] },
+    ],
+    conflictIds: ['overlap-children-portfolio-observations'],
+  },
+  {
+    id: 'panorama-to-reflection',
+    from: 'panorama',
+    to: 'reflection',
+    label: 'картина и выводы',
+    tooltip: 'Портфолио развития и Финансовый пульс передают выводы и гипотезы в Мастерскую жизни и Психолога ИИ',
+    color: 'violet',
+    what: ['картина по сферам', 'выводы', 'сигналы', 'гипотезы', 'рекомендации к осмыслению'],
+    sections: ['Портфолио развития', 'Финансовый пульс', 'Кэш-флоу прогноз'],
+    scenarios: [
+      { title: 'Портфолио → Мастерская жизни', path: ['Портфолио развития', 'Мастерская жизни'] },
+      { title: 'Портфолио → Психолог ИИ', path: ['Портфолио развития', 'Психолог ИИ'] },
+      { title: 'Финансовый пульс → Мастерская жизни', path: ['Финансовый пульс', 'Мастерская жизни'] },
+    ],
+    conflictIds: ['overlap-portfolio-life-road', 'overlap-ai-insights'],
+  },
+  {
+    id: 'panorama-to-execution',
+    from: 'panorama',
+    to: 'execution',
+    label: 'рекомендованные шаги',
+    tooltip: 'Панорамы дают конкретные рекомендации для Планирования и Финансовых целей',
+    color: 'green',
+    what: ['рекомендованный следующий шаг', 'приоритеты', 'сигналы к действию'],
+    sections: ['Портфолио развития', 'Финансовый пульс', 'Кэш-флоу прогноз'],
+    scenarios: [
+      { title: 'Портфолио → Планирование', path: ['Портфолио развития', 'Планирование / Задачи'] },
+      { title: 'Кэш-флоу → Финансовые цели', path: ['Кэш-флоу прогноз', 'Финансовые цели'] },
+    ],
+    conflictIds: [],
+  },
+  {
+    id: 'reflection-to-codes',
+    from: 'reflection',
+    to: 'codes',
+    label: 'принципы и договорённости',
+    tooltip: 'Из осмысления в Мастерской жизни и Зеркале родителя рождаются принципы, которые фиксируются в Кодексах',
+    color: 'violet',
+    what: ['осознанные принципы', 'договорённости', 'семейные правила', 'личные установки'],
+    sections: ['Мастерская жизни', 'Зеркало родителя', 'Психолог ИИ', 'Ценности'],
+    scenarios: [
+      { title: 'Мастерская жизни → Личный код', path: ['Мастерская жизни', 'Личный код'] },
+      { title: 'Мастерская → Код пары → Код семьи', path: ['Мастерская жизни', 'Код пары', 'Код семьи'] },
+      { title: 'Зеркало родителя → Личный код', path: ['Зеркало родителя', 'Личный код'] },
+    ],
+    conflictIds: [],
+  },
+  {
+    id: 'reflection-to-execution',
+    from: 'reflection',
+    to: 'execution',
+    label: 'решения и фокусы',
+    tooltip: 'Голосования, Мастерская жизни и Ценности превращают осознанные решения в конкретные действия',
+    color: 'green',
+    what: ['решения семьи', 'фокусы на период', 'намерения', 'приоритеты'],
+    sections: ['Голосования', 'Мастерская жизни', 'Ценности'],
+    scenarios: [
+      { title: 'Голосование → Задача → Календарь', path: ['Голосования', 'Задачи', 'Календарь'] },
+      { title: 'Мастерская жизни → Планирование', path: ['Мастерская жизни', 'Планирование / Задачи'] },
+    ],
+    conflictIds: ['overlap-goals-finance-life'],
+  },
+  {
+    id: 'codes-to-execution',
+    from: 'codes',
+    to: 'execution',
+    label: 'рамки и ограничения',
+    tooltip: 'Кодексы задают правила и рамки, в которых работают планы и задачи',
+    color: 'violet',
+    what: ['ограничения', 'договорённости о поведении', 'семейные правила', 'ритуалы'],
+    sections: ['Личный код', 'Код пары', 'Код семьи', 'Детский код', 'Ритуалы примирения'],
+    scenarios: [
+      { title: 'Код семьи → Планирование', path: ['Код семьи', 'Планирование / Задачи'] },
+      { title: 'Ритуалы → Праздники', path: ['Ритуалы примирения', 'Праздники'] },
+    ],
+    conflictIds: ['overlap-rituals'],
+  },
+  {
+    id: 'execution-to-sources',
+    from: 'execution',
+    to: 'sources',
+    label: 'новые факты',
+    tooltip: 'Выполненные действия (покупки, задачи, события) создают новые данные — петля замыкается',
+    color: 'amber',
+    what: ['выполненные действия', 'новые факты', 'обновлённое состояние', 'результаты'],
+    sections: ['Покупки', 'Задачи', 'Календарь', 'Финансовые цели', 'Стратегия погашения'],
+    scenarios: [
+      { title: 'Покупки → Финансы (расходы)', path: ['Покупки', 'Финансы (данные)'] },
+      { title: 'Задачи выполнены → Дети (достижения)', path: ['Задачи', 'Дети'] },
+      { title: 'Финансовые цели → Финансы (баланс)', path: ['Финансовые цели', 'Финансы (данные)'] },
+    ],
+    conflictIds: [],
+  },
+];
+
+// Стили по цвету потока
+export const FLOW_STYLE: Record<FlowColor, {
+  line: string; text: string; bg: string; border: string; dot: string; highlight: string;
+}> = {
+  blue:   { line: 'border-blue-400',   text: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200',   dot: 'bg-blue-400',   highlight: 'ring-blue-300' },
+  green:  { line: 'border-green-400',  text: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200',  dot: 'bg-green-400',  highlight: 'ring-green-300' },
+  violet: { line: 'border-violet-400', text: 'text-violet-600', bg: 'bg-violet-50', border: 'border-violet-200', dot: 'bg-violet-400', highlight: 'ring-violet-300' },
+  amber:  { line: 'border-amber-400',  text: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200',  dot: 'bg-amber-400',  highlight: 'ring-amber-300' },
+};
+
+// ─────────────────────────────────────────
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ─────────────────────────────────────────
 export const getSectionsByLayer = (layer: ArchLayer) =>
