@@ -211,6 +211,7 @@ export default function AdminDashboard() {
     { icon: 'Newspaper', label: 'Блог', tab: 'blog-link', color: 'from-orange-400 to-pink-500', href: '/admin/blog' },
     { icon: 'Sparkles', label: 'Портфолио', tab: 'portfolio-health', color: 'from-violet-400 to-purple-500', href: '/admin/portfolio-health' },
     { icon: 'Atom', label: 'Паспорт платформы', tab: 'atlas', color: 'from-violet-500 to-fuchsia-500', href: '/admin/atlas' },
+    { icon: 'Layers', label: 'Проект v2', tab: 'project-v2', color: 'from-violet-600 to-fuchsia-700', href: '/admin/project-v2' },
   ];
 
   return (
