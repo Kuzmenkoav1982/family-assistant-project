@@ -6,102 +6,289 @@ import Icon from "@/components/ui/icon";
 import { OVERLAP_CASES } from "@/data/atlas/platformDecisions";
 import type { OverlapCase } from "@/data/atlas/types";
 import {
-  HUBS_V2,
-  LAYERS,
-  LAYER_ORDER,
-  getHubsByLayer,
+  SECTIONS_V2,
+  HUBS_AS_IS,
+  LAYERS_V2,
+  LAYER_ORDER_V2,
+  COMPARISON_ROWS,
+  getSectionsByLayer,
+  getSectionsByHub,
   getLayerConfig,
-  type HubV2,
-  type LayerType,
-} from "@/data/projectV2/hubs";
+  type SectionV2,
+  type ArchLayer,
+} from "@/data/projectV2/sections";
 
 // ─────────────────────────────────────────
-// Бейджи
+// Типы и константы
 // ─────────────────────────────────────────
-const PRIORITY_BADGE: Record<string, { label: string; className: string }> = {
-  P1: { label: "P1 · Срочно", className: "bg-red-100 text-red-700 border-red-200" },
-  P2: { label: "P2 · Важно", className: "bg-amber-100 text-amber-700 border-amber-200" },
-  P3: { label: "P3 · Позже", className: "bg-slate-100 text-slate-600 border-slate-200" },
+type Mode = "as-is" | "after" | "compare" | "conflicts";
+
+const MODES: Array<{ id: Mode; label: string; icon: string }> = [
+  { id: "as-is",     label: "Как есть сейчас",   icon: "Eye" },
+  { id: "after",     label: "После изменений",    icon: "Sparkles" },
+  { id: "compare",   label: "Сравнение",          icon: "ArrowLeftRight" },
+  { id: "conflicts", label: "Конфликты",          icon: "AlertTriangle" },
+];
+
+const ROLE_LAYER_LABEL: Record<ArchLayer, string> = {
+  sources:   "Источник",
+  panorama:  "Панорама",
+  reflection:"Осмысление",
+  codes:     "Кодекс",
+  execution: "Исполнение",
+  service:   "Служебный",
 };
 
-const CHANGE_BADGE: Record<string, { label: string; className: string }> = {
-  rename: { label: "Переименование", className: "bg-blue-100 text-blue-700 border-blue-200" },
-  restructure: { label: "Реструктуризация", className: "bg-orange-100 text-orange-700 border-orange-200" },
-  unchanged: { label: "Без изменений", className: "bg-green-100 text-green-700 border-green-200" },
-  new: { label: "Новый раздел", className: "bg-purple-100 text-purple-700 border-purple-200" },
+const ROLE_LAYER_COLOR: Record<ArchLayer, string> = {
+  sources:   "bg-slate-100 text-slate-700 border-slate-300",
+  panorama:  "bg-emerald-50 text-emerald-700 border-emerald-300",
+  reflection:"bg-amber-50 text-amber-700 border-amber-300",
+  codes:     "bg-purple-50 text-purple-700 border-purple-300",
+  execution: "bg-blue-50 text-blue-700 border-blue-300",
+  service:   "bg-gray-50 text-gray-500 border-gray-200",
 };
 
 // ─────────────────────────────────────────
-// Карточка хаба в дереве
+// Бейдж архитектурной роли
 // ─────────────────────────────────────────
-function HubTreeCard({
-  hub,
+function RoleBadge({ layer }: { layer: ArchLayer }) {
+  return (
+    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${ROLE_LAYER_COLOR[layer]}`}>
+      {ROLE_LAYER_LABEL[layer]}
+    </span>
+  );
+}
+
+// ─────────────────────────────────────────
+// РЕЖИМ 1: Как есть сейчас
+// ─────────────────────────────────────────
+function AsIsMode({ onSectionClick }: { onSectionClick: (s: SectionV2) => void }) {
+  const mainHubs = HUBS_AS_IS.filter((h) => h.id !== "articles" && h.id !== "in-dev");
+  const serviceHubs = HUBS_AS_IS.filter((h) => h.id === "articles" || h.id === "in-dev");
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+        Текущая структура платформы: хабы-контейнеры и разделы внутри них. У каждого раздела — бейдж его будущей архитектурной роли.
+        <span className="font-medium text-slate-700"> Кликни на раздел → откроется полная карточка.</span>
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {mainHubs.map((hub) => {
+          const sections = getSectionsByHub(hub.id);
+          if (sections.length === 0) return null;
+          const hasMixedRoles = new Set(sections.map((s) => s.layer)).size > 1;
+          return (
+            <div key={hub.id} className={`rounded-xl border overflow-hidden ${hasMixedRoles ? "border-amber-300" : "border-slate-200"}`}>
+              {/* Шапка хаба */}
+              <div className={`flex items-center gap-2 px-3 py-2 bg-gradient-to-r ${hub.color} text-white`}>
+                <Icon name={hub.icon} size={14} />
+                <span className="text-xs font-bold">{hub.label}</span>
+                {hasMixedRoles && (
+                  <span className="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">
+                    ⚠ смешаны роли
+                  </span>
+                )}
+              </div>
+              {/* Список разделов */}
+              <div className="flex flex-col divide-y divide-slate-100 bg-white">
+                {sections.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => onSectionClick(s)}
+                    className="flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 transition-colors text-left group"
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Icon name={s.icon} size={11} className="text-slate-400 shrink-0" />
+                      <span className="text-xs text-slate-700 group-hover:text-slate-900 truncate">
+                        {s.labelNew ?? s.label}
+                        {s.labelNew && s.labelNew !== s.label && (
+                          <span className="ml-1 text-[9px] text-slate-400 line-through">{s.label}</span>
+                        )}
+                      </span>
+                    </div>
+                    <RoleBadge layer={s.layer} />
+                  </button>
+                ))}
+              </div>
+              {/* Проблема хаба */}
+              {hub.problem && (
+                <div className="px-3 py-2 bg-amber-50 border-t border-amber-200">
+                  <p className="text-[10px] text-amber-700 leading-tight">{hub.problem}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {/* Служебные */}
+      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+        <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">Служебные (вне основной архитектуры)</p>
+        <div className="flex gap-2 flex-wrap">
+          {serviceHubs.map((h) => (
+            <span key={h.id} className="flex items-center gap-1 text-xs text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded-lg">
+              <Icon name={h.icon} size={11} />
+              {h.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// РЕЖИМ 2: После изменений — Древо по слоям
+// ─────────────────────────────────────────
+function SectionChip({
+  section,
   onClick,
   isSelected,
 }: {
-  hub: HubV2;
-  onClick: (hub: HubV2) => void;
+  section: SectionV2;
+  onClick: () => void;
   isSelected: boolean;
 }) {
-  const changed = hub.changeType === "rename" || hub.changeType === "restructure" || hub.changeType === "new";
+  const hasConflict = section.conflicts.length > 0;
   return (
     <button
-      onClick={() => onClick(hub)}
-      className={`
-        group flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all cursor-pointer
-        ${isSelected ? "border-violet-400 bg-violet-50 shadow-md scale-105" : "border-slate-200 bg-white hover:border-violet-300 hover:shadow-sm hover:scale-102"}
-      `}
-      style={{ minWidth: 96, maxWidth: 120 }}
+      onClick={onClick}
+      className={`group flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all ${
+        isSelected
+          ? "bg-violet-600 text-white border-violet-600 shadow-md"
+          : "bg-white text-slate-700 border-slate-200 hover:border-violet-300 hover:shadow-sm"
+      }`}
     >
-      <div
-        className={`w-10 h-10 rounded-xl bg-gradient-to-br ${hub.color} flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform`}
-      >
-        <Icon name={hub.icon} size={18} />
-      </div>
-      <span className="text-[11px] font-semibold text-center leading-tight text-slate-800">
-        {hub.nameNew}
-      </span>
-      {changed && (
-        <span className="text-[9px] text-slate-400 line-through leading-none">{hub.nameOld}</span>
+      <Icon name={section.icon} size={12} className={isSelected ? "text-white" : "text-slate-400"} />
+      <span>{section.labelNew ?? section.label}</span>
+      {section.labelNew && section.labelNew !== section.label && !isSelected && (
+        <span className="text-[9px] text-amber-500">↑</span>
       )}
-      {hub.changeType !== "unchanged" && (
-        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1.5 right-1.5" />
+      {hasConflict && !isSelected && (
+        <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
       )}
     </button>
   );
 }
 
-// ─────────────────────────────────────────
-// Слой в дереве
-// ─────────────────────────────────────────
-function LayerRow({
-  layerId,
-  selectedHub,
-  onHubClick,
+function AfterMode({
+  selectedSection,
+  onSectionClick,
 }: {
-  layerId: LayerType;
-  selectedHub: HubV2 | null;
-  onHubClick: (hub: HubV2) => void;
+  selectedSection: SectionV2 | null;
+  onSectionClick: (s: SectionV2) => void;
 }) {
-  const config = getLayerConfig(layerId);
-  const hubs = getHubsByLayer(layerId);
-
   return (
-    <div className={`rounded-2xl border-2 ${config.borderColor} ${config.bgColor} p-4`}>
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`text-xs font-bold uppercase tracking-widest ${config.color}`}>
-          {config.name}
-        </span>
-        <span className={`text-xs ${config.color} opacity-70`}>— {config.description}</span>
+    <div className="flex flex-col gap-2">
+      <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+        Разделы расположены по архитектурным слоям — не по хабам.
+        <span className="text-amber-600 font-medium"> ↑ = переименование · </span>
+        <span className="text-red-500 font-medium">● = открытый конфликт</span>.
+        Кликни на раздел — увидишь полную карточку.
+      </p>
+      {LAYER_ORDER_V2.map((layerId, idx) => {
+        const cfg = getLayerConfig(layerId);
+        const sections = getSectionsByLayer(layerId);
+        return (
+          <div key={layerId} className="flex flex-col items-center gap-0">
+            <div className={`w-full rounded-2xl border-2 ${cfg.borderColor} ${cfg.bgColor} p-3`}>
+              <div className="flex items-center gap-2 mb-2">
+                <span className={`text-xs font-bold uppercase tracking-widest ${cfg.textColor}`}>{cfg.name}</span>
+                <span className={`text-[11px] ${cfg.textColor} opacity-70`}>— {cfg.description}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {sections.map((s) => (
+                  <SectionChip
+                    key={s.id}
+                    section={s}
+                    onClick={() => onSectionClick(s)}
+                    isSelected={selectedSection?.id === s.id}
+                  />
+                ))}
+              </div>
+            </div>
+            {idx < LAYER_ORDER_V2.length - 1 && (
+              <div className="flex flex-col items-center py-0.5">
+                <div className="w-px h-3 bg-slate-300" />
+                <Icon name="ChevronDown" size={13} className="text-slate-400" />
+                <div className="w-px h-3 bg-slate-300" />
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {/* Служебные */}
+      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
+        <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">Служебные</p>
+        <div className="flex gap-2 flex-wrap text-xs text-gray-500">
+          {["Полезные статьи", "В разработке"].map((n) => (
+            <span key={n} className="bg-white border border-gray-200 px-2 py-1 rounded-lg">{n}</span>
+          ))}
+        </div>
       </div>
-      <div className="flex flex-wrap gap-2 justify-center">
-        {hubs.map((hub) => (
-          <div key={hub.id} className="relative">
-            <HubTreeCard
-              hub={hub}
-              onClick={onHubClick}
-              isSelected={selectedHub?.id === hub.id}
-            />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// РЕЖИМ 3: Сравнение
+// ─────────────────────────────────────────
+function CompareMode() {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
+        Что конкретно меняется в платформе: названия, роли и решённые конфликты.
+      </p>
+      <div className="overflow-x-auto rounded-xl border border-slate-200">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="text-left px-3 py-2 font-bold text-slate-600">Было</th>
+              <th className="text-left px-3 py-2 font-bold text-slate-600">Старая роль</th>
+              <th className="text-left px-3 py-2 font-bold text-slate-600 text-center">→</th>
+              <th className="text-left px-3 py-2 font-bold text-slate-600">Стало</th>
+              <th className="text-left px-3 py-2 font-bold text-slate-600">Новая роль</th>
+              <th className="text-left px-3 py-2 font-bold text-slate-600">Конфликт</th>
+            </tr>
+          </thead>
+          <tbody>
+            {COMPARISON_ROWS.map((row, i) => (
+              <tr key={i} className={`border-b border-slate-100 ${i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}>
+                <td className="px-3 py-2.5">
+                  <span className="font-medium text-slate-800 line-through decoration-slate-400">{row.was}</span>
+                </td>
+                <td className="px-3 py-2.5 text-slate-400 text-[11px]">{row.wasRole}</td>
+                <td className="px-3 py-2.5 text-center text-slate-400">→</td>
+                <td className="px-3 py-2.5">
+                  <span className="font-semibold text-slate-900">{row.became}</span>
+                </td>
+                <td className="px-3 py-2.5">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 font-medium">
+                    {row.becameRole}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5">
+                  {row.conflictResolved === true && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200 font-medium">✓ Снят</span>
+                  )}
+                  {row.conflictResolved === false && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-medium">В работе</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* Пояснения */}
+      <div className="flex flex-col gap-2">
+        {COMPARISON_ROWS.map((row, i) => (
+          <div key={i} className={`rounded-lg border px-3 py-2 ${row.conflictResolved === false ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-white"}`}>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="text-xs font-semibold text-slate-800">{row.was}</span>
+              <Icon name="ArrowRight" size={11} className="text-slate-400" />
+              <span className="text-xs font-semibold text-violet-700">{row.became}</span>
+            </div>
+            <p className="text-[11px] text-slate-600 leading-relaxed">{row.note}</p>
           </div>
         ))}
       </div>
@@ -110,279 +297,23 @@ function LayerRow({
 }
 
 // ─────────────────────────────────────────
-// Карточка детали хаба (правая панель)
-// ─────────────────────────────────────────
-function HubDetailPanel({ hub, onClose }: { hub: HubV2; onClose: () => void }) {
-  const layerConfig = getLayerConfig(hub.layer);
-  const pBadge = PRIORITY_BADGE[hub.priority];
-  const cBadge = CHANGE_BADGE[hub.changeType];
-
-  const fromConnections = hub.connections.filter((c) => c.direction === "from");
-  const toConnections = hub.connections.filter((c) => c.direction === "to");
-
-  const getHubName = (id: string) => HUBS_V2.find((h) => h.id === id)?.nameNew ?? id;
-  const getHubColor = (id: string) => HUBS_V2.find((h) => h.id === id)?.color ?? "from-slate-400 to-slate-500";
-  const getHubIcon = (id: string) => HUBS_V2.find((h) => h.id === id)?.icon ?? "Circle";
-
-  return (
-    <div className="flex flex-col gap-4 h-full overflow-y-auto">
-      {/* Шапка */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-12 h-12 rounded-xl bg-gradient-to-br ${hub.color} flex items-center justify-center text-white shadow`}
-          >
-            <Icon name={hub.icon} size={22} />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">{hub.nameNew}</h2>
-            {hub.changeType !== "unchanged" && (
-              <p className="text-xs text-slate-400">Было: {hub.nameOld}</p>
-            )}
-          </div>
-        </div>
-        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
-          <Icon name="X" size={16} />
-        </Button>
-      </div>
-
-      {/* Бейджи */}
-      <div className="flex flex-wrap gap-2">
-        <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${layerConfig.bgColor} ${layerConfig.color} ${layerConfig.borderColor}`}
-        >
-          {layerConfig.name}
-        </span>
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${pBadge.className}`}>
-          {pBadge.label}
-        </span>
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${cBadge.className}`}>
-          {cBadge.label}
-        </span>
-      </div>
-
-      {/* Тэглайн */}
-      <p className="text-sm font-medium text-slate-600 italic">«{hub.tagline}»</p>
-
-      <Separator />
-
-      {/* Зачем нужен */}
-      <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Зачем нужен</h3>
-        <p className="text-sm text-slate-700 leading-relaxed">{hub.purpose}</p>
-      </div>
-
-      {/* Что внутри */}
-      <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-          Что внутри ({hub.sections.length} разделов)
-        </h3>
-        <div className="flex flex-col gap-1.5">
-          {hub.sections.map((s, i) => (
-            <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-slate-50 border border-slate-100">
-              <div className={`w-5 h-5 rounded-md bg-gradient-to-br ${hub.color} flex items-center justify-center text-white shrink-0 mt-0.5`}>
-                <span className="text-[9px] font-bold">{i + 1}</span>
-              </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-800">{s.name}</p>
-                <p className="text-xs text-slate-500">{s.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Схема связей */}
-      {(fromConnections.length > 0 || toConnections.length > 0) && (
-        <div>
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Связи с другими разделами</h3>
-          <div className="flex flex-col gap-2">
-            {fromConnections.length > 0 && (
-              <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1.5">⬅ Берёт данные из</p>
-                <div className="flex flex-col gap-1">
-                  {fromConnections.map((c, i) => (
-                    <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-blue-50 border border-blue-100">
-                      <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${getHubColor(c.hubId)} flex items-center justify-center text-white shrink-0`}>
-                        <Icon name={getHubIcon(c.hubId)} size={11} />
-                      </div>
-                      <div>
-                        <span className="text-xs font-semibold text-blue-800">{getHubName(c.hubId)}</span>
-                        <span className="text-xs text-blue-600"> — {c.description}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {toConnections.length > 0 && (
-              <div>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase mb-1.5">➡ Передаёт данные в</p>
-                <div className="flex flex-col gap-1">
-                  {toConnections.map((c, i) => (
-                    <div key={i} className="flex items-center gap-2 p-1.5 rounded-lg bg-emerald-50 border border-emerald-100">
-                      <div className={`w-6 h-6 rounded-lg bg-gradient-to-br ${getHubColor(c.hubId)} flex items-center justify-center text-white shrink-0`}>
-                        <Icon name={getHubIcon(c.hubId)} size={11} />
-                      </div>
-                      <div>
-                        <span className="text-xs font-semibold text-emerald-800">{getHubName(c.hubId)}</span>
-                        <span className="text-xs text-emerald-600"> — {c.description}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Что НЕ делает */}
-      <div>
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">⚠ Что НЕ делает</h3>
-        <div className="flex flex-col gap-1">
-          {hub.notDoes.map((item, i) => (
-            <div key={i} className="flex items-start gap-2 text-xs text-slate-600 bg-red-50 border border-red-100 rounded-lg p-2">
-              <Icon name="X" size={12} className="text-red-400 shrink-0 mt-0.5" />
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Перейти в раздел */}
-      {hub.path && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full gap-2"
-          onClick={() => window.open(hub.path, "_blank")}
-        >
-          <Icon name="ExternalLink" size={14} />
-          Открыть раздел
-        </Button>
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────
-// Вид: Сетка карточек
-// ─────────────────────────────────────────
-function GridView({
-  selectedHub,
-  onHubClick,
-}: {
-  selectedHub: HubV2 | null;
-  onHubClick: (hub: HubV2) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-6">
-      {LAYER_ORDER.map((layerId) => {
-        const config = getLayerConfig(layerId);
-        const hubs = getHubsByLayer(layerId);
-        return (
-          <div key={layerId}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className={`text-sm font-bold ${config.color}`}>{config.name}</span>
-              <span className="text-xs text-slate-400">{config.description}</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {hubs.map((hub) => {
-                const changed = hub.changeType !== "unchanged";
-                const cBadge = CHANGE_BADGE[hub.changeType];
-                return (
-                  <button
-                    key={hub.id}
-                    onClick={() => onHubClick(hub)}
-                    className={`
-                      text-left flex flex-col gap-2 p-3 rounded-xl border transition-all cursor-pointer
-                      ${selectedHub?.id === hub.id ? "border-violet-400 bg-violet-50 shadow-md" : "border-slate-200 bg-white hover:border-violet-300 hover:shadow-sm"}
-                    `}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${hub.color} flex items-center justify-center text-white shadow-sm shrink-0`}>
-                        <Icon name={hub.icon} size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-900 leading-tight">{hub.nameNew}</p>
-                        {changed && (
-                          <p className="text-[10px] text-slate-400 line-through leading-none">{hub.nameOld}</p>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-tight line-clamp-2">{hub.tagline}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {changed && (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${cBadge.className}`}>
-                          {cBadge.label}
-                        </span>
-                      )}
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full border bg-slate-50 text-slate-500 border-slate-200 font-medium">
-                        {hub.sections.length} разделов
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────
-// Вид: Древо
-// ─────────────────────────────────────────
-function TreeView({
-  selectedHub,
-  onHubClick,
-}: {
-  selectedHub: HubV2 | null;
-  onHubClick: (hub: HubV2) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-3">
-      {LAYER_ORDER.map((layerId, idx) => (
-        <div key={layerId} className="flex flex-col items-center gap-0">
-          <LayerRow layerId={layerId} selectedHub={selectedHub} onHubClick={onHubClick} />
-          {idx < LAYER_ORDER.length - 1 && (
-            <div className="flex flex-col items-center gap-0 py-1">
-              <div className="w-px h-3 bg-slate-300" />
-              <Icon name="ChevronDown" size={14} className="text-slate-400" />
-              <div className="w-px h-3 bg-slate-300" />
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────
-// Блок: Открытые конфликты
+// РЕЖИМ 4: Конфликты
 // ─────────────────────────────────────────
 const RISK_CONFIG = {
-  high:   { label: "Высокий риск",   className: "bg-red-100 text-red-700 border-red-200",     icon: "AlertTriangle" },
-  medium: { label: "Средний риск",   className: "bg-amber-100 text-amber-700 border-amber-200", icon: "AlertCircle" },
-  low:    { label: "Низкий риск",    className: "bg-slate-100 text-slate-600 border-slate-200", icon: "Info" },
+  high:   { label: "Высокий риск", className: "bg-red-100 text-red-700 border-red-200", borderLeft: "border-l-red-400" },
+  medium: { label: "Средний риск", className: "bg-amber-100 text-amber-700 border-amber-200", borderLeft: "border-l-amber-400" },
+  low:    { label: "Низкий риск",  className: "bg-slate-100 text-slate-600 border-slate-200", borderLeft: "border-l-slate-300" },
 };
 
 const STATUS_CONFIG = {
-  open:     { label: "Открыт",   className: "bg-red-50 text-red-600 border-red-200" },
-  decided:  { label: "Решён",    className: "bg-green-50 text-green-700 border-green-200" },
-  deferred: { label: "Отложен", className: "bg-slate-50 text-slate-500 border-slate-200" },
+  open:     { label: "Открыт",    className: "bg-red-50 text-red-600 border-red-200" },
+  decided:  { label: "Решён",     className: "bg-green-50 text-green-700 border-green-200" },
+  deferred: { label: "Отложен",   className: "bg-slate-50 text-slate-500 border-slate-200" },
 };
 
 const DECISION_LABEL: Record<string, string> = {
-  keep: "Оставить как есть",
-  merge: "Объединить",
-  split: "Разделить",
-  rename: "Переименовать",
-  move: "Перенести",
-  deprecate: "Убрать",
+  keep: "Оставить", merge: "Объединить", split: "Разделить",
+  rename: "Переименовать", move: "Перенести", deprecate: "Убрать",
   "needs-review": "Требует решения",
 };
 
@@ -390,46 +321,29 @@ function ConflictCard({ c, index }: { c: OverlapCase; index: number }) {
   const [open, setOpen] = useState(false);
   const risk = RISK_CONFIG[c.riskLevel];
   const status = STATUS_CONFIG[c.status];
-
   return (
-    <Card className={`overflow-hidden border-l-4 ${c.riskLevel === "high" ? "border-l-red-400" : c.riskLevel === "medium" ? "border-l-amber-400" : "border-l-slate-300"}`}>
-      <button
-        className="w-full text-left p-3 flex items-start gap-3 hover:bg-slate-50 transition-colors"
-        onClick={() => setOpen((v) => !v)}
-      >
+    <Card className={`overflow-hidden border-l-4 ${risk.borderLeft}`}>
+      <button className="w-full text-left p-3 flex items-start gap-3 hover:bg-slate-50 transition-colors" onClick={() => setOpen((v) => !v)}>
         <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${c.riskLevel === "high" ? "bg-red-100" : c.riskLevel === "medium" ? "bg-amber-100" : "bg-slate-100"}`}>
-          <span className={`text-[10px] font-bold ${c.riskLevel === "high" ? "text-red-600" : c.riskLevel === "medium" ? "text-amber-600" : "text-slate-500"}`}>
-            {index + 1}
-          </span>
+          <span className={`text-[10px] font-bold ${c.riskLevel === "high" ? "text-red-600" : c.riskLevel === "medium" ? "text-amber-600" : "text-slate-500"}`}>{index + 1}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap gap-1.5 items-center mb-1">
-            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${risk.className}`}>
-              {risk.label}
-            </span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${status.className}`}>
-              {status.label}
-            </span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${risk.className}`}>{risk.label}</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${status.className}`}>{status.label}</span>
             {c.decision && (
               <span className="text-[10px] px-2 py-0.5 rounded-full border font-medium bg-violet-50 text-violet-700 border-violet-200">
                 {DECISION_LABEL[c.decision] ?? c.decision}
               </span>
             )}
           </div>
-          <p className="text-xs font-semibold text-slate-800">
-            {c.sharedFunction ?? c.sharedEntity ?? c.id}
-          </p>
+          <p className="text-xs font-semibold text-slate-800">{c.sharedFunction ?? c.sharedEntity ?? c.id}</p>
           <p className="text-[11px] text-slate-500 mt-0.5">
-            <span className="font-medium text-slate-600">{c.sectionA}</span>
-            {" ↔ "}
+            <span className="font-medium text-slate-600">{c.sectionA}</span>{" ↔ "}
             <span className="font-medium text-slate-600">{c.sectionB}</span>
           </p>
         </div>
-        <Icon
-          name={open ? "ChevronUp" : "ChevronDown"}
-          size={14}
-          className="text-slate-400 shrink-0 mt-1"
-        />
+        <Icon name={open ? "ChevronUp" : "ChevronDown"} size={14} className="text-slate-400 shrink-0 mt-1" />
       </button>
       {open && (
         <div className="px-3 pb-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
@@ -452,95 +366,222 @@ function ConflictCard({ c, index }: { c: OverlapCase; index: number }) {
   );
 }
 
-function ConflictsSection() {
+function ConflictsMode() {
   const [filter, setFilter] = useState<"all" | "open" | "decided" | "deferred">("open");
-
   const filtered = OVERLAP_CASES.filter((c) => filter === "all" || c.status === filter);
-  const openCount = OVERLAP_CASES.filter((c) => c.status === "open").length;
-  const decidedCount = OVERLAP_CASES.filter((c) => c.status === "decided").length;
-  const deferredCount = OVERLAP_CASES.filter((c) => c.status === "deferred").length;
-
-  const FILTERS: Array<{ key: typeof filter; label: string; count: number; color: string }> = [
-    { key: "all",      label: "Все",      count: OVERLAP_CASES.length, color: "text-slate-700" },
-    { key: "open",     label: "Открытые", count: openCount,    color: "text-red-600" },
-    { key: "decided",  label: "Решённые", count: decidedCount, color: "text-green-600" },
-    { key: "deferred", label: "Отложенные", count: deferredCount, color: "text-slate-500" },
-  ];
-
+  const counts = {
+    all: OVERLAP_CASES.length,
+    open: OVERLAP_CASES.filter((c) => c.status === "open").length,
+    decided: OVERLAP_CASES.filter((c) => c.status === "decided").length,
+    deferred: OVERLAP_CASES.filter((c) => c.status === "deferred").length,
+  };
   return (
-    <Card className="p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white">
-            <Icon name="AlertTriangle" size={14} />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-slate-900">Открытые конфликты архитектуры</h3>
-            <p className="text-[11px] text-slate-500">Пересечения и дублирования, которые нужно решить</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-1 text-xs text-red-600 font-semibold">
-          <Icon name="AlertCircle" size={14} />
-          {openCount} требуют решения
-        </div>
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-1 bg-slate-100 rounded-lg p-1 w-fit">
+        {(["all","open","decided","deferred"] as const).map((f) => {
+          const labels = { all: "Все", open: "Открытые", decided: "Решённые", deferred: "Отложенные" };
+          const colors = { all: "text-slate-700", open: "text-red-600", decided: "text-green-600", deferred: "text-slate-500" };
+          return (
+            <button key={f} onClick={() => setFilter(f)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${filter === f ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"}`}>
+              {labels[f]}
+              <span className={`text-[10px] font-bold ${filter === f ? colors[f] : "text-slate-400"}`}>{counts[f]}</span>
+            </button>
+          );
+        })}
       </div>
-
-      {/* Фильтр */}
-      <div className="flex gap-1 mb-4 bg-slate-100 rounded-lg p-1 w-fit">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
-              filter === f.key ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
-            }`}
-          >
-            {f.label}
-            <span className={`text-[10px] font-bold ${filter === f.key ? f.color : "text-slate-400"}`}>
-              {f.count}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Список */}
       <div className="flex flex-col gap-2">
-        {filtered.map((c, i) => (
-          <ConflictCard key={c.id} c={c} index={OVERLAP_CASES.indexOf(c)} />
-        ))}
+        {filtered.map((c, i) => <ConflictCard key={c.id} c={c} index={OVERLAP_CASES.indexOf(c)} />)}
       </div>
-    </Card>
+    </div>
   );
 }
 
 // ─────────────────────────────────────────
-// Главный компонент страницы
+// Правая панель: карточка раздела (3 колонки)
 // ─────────────────────────────────────────
-export default function AdminProjectV2() {
-  const [view, setView] = useState<"tree" | "grid">("tree");
-  const [selectedHub, setSelectedHub] = useState<HubV2 | null>(null);
-
-  const handleHubClick = (hub: HubV2) => {
-    setSelectedHub((prev) => (prev?.id === hub.id ? null : hub));
-  };
-
-  // Статистика изменений
-  const renamed = HUBS_V2.filter((h) => h.changeType === "rename").length;
-  const p1 = HUBS_V2.filter((h) => h.priority === "P1").length;
-  const totalSections = HUBS_V2.reduce((sum, h) => sum + h.sections.length, 0);
+function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose: () => void }) {
+  const cfg = getLayerConfig(section.layer);
+  const relatedConflicts = OVERLAP_CASES.filter((c) => section.conflicts.includes(c.id));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30">
-      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-5">
+    <div className="flex flex-col gap-0 h-full overflow-y-auto">
+      {/* Шапка */}
+      <div className="flex items-start justify-between gap-2 p-4 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cfg.color} flex items-center justify-center text-white shadow shrink-0`}>
+            <Icon name={section.icon} size={18} />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-slate-900 leading-tight">{section.labelNew ?? section.label}</h2>
+            {section.labelNew && section.labelNew !== section.label && (
+              <p className="text-[10px] text-slate-400">Было: <span className="line-through">{section.label}</span></p>
+            )}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${ROLE_LAYER_COLOR[section.layer]}`}>
+                {cfg.name}
+              </span>
+              <span className="text-[10px] text-slate-400">хаб: {section.hubLabel}</span>
+            </div>
+          </div>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 h-7 w-7">
+          <Icon name="X" size={14} />
+        </Button>
+      </div>
+
+      {/* Тэглайн */}
+      <p className="text-xs text-slate-500 italic px-4 py-2 bg-slate-50 border-b border-slate-100">
+        «{section.tagline}»
+      </p>
+
+      {/* 3 колонки */}
+      <div className="flex flex-col lg:flex-row gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+
+        {/* Левая: мета */}
+        <div className="lg:w-[30%] p-4 flex flex-col gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Зачем нужен</p>
+            <p className="text-xs text-slate-700 leading-relaxed">{section.purpose}</p>
+          </div>
+          {section.changeNote && (
+            <>
+              <Separator />
+              <div>
+                <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Было → Стало</p>
+                <p className="text-xs text-slate-600 leading-relaxed">{section.changeNote}</p>
+              </div>
+            </>
+          )}
+          {section.path && (
+            <Button variant="outline" size="sm" className="w-full gap-1.5 mt-auto text-xs h-7"
+              onClick={() => window.open(section.path, "_blank")}>
+              <Icon name="ExternalLink" size={12} />
+              Открыть раздел
+            </Button>
+          )}
+        </div>
+
+        {/* Центр: схема связей */}
+        <div className="lg:w-[35%] p-4 flex flex-col gap-3">
+          <p className="text-[10px] font-bold uppercase text-slate-400">Схема связей</p>
+
+          {/* Что внутри */}
+          <div>
+            <p className="text-[10px] font-semibold text-slate-500 mb-1">Что внутри ({section.sections.length})</p>
+            <div className="flex flex-col gap-0.5">
+              {section.sections.map((s, i) => (
+                <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600">
+                  <div className={`w-1 h-1 rounded-full bg-gradient-to-br ${cfg.color} shrink-0`} />
+                  {s}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {section.dataFrom.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-blue-500 mb-1">⬅ Берёт данные из</p>
+              <div className="flex flex-col gap-0.5">
+                {section.dataFrom.map((d, i) => (
+                  <div key={i} className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-md px-2 py-0.5">{d}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {section.dataTo.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-emerald-500 mb-1">➡ Передаёт данные в</p>
+              <div className="flex flex-col gap-0.5">
+                {section.dataTo.map((d, i) => (
+                  <div key={i} className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5">{d}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {section.bridges.length > 0 && (
+            <div>
+              <p className="text-[10px] font-semibold text-violet-500 mb-1">🔗 Мостики</p>
+              <div className="flex flex-col gap-0.5">
+                {section.bridges.map((b, i) => (
+                  <div key={i} className="text-xs text-violet-700 bg-violet-50 border border-violet-100 rounded-md px-2 py-0.5">{b}</div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Правая: что не делает + конфликты */}
+        <div className="lg:w-[35%] p-4 flex flex-col gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">⚠ Что НЕ делает</p>
+            <div className="flex flex-col gap-1">
+              {section.notDoes.map((item, i) => (
+                <div key={i} className="flex items-start gap-1.5 text-xs text-slate-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1">
+                  <Icon name="X" size={10} className="text-red-400 shrink-0 mt-0.5" />
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {relatedConflicts.length > 0 && (
+            <div>
+              <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Конфликты</p>
+              <div className="flex flex-col gap-1">
+                {relatedConflicts.map((c) => {
+                  const risk = RISK_CONFIG[c.riskLevel];
+                  return (
+                    <div key={c.id} className={`rounded-lg border px-2 py-1.5 ${c.riskLevel === "high" ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}>
+                      <div className="flex items-center gap-1 mb-0.5">
+                        <span className={`text-[9px] px-1 py-0.5 rounded border font-bold ${risk.className}`}>{risk.label}</span>
+                        <span className={`text-[10px] px-1 py-0.5 rounded border font-medium ${STATUS_CONFIG[c.status].className}`}>{STATUS_CONFIG[c.status].label}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-700 font-medium">{c.sharedFunction}</p>
+                      <p className="text-[10px] text-slate-500">{c.sectionA} ↔ {c.sectionB}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// ГЛАВНЫЙ КОМПОНЕНТ
+// ─────────────────────────────────────────
+export default function AdminProjectV2() {
+  const [mode, setMode] = useState<Mode>("as-is");
+  const [selectedSection, setSelectedSection] = useState<SectionV2 | null>(null);
+
+  const handleSectionClick = (s: SectionV2) => {
+    setSelectedSection((prev) => (prev?.id === s.id ? null : s));
+  };
+  const handleClose = () => setSelectedSection(null);
+
+  const openConflicts = OVERLAP_CASES.filter((c) => c.status === "open").length;
+  const renamed = SECTIONS_V2.filter((s) => s.labelNew && s.labelNew !== s.label).length;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/20">
+      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-4">
+
         {/* Шапка */}
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white shadow">
+          <p className="text-[10px] text-slate-400">Админка / Инструменты управления / Проект после изменения</p>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white shadow shrink-0">
               <Icon name="Layers" size={18} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Проект v2 — Платформа «Наша Семья»</h1>
-              <p className="text-xs text-slate-500">Визуальный макет после реорганизации по советам эксперта</p>
+              <h1 className="text-xl font-bold text-slate-900">Проект платформы «Наша Семья»</h1>
+              <p className="text-xs text-slate-500">Визуальный макет текущей и целевой архитектуры платформы</p>
             </div>
           </div>
         </div>
@@ -548,15 +589,13 @@ export default function AdminProjectV2() {
         {/* Сводка */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: "Разделов платформы", value: HUBS_V2.length, icon: "LayoutGrid", color: "text-violet-600" },
-            { label: "Всего подразделов", value: totalSections, icon: "List", color: "text-blue-600" },
+            { label: "Хабов", value: HUBS_AS_IS.filter(h => h.id !== "articles" && h.id !== "in-dev").length, icon: "LayoutGrid", color: "text-violet-600" },
+            { label: "Разделов", value: SECTIONS_V2.length, icon: "List", color: "text-blue-600" },
             { label: "Переименований", value: renamed, icon: "Tag", color: "text-amber-600" },
-            { label: "Приоритет P1", value: p1, icon: "Flame", color: "text-red-500" },
+            { label: "Открытых конфликтов", value: openConflicts, icon: "AlertTriangle", color: "text-red-500" },
           ].map((stat) => (
             <Card key={stat.label} className="p-3 flex items-center gap-3">
-              <div className={`${stat.color}`}>
-                <Icon name={stat.icon} size={20} />
-              </div>
+              <div className={stat.color}><Icon name={stat.icon} size={20} /></div>
               <div>
                 <p className="text-xl font-bold text-slate-900 leading-none">{stat.value}</p>
                 <p className="text-[10px] text-slate-500 leading-tight mt-0.5">{stat.label}</p>
@@ -565,88 +604,58 @@ export default function AdminProjectV2() {
           ))}
         </div>
 
-        {/* Легенда изменений */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-xs text-slate-500 font-medium">Легенда:</span>
-          {Object.entries(CHANGE_BADGE).map(([key, val]) => (
-            <span key={key} className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${val.className}`}>
-              {val.label}
-            </span>
+        {/* Переключатель режимов */}
+        <div className="flex rounded-xl border border-slate-200 bg-white overflow-hidden w-fit shadow-sm">
+          {MODES.map((m) => (
+            <button key={m.id} onClick={() => { setMode(m.id); setSelectedSection(null); }}
+              className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors border-r border-slate-100 last:border-0 ${
+                mode === m.id ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-50"
+              }`}>
+              <Icon name={m.icon} size={13} />
+              {m.label}
+              {m.id === "conflicts" && openConflicts > 0 && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${mode === "conflicts" ? "bg-white/20 text-white" : "bg-red-100 text-red-600"}`}>
+                  {openConflicts}
+                </span>
+              )}
+            </button>
           ))}
-          <span className="text-[10px] px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 font-medium">
-            ● = есть изменения
-          </span>
-        </div>
-
-        {/* Переключатель вида */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Вид:</span>
-          <div className="flex rounded-lg border border-slate-200 bg-white overflow-hidden">
-            <button
-              onClick={() => setView("tree")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-                view === "tree" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Icon name="GitBranch" size={13} />
-              Древо
-            </button>
-            <button
-              onClick={() => setView("grid")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${
-                view === "grid" ? "bg-violet-600 text-white" : "text-slate-600 hover:bg-slate-50"
-              }`}
-            >
-              <Icon name="LayoutGrid" size={13} />
-              Карточки
-            </button>
-          </div>
-          {selectedHub && (
-            <span className="text-xs text-slate-400">
-              Выбран: <span className="font-semibold text-violet-600">{selectedHub.nameNew}</span> — кликни снова чтобы закрыть
-            </span>
-          )}
         </div>
 
         {/* Основной контент */}
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Левая часть: дерево или сетка */}
-          <div className={`transition-all ${selectedHub ? "lg:w-[55%]" : "w-full"}`}>
-            {view === "tree" ? (
-              <TreeView selectedHub={selectedHub} onHubClick={handleHubClick} />
-            ) : (
-              <GridView selectedHub={selectedHub} onHubClick={handleHubClick} />
-            )}
+          {/* Левая часть: основной режим */}
+          <div className={`transition-all ${selectedSection ? "lg:w-[45%]" : "w-full"}`}>
+            {mode === "as-is"     && <AsIsMode onSectionClick={handleSectionClick} />}
+            {mode === "after"     && <AfterMode selectedSection={selectedSection} onSectionClick={handleSectionClick} />}
+            {mode === "compare"   && <CompareMode />}
+            {mode === "conflicts" && <ConflictsMode />}
           </div>
 
-          {/* Правая панель: детали хаба */}
-          {selectedHub && (
-            <div className="lg:w-[45%]">
-              <Card className="p-4 sticky top-4 max-h-[85vh] overflow-y-auto">
-                <HubDetailPanel hub={selectedHub} onClose={() => setSelectedHub(null)} />
+          {/* Правая панель: карточка раздела */}
+          {selectedSection && (mode === "as-is" || mode === "after") && (
+            <div className="lg:w-[55%]">
+              <Card className="overflow-hidden sticky top-4 max-h-[88vh]">
+                <SectionDetailPanel section={selectedSection} onClose={handleClose} />
               </Card>
             </div>
           )}
         </div>
 
-        {/* Слои — легенда внизу */}
+        {/* Легенда слоёв */}
         <Card className="p-4">
           <h3 className="text-sm font-bold text-slate-700 mb-3">Архитектурные слои платформы</h3>
-          <div className="flex flex-col sm:flex-row gap-3">
-            {LAYERS.map((layer) => (
-              <div key={layer.id} className={`flex-1 rounded-xl border-2 ${layer.borderColor} ${layer.bgColor} p-3`}>
-                <p className={`text-xs font-bold ${layer.color} mb-1`}>{layer.name}</p>
-                <p className="text-[11px] text-slate-600 leading-tight">{layer.description}</p>
-                <p className="text-[10px] text-slate-400 mt-1">
-                  {getHubsByLayer(layer.id).length} разделов
-                </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            {LAYERS_V2.filter((l) => l.id !== "service").map((layer) => (
+              <div key={layer.id} className={`rounded-xl border-2 ${layer.borderColor} ${layer.bgColor} p-2.5`}>
+                <p className={`text-xs font-bold ${layer.textColor} mb-1`}>{layer.name}</p>
+                <p className="text-[10px] text-slate-600 leading-tight">{layer.description}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{getSectionsByLayer(layer.id).length} разделов</p>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Конфликты архитектуры */}
-        <ConflictsSection />
       </div>
     </div>
   );
