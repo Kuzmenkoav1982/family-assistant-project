@@ -234,6 +234,47 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const [isChecking, setIsChecking] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = () => {
+      try {
+        const adminToken = localStorage.getItem('adminToken');
+        setIsAdmin(adminToken === 'admin_authenticated');
+      } catch (error) {
+        console.error('[AdminRoute] Error checking admin:', error);
+        setIsAdmin(false);
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAdmin();
+
+    const interval = setInterval(checkAdmin, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-violet-50/40 to-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-violet-600 mx-auto mb-3"></div>
+          <p className="text-sm text-gray-600">Проверка админ-доступа…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => {
   const handleLogout = () => {
     storage.removeItem('authToken');
@@ -412,21 +453,21 @@ const App = () => {
                       <Route path="/suggestions" element={<SuggestionsPage />} />
                       <Route path="/support" element={<SupportPage />} />
                       <Route path="/admin/login" element={<AdminLogin />} />
-                      <Route path="/admin/support" element={<AdminSupport />} />
-                      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                      <Route path="/admin/traffic" element={<AdminTraffic />} />
-                      <Route path="/admin/welcome" element={<AdminWelcomeAnalytics />} />
-                      <Route path="/admin/alice" element={<AdminAlice />} />
-                      <Route path="/admin/max" element={<AdminMAX />} />
-                      <Route path="/admin/max/help" element={<AdminMaxInstructions />} />
-                      <Route path="/admin/blog" element={<AdminBlog />} />
-                      <Route path="/admin/users" element={<AdminUsers />} />
-                      <Route path="/admin/valuation" element={<AdminValuation />} />
-                      <Route path="/admin/panel" element={<AdminPanel />} />
-                      <Route path="/admin/portfolio-health" element={<AdminPortfolioHealth />} />
-                      <Route path="/admin/atlas" element={<AdminAtlas />} />
-                      <Route path="/admin/marketing" element={<MarketingStrategy />} />
-                      <Route path="/admin/marketing-sale" element={<MarketingSale />} />
+                      <Route path="/admin/support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
+                      <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                      <Route path="/admin/traffic" element={<AdminRoute><AdminTraffic /></AdminRoute>} />
+                      <Route path="/admin/welcome" element={<AdminRoute><AdminWelcomeAnalytics /></AdminRoute>} />
+                      <Route path="/admin/alice" element={<AdminRoute><AdminAlice /></AdminRoute>} />
+                      <Route path="/admin/max" element={<AdminRoute><AdminMAX /></AdminRoute>} />
+                      <Route path="/admin/max/help" element={<AdminRoute><AdminMaxInstructions /></AdminRoute>} />
+                      <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
+                      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                      <Route path="/admin/valuation" element={<AdminRoute><AdminValuation /></AdminRoute>} />
+                      <Route path="/admin/panel" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+                      <Route path="/admin/portfolio-health" element={<AdminRoute><AdminPortfolioHealth /></AdminRoute>} />
+                      <Route path="/admin/atlas" element={<AdminRoute><AdminAtlas /></AdminRoute>} />
+                      <Route path="/admin/marketing" element={<AdminRoute><MarketingStrategy /></AdminRoute>} />
+                      <Route path="/admin/marketing-sale" element={<AdminRoute><MarketingSale /></AdminRoute>} />
                       <Route path="/alice" element={<AliceIntegration />} />
                       <Route path="/nationalities" element={<NationalitiesPage />} />
                       <Route path="/nationalities/:id" element={<NationalityDetailPage />} />

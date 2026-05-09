@@ -45,6 +45,17 @@ export const PRINCIPLES: PlatformPrinciple[] = [
     status: 'accepted',
     appliesTo: ['all'],
   },
+  {
+    id: 'admin-route-guard',
+    title: 'Все /admin/* — под единой обёрткой AdminRoute',
+    body:
+      'Каждый admin-маршрут (кроме /admin/login) обёрнут в компонент AdminRoute, который ' +
+      'проверяет localStorage.adminToken и редиректит на /admin/login без него. Бэкенд ' +
+      'дополнительно проверяет X-Admin-Token на каждый запрос. Это закрывает «UI-косметику» ' +
+      'и оставляет данные защищёнными даже при ручном вводе URL.',
+    status: 'accepted',
+    appliesTo: ['all'],
+  },
 ];
 
 export function getAcceptedPrinciples(): PlatformPrinciple[] {

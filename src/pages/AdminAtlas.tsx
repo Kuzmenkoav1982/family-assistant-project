@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import AtlasOverviewTab from '@/components/admin/atlas/AtlasOverviewTab';
 import AtlasSectionsTab from '@/components/admin/atlas/AtlasSectionsTab';
-import AtlasComingSoonTab from '@/components/admin/atlas/AtlasComingSoonTab';
+import AtlasEntitiesTab from '@/components/admin/atlas/AtlasEntitiesTab';
+import AtlasOverlapsTab from '@/components/admin/atlas/AtlasOverlapsTab';
+import AtlasDecisionsTab from '@/components/admin/atlas/AtlasDecisionsTab';
 
 export default function AdminAtlas() {
   return (
@@ -40,10 +42,11 @@ export default function AdminAtlas() {
               Что это и как работает
             </p>
             <p className="text-muted-foreground leading-relaxed text-xs">
-              Паспорт собирается слоями. <span className="font-semibold">Шаг 1</span> уже готов —
-              из бокового меню взяты все хабы и разделы. <span className="font-semibold">Шаги 4-7</span>{' '}
-              (смысл, сущности, пересечения, решения) наполняются дальше: одним большим проходом по
-              всем разделам, затем матрица пересечений и журнал архитектурных решений.
+              Паспорт v1 готов: <span className="font-semibold">14 хабов</span>,{' '}
+              <span className="font-semibold">77 разделов</span> с роль-классификацией,{' '}
+              <span className="font-semibold">25 сущностей</span> с указанием «дома», матрица
+              пересечений и журнал решений с открытыми и закрытыми кейсами. Формулировки —
+              чёрновик, готов к правкам владельца.
             </p>
           </CardContent>
         </Card>
@@ -82,45 +85,15 @@ export default function AdminAtlas() {
           </TabsContent>
 
           <TabsContent value="entities">
-            <AtlasComingSoonTab
-              step="Шаг 5"
-              title="Карта сущностей платформы"
-              description="Здесь будут все вещи, которыми оперирует продукт: цели, планы, наблюдения, достижения, эмоции, события, правила и т.д. Для каждой — её «дом», места создания, редактирования и витрины."
-              bullets={[
-                'Ровно один home-раздел для каждой сущности',
-                'Список всех мест ввода и редактирования',
-                'Конфликты «несколько домов» подсвечены красным',
-                'Влияет на journal of decisions: правило «один дом»',
-              ]}
-            />
+            <AtlasEntitiesTab />
           </TabsContent>
 
           <TabsContent value="overlaps">
-            <AtlasComingSoonTab
-              step="Шаг 6"
-              title="Матрица пересечений"
-              description="Две тепловые карты: разделы × сущности и разделы × функции. Показывают, где разные разделы работают с одним и тем же материалом и могут конфликтовать."
-              bullets={[
-                'Раздел × сущность — где живут «цели», «планы», «наблюдения»',
-                'Раздел × функция — кто строит рекомендации, кто планирует, кто отчитывает',
-                'Топ-10 горячих пересечений с приоритетом',
-                'Гипотеза «Портфолио ↔ Мастерская» проверится здесь первой',
-              ]}
-            />
+            <AtlasOverlapsTab />
           </TabsContent>
 
           <TabsContent value="decisions">
-            <AtlasComingSoonTab
-              step="Шаг 7"
-              title="Журнал архитектурных решений"
-              description="Управленческая доска: каждый найденный конфликт — отдельный кейс с рекомендацией и решением. keep / merge / split / rename / move / deprecate."
-              bullets={[
-                'Пара разделов и общая сущность/функция',
-                'Уровень риска: low / medium / high',
-                'Рекомендация и принятое решение',
-                'Статус: open / decided / deferred',
-              ]}
-            />
+            <AtlasDecisionsTab />
           </TabsContent>
         </Tabs>
       </div>

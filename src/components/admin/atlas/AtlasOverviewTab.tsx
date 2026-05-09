@@ -53,15 +53,15 @@ export default function AtlasOverviewTab() {
           <div className="space-y-2 text-sm">
             <ProgressRow label="Шаг 1. Инвентаризация" done={SECTIONS.length > 0} note={`${SECTIONS.length} разделов`} />
             <ProgressRow label="Шаг 2. Нормализация справочника" done={SECTIONS.length > 0} note="canonical name + path для каждого" />
-            <ProgressRow label="Шаг 3. Классификация по roleType" done={false} note="Шаг 4 (большой проход)" />
+            <ProgressRow label="Шаг 3. Классификация по roleType" done={semanticsCount > 0} note={`${semanticsCount} классифицировано`} />
             <ProgressRow
               label="Шаг 4. Смысловой паспорт"
-              done={false}
+              done={semanticsCount >= SECTIONS.length - 7}
               note={`${semanticsCount} из ${SECTIONS.length} разделов`}
             />
-            <ProgressRow label="Шаг 5. Карта сущностей" done={ENTITIES.length > 0} note="следующая сессия" />
-            <ProgressRow label="Шаг 6. Матрица пересечений" done={false} note="следующая сессия" />
-            <ProgressRow label="Шаг 7. Журнал решений" done={openCases > 0} note="следующая сессия" />
+            <ProgressRow label="Шаг 5. Карта сущностей" done={ENTITIES.length > 0} note={`${ENTITIES.length} сущностей`} />
+            <ProgressRow label="Шаг 6. Матрица пересечений" done={ENTITIES.length > 0} note="вкладка «Пересечения»" />
+            <ProgressRow label="Шаг 7. Журнал решений" done={openCases > 0} note={`${openCases} открытых кейсов`} />
           </div>
         </CardContent>
       </Card>
