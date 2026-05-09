@@ -27,6 +27,7 @@ import {
   countHub,
   getDiscrepancies,
   type RealHub,
+  type RealRow,
   type RealEntryStatus,
   type RealNodeType,
 } from "@/data/projectV2/asIsReality";
@@ -121,7 +122,15 @@ function findFutureLayer(hubArchId: string | undefined, label: string | null): A
   return found?.layer ?? null;
 }
 
-function HubAsIsCard({ hub }: { hub: RealHub }) {
+function HubAsIsCard({
+  hub,
+  onRowClick,
+  selectedRowKey,
+}: {
+  hub: RealHub;
+  onRowClick: (hub: RealHub, row: RealRow) => void;
+  selectedRowKey: string | null;
+}) {
   const counters = countHub(hub);
   const discrepancies = getDiscrepancies(hub);
   const isHub = hub.type === "hub";
@@ -179,8 +188,16 @@ function HubAsIsCard({ hub }: { hub: RealHub }) {
           <div className="flex flex-col divide-y divide-slate-100">
             {hub.rows.map((r, i) => {
               const futureLayer = findFutureLayer(hub.archHubId, r.menu ?? r.hub);
+              const key = `${hub.id}::${i}`;
+              const isSel = selectedRowKey === key;
               return (
-                <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 px-3 py-1.5 items-center">
+                <button
+                  key={i}
+                  onClick={() => onRowClick(hub, r)}
+                  className={`grid grid-cols-[1fr_1fr_auto] gap-2 px-3 py-1.5 items-center text-left transition-colors ${
+                    isSel ? "bg-violet-50 ring-1 ring-violet-300" : "hover:bg-slate-50"
+                  }`}
+                >
                   <span className={`text-[11px] truncate ${r.menu ? "text-slate-700" : "text-slate-300 italic"}`}>
                     {r.menu ?? "—"}
                   </span>
@@ -191,7 +208,7 @@ function HubAsIsCard({ hub }: { hub: RealHub }) {
                     <StatusBadge status={r.status} />
                     {futureLayer && <RoleBadge layer={futureLayer} />}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -203,18 +220,23 @@ function HubAsIsCard({ hub }: { hub: RealHub }) {
                 Расхождения ({discrepancies.length})
               </p>
               <ul className="flex flex-col gap-0.5">
-                {discrepancies.map((r, i) => (
-                  <li key={i} className="text-[10px] text-amber-800 leading-snug">
-                    <span className="font-semibold">{STATUS_META[r.status].label}:</span>{" "}
-                    {r.menu && r.hub ? (
-                      <>«{r.menu}» ↔ «{r.hub}»</>
-                    ) : r.menu ? (
-                      <>«{r.menu}»</>
-                    ) : (
-                      <>«{r.hub}»</>
-                    )}
-                    {r.crossHubOn && <> · показан также на «{r.crossHubOn}»</>}
-                    {r.note && <span className="text-amber-600"> · {r.note}</span>}
+                {discrepancies.map((r) => (
+                  <li key={`${hub.id}-d-${hub.rows.indexOf(r)}`}>
+                    <button
+                      onClick={() => onRowClick(hub, r)}
+                      className="w-full text-left text-[10px] text-amber-800 leading-snug hover:bg-amber-100 rounded px-1 py-0.5 transition-colors"
+                    >
+                      <span className="font-semibold">{STATUS_META[r.status].label}:</span>{" "}
+                      {r.menu && r.hub ? (
+                        <>«{r.menu}» ↔ «{r.hub}»</>
+                      ) : r.menu ? (
+                        <>«{r.menu}»</>
+                      ) : (
+                        <>«{r.hub}»</>
+                      )}
+                      {r.crossHubOn && <> · показан также на «{r.crossHubOn}»</>}
+                      {r.note && <span className="text-amber-600"> · {r.note}</span>}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -253,14 +275,19 @@ function HubAsIsCard({ hub }: { hub: RealHub }) {
   );
 }
 
-function CrossHubBanner() {
-  const crossRows: Array<{ label: string; menuHub: string; pageHub: string }> = [];
+function CrossHubBanner({
+  onRowClick,
+}: {
+  onRowClick: (hub: RealHub, row: RealRow) => void;
+}) {
+  const crossRows: Array<{ label: string; hub: RealHub; row: RealRow; menuHub: string; pageHub: string }> = [];
   REAL_HUBS.forEach((h) => {
     h.rows.forEach((r) => {
-      if (r.status === "cross-hub" && r.menu && r.crossHubOn) {
-        const exists = crossRows.find((x) => x.label === r.menu);
+      if (r.status === "cross-hub" && (r.menu || r.hub) && r.crossHubOn) {
+        const label = r.menu ?? r.hub!;
+        const exists = crossRows.find((x) => x.label === label);
         if (!exists) {
-          crossRows.push({ label: r.menu, menuHub: h.menuLabel, pageHub: r.crossHubOn });
+          crossRows.push({ label, hub: h, row: r, menuHub: h.menuLabel, pageHub: r.crossHubOn });
         }
       }
     });
@@ -274,10 +301,15 @@ function CrossHubBanner() {
       </div>
       <ul className="flex flex-col gap-1">
         {crossRows.map((r) => (
-          <li key={r.label} className="text-[11px] text-red-800">
-            <span className="font-semibold">«{r.label}»</span>
-            <span className="text-red-600"> · в меню: </span>«{r.menuHub}»
-            <span className="text-red-600"> · на странице хаба: </span>«{r.pageHub}»
+          <li key={r.label}>
+            <button
+              onClick={() => onRowClick(r.hub, r.row)}
+              className="w-full text-left text-[11px] text-red-800 hover:bg-red-100 rounded px-1.5 py-0.5 transition-colors"
+            >
+              <span className="font-semibold">«{r.label}»</span>
+              <span className="text-red-600"> · в меню: </span>«{r.menuHub}»
+              <span className="text-red-600"> · на странице хаба: </span>«{r.pageHub}»
+            </button>
           </li>
         ))}
       </ul>
@@ -285,7 +317,15 @@ function CrossHubBanner() {
   );
 }
 
-function AsIsMode({ onSectionClick: _onSectionClick }: { onSectionClick: (s: SectionV2) => void }) {
+function AsIsMode({
+  onSectionClick: _onSectionClick,
+  onRowClick,
+  selectedRowKey,
+}: {
+  onSectionClick: (s: SectionV2) => void;
+  onRowClick: (hub: RealHub, row: RealRow) => void;
+  selectedRowKey: string | null;
+}) {
   const [filter, setFilter] = useState<AsIsFilter>("all");
 
   const filtered = REAL_HUBS.filter((h) => {
@@ -361,12 +401,17 @@ function AsIsMode({ onSectionClick: _onSectionClick }: { onSectionClick: (s: Sec
       </div>
 
       {/* Кросс-хаб */}
-      <CrossHubBanner />
+      <CrossHubBanner onRowClick={onRowClick} />
 
       {/* Карточки */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {filtered.map((h) => (
-          <HubAsIsCard key={h.id} hub={h} />
+          <HubAsIsCard
+            key={h.id}
+            hub={h}
+            onRowClick={onRowClick}
+            selectedRowKey={selectedRowKey}
+          />
         ))}
       </div>
 
@@ -1299,6 +1344,286 @@ function SectionMiniMap({
 }
 
 // ─────────────────────────────────────────
+// Правая панель: контекстная карточка строки «Как есть»
+// ─────────────────────────────────────────
+const STATUS_DESCRIPTION: Record<RealEntryStatus, string> = {
+  match:
+    "Раздел совпадает в левом меню и на странице хаба. Это эталонный случай.",
+  rename:
+    "Это один и тот же смысловой раздел, но в меню и на странице хаба он назван по-разному. Нужно выбрать единое имя.",
+  "menu-only":
+    "Раздел присутствует в левой навигации, но отсутствует на витрине хаба. Возможно, забыли вынести карточкой или он сейчас «висит» только в гармошке.",
+  "hub-only":
+    "Раздел показан на странице хаба, но в левой навигации его нет. Часто это hero/AI-блок или внутренний модуль без отдельного пункта меню.",
+  "cross-hub":
+    "Кросс-хаб: раздел живёт в одном хабе по навигации и показан на витрине другого хаба. Один из самых ценных кейсов — нужно решить смысловой дом.",
+  "hero-ai":
+    "Это не пункт меню, а витринный hero/AI-блок страницы хаба. Точка входа в сценарий или AI-функцию.",
+  "hub-root":
+    "Пункт меню ведёт на корень самого хаба, а не на отдельную внутреннюю страницу. Это вход в сам хаб, а не самостоятельный модуль.",
+};
+
+function findRealRowSection(hub: RealHub, row: RealRow): SectionV2 | undefined {
+  const labels = [row.menu, row.hub].filter(Boolean) as string[];
+  for (const l of labels) {
+    const f = findSectionByLabel(l);
+    if (f) return f;
+  }
+  // fallback: ищем по hubId+label
+  if (hub.archHubId) {
+    const arch = SECTIONS_V2.filter((s) => s.hubId === hub.archHubId);
+    const norm = (x: string) => x.toLowerCase().replace(/ё/g, "е").trim();
+    for (const l of labels) {
+      const t = norm(l);
+      const f = arch.find(
+        (s) =>
+          norm(s.label) === t ||
+          (s.labelNew && norm(s.labelNew) === t) ||
+          s.sections.some((sec) => norm(sec) === t)
+      );
+      if (f) return f;
+    }
+  }
+  return undefined;
+}
+
+function RealRowPanel({
+  hub,
+  row,
+  onClose,
+  onOpenSection,
+  onJumpToAfter,
+}: {
+  hub: RealHub;
+  row: RealRow;
+  onClose: () => void;
+  onOpenSection: (s: SectionV2) => void;
+  onJumpToAfter: (s: SectionV2 | null) => void;
+}) {
+  const meta = STATUS_META[row.status];
+  const futureLayer = findFutureLayer(hub.archHubId, row.menu ?? row.hub);
+  const layerCfg = futureLayer ? getLayerConfig(futureLayer) : null;
+  const linkedSection = findRealRowSection(hub, row);
+  const title = row.menu ?? row.hub ?? "—";
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* Хлебные крошки */}
+      <div className="flex items-center gap-1 px-4 py-2 bg-slate-50 border-b border-slate-100 flex-wrap">
+        <span className="text-[10px] text-slate-400">Как есть сейчас</span>
+        <Icon name="ChevronRight" size={9} className="text-slate-300" />
+        {row.status === "cross-hub" && row.crossHubOn ? (
+          <>
+            <span className="text-[10px] text-slate-500">
+              Меню: <span className="font-semibold text-slate-700">{hub.menuLabel}</span>
+            </span>
+            <Icon name="ChevronRight" size={9} className="text-slate-300" />
+            <span className="text-[10px] text-slate-500">
+              Хаб: <span className="font-semibold text-slate-700">{row.crossHubOn}</span>
+            </span>
+          </>
+        ) : (
+          <span className="text-[10px] font-semibold text-slate-700">{hub.menuLabel}</span>
+        )}
+        <Icon name="ChevronRight" size={9} className="text-slate-300" />
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold border ${meta.cls}`}>
+          {title}
+        </span>
+      </div>
+
+      {/* Шапка */}
+      <div className="flex items-start justify-between gap-2 p-4 border-b border-slate-100">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${hub.color} flex items-center justify-center text-white shadow shrink-0`}>
+            <Icon name={hub.icon} size={18} />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-slate-900 leading-tight truncate">{title}</h2>
+            {row.menu && row.hub && row.menu !== row.hub && (
+              <p className="text-[10px] text-slate-500 leading-tight">
+                в меню: <span className="font-medium text-slate-700">«{row.menu}»</span>
+                {" · "}на хабе: <span className="font-medium text-slate-700">«{row.hub}»</span>
+              </p>
+            )}
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              <StatusBadge status={row.status} />
+              <TypeBadge type={hub.type} />
+              {layerCfg && futureLayer && (
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${ROLE_LAYER_COLOR[futureLayer]}`}>
+                  → {layerCfg.name}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0 h-7 w-7">
+          <Icon name="X" size={14} />
+        </Button>
+      </div>
+
+      {/* Блок 1: Что это */}
+      <div className="p-4 border-b border-slate-100 flex flex-col gap-2">
+        <p className="text-[10px] font-bold uppercase text-slate-400">Что это</p>
+        <p className="text-xs text-slate-700 leading-relaxed">{STATUS_DESCRIPTION[row.status]}</p>
+        {row.note && (
+          <div className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-[11px] text-slate-600 italic">
+            {row.note}
+          </div>
+        )}
+      </div>
+
+      {/* Блок 2: Где найдено */}
+      <div className="p-4 border-b border-slate-100 flex flex-col gap-2">
+        <p className="text-[10px] font-bold uppercase text-slate-400">Где найдено</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className={`rounded-lg border px-2.5 py-2 ${row.menu ? "bg-blue-50 border-blue-200" : "bg-slate-50 border-slate-200 opacity-60"}`}>
+            <div className="flex items-center gap-1 mb-0.5">
+              <Icon name="Menu" size={11} className={row.menu ? "text-blue-600" : "text-slate-400"} />
+              <span className="text-[9px] font-bold uppercase text-slate-500">Левое меню</span>
+            </div>
+            <p className={`text-xs font-semibold ${row.menu ? "text-blue-800" : "text-slate-400 italic"}`}>
+              {row.menu ?? "отсутствует"}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              {row.menu ? `в хабе «${hub.menuLabel}»` : "—"}
+            </p>
+          </div>
+          <div className={`rounded-lg border px-2.5 py-2 ${row.hub ? "bg-emerald-50 border-emerald-200" : "bg-slate-50 border-slate-200 opacity-60"}`}>
+            <div className="flex items-center gap-1 mb-0.5">
+              <Icon name="LayoutGrid" size={11} className={row.hub ? "text-emerald-600" : "text-slate-400"} />
+              <span className="text-[9px] font-bold uppercase text-slate-500">Страница хаба</span>
+            </div>
+            <p className={`text-xs font-semibold ${row.hub ? "text-emerald-800" : "text-slate-400 italic"}`}>
+              {row.hub ?? "отсутствует"}
+            </p>
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              {row.hub ? `на хабе «${hub.hubLabel ?? hub.menuLabel}»` : "—"}
+            </p>
+          </div>
+        </div>
+        {row.crossHubOn && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-2">
+            <div className="flex items-center gap-1 mb-0.5">
+              <Icon name="GitBranch" size={11} className="text-red-600" />
+              <span className="text-[9px] font-bold uppercase text-red-600">Кросс-хаб</span>
+            </div>
+            <p className="text-[11px] text-red-800 leading-snug">
+              Раздел также показан на хабе «<span className="font-semibold">{row.crossHubOn}</span>».
+              Это значит, что у пункта два смысловых дома одновременно.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Блок 3: Расхождение */}
+      {row.status !== "match" && (
+        <div className="p-4 border-b border-slate-100 flex flex-col gap-2">
+          <p className="text-[10px] font-bold uppercase text-slate-400">В чём расхождение</p>
+          <div className={`rounded-lg border px-2.5 py-2 ${meta.cls}`}>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className={`w-2 h-2 rounded-full ${meta.dot}`} />
+              <span className="text-[11px] font-bold">{meta.label}</span>
+            </div>
+            {row.status === "rename" && (
+              <p className="text-[11px] leading-snug">
+                Меню: «<span className="font-semibold">{row.menu}</span>» ↔ Хаб: «<span className="font-semibold">{row.hub}</span>». Один и тот же раздел под двумя разными именами.
+              </p>
+            )}
+            {row.status === "menu-only" && (
+              <p className="text-[11px] leading-snug">
+                Пункт «<span className="font-semibold">{row.menu}</span>» есть в меню, но отсутствует на витрине хаба.
+              </p>
+            )}
+            {row.status === "hub-only" && (
+              <p className="text-[11px] leading-snug">
+                Карточка «<span className="font-semibold">{row.hub}</span>» есть на витрине хаба, но отсутствует в меню.
+              </p>
+            )}
+            {row.status === "cross-hub" && (
+              <p className="text-[11px] leading-snug">
+                «<span className="font-semibold">{row.menu ?? row.hub}</span>» относится сразу к двум хабам.
+              </p>
+            )}
+            {row.status === "hero-ai" && (
+              <p className="text-[11px] leading-snug">
+                «<span className="font-semibold">{row.hub}</span>» — это hero/AI-блок страницы, не пункт меню.
+              </p>
+            )}
+            {row.status === "hub-root" && (
+              <p className="text-[11px] leading-snug">
+                «<span className="font-semibold">{row.menu}</span>» в меню — это вход в сам хаб, а не отдельный модуль.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Блок 4: Связь с целевой архитектурой */}
+      {(linkedSection || layerCfg) && (
+        <div className="p-4 border-b border-slate-100 flex flex-col gap-2">
+          <p className="text-[10px] font-bold uppercase text-slate-400">Куда попадает в целевой архитектуре</p>
+          {layerCfg && futureLayer && (
+            <div className={`rounded-lg border-2 ${layerCfg.borderColor} ${layerCfg.bgColor} px-2.5 py-2`}>
+              <p className={`text-[11px] font-bold ${layerCfg.textColor}`}>{layerCfg.name}</p>
+              <p className="text-[10px] text-slate-600 leading-snug">{layerCfg.description}</p>
+            </div>
+          )}
+          {linkedSection && (
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Будущее имя</p>
+              <p className="text-xs font-semibold text-slate-800">{linkedSection.labelNew ?? linkedSection.label}</p>
+              <p className="text-[11px] text-slate-500 italic mt-0.5">«{linkedSection.tagline}»</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Блок 5: Действия */}
+      <div className="p-4 flex flex-col gap-1.5">
+        <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Действия</p>
+        {linkedSection ? (
+          <>
+            <Button
+              variant="default"
+              size="sm"
+              className="w-full justify-start gap-1.5 text-xs h-8"
+              onClick={() => onOpenSection(linkedSection)}
+            >
+              <Icon name="FileText" size={12} />
+              Открыть полную карточку раздела
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start gap-1.5 text-xs h-8"
+              onClick={() => onJumpToAfter(linkedSection)}
+            >
+              <Icon name="Sparkles" size={12} />
+              Показать в режиме «После изменений»
+            </Button>
+          </>
+        ) : (
+          <div className="text-[10px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2 leading-snug">
+            У этой сущности нет полноценной карточки раздела (это {TYPE_META[hub.type].label.toLowerCase()} или специальный блок). Контекстная информация выше — единственный источник.
+          </div>
+        )}
+        {linkedSection?.path && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-1.5 text-xs h-8"
+            onClick={() => window.open(linkedSection.path, "_blank")}
+          >
+            <Icon name="ExternalLink" size={12} />
+            Открыть на сайте
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
 // Правая панель: карточка раздела (3 колонки)
 // ─────────────────────────────────────────
 function SectionDetailPanel({
@@ -1487,6 +1812,8 @@ export default function AdminProjectV2() {
   const [selectedFlow, setSelectedFlow] = useState<DataFlow | null>(null);
   // История переходов по карточкам
   const [navHistory, setNavHistory] = useState<SectionV2[]>([]);
+  // Выбранная строка из режима «Как есть»
+  const [selectedReal, setSelectedReal] = useState<{ hub: RealHub; row: RealRow; key: string } | null>(null);
 
   // Навигация вперёд — сохраняем текущую в историю, открываем новую
   const handleNavigate = (s: SectionV2) => {
@@ -1531,12 +1858,41 @@ export default function AdminProjectV2() {
     setSelectedSection(null);
     setSelectedFlow(null);
     setNavHistory([]);
+    setSelectedReal(null);
+  };
+
+  // Клик по строке режима «Как есть»
+  const handleRealRowClick = (hub: RealHub, row: RealRow) => {
+    const idx = hub.rows.indexOf(row);
+    const key = `${hub.id}::${idx}`;
+    setSelectedSection(null);
+    setSelectedFlow(null);
+    setNavHistory([]);
+    setSelectedReal((prev) => (prev?.key === key ? null : { hub, row, key }));
+  };
+
+  // Из панели «Как есть» — открыть полную карточку раздела
+  const handleOpenSectionFromReal = (s: SectionV2) => {
+    setSelectedReal(null);
+    setSelectedFlow(null);
+    setNavHistory([]);
+    setSelectedSection(s);
+  };
+
+  // Из панели «Как есть» — перейти в режим «После изменений»
+  const handleJumpToAfter = (s: SectionV2 | null) => {
+    setSelectedReal(null);
+    setSelectedFlow(null);
+    setNavHistory([]);
+    setSelectedSection(s);
+    setMode("after");
   };
 
   const openConflicts = OVERLAP_CASES.filter((c) => c.status === "open").length;
   const renamed = SECTIONS_V2.filter((s) => s.labelNew && s.labelNew !== s.label).length;
   const hasRightPanel = (selectedSection && (mode === "as-is" || mode === "after"))
-    || (selectedFlow && mode === "after");
+    || (selectedFlow && mode === "after")
+    || (selectedReal && mode === "as-is");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/20">
@@ -1595,7 +1951,13 @@ export default function AdminProjectV2() {
         {/* Основной контент */}
         <div className="flex flex-col lg:flex-row gap-4">
           <div className={`transition-all duration-200 ${hasRightPanel ? "lg:w-[45%]" : "w-full"}`}>
-            {mode === "as-is"     && <AsIsMode onSectionClick={handleSectionClick} />}
+            {mode === "as-is"     && (
+              <AsIsMode
+                onSectionClick={handleSectionClick}
+                onRowClick={handleRealRowClick}
+                selectedRowKey={selectedReal?.key ?? null}
+              />
+            )}
             {mode === "after"     && (
               <AfterMode
                 selectedSection={selectedSection}
@@ -1612,6 +1974,15 @@ export default function AdminProjectV2() {
           {hasRightPanel && (
             <div className="lg:w-[55%]">
               <Card className="overflow-hidden sticky top-4 max-h-[88vh]">
+                {selectedReal && mode === "as-is" && !selectedSection && (
+                  <RealRowPanel
+                    hub={selectedReal.hub}
+                    row={selectedReal.row}
+                    onClose={handleClose}
+                    onOpenSection={handleOpenSectionFromReal}
+                    onJumpToAfter={handleJumpToAfter}
+                  />
+                )}
                 {selectedSection && (
                   <SectionDetailPanel
                     section={selectedSection}
@@ -1622,7 +1993,7 @@ export default function AdminProjectV2() {
                     onConflictOpen={handleConflictOpen}
                   />
                 )}
-                {selectedFlow && !selectedSection && (
+                {selectedFlow && !selectedSection && !selectedReal && (
                   <FlowDetailPanel flow={selectedFlow} onClose={handleClose} />
                 )}
               </Card>
