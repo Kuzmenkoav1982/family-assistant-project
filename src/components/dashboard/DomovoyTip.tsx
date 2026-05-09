@@ -2,8 +2,6 @@ import { useMemo, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import type { Hub } from './types';
 
-const DOMOVOY_IMG = 'https://cdn.poehali.dev/files/c1b4ec81-b6c7-4a35-ac49-cc9849f6843f.png';
-
 interface Props {
   hubs: Hub[];
   overall: number;
@@ -51,17 +49,10 @@ export default function DomovoyTip({ hubs, overall }: Props) {
     return (
       <button
         onClick={() => setHidden(false)}
-        className="fixed bottom-24 right-4 z-30 w-12 h-12 rounded-full bg-white shadow-lg ring-2 ring-orange-200 overflow-hidden hover:scale-110 transition-transform"
-        aria-label="Подсказка"
+        className="fixed bottom-24 right-4 z-30 w-11 h-11 rounded-full bg-white shadow-lg ring-2 ring-orange-200 flex items-center justify-center hover:scale-110 transition-transform"
+        aria-label="Совет"
       >
-        <div
-          className="w-full h-full"
-          style={{
-            backgroundImage: `url(${DOMOVOY_IMG})`,
-            backgroundSize: '130%',
-            backgroundPosition: '50% 18%',
-          }}
-        />
+        <Icon name="Lightbulb" size={20} className="text-orange-500" />
       </button>
     );
   }
@@ -70,21 +61,16 @@ export default function DomovoyTip({ hubs, overall }: Props) {
     <div className="relative mb-3 animate-fade-in">
       <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-orange-50 via-amber-50 to-pink-50 border border-orange-200/60 shadow-[0_4px_20px_-6px_rgba(251,146,60,0.3)]">
         <div className="relative flex-shrink-0">
-          <div
-            className="w-11 h-11 rounded-full bg-white ring-2 ring-orange-200 overflow-hidden"
-            style={{
-              backgroundImage: `url(${DOMOVOY_IMG})`,
-              backgroundSize: '130%',
-              backgroundPosition: '50% 18%',
-            }}
-          />
+          <div className="w-9 h-9 rounded-full bg-white ring-2 ring-orange-200 flex items-center justify-center">
+            <Icon name="Lightbulb" size={18} className="text-orange-500" />
+          </div>
           <span className="absolute -top-1 -right-1 text-base animate-bounce-gentle">
             {tip.emoji}
           </span>
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-0.5">
-            Домовёнок советует
+            Совет
           </div>
           <div className="text-[13px] text-slate-700 leading-snug">{tip.text}</div>
         </div>
