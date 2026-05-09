@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Icon from "@/components/ui/icon";
+import { OVERLAP_CASES } from "@/data/atlas/platformDecisions";
+import type { OverlapCase } from "@/data/atlas/types";
 import {
   HUBS_V2,
   LAYERS,
@@ -361,6 +362,158 @@ function TreeView({
 }
 
 // ─────────────────────────────────────────
+// Блок: Открытые конфликты
+// ─────────────────────────────────────────
+const RISK_CONFIG = {
+  high:   { label: "Высокий риск",   className: "bg-red-100 text-red-700 border-red-200",     icon: "AlertTriangle" },
+  medium: { label: "Средний риск",   className: "bg-amber-100 text-amber-700 border-amber-200", icon: "AlertCircle" },
+  low:    { label: "Низкий риск",    className: "bg-slate-100 text-slate-600 border-slate-200", icon: "Info" },
+};
+
+const STATUS_CONFIG = {
+  open:     { label: "Открыт",   className: "bg-red-50 text-red-600 border-red-200" },
+  decided:  { label: "Решён",    className: "bg-green-50 text-green-700 border-green-200" },
+  deferred: { label: "Отложен", className: "bg-slate-50 text-slate-500 border-slate-200" },
+};
+
+const DECISION_LABEL: Record<string, string> = {
+  keep: "Оставить как есть",
+  merge: "Объединить",
+  split: "Разделить",
+  rename: "Переименовать",
+  move: "Перенести",
+  deprecate: "Убрать",
+  "needs-review": "Требует решения",
+};
+
+function ConflictCard({ c, index }: { c: OverlapCase; index: number }) {
+  const [open, setOpen] = useState(false);
+  const risk = RISK_CONFIG[c.riskLevel];
+  const status = STATUS_CONFIG[c.status];
+
+  return (
+    <Card className={`overflow-hidden border-l-4 ${c.riskLevel === "high" ? "border-l-red-400" : c.riskLevel === "medium" ? "border-l-amber-400" : "border-l-slate-300"}`}>
+      <button
+        className="w-full text-left p-3 flex items-start gap-3 hover:bg-slate-50 transition-colors"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${c.riskLevel === "high" ? "bg-red-100" : c.riskLevel === "medium" ? "bg-amber-100" : "bg-slate-100"}`}>
+          <span className={`text-[10px] font-bold ${c.riskLevel === "high" ? "text-red-600" : c.riskLevel === "medium" ? "text-amber-600" : "text-slate-500"}`}>
+            {index + 1}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap gap-1.5 items-center mb-1">
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${risk.className}`}>
+              {risk.label}
+            </span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${status.className}`}>
+              {status.label}
+            </span>
+            {c.decision && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full border font-medium bg-violet-50 text-violet-700 border-violet-200">
+                {DECISION_LABEL[c.decision] ?? c.decision}
+              </span>
+            )}
+          </div>
+          <p className="text-xs font-semibold text-slate-800">
+            {c.sharedFunction ?? c.sharedEntity ?? c.id}
+          </p>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            <span className="font-medium text-slate-600">{c.sectionA}</span>
+            {" ↔ "}
+            <span className="font-medium text-slate-600">{c.sectionB}</span>
+          </p>
+        </div>
+        <Icon
+          name={open ? "ChevronUp" : "ChevronDown"}
+          size={14}
+          className="text-slate-400 shrink-0 mt-1"
+        />
+      </button>
+      {open && (
+        <div className="px-3 pb-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">В чём проблема</p>
+            <p className="text-xs text-slate-700 leading-relaxed">{c.problem}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Рекомендация</p>
+            <p className="text-xs text-slate-600 leading-relaxed">{c.recommendation}</p>
+          </div>
+          {c.notes && (
+            <div className="bg-slate-50 rounded-lg p-2">
+              <p className="text-[10px] text-slate-400 font-medium">Заметка: {c.notes}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function ConflictsSection() {
+  const [filter, setFilter] = useState<"all" | "open" | "decided" | "deferred">("open");
+
+  const filtered = OVERLAP_CASES.filter((c) => filter === "all" || c.status === filter);
+  const openCount = OVERLAP_CASES.filter((c) => c.status === "open").length;
+  const decidedCount = OVERLAP_CASES.filter((c) => c.status === "decided").length;
+  const deferredCount = OVERLAP_CASES.filter((c) => c.status === "deferred").length;
+
+  const FILTERS: Array<{ key: typeof filter; label: string; count: number; color: string }> = [
+    { key: "all",      label: "Все",      count: OVERLAP_CASES.length, color: "text-slate-700" },
+    { key: "open",     label: "Открытые", count: openCount,    color: "text-red-600" },
+    { key: "decided",  label: "Решённые", count: decidedCount, color: "text-green-600" },
+    { key: "deferred", label: "Отложенные", count: deferredCount, color: "text-slate-500" },
+  ];
+
+  return (
+    <Card className="p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center text-white">
+            <Icon name="AlertTriangle" size={14} />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Открытые конфликты архитектуры</h3>
+            <p className="text-[11px] text-slate-500">Пересечения и дублирования, которые нужно решить</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1 text-xs text-red-600 font-semibold">
+          <Icon name="AlertCircle" size={14} />
+          {openCount} требуют решения
+        </div>
+      </div>
+
+      {/* Фильтр */}
+      <div className="flex gap-1 mb-4 bg-slate-100 rounded-lg p-1 w-fit">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+              filter === f.key ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {f.label}
+            <span className={`text-[10px] font-bold ${filter === f.key ? f.color : "text-slate-400"}`}>
+              {f.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Список */}
+      <div className="flex flex-col gap-2">
+        {filtered.map((c, i) => (
+          <ConflictCard key={c.id} c={c} index={OVERLAP_CASES.indexOf(c)} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+// ─────────────────────────────────────────
 // Главный компонент страницы
 // ─────────────────────────────────────────
 export default function AdminProjectV2() {
@@ -491,6 +644,9 @@ export default function AdminProjectV2() {
             ))}
           </div>
         </Card>
+
+        {/* Конфликты архитектуры */}
+        <ConflictsSection />
       </div>
     </div>
   );
