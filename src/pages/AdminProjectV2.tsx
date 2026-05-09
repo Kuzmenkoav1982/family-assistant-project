@@ -713,31 +713,115 @@ function ConflictsMode() {
 }
 
 // ─────────────────────────────────────────
+// Утилита: найти раздел по метке
+// ─────────────────────────────────────────
+function findSectionByLabel(label: string): SectionV2 | undefined {
+  return SECTIONS_V2.find(
+    (s) => s.label === label || s.labelNew === label || s.id === label
+  );
+}
+
+// ─────────────────────────────────────────
 // Мини-схема связей раздела
 // ─────────────────────────────────────────
 const MAX_NODES = 5;
+
+// Мини-панель мостика (открывается по клику)
+function BridgePopup({
+  bridge,
+  onClose,
+  onNavigate,
+}: {
+  bridge: string;
+  onClose: () => void;
+  onNavigate: (s: SectionV2) => void;
+}) {
+  // Пытаемся извлечь куда ведёт мостик из строки вида "Текст → Раздел"
+  const parts = bridge.split("→");
+  const action = parts[0].trim();
+  const target = parts[1]?.trim() ?? null;
+  const targetSection = target ? findSectionByLabel(target) : null;
+
+  return (
+    <div className="absolute z-50 bottom-full mb-2 left-0 w-52 bg-white border border-violet-200 rounded-xl shadow-xl p-3 flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase text-violet-500 tracking-wider">Мостик</span>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <Icon name="X" size={11} />
+        </button>
+      </div>
+      <p className="text-xs font-semibold text-slate-800">{action}</p>
+      {target && (
+        <p className="text-[10px] text-slate-500">
+          Ведёт в: <span className="font-semibold text-violet-700">{target}</span>
+        </p>
+      )}
+      <p className="text-[10px] text-slate-400 leading-relaxed">
+        Смысловой переход — пользователь сам решает, когда перейти отсюда.
+      </p>
+      {targetSection && (
+        <button
+          onClick={() => { onNavigate(targetSection); onClose(); }}
+          className="flex items-center gap-1.5 text-[11px] font-semibold text-violet-700 bg-violet-50 border border-violet-200 rounded-lg px-2 py-1 hover:bg-violet-100 transition-colors"
+        >
+          <Icon name="ArrowRight" size={11} />
+          Перейти в «{targetSection.labelNew ?? targetSection.label}»
+        </button>
+      )}
+      <div className="absolute top-full left-4 border-4 border-transparent border-t-white" style={{ filter: "drop-shadow(0 1px 0 rgb(167 139 250 / 0.4))" }} />
+    </div>
+  );
+}
 
 interface MiniNodeProps {
   label: string;
   type: "from" | "to" | "bridge";
   hasConflict?: boolean;
   tooltip?: string;
+  onClick?: () => void;
+  onConflictClick?: () => void;
+  isClickable?: boolean;
 }
 
-function MiniNode({ label, type, hasConflict, tooltip }: MiniNodeProps) {
+function MiniNode({ label, type, hasConflict, tooltip, onClick, onConflictClick, isClickable }: MiniNodeProps) {
   const [hovered, setHovered] = useState(false);
   const styles = {
     from:   "bg-blue-50 border-blue-300 text-blue-700",
     to:     "bg-emerald-50 border-emerald-300 text-emerald-700",
     bridge: "bg-violet-50 border-violet-300 text-violet-700 border-dashed",
   };
+  const hoverStyles = {
+    from:   "hover:bg-blue-100 hover:border-blue-400 hover:shadow-sm",
+    to:     "hover:bg-emerald-100 hover:border-emerald-400 hover:shadow-sm",
+    bridge: "hover:bg-violet-100 hover:border-violet-400 hover:shadow-sm",
+  };
+
   return (
     <div className="relative" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-      <div className={`px-2 py-0.5 rounded-lg border text-[10px] font-medium whitespace-nowrap ${styles[type]} ${hasConflict ? "ring-1 ring-amber-400" : ""}`}>
-        {label}
-        {hasConflict && <span className="ml-1 text-amber-500">⚠</span>}
+      <div className="flex items-center gap-0.5">
+        <button
+          onClick={onClick}
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[10px] font-medium whitespace-nowrap transition-all
+            ${styles[type]}
+            ${isClickable ? `${hoverStyles[type]} cursor-pointer` : "cursor-default"}
+            ${hasConflict ? "ring-1 ring-amber-400" : ""}`}
+        >
+          {isClickable && type !== "bridge" && (
+            <Icon name="ArrowUpRight" size={9} className="opacity-50 shrink-0" />
+          )}
+          {label}
+        </button>
+        {hasConflict && onConflictClick && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onConflictClick(); }}
+            className="text-amber-500 hover:text-amber-600 transition-colors px-0.5"
+            title="Открыть конфликт"
+          >
+            ⚠
+          </button>
+        )}
       </div>
-      {hovered && tooltip && (
+      {hovered && tooltip && !onClick && (
         <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-44 bg-slate-900 text-white text-[10px] leading-relaxed rounded-lg px-2.5 py-1.5 shadow-xl z-50 pointer-events-none">
           {tooltip}
           <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
@@ -747,18 +831,26 @@ function MiniNode({ label, type, hasConflict, tooltip }: MiniNodeProps) {
   );
 }
 
-function SectionMiniMap({ section }: { section: SectionV2 }) {
+function SectionMiniMap({
+  section,
+  onNavigate,
+  onConflictOpen,
+}: {
+  section: SectionV2;
+  onNavigate: (s: SectionV2) => void;
+  onConflictOpen: (conflictId: string) => void;
+}) {
   const [detail, setDetail] = useState(false);
+  const [openBridge, setOpenBridge] = useState<string | null>(null);
   const cfg = getLayerConfig(section.layer);
 
-  const fromNodes = section.dataFrom.slice(0, detail ? MAX_NODES : 4);
-  const fromExtra = section.dataFrom.length - fromNodes.length;
-  const toNodes   = section.dataTo.slice(0, detail ? MAX_NODES : 4);
-  const toExtra   = section.dataTo.length - toNodes.length;
+  const fromNodes   = section.dataFrom.slice(0, detail ? MAX_NODES : 4);
+  const fromExtra   = section.dataFrom.length - fromNodes.length;
+  const toNodes     = section.dataTo.slice(0, detail ? MAX_NODES : 4);
+  const toExtra     = section.dataTo.length - toNodes.length;
   const bridgeNodes = section.bridges.slice(0, detail ? 5 : 3);
   const bridgeExtra = section.bridges.length - bridgeNodes.length;
 
-  // Тип потока в одну строку
   const FLOW_TYPE_LABEL: Record<string, string> = {
     sources:   "Вход: факты → Выход: сигналы",
     panorama:  "Вход: данные → Выход: картина и рекомендации",
@@ -768,7 +860,6 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
     service:   "Служебный раздел",
   };
 
-  // Путь на общей карте (upstream → current → downstream)
   const FLOW_PATH: Record<string, string> = {
     sources:   "Источники → [сюда] → Панорамы",
     panorama:  "Источники → [сюда] → Осмысление / Исполнение",
@@ -806,7 +897,7 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
         ))}
       </div>
 
-      {/* Визуальная схема: вход → центр → выход */}
+      {/* Визуальная схема */}
       <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 flex flex-col gap-2">
 
         {/* ВХОД */}
@@ -817,27 +908,47 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
               <span className="text-[9px] font-bold uppercase text-blue-500 tracking-wider">Вход — данные и сигналы</span>
             </div>
             <div className="flex flex-wrap gap-1">
-              {fromNodes.map((n, i) => (
-                <MiniNode key={i} label={n} type="from" tooltip={`Передаёт данные/сигналы в «${section.labelNew ?? section.label}»`} />
-              ))}
+              {fromNodes.map((n, i) => {
+                const target = findSectionByLabel(n);
+                const conflictId = target
+                  ? section.conflicts.find((cid) => {
+                      const c = OVERLAP_CASES.find((oc) => oc.id === cid);
+                      return c && (c.sectionA === target.id || c.sectionB === target.id);
+                    })
+                  : undefined;
+                return (
+                  <MiniNode
+                    key={i}
+                    label={n}
+                    type="from"
+                    isClickable={!!target}
+                    hasConflict={!!conflictId}
+                    tooltip={target ? undefined : `Передаёт данные/сигналы в «${section.labelNew ?? section.label}»`}
+                    onClick={target ? () => onNavigate(target) : undefined}
+                    onConflictClick={conflictId ? () => onConflictOpen(conflictId) : undefined}
+                  />
+                );
+              })}
               {fromExtra > 0 && (
-                <span className="text-[10px] text-blue-400 self-center">+{fromExtra}</span>
+                <button onClick={() => setDetail(true)} className="text-[10px] text-blue-400 hover:text-blue-600 self-center font-medium">
+                  +{fromExtra} ещё
+                </button>
               )}
             </div>
           </div>
         )}
 
-        {/* Стрелка вниз к центру */}
+        {/* Стрелка ↓ */}
         {fromNodes.length > 0 && (
           <div className="flex justify-center">
-            <div className="flex flex-col items-center gap-0">
+            <div className="flex flex-col items-center">
               <div className="w-px h-2 bg-slate-300" />
               <Icon name="ChevronDown" size={12} className="text-slate-400" />
             </div>
           </div>
         )}
 
-        {/* ЦЕНТР — текущий раздел */}
+        {/* ЦЕНТР */}
         <div className={`rounded-xl border-2 ${cfg.borderColor} bg-gradient-to-br ${cfg.bgColor} p-2.5 flex items-center gap-2.5`}>
           <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cfg.color} flex items-center justify-center text-white shrink-0 shadow-sm`}>
             <Icon name={section.icon} size={14} />
@@ -846,17 +957,15 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
             <p className={`text-xs font-bold ${cfg.textColor} leading-tight truncate`}>{section.labelNew ?? section.label}</p>
             <span className={`text-[9px] font-semibold uppercase tracking-wider ${cfg.textColor} opacity-70`}>{cfg.name}</span>
           </div>
-          <div className="ml-auto shrink-0">
-            <span className="text-[9px] bg-white/60 border border-white/80 px-1.5 py-0.5 rounded-full text-slate-500 font-medium">
-              {section.hubLabel}
-            </span>
-          </div>
+          <span className="ml-auto shrink-0 text-[9px] bg-white/60 border border-white/80 px-1.5 py-0.5 rounded-full text-slate-500 font-medium">
+            {section.hubLabel}
+          </span>
         </div>
 
-        {/* Стрелка вниз к выходу */}
+        {/* Стрелка ↓ */}
         {toNodes.length > 0 && (
           <div className="flex justify-center">
-            <div className="flex flex-col items-center gap-0">
+            <div className="flex flex-col items-center">
               <div className="w-px h-2 bg-slate-300" />
               <Icon name="ChevronDown" size={12} className="text-slate-400" />
             </div>
@@ -871,11 +980,31 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
               <span className="text-[9px] font-bold uppercase text-emerald-500 tracking-wider">Выход — результат</span>
             </div>
             <div className="flex flex-wrap gap-1">
-              {toNodes.map((n, i) => (
-                <MiniNode key={i} label={n} type="to" tooltip={`«${section.labelNew ?? section.label}» передаёт данные/решения сюда`} />
-              ))}
+              {toNodes.map((n, i) => {
+                const target = findSectionByLabel(n);
+                const conflictId = target
+                  ? section.conflicts.find((cid) => {
+                      const c = OVERLAP_CASES.find((oc) => oc.id === cid);
+                      return c && (c.sectionA === target.id || c.sectionB === target.id);
+                    })
+                  : undefined;
+                return (
+                  <MiniNode
+                    key={i}
+                    label={n}
+                    type="to"
+                    isClickable={!!target}
+                    hasConflict={!!conflictId}
+                    tooltip={target ? undefined : `«${section.labelNew ?? section.label}» передаёт результат сюда`}
+                    onClick={target ? () => onNavigate(target) : undefined}
+                    onConflictClick={conflictId ? () => onConflictOpen(conflictId) : undefined}
+                  />
+                );
+              })}
               {toExtra > 0 && (
-                <span className="text-[10px] text-emerald-400 self-center">+{toExtra}</span>
+                <button onClick={() => setDetail(true)} className="text-[10px] text-emerald-400 hover:text-emerald-600 self-center font-medium">
+                  +{toExtra} ещё
+                </button>
               )}
             </div>
           </div>
@@ -893,17 +1022,33 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
             </div>
             <div className="flex flex-wrap gap-1">
               {bridgeNodes.map((b, i) => (
-                <MiniNode key={i} label={b} type="bridge" tooltip="Смысловой переход — пользователь может перейти отсюда" />
+                <div key={i} className="relative">
+                  <button
+                    onClick={() => setOpenBridge((prev) => prev === b ? null : b)}
+                    className="flex items-center gap-1 px-2 py-0.5 rounded-lg border border-dashed border-violet-300 bg-violet-50 text-violet-700 text-[10px] font-medium hover:bg-violet-100 hover:border-violet-400 transition-all cursor-pointer"
+                  >
+                    <Icon name="Waypoints" size={9} className="opacity-60" />
+                    {b}
+                  </button>
+                  {openBridge === b && (
+                    <BridgePopup
+                      bridge={b}
+                      onClose={() => setOpenBridge(null)}
+                      onNavigate={onNavigate}
+                    />
+                  )}
+                </div>
               ))}
               {bridgeExtra > 0 && (
-                <span className="text-[10px] text-violet-400 self-center">+{bridgeExtra}</span>
+                <button onClick={() => setDetail(true)} className="text-[10px] text-violet-400 hover:text-violet-600 self-center font-medium">
+                  +{bridgeExtra} ещё
+                </button>
               )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Тип потока одной строкой */}
       <p className="text-[10px] text-slate-400 italic">{FLOW_TYPE_LABEL[section.layer]}</p>
     </div>
   );
@@ -912,12 +1057,59 @@ function SectionMiniMap({ section }: { section: SectionV2 }) {
 // ─────────────────────────────────────────
 // Правая панель: карточка раздела (3 колонки)
 // ─────────────────────────────────────────
-function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose: () => void }) {
+function SectionDetailPanel({
+  section,
+  history,
+  onClose,
+  onNavigate,
+  onGoBack,
+  onConflictOpen,
+}: {
+  section: SectionV2;
+  history: SectionV2[];
+  onClose: () => void;
+  onNavigate: (s: SectionV2) => void;
+  onGoBack: () => void;
+  onConflictOpen: (id: string) => void;
+}) {
   const cfg = getLayerConfig(section.layer);
   const relatedConflicts = OVERLAP_CASES.filter((c) => section.conflicts.includes(c.id));
 
   return (
     <div className="flex flex-col gap-0 h-full overflow-y-auto">
+
+      {/* Хлебные крошки / история */}
+      {history.length > 0 && (
+        <div className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 border-b border-slate-100 flex-wrap">
+          <button
+            onClick={onGoBack}
+            className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-violet-600 transition-colors font-medium"
+          >
+            <Icon name="ArrowLeft" size={11} />
+            Назад
+          </button>
+          <div className="flex items-center gap-1 flex-wrap">
+            {history.map((h, i) => {
+              const hCfg = getLayerConfig(h.layer);
+              return (
+                <span key={i} className="flex items-center gap-1">
+                  <button
+                    onClick={() => onNavigate(h)}
+                    className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${ROLE_LAYER_COLOR[h.layer]} hover:opacity-80 transition-opacity`}
+                  >
+                    {h.labelNew ?? h.label}
+                  </button>
+                  <Icon name="ChevronRight" size={9} className="text-slate-300 shrink-0" />
+                </span>
+              );
+            })}
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${ROLE_LAYER_COLOR[section.layer]}`}>
+              {section.labelNew ?? section.label}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Шапка */}
       <div className="flex items-start justify-between gap-2 p-4 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
@@ -956,8 +1148,6 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
             <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Зачем нужен</p>
             <p className="text-xs text-slate-700 leading-relaxed">{section.purpose}</p>
           </div>
-
-          {/* Что внутри */}
           {section.sections.length > 0 && (
             <>
               <Separator />
@@ -974,7 +1164,6 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
               </div>
             </>
           )}
-
           {section.changeNote && (
             <>
               <Separator />
@@ -993,9 +1182,13 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
           )}
         </div>
 
-        {/* Центр: МИНИ-СХЕМА */}
+        {/* Центр: МИНИ-СХЕМА — кликабельная навигация */}
         <div className="lg:w-[40%] p-4">
-          <SectionMiniMap section={section} />
+          <SectionMiniMap
+            section={section}
+            onNavigate={onNavigate}
+            onConflictOpen={onConflictOpen}
+          />
         </div>
 
         {/* Правая: что не делает + конфликты */}
@@ -1011,7 +1204,6 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
               ))}
             </div>
           </div>
-
           {relatedConflicts.length > 0 && (
             <div>
               <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Конфликты</p>
@@ -1019,14 +1211,18 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
                 {relatedConflicts.map((c) => {
                   const risk = RISK_CONFIG[c.riskLevel];
                   return (
-                    <div key={c.id} className={`rounded-lg border px-2 py-1.5 ${c.riskLevel === "high" ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}>
+                    <button
+                      key={c.id}
+                      onClick={() => onConflictOpen(c.id)}
+                      className={`w-full text-left rounded-lg border px-2 py-1.5 transition-opacity hover:opacity-80 ${c.riskLevel === "high" ? "bg-red-50 border-red-200" : "bg-amber-50 border-amber-200"}`}
+                    >
                       <div className="flex items-center gap-1 mb-0.5">
                         <span className={`text-[9px] px-1 py-0.5 rounded border font-bold ${risk.className}`}>{risk.label}</span>
                         <span className={`text-[10px] px-1 py-0.5 rounded border font-medium ${STATUS_CONFIG[c.status].className}`}>{STATUS_CONFIG[c.status].label}</span>
                       </div>
                       <p className="text-[11px] text-slate-700 font-medium">{c.sharedFunction}</p>
                       <p className="text-[10px] text-slate-500">{c.sectionA} ↔ {c.sectionB}</p>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -1045,23 +1241,56 @@ export default function AdminProjectV2() {
   const [mode, setMode] = useState<Mode>("as-is");
   const [selectedSection, setSelectedSection] = useState<SectionV2 | null>(null);
   const [selectedFlow, setSelectedFlow] = useState<DataFlow | null>(null);
+  // История переходов по карточкам
+  const [navHistory, setNavHistory] = useState<SectionV2[]>([]);
 
+  // Навигация вперёд — сохраняем текущую в историю, открываем новую
+  const handleNavigate = (s: SectionV2) => {
+    setSelectedFlow(null);
+    setSelectedSection((prev) => {
+      if (prev) setNavHistory((h) => [...h, prev]);
+      return s;
+    });
+  };
+
+  // Навигация из дерева — сбрасываем историю
   const handleSectionClick = (s: SectionV2) => {
     setSelectedFlow(null);
+    setNavHistory([]);
     setSelectedSection((prev) => (prev?.id === s.id ? null : s));
   };
+
+  // Назад по истории
+  const handleGoBack = () => {
+    setNavHistory((h) => {
+      const prev = h[h.length - 1];
+      if (prev) setSelectedSection(prev);
+      return h.slice(0, -1);
+    });
+  };
+
+  // Клик по конфликту — переключаемся в режим конфликтов
+  const handleConflictOpen = (_id: string) => {
+    setMode("conflicts");
+    setSelectedSection(null);
+    setSelectedFlow(null);
+    setNavHistory([]);
+  };
+
   const handleFlowClick = (f: DataFlow) => {
     setSelectedSection(null);
+    setNavHistory([]);
     setSelectedFlow((prev) => (prev?.id === f.id ? null : f));
   };
+
   const handleClose = () => {
     setSelectedSection(null);
     setSelectedFlow(null);
+    setNavHistory([]);
   };
 
   const openConflicts = OVERLAP_CASES.filter((c) => c.status === "open").length;
   const renamed = SECTIONS_V2.filter((s) => s.labelNew && s.labelNew !== s.label).length;
-
   const hasRightPanel = (selectedSection && (mode === "as-is" || mode === "after"))
     || (selectedFlow && mode === "after");
 
@@ -1102,7 +1331,7 @@ export default function AdminProjectV2() {
         </div>
 
         {/* Переключатель режимов */}
-        <div className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-white overflow-hidden w-fit shadow-sm">
+        <div className="flex flex-wrap rounded-xl border border-slate-200 bg-white overflow-hidden w-fit shadow-sm">
           {MODES.map((m) => (
             <button key={m.id} onClick={() => { setMode(m.id); handleClose(); }}
               className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors border-r border-slate-100 last:border-0 ${
@@ -1121,7 +1350,6 @@ export default function AdminProjectV2() {
 
         {/* Основной контент */}
         <div className="flex flex-col lg:flex-row gap-4">
-          {/* Левая часть: основной режим */}
           <div className={`transition-all duration-200 ${hasRightPanel ? "lg:w-[45%]" : "w-full"}`}>
             {mode === "as-is"     && <AsIsMode onSectionClick={handleSectionClick} />}
             {mode === "after"     && (
@@ -1140,8 +1368,19 @@ export default function AdminProjectV2() {
           {hasRightPanel && (
             <div className="lg:w-[55%]">
               <Card className="overflow-hidden sticky top-4 max-h-[88vh]">
-                {selectedSection && <SectionDetailPanel section={selectedSection} onClose={handleClose} />}
-                {selectedFlow && !selectedSection && <FlowDetailPanel flow={selectedFlow} onClose={handleClose} />}
+                {selectedSection && (
+                  <SectionDetailPanel
+                    section={selectedSection}
+                    history={navHistory}
+                    onClose={handleClose}
+                    onNavigate={handleNavigate}
+                    onGoBack={handleGoBack}
+                    onConflictOpen={handleConflictOpen}
+                  />
+                )}
+                {selectedFlow && !selectedSection && (
+                  <FlowDetailPanel flow={selectedFlow} onClose={handleClose} />
+                )}
               </Card>
             </div>
           )}
