@@ -20,6 +20,16 @@ import {
   type ArchLayer,
   type DataFlow,
 } from "@/data/projectV2/sections";
+import {
+  REAL_HUBS,
+  STATUS_META,
+  TYPE_META,
+  countHub,
+  getDiscrepancies,
+  type RealHub,
+  type RealEntryStatus,
+  type RealNodeType,
+} from "@/data/projectV2/asIsReality";
 
 // ─────────────────────────────────────────
 // Типы и константы
@@ -63,75 +73,309 @@ function RoleBadge({ layer }: { layer: ArchLayer }) {
 }
 
 // ─────────────────────────────────────────
-// РЕЖИМ 1: Как есть сейчас
+// РЕЖИМ 1: Как есть сейчас (фактическая карта продукта)
+// Источник A — реальное левое меню
+// Источник B — реальные страницы хабов
+// Расхождения показываем явно, не скрываем.
 // ─────────────────────────────────────────
-function AsIsMode({ onSectionClick }: { onSectionClick: (s: SectionV2) => void }) {
-  const mainHubs = HUBS_AS_IS.filter((h) => h.id !== "articles" && h.id !== "in-dev");
-  const serviceHubs = HUBS_AS_IS.filter((h) => h.id === "articles" || h.id === "in-dev");
+type AsIsFilter = "all" | "diff" | "hub" | "service" | "content";
+
+const AS_IS_FILTERS: Array<{ id: AsIsFilter; label: string; icon: string }> = [
+  { id: "all",     label: "Все",                 icon: "List" },
+  { id: "diff",    label: "Только расхождения",  icon: "AlertCircle" },
+  { id: "hub",     label: "Только хабы",         icon: "LayoutGrid" },
+  { id: "service", label: "Сервисные",           icon: "Settings" },
+  { id: "content", label: "Контентные",          icon: "FileText" },
+];
+
+function StatusBadge({ status }: { status: RealEntryStatus }) {
+  const m = STATUS_META[status];
+  return (
+    <span className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full border font-semibold whitespace-nowrap ${m.cls}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${m.dot}`} />
+      {m.label}
+    </span>
+  );
+}
+
+function TypeBadge({ type }: { type: RealNodeType }) {
+  const m = TYPE_META[type];
+  return (
+    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${m.cls}`}>
+      {m.label}
+    </span>
+  );
+}
+
+// Найти будущую архитектурную роль для пункта (по совпадению названия)
+function findFutureLayer(hubArchId: string | undefined, label: string | null): ArchLayer | null {
+  if (!hubArchId || !label) return null;
+  const arch = SECTIONS_V2.filter((s) => s.hubId === hubArchId);
+  const norm = (x: string) => x.toLowerCase().replace(/ё/g, "е").trim();
+  const target = norm(label);
+  const found = arch.find((s) => {
+    if (norm(s.label) === target) return true;
+    if (s.labelNew && norm(s.labelNew) === target) return true;
+    return s.sections.some((sec) => norm(sec) === target);
+  });
+  return found?.layer ?? null;
+}
+
+function HubAsIsCard({ hub }: { hub: RealHub }) {
+  const counters = countHub(hub);
+  const discrepancies = getDiscrepancies(hub);
+  const isHub = hub.type === "hub";
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden flex flex-col">
+      {/* Шапка */}
+      <div className={`flex items-start gap-2 px-3 py-2.5 bg-gradient-to-r ${hub.color} text-white`}>
+        <Icon name={hub.icon} size={16} className="mt-0.5 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-bold">{hub.menuLabel}</span>
+            {hub.hubLabel && hub.hubLabel !== hub.menuLabel && (
+              <>
+                <Icon name="ArrowLeftRight" size={10} className="opacity-70" />
+                <span className="text-xs font-bold opacity-90">{hub.hubLabel}</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+            <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">
+              {TYPE_META[hub.type].label}
+            </span>
+            {isHub && (
+              <>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">
+                  Меню: {counters.menu}
+                </span>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">
+                  На хабе: {counters.hub}
+                </span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${counters.diff > 0 ? "bg-red-500/40" : "bg-white/20"}`}>
+                  Расхождений: {counters.diff}
+                </span>
+              </>
+            )}
+          </div>
+          {counters.hasNameMismatch && (
+            <p className="text-[10px] mt-1 text-white/90 italic">
+              ⚠ Разное название: меню «{hub.menuLabel}» ↔ страница «{hub.hubLabel}»
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Тело */}
+      {isHub ? (
+        <>
+          {/* Шапка таблицы */}
+          <div className="grid grid-cols-[1fr_1fr_auto] gap-2 px-3 py-1.5 bg-slate-50 border-b border-slate-200">
+            <span className="text-[9px] font-bold uppercase text-slate-500">Левое меню</span>
+            <span className="text-[9px] font-bold uppercase text-slate-500">Страница хаба</span>
+            <span className="text-[9px] font-bold uppercase text-slate-500">Статус</span>
+          </div>
+          <div className="flex flex-col divide-y divide-slate-100">
+            {hub.rows.map((r, i) => {
+              const futureLayer = findFutureLayer(hub.archHubId, r.menu ?? r.hub);
+              return (
+                <div key={i} className="grid grid-cols-[1fr_1fr_auto] gap-2 px-3 py-1.5 items-center">
+                  <span className={`text-[11px] truncate ${r.menu ? "text-slate-700" : "text-slate-300 italic"}`}>
+                    {r.menu ?? "—"}
+                  </span>
+                  <span className={`text-[11px] truncate ${r.hub ? "text-slate-700" : "text-slate-300 italic"}`}>
+                    {r.hub ?? "—"}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <StatusBadge status={r.status} />
+                    {futureLayer && <RoleBadge layer={futureLayer} />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Расхождения */}
+          {discrepancies.length > 0 && (
+            <div className="px-3 py-2 bg-amber-50 border-t border-amber-200">
+              <p className="text-[10px] font-bold uppercase text-amber-700 mb-1">
+                Расхождения ({discrepancies.length})
+              </p>
+              <ul className="flex flex-col gap-0.5">
+                {discrepancies.map((r, i) => (
+                  <li key={i} className="text-[10px] text-amber-800 leading-snug">
+                    <span className="font-semibold">{STATUS_META[r.status].label}:</span>{" "}
+                    {r.menu && r.hub ? (
+                      <>«{r.menu}» ↔ «{r.hub}»</>
+                    ) : r.menu ? (
+                      <>«{r.menu}»</>
+                    ) : (
+                      <>«{r.hub}»</>
+                    )}
+                    {r.crossHubOn && <> · показан также на «{r.crossHubOn}»</>}
+                    {r.note && <span className="text-amber-600"> · {r.note}</span>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="px-3 py-2.5 flex flex-col gap-2">
+          {hub.description && (
+            <p className="text-[11px] text-slate-600 leading-snug">{hub.description}</p>
+          )}
+          {hub.menuChild && (
+            <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
+              <Icon name="CornerDownRight" size={11} />
+              Подпункт меню: <span className="font-semibold text-slate-700">{hub.menuChild}</span>
+            </div>
+          )}
+          {hub.tabs && hub.tabs.length > 0 && (
+            <div className="flex flex-col gap-1">
+              <span className="text-[9px] font-bold uppercase text-slate-500">Внутренние вкладки/фильтры</span>
+              <div className="flex gap-1 flex-wrap">
+                {hub.tabs.map((t) => (
+                  <span key={t} className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="text-[10px] text-slate-400 italic">
+            Не относится к архитектурным хабам
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CrossHubBanner() {
+  const crossRows: Array<{ label: string; menuHub: string; pageHub: string }> = [];
+  REAL_HUBS.forEach((h) => {
+    h.rows.forEach((r) => {
+      if (r.status === "cross-hub" && r.menu && r.crossHubOn) {
+        const exists = crossRows.find((x) => x.label === r.menu);
+        if (!exists) {
+          crossRows.push({ label: r.menu, menuHub: h.menuLabel, pageHub: r.crossHubOn });
+        }
+      }
+    });
+  });
+  if (crossRows.length === 0) return null;
+  return (
+    <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+      <div className="flex items-center gap-1.5 mb-2">
+        <Icon name="GitBranch" size={14} className="text-red-600" />
+        <span className="text-xs font-bold text-red-700 uppercase">Кросс-хаб кейсы</span>
+      </div>
+      <ul className="flex flex-col gap-1">
+        {crossRows.map((r) => (
+          <li key={r.label} className="text-[11px] text-red-800">
+            <span className="font-semibold">«{r.label}»</span>
+            <span className="text-red-600"> · в меню: </span>«{r.menuHub}»
+            <span className="text-red-600"> · на странице хаба: </span>«{r.pageHub}»
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AsIsMode({ onSectionClick: _onSectionClick }: { onSectionClick: (s: SectionV2) => void }) {
+  const [filter, setFilter] = useState<AsIsFilter>("all");
+
+  const filtered = REAL_HUBS.filter((h) => {
+    if (filter === "all") return true;
+    if (filter === "diff") {
+      const c = countHub(h);
+      return h.type === "hub" && c.diff > 0;
+    }
+    if (filter === "hub") return h.type === "hub";
+    if (filter === "service") return h.type === "service";
+    if (filter === "content") return h.type === "content";
+    return true;
+  });
+
+  // Общая статистика
+  const totals = REAL_HUBS.reduce(
+    (acc, h) => {
+      if (h.type === "hub") {
+        const c = countHub(h);
+        acc.hubs += 1;
+        acc.diff += c.diff;
+      } else if (h.type === "service") acc.service += 1;
+      else if (h.type === "content") acc.content += 1;
+      return acc;
+    },
+    { hubs: 0, service: 0, content: 0, diff: 0 }
+  );
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-        Текущая структура платформы: хабы-контейнеры и разделы внутри них. У каждого раздела — бейдж его будущей архитектурной роли.
-        <span className="font-medium text-slate-700"> Кликни на раздел → откроется полная карточка.</span>
-      </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {mainHubs.map((hub) => {
-          const sections = getSectionsByHub(hub.id);
-          if (sections.length === 0) return null;
-          const hasMixedRoles = new Set(sections.map((s) => s.layer)).size > 1;
-          return (
-            <div key={hub.id} className={`rounded-xl border overflow-hidden ${hasMixedRoles ? "border-amber-300" : "border-slate-200"}`}>
-              {/* Шапка хаба */}
-              <div className={`flex items-center gap-2 px-3 py-2 bg-gradient-to-r ${hub.color} text-white`}>
-                <Icon name={hub.icon} size={14} />
-                <span className="text-xs font-bold">{hub.label}</span>
-                {hasMixedRoles && (
-                  <span className="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">
-                    ⚠ смешаны роли
-                  </span>
-                )}
-              </div>
-              {/* Список разделов */}
-              <div className="flex flex-col divide-y divide-slate-100 bg-white">
-                {sections.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => onSectionClick(s)}
-                    className="flex items-center justify-between px-3 py-1.5 hover:bg-slate-50 transition-colors text-left group"
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <Icon name={s.icon} size={11} className="text-slate-400 shrink-0" />
-                      <span className="text-xs text-slate-700 group-hover:text-slate-900 truncate">
-                        {s.labelNew ?? s.label}
-                        {s.labelNew && s.labelNew !== s.label && (
-                          <span className="ml-1 text-[9px] text-slate-400 line-through">{s.label}</span>
-                        )}
-                      </span>
-                    </div>
-                    <RoleBadge layer={s.layer} />
-                  </button>
-                ))}
-              </div>
-              {/* Проблема хаба */}
-              {hub.problem && (
-                <div className="px-3 py-2 bg-amber-50 border-t border-amber-200">
-                  <p className="text-[10px] text-amber-700 leading-tight">{hub.problem}</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
+      <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
+        <span className="font-bold text-slate-800">Фактическая карта продукта.</span>{" "}
+        Слева — реальное левое меню (гармошка), справа — реальная страница хаба. Расхождения между ними не скрываются, а маркируются явно.
+        Бейджи будущих ролей оставлены как вторичный слой.
       </div>
-      {/* Служебные */}
-      <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
-        <p className="text-[10px] font-bold uppercase text-gray-400 mb-2">Служебные (вне основной архитектуры)</p>
-        <div className="flex gap-2 flex-wrap">
-          {serviceHubs.map((h) => (
-            <span key={h.id} className="flex items-center gap-1 text-xs text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded-lg">
-              <Icon name={h.icon} size={11} />
-              {h.label}
-            </span>
+
+      {/* Сводка */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <div className="text-[9px] font-bold uppercase text-slate-400">Хабов</div>
+          <div className="text-lg font-bold text-slate-800">{totals.hubs}</div>
+        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2">
+          <div className="text-[9px] font-bold uppercase text-red-500">Всего расхождений</div>
+          <div className="text-lg font-bold text-red-700">{totals.diff}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <div className="text-[9px] font-bold uppercase text-slate-400">Сервисных</div>
+          <div className="text-lg font-bold text-slate-800">{totals.service}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <div className="text-[9px] font-bold uppercase text-slate-400">Контентных</div>
+          <div className="text-lg font-bold text-slate-800">{totals.content}</div>
+        </div>
+      </div>
+
+      {/* Фильтр */}
+      <div className="flex gap-1.5 flex-wrap">
+        {AS_IS_FILTERS.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id)}
+            className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full border font-semibold transition-all ${
+              filter === f.id
+                ? "bg-slate-900 text-white border-slate-900"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            <Icon name={f.icon} size={11} />
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Кросс-хаб */}
+      <CrossHubBanner />
+
+      {/* Карточки */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {filtered.map((h) => (
+          <HubAsIsCard key={h.id} hub={h} />
+        ))}
+      </div>
+
+      {/* Легенда статусов */}
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p className="text-[10px] font-bold uppercase text-slate-500 mb-2">Легенда статусов</p>
+        <div className="flex gap-1.5 flex-wrap">
+          {(Object.keys(STATUS_META) as RealEntryStatus[]).map((s) => (
+            <StatusBadge key={s} status={s} />
           ))}
         </div>
       </div>
