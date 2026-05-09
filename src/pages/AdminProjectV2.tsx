@@ -713,6 +713,203 @@ function ConflictsMode() {
 }
 
 // ─────────────────────────────────────────
+// Мини-схема связей раздела
+// ─────────────────────────────────────────
+const MAX_NODES = 5;
+
+interface MiniNodeProps {
+  label: string;
+  type: "from" | "to" | "bridge";
+  hasConflict?: boolean;
+  tooltip?: string;
+}
+
+function MiniNode({ label, type, hasConflict, tooltip }: MiniNodeProps) {
+  const [hovered, setHovered] = useState(false);
+  const styles = {
+    from:   "bg-blue-50 border-blue-300 text-blue-700",
+    to:     "bg-emerald-50 border-emerald-300 text-emerald-700",
+    bridge: "bg-violet-50 border-violet-300 text-violet-700 border-dashed",
+  };
+  return (
+    <div className="relative" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
+      <div className={`px-2 py-0.5 rounded-lg border text-[10px] font-medium whitespace-nowrap ${styles[type]} ${hasConflict ? "ring-1 ring-amber-400" : ""}`}>
+        {label}
+        {hasConflict && <span className="ml-1 text-amber-500">⚠</span>}
+      </div>
+      {hovered && tooltip && (
+        <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-44 bg-slate-900 text-white text-[10px] leading-relaxed rounded-lg px-2.5 py-1.5 shadow-xl z-50 pointer-events-none">
+          {tooltip}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SectionMiniMap({ section }: { section: SectionV2 }) {
+  const [detail, setDetail] = useState(false);
+  const cfg = getLayerConfig(section.layer);
+
+  const fromNodes = section.dataFrom.slice(0, detail ? MAX_NODES : 4);
+  const fromExtra = section.dataFrom.length - fromNodes.length;
+  const toNodes   = section.dataTo.slice(0, detail ? MAX_NODES : 4);
+  const toExtra   = section.dataTo.length - toNodes.length;
+  const bridgeNodes = section.bridges.slice(0, detail ? 5 : 3);
+  const bridgeExtra = section.bridges.length - bridgeNodes.length;
+
+  // Тип потока в одну строку
+  const FLOW_TYPE_LABEL: Record<string, string> = {
+    sources:   "Вход: факты → Выход: сигналы",
+    panorama:  "Вход: данные → Выход: картина и рекомендации",
+    reflection:"Вход: картина → Выход: принципы и решения",
+    codes:     "Вход: осмысление → Выход: правила и рамки",
+    execution: "Вход: решения → Выход: действия и факты",
+    service:   "Служебный раздел",
+  };
+
+  // Путь на общей карте (upstream → current → downstream)
+  const FLOW_PATH: Record<string, string> = {
+    sources:   "Источники → [сюда] → Панорамы",
+    panorama:  "Источники → [сюда] → Осмысление / Исполнение",
+    reflection:"Панорамы → [сюда] → Кодексы / Исполнение",
+    codes:     "Осмысление → [сюда] → Исполнение",
+    execution: "Кодексы / Осмысление / Панорамы → [сюда] → Источники",
+    service:   "Вне основной архитектуры",
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Заголовок + переключатель */}
+      <div className="flex items-center justify-between">
+        <p className="text-[10px] font-bold uppercase text-slate-400">Схема связей</p>
+        <button
+          onClick={() => setDetail((v) => !v)}
+          className="flex items-center gap-1 text-[10px] font-medium text-slate-500 hover:text-violet-600 transition-colors"
+        >
+          <Icon name={detail ? "Minus" : "Plus"} size={10} />
+          {detail ? "Упрощённо" : "Подробно"}
+        </button>
+      </div>
+
+      {/* Путь на карте */}
+      <div className="flex items-center gap-1 flex-wrap">
+        {FLOW_PATH[section.layer].split("→").map((part, i, arr) => (
+          <span key={i} className="flex items-center gap-1">
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${
+              part.includes("[сюда]")
+                ? `bg-gradient-to-r ${cfg.color} text-white`
+                : "bg-slate-100 text-slate-600"
+            }`}>{part.trim()}</span>
+            {i < arr.length - 1 && <Icon name="ArrowRight" size={9} className="text-slate-400 shrink-0" />}
+          </span>
+        ))}
+      </div>
+
+      {/* Визуальная схема: вход → центр → выход */}
+      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 flex flex-col gap-2">
+
+        {/* ВХОД */}
+        {fromNodes.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+              <span className="text-[9px] font-bold uppercase text-blue-500 tracking-wider">Вход — данные и сигналы</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {fromNodes.map((n, i) => (
+                <MiniNode key={i} label={n} type="from" tooltip={`Передаёт данные/сигналы в «${section.labelNew ?? section.label}»`} />
+              ))}
+              {fromExtra > 0 && (
+                <span className="text-[10px] text-blue-400 self-center">+{fromExtra}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Стрелка вниз к центру */}
+        {fromNodes.length > 0 && (
+          <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-0">
+              <div className="w-px h-2 bg-slate-300" />
+              <Icon name="ChevronDown" size={12} className="text-slate-400" />
+            </div>
+          </div>
+        )}
+
+        {/* ЦЕНТР — текущий раздел */}
+        <div className={`rounded-xl border-2 ${cfg.borderColor} bg-gradient-to-br ${cfg.bgColor} p-2.5 flex items-center gap-2.5`}>
+          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cfg.color} flex items-center justify-center text-white shrink-0 shadow-sm`}>
+            <Icon name={section.icon} size={14} />
+          </div>
+          <div className="min-w-0">
+            <p className={`text-xs font-bold ${cfg.textColor} leading-tight truncate`}>{section.labelNew ?? section.label}</p>
+            <span className={`text-[9px] font-semibold uppercase tracking-wider ${cfg.textColor} opacity-70`}>{cfg.name}</span>
+          </div>
+          <div className="ml-auto shrink-0">
+            <span className="text-[9px] bg-white/60 border border-white/80 px-1.5 py-0.5 rounded-full text-slate-500 font-medium">
+              {section.hubLabel}
+            </span>
+          </div>
+        </div>
+
+        {/* Стрелка вниз к выходу */}
+        {toNodes.length > 0 && (
+          <div className="flex justify-center">
+            <div className="flex flex-col items-center gap-0">
+              <div className="w-px h-2 bg-slate-300" />
+              <Icon name="ChevronDown" size={12} className="text-slate-400" />
+            </div>
+          </div>
+        )}
+
+        {/* ВЫХОД */}
+        {toNodes.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+              <span className="text-[9px] font-bold uppercase text-emerald-500 tracking-wider">Выход — результат</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {toNodes.map((n, i) => (
+                <MiniNode key={i} label={n} type="to" tooltip={`«${section.labelNew ?? section.label}» передаёт данные/решения сюда`} />
+              ))}
+              {toExtra > 0 && (
+                <span className="text-[10px] text-emerald-400 self-center">+{toExtra}</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Разделитель */}
+        {bridgeNodes.length > 0 && <div className="border-t border-dashed border-slate-200 mt-1" />}
+
+        {/* МОСТИКИ */}
+        {bridgeNodes.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
+              <span className="text-[9px] font-bold uppercase text-violet-500 tracking-wider">Мостики — переходы</span>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {bridgeNodes.map((b, i) => (
+                <MiniNode key={i} label={b} type="bridge" tooltip="Смысловой переход — пользователь может перейти отсюда" />
+              ))}
+              {bridgeExtra > 0 && (
+                <span className="text-[10px] text-violet-400 self-center">+{bridgeExtra}</span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Тип потока одной строкой */}
+      <p className="text-[10px] text-slate-400 italic">{FLOW_TYPE_LABEL[section.layer]}</p>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────
 // Правая панель: карточка раздела (3 колонки)
 // ─────────────────────────────────────────
 function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose: () => void }) {
@@ -754,11 +951,30 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
       <div className="flex flex-col lg:flex-row gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
 
         {/* Левая: мета */}
-        <div className="lg:w-[30%] p-4 flex flex-col gap-3">
+        <div className="lg:w-[28%] p-4 flex flex-col gap-3">
           <div>
             <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Зачем нужен</p>
             <p className="text-xs text-slate-700 leading-relaxed">{section.purpose}</p>
           </div>
+
+          {/* Что внутри */}
+          {section.sections.length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Что внутри</p>
+                <div className="flex flex-col gap-0.5">
+                  {section.sections.map((s, i) => (
+                    <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600">
+                      <div className={`w-1 h-1 rounded-full bg-gradient-to-br ${cfg.color} shrink-0`} />
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {section.changeNote && (
             <>
               <Separator />
@@ -777,61 +993,15 @@ function SectionDetailPanel({ section, onClose }: { section: SectionV2; onClose:
           )}
         </div>
 
-        {/* Центр: схема связей */}
-        <div className="lg:w-[35%] p-4 flex flex-col gap-3">
-          <p className="text-[10px] font-bold uppercase text-slate-400">Схема связей</p>
-
-          {/* Что внутри */}
-          <div>
-            <p className="text-[10px] font-semibold text-slate-500 mb-1">Что внутри ({section.sections.length})</p>
-            <div className="flex flex-col gap-0.5">
-              {section.sections.map((s, i) => (
-                <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600">
-                  <div className={`w-1 h-1 rounded-full bg-gradient-to-br ${cfg.color} shrink-0`} />
-                  {s}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {section.dataFrom.length > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold text-blue-500 mb-1">⬅ Берёт данные из</p>
-              <div className="flex flex-col gap-0.5">
-                {section.dataFrom.map((d, i) => (
-                  <div key={i} className="text-xs text-blue-700 bg-blue-50 border border-blue-100 rounded-md px-2 py-0.5">{d}</div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {section.dataTo.length > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold text-emerald-500 mb-1">➡ Передаёт данные в</p>
-              <div className="flex flex-col gap-0.5">
-                {section.dataTo.map((d, i) => (
-                  <div key={i} className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5">{d}</div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {section.bridges.length > 0 && (
-            <div>
-              <p className="text-[10px] font-semibold text-violet-500 mb-1">🔗 Мостики</p>
-              <div className="flex flex-col gap-0.5">
-                {section.bridges.map((b, i) => (
-                  <div key={i} className="text-xs text-violet-700 bg-violet-50 border border-violet-100 rounded-md px-2 py-0.5">{b}</div>
-                ))}
-              </div>
-            </div>
-          )}
+        {/* Центр: МИНИ-СХЕМА */}
+        <div className="lg:w-[40%] p-4">
+          <SectionMiniMap section={section} />
         </div>
 
         {/* Правая: что не делает + конфликты */}
-        <div className="lg:w-[35%] p-4 flex flex-col gap-3">
+        <div className="lg:w-[32%] p-4 flex flex-col gap-3">
           <div>
-            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">⚠ Что НЕ делает</p>
+            <p className="text-[10px] font-bold uppercase text-slate-400 mb-1.5">Что НЕ делает</p>
             <div className="flex flex-col gap-1">
               {section.notDoes.map((item, i) => (
                 <div key={i} className="flex items-start gap-1.5 text-xs text-slate-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1">
