@@ -11,6 +11,7 @@ import AIAssistantWidget from "@/components/AIAssistantWidget";
 import GlobalTopBar from "@/components/GlobalTopBar";
 import GlobalSidebar from "@/components/GlobalSidebar";
 import GlobalBottomBar from "@/components/GlobalBottomBar";
+import RecentHubsTracker from "@/components/RecentHubsTracker";
 import PageWrapper from "@/components/PageWrapper";
 import { DemoModeIndicator } from "@/components/DemoModeIndicator";
 import { AuthProvider } from "@/lib/auth-context";
@@ -344,6 +345,7 @@ const App = () => {
                     <GlobalTopBar />
                     <GlobalSidebar />
                     <GlobalBottomBar />
+                    <RecentHubsTracker />
                     <PageWrapper>
                     <Suspense fallback={<PageLoader />}>
                     <Routes>

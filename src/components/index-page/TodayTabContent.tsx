@@ -7,6 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import type { FamilyMember, CalendarEvent } from '@/types/family.types';
 import FamilySetupChecklist from '@/components/index-page/FamilySetupChecklist';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
+import FamilyOsCycleWidget from '@/components/index-page/FamilyOsCycleWidget';
+import AttentionBlock from '@/components/index-page/AttentionBlock';
+import ContinueBlock from '@/components/index-page/ContinueBlock';
 
 interface Task {
   id: string;
@@ -133,6 +136,15 @@ export default function TodayTabContent({
           </div>
         </div>
       </div>
+
+      {/* Семейная ОС: 5 циклов */}
+      <FamilyOsCycleWidget />
+
+      {/* Требует внимания */}
+      <AttentionBlock />
+
+      {/* Продолжить — последние посещённые хабы */}
+      <ContinueBlock />
 
       {/* Чек-лист настройки семьи */}
       <FamilySetupChecklist
