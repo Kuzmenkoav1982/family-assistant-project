@@ -1,0 +1,53 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight returns 200",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET without token returns 401",
+      "method": "GET",
+      "path": "/?resource=all",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST without token returns 401",
+      "method": "POST",
+      "path": "/?resource=utilities",
+      "body": {"name": "Электричество", "amount": 100},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "PUT without token returns 401",
+      "method": "PUT",
+      "path": "/?resource=utilities&id=00000000-0000-0000-0000-000000000000",
+      "body": {"paid": true},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "DELETE without token returns 401",
+      "method": "DELETE",
+      "path": "/?resource=meters&id=00000000-0000-0000-0000-000000000000",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET with invalid token returns 401",
+      "method": "GET",
+      "path": "/?resource=all",
+      "headers": {"X-Auth-Token": "invalid_token_xyz"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

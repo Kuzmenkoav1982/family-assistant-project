@@ -191,6 +191,13 @@ const ROADMAP_STEPS: ProgressStep[] = [
     icon: "BookOpen",
     status: "done",
   },
+  {
+    id: "home-backend",
+    label: "Backend для «Дома»",
+    hint: "PostgreSQL + Cloud Function + изоляция family_id",
+    icon: "Database",
+    status: "done",
+  },
 ];
 
 function StatusBadge({ status }: { status: RealEntryStatus }) {

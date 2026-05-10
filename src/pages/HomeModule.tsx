@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,22 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import {
+  HomeAPI,
+  type ApartmentDTO,
+  type UtilityDTO,
+  type MeterDTO,
+  type RepairDTO,
+  type MeterType,
+  type RepairStatus,
+  type RepairPriority,
+} from '@/services/homeModule';
 
 // ─────────────────────────────────────────────────────────────
-// Типы
+// Локальные типы UI (немного отличаются от DTO для удобства)
 // ─────────────────────────────────────────────────────────────
-interface Apartment {
+interface ApartmentForm {
   address: string;
   area: string;
   rooms: string;
@@ -29,39 +40,11 @@ interface Apartment {
   notes: string;
 }
 
-interface Utility {
-  id: string;
-  name: string;
-  amount: string;       // "5500"
-  dueDate: string;      // ISO
-  paid: boolean;
-}
-
-interface MeterReading {
-  id: string;
-  type: 'electricity' | 'cold-water' | 'hot-water' | 'gas' | 'heating' | 'other';
-  date: string;          // ISO
-  value: string;
-  note?: string;
-}
-
-interface RepairTask {
-  id: string;
-  title: string;
-  status: 'planned' | 'in-progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
-  estimateRub?: string;
-  notes?: string;
-}
-
 type TabId = 'apartment' | 'utilities' | 'meters' | 'repairs';
 
-// ─────────────────────────────────────────────────────────────
-// Константы
-// ─────────────────────────────────────────────────────────────
 const STORAGE_KEY = 'home-module-data-v1';
 
-const METER_LABELS: Record<MeterReading['type'], { label: string; icon: string; color: string }> = {
+const METER_LABELS: Record<MeterType, { label: string; icon: string; color: string }> = {
   electricity: { label: 'Электричество', icon: 'Zap',         color: 'text-amber-600' },
   'cold-water':{ label: 'Холодная вода', icon: 'Droplet',     color: 'text-blue-500' },
   'hot-water': { label: 'Горячая вода',  icon: 'Flame',       color: 'text-rose-500' },
@@ -81,6 +64,29 @@ const UTILITY_TEMPLATES = [
   'Управляющая компания',
 ];
 
+function apartmentDtoToForm(dto: ApartmentDTO): ApartmentForm {
+  return {
+    address: dto.address ?? '',
+    area: dto.area != null ? String(dto.area) : '',
+    rooms: dto.rooms != null ? String(dto.rooms) : '',
+    ownership: (dto.ownership as ApartmentForm['ownership']) ?? '',
+    notes: dto.notes ?? '',
+  };
+}
+
+function isAuthorized(): boolean {
+  try {
+    const raw = localStorage.getItem('userData');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.token) return true;
+    }
+  } catch {
+    // ignore
+  }
+  return !!(localStorage.getItem('authToken') || localStorage.getItem('token'));
+}
+
 // ─────────────────────────────────────────────────────────────
 // Компонент
 // ─────────────────────────────────────────────────────────────
@@ -88,35 +94,51 @@ export default function HomeModule() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>('apartment');
 
-  const [apartment, setApartment] = useState<Apartment>({
-    address: '',
-    area: '',
-    rooms: '',
-    ownership: '',
-    notes: '',
+  const [apartment, setApartment] = useState<ApartmentForm>({
+    address: '', area: '', rooms: '', ownership: '', notes: '',
   });
-  const [utilities, setUtilities] = useState<Utility[]>([]);
-  const [meters, setMeters] = useState<MeterReading[]>([]);
-  const [repairs, setRepairs] = useState<RepairTask[]>([]);
+  const [utilities, setUtilities] = useState<UtilityDTO[]>([]);
+  const [meters, setMeters] = useState<MeterDTO[]>([]);
+  const [repairs, setRepairs] = useState<RepairDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [usingApi, setUsingApi] = useState(false);
 
-  // Загрузка из localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        if (data.apartment) setApartment(data.apartment);
-        if (data.utilities) setUtilities(data.utilities);
-        if (data.meters) setMeters(data.meters);
-        if (data.repairs) setRepairs(data.repairs);
+    const auth = isAuthorized();
+    setUsingApi(auth);
+
+    if (auth) {
+      HomeAPI.getAll()
+        .then((data) => {
+          setApartment(apartmentDtoToForm(data.apartment));
+          setUtilities(data.utilities ?? []);
+          setMeters(data.meters ?? []);
+          setRepairs(data.repairs ?? []);
+        })
+        .catch((err) => {
+          console.error('Не удалось загрузить «Дом»:', err);
+          toast.error('Не удалось загрузить данные. Проверьте подключение.');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data.apartment) setApartment(data.apartment);
+          if (data.utilities) setUtilities(data.utilities);
+          if (data.meters) setMeters(data.meters);
+          if (data.repairs) setRepairs(data.repairs);
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
+      setLoading(false);
     }
   }, []);
 
-  // Сохранение в localStorage
   useEffect(() => {
+    if (loading || usingApi) return;
     try {
       localStorage.setItem(
         STORAGE_KEY,
@@ -125,9 +147,27 @@ export default function HomeModule() {
     } catch {
       // ignore
     }
-  }, [apartment, utilities, meters, repairs]);
+  }, [apartment, utilities, meters, repairs, loading, usingApi]);
 
-  // Прогресс заполнения для ProgressMap
+  const saveApartmentRemote = useCallback(
+    async (data: ApartmentForm) => {
+      if (!usingApi) return;
+      try {
+        await HomeAPI.saveApartment({
+          address: data.address,
+          area: data.area ? parseFloat(data.area) : null,
+          rooms: data.rooms ? parseInt(data.rooms, 10) : null,
+          ownership: (data.ownership || null) as ApartmentForm['ownership'] | null,
+          notes: data.notes || null,
+        } as Partial<ApartmentDTO>);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось сохранить параметры квартиры');
+      }
+    },
+    [usingApi],
+  );
+
   const apartmentFilled = !!(apartment.address && apartment.ownership);
   const utilitiesFilled = utilities.length > 0;
   const metersFilled = meters.length > 0;
@@ -139,36 +179,31 @@ export default function HomeModule() {
       label: 'Квартира',
       hint: apartmentFilled ? 'Заполнено' : 'Адрес и параметры',
       icon: 'Building',
-      status:
-        activeTab === 'apartment' ? 'current' : apartmentFilled ? 'done' : 'available',
+      status: activeTab === 'apartment' ? 'current' : apartmentFilled ? 'done' : 'available',
     },
     {
       id: 'utilities',
       label: 'Коммуналка',
       hint: utilitiesFilled ? `${utilities.length} платежей` : 'Платежи и счета',
       icon: 'Receipt',
-      status:
-        activeTab === 'utilities' ? 'current' : utilitiesFilled ? 'done' : 'available',
+      status: activeTab === 'utilities' ? 'current' : utilitiesFilled ? 'done' : 'available',
     },
     {
       id: 'meters',
       label: 'Показания',
       hint: metersFilled ? `${meters.length} записей` : 'Счётчики',
       icon: 'Gauge',
-      status:
-        activeTab === 'meters' ? 'current' : metersFilled ? 'done' : 'available',
+      status: activeTab === 'meters' ? 'current' : metersFilled ? 'done' : 'available',
     },
     {
       id: 'repairs',
       label: 'Ремонты',
       hint: repairsFilled ? `${repairs.length} задач` : 'Планы и работы',
       icon: 'Hammer',
-      status:
-        activeTab === 'repairs' ? 'current' : repairsFilled ? 'done' : 'available',
+      status: activeTab === 'repairs' ? 'current' : repairsFilled ? 'done' : 'available',
     },
   ];
 
-  // Сводка
   const unpaidUtilities = utilities.filter((u) => !u.paid);
   const totalUnpaid = unpaidUtilities.reduce(
     (sum, u) => sum + (parseFloat(u.amount) || 0),
@@ -207,7 +242,19 @@ export default function HomeModule() {
             imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3846fdd1-13b2-4590-82b3-e8c37204ee0b.jpg"
           />
 
-          {/* Прогресс по разделам */}
+          {!usingApi && !loading && (
+            <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 flex items-start gap-2">
+              <Icon name="Info" size={14} className="mt-0.5 shrink-0" />
+              <p>
+                Вы в режиме без авторизации — данные сохраняются только в этом браузере.{' '}
+                <button onClick={() => navigate('/login')} className="font-semibold underline">
+                  Войдите
+                </button>
+                , чтобы данные синхронизировались для всей семьи.
+              </p>
+            </div>
+          )}
+
           <Card className="border-amber-200 bg-gradient-to-br from-amber-50/50 to-white">
             <CardContent className="p-4">
               <ProgressMap
@@ -220,35 +267,29 @@ export default function HomeModule() {
             </CardContent>
           </Card>
 
-          {/* Сводные плашки */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <SummaryCard
-              icon="Building"
-              label="Адрес"
+              icon="Building" label="Адрес"
               value={apartment.address ? 'Указан' : '—'}
               accent={apartment.address ? 'emerald' : 'slate'}
             />
             <SummaryCard
-              icon="Receipt"
-              label="К оплате"
+              icon="Receipt" label="К оплате"
               value={totalUnpaid > 0 ? `${totalUnpaid.toLocaleString('ru-RU')} ₽` : '—'}
               accent={totalUnpaid > 0 ? 'rose' : 'slate'}
             />
             <SummaryCard
-              icon="Gauge"
-              label="Показаний"
+              icon="Gauge" label="Показаний"
               value={meters.length.toString()}
               accent={meters.length > 0 ? 'blue' : 'slate'}
             />
             <SummaryCard
-              icon="Hammer"
-              label="Активных ремонтов"
+              icon="Hammer" label="Активных ремонтов"
               value={activeRepairs.toString()}
               accent={activeRepairs > 0 ? 'amber' : 'slate'}
             />
           </div>
 
-          {/* Табы */}
           <div className="flex gap-2 overflow-x-auto pb-1">
             {progressSteps.map((s) => (
               <button
@@ -266,16 +307,36 @@ export default function HomeModule() {
             ))}
           </div>
 
-          {/* Содержимое таба */}
-          {activeTab === 'apartment' && (
-            <ApartmentTab apartment={apartment} setApartment={setApartment} />
-          )}
-          {activeTab === 'utilities' && (
-            <UtilitiesTab utilities={utilities} setUtilities={setUtilities} />
-          )}
-          {activeTab === 'meters' && <MetersTab meters={meters} setMeters={setMeters} />}
-          {activeTab === 'repairs' && (
-            <RepairsTab repairs={repairs} setRepairs={setRepairs} />
+          {loading ? (
+            <Card>
+              <CardContent className="p-10 text-center text-slate-400 text-sm">
+                <Icon name="Loader2" size={20} className="animate-spin mx-auto mb-2" />
+                Загружаем данные…
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {activeTab === 'apartment' && (
+                <ApartmentTab
+                  apartment={apartment}
+                  setApartment={setApartment}
+                  onBlurSave={saveApartmentRemote}
+                />
+              )}
+              {activeTab === 'utilities' && (
+                <UtilitiesTab
+                  utilities={utilities}
+                  setUtilities={setUtilities}
+                  usingApi={usingApi}
+                />
+              )}
+              {activeTab === 'meters' && (
+                <MetersTab meters={meters} setMeters={setMeters} usingApi={usingApi} />
+              )}
+              {activeTab === 'repairs' && (
+                <RepairsTab repairs={repairs} setRepairs={setRepairs} usingApi={usingApi} />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -283,26 +344,18 @@ export default function HomeModule() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Сводная плашка
-// ─────────────────────────────────────────────────────────────
 function SummaryCard({
-  icon,
-  label,
-  value,
-  accent,
+  icon, label, value, accent,
 }: {
-  icon: string;
-  label: string;
-  value: string;
+  icon: string; label: string; value: string;
   accent: 'emerald' | 'rose' | 'blue' | 'amber' | 'slate';
 }) {
   const cls = {
     emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    rose: 'border-rose-200 bg-rose-50 text-rose-700',
-    blue: 'border-blue-200 bg-blue-50 text-blue-700',
-    amber: 'border-amber-200 bg-amber-50 text-amber-700',
-    slate: 'border-slate-200 bg-white text-slate-500',
+    rose:    'border-rose-200 bg-rose-50 text-rose-700',
+    blue:    'border-blue-200 bg-blue-50 text-blue-700',
+    amber:   'border-amber-200 bg-amber-50 text-amber-700',
+    slate:   'border-slate-200 bg-white text-slate-500',
   }[accent];
 
   return (
@@ -320,12 +373,14 @@ function SummaryCard({
 // Таб: Квартира
 // ─────────────────────────────────────────────────────────────
 function ApartmentTab({
-  apartment,
-  setApartment,
+  apartment, setApartment, onBlurSave,
 }: {
-  apartment: Apartment;
-  setApartment: (a: Apartment) => void;
+  apartment: ApartmentForm;
+  setApartment: (a: ApartmentForm) => void;
+  onBlurSave: (a: ApartmentForm) => void | Promise<void>;
 }) {
+  const handleBlur = () => onBlurSave(apartment);
+
   return (
     <Card>
       <CardContent className="p-5 space-y-4">
@@ -341,6 +396,7 @@ function ApartmentTab({
               placeholder="г. Москва, ул. Примерная, 10, кв. 25"
               value={apartment.address}
               onChange={(e) => setApartment({ ...apartment, address: e.target.value })}
+              onBlur={handleBlur}
             />
           </div>
 
@@ -351,6 +407,7 @@ function ApartmentTab({
               placeholder="55"
               value={apartment.area}
               onChange={(e) => setApartment({ ...apartment, area: e.target.value })}
+              onBlur={handleBlur}
             />
           </div>
 
@@ -361,6 +418,7 @@ function ApartmentTab({
               placeholder="2"
               value={apartment.rooms}
               onChange={(e) => setApartment({ ...apartment, rooms: e.target.value })}
+              onBlur={handleBlur}
             />
           </div>
 
@@ -368,16 +426,18 @@ function ApartmentTab({
             <Label className="text-xs font-semibold text-slate-700">Тип владения</Label>
             <div className="flex gap-1.5 flex-wrap">
               {([
-                { id: 'own', label: 'Своя' },
+                { id: 'own',      label: 'Своя' },
                 { id: 'mortgage', label: 'В ипотеке' },
-                { id: 'rent', label: 'Съёмная' },
+                { id: 'rent',     label: 'Съёмная' },
               ] as const).map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() =>
-                    setApartment({ ...apartment, ownership: opt.id })
-                  }
+                  onClick={() => {
+                    const next = { ...apartment, ownership: opt.id };
+                    setApartment(next);
+                    onBlurSave(next);
+                  }}
                   className={`flex-1 px-3 py-2 rounded-lg border-2 text-xs font-semibold transition-all ${
                     apartment.ownership === opt.id
                       ? 'border-amber-500 bg-amber-50 text-amber-700'
@@ -397,6 +457,7 @@ function ApartmentTab({
             placeholder="Особенности квартиры, контакты УК, важные напоминания…"
             value={apartment.notes}
             onChange={(e) => setApartment({ ...apartment, notes: e.target.value })}
+            onBlur={handleBlur}
             rows={3}
           />
         </div>
@@ -409,39 +470,74 @@ function ApartmentTab({
 // Таб: Коммуналка
 // ─────────────────────────────────────────────────────────────
 function UtilitiesTab({
-  utilities,
-  setUtilities,
+  utilities, setUtilities, usingApi,
 }: {
-  utilities: Utility[];
-  setUtilities: (u: Utility[]) => void;
+  utilities: UtilityDTO[];
+  setUtilities: (u: UtilityDTO[]) => void;
+  usingApi: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
 
-  const addUtility = () => {
+  const addUtility = async () => {
     if (!name.trim() || !amount) return;
-    const newU: Utility = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      amount,
-      dueDate,
-      paid: false,
-    };
-    setUtilities([newU, ...utilities]);
-    setName('');
-    setAmount('');
-    setDueDate('');
-    setOpen(false);
+    if (usingApi) {
+      try {
+        const created = await HomeAPI.createUtility({
+          name: name.trim(),
+          amount: parseFloat(amount),
+          due_date: dueDate || undefined,
+          paid: false,
+        });
+        setUtilities([created, ...utilities]);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось добавить платёж');
+        return;
+      }
+    } else {
+      const newU: UtilityDTO = {
+        id: Date.now().toString(),
+        name: name.trim(),
+        amount,
+        due_date: dueDate || null,
+        paid: false,
+      };
+      setUtilities([newU, ...utilities]);
+    }
+    setName(''); setAmount(''); setDueDate(''); setOpen(false);
   };
 
-  const togglePaid = (id: string) => {
-    setUtilities(utilities.map((u) => (u.id === id ? { ...u, paid: !u.paid } : u)));
+  const togglePaid = async (id: string) => {
+    const u = utilities.find((x) => x.id === id);
+    if (!u) return;
+    const next = !u.paid;
+    setUtilities(utilities.map((x) => (x.id === id ? { ...x, paid: next } : x)));
+    if (usingApi) {
+      try {
+        await HomeAPI.updateUtility(id, { paid: next });
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось обновить статус');
+        setUtilities(utilities.map((x) => (x.id === id ? { ...x, paid: !next } : x)));
+      }
+    }
   };
 
-  const removeUtility = (id: string) => {
+  const removeUtility = async (id: string) => {
+    const prev = utilities;
     setUtilities(utilities.filter((u) => u.id !== id));
+    if (usingApi) {
+      try {
+        await HomeAPI.deleteUtility(id);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось удалить');
+        setUtilities(prev);
+      }
+    }
   };
 
   return (
@@ -542,9 +638,9 @@ function UtilitiesTab({
                   >
                     {u.name}
                   </p>
-                  {u.dueDate && (
+                  {u.due_date && (
                     <p className="text-[11px] text-slate-500">
-                      до {new Date(u.dueDate).toLocaleDateString('ru-RU')}
+                      до {new Date(u.due_date).toLocaleDateString('ru-RU')}
                     </p>
                   )}
                 </div>
@@ -575,41 +671,64 @@ function UtilitiesTab({
 // Таб: Показания счётчиков
 // ─────────────────────────────────────────────────────────────
 function MetersTab({
-  meters,
-  setMeters,
+  meters, setMeters, usingApi,
 }: {
-  meters: MeterReading[];
-  setMeters: (m: MeterReading[]) => void;
+  meters: MeterDTO[];
+  setMeters: (m: MeterDTO[]) => void;
+  usingApi: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState<MeterReading['type']>('electricity');
+  const [type, setType] = useState<MeterType>('electricity');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [value, setValue] = useState('');
   const [note, setNote] = useState('');
 
-  const addMeter = () => {
+  const addMeter = async () => {
     if (!value) return;
-    const newM: MeterReading = {
-      id: Date.now().toString(),
-      type,
-      date,
-      value,
-      note: note || undefined,
-    };
-    setMeters([newM, ...meters]);
-    setValue('');
-    setNote('');
-    setOpen(false);
+    if (usingApi) {
+      try {
+        const created = await HomeAPI.createMeter({
+          meter_type: type,
+          reading_date: date,
+          value: parseFloat(value),
+          note: note || undefined,
+        });
+        setMeters([created, ...meters]);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось сохранить показание');
+        return;
+      }
+    } else {
+      const newM: MeterDTO = {
+        id: Date.now().toString(),
+        meter_type: type,
+        reading_date: date,
+        value,
+        note: note || null,
+      };
+      setMeters([newM, ...meters]);
+    }
+    setValue(''); setNote(''); setOpen(false);
   };
 
-  const removeMeter = (id: string) => {
+  const removeMeter = async (id: string) => {
+    const prev = meters;
     setMeters(meters.filter((m) => m.id !== id));
+    if (usingApi) {
+      try {
+        await HomeAPI.deleteMeter(id);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось удалить');
+        setMeters(prev);
+      }
+    }
   };
 
-  // Группировка по типу
-  const byType = meters.reduce<Record<string, MeterReading[]>>((acc, m) => {
-    if (!acc[m.type]) acc[m.type] = [];
-    acc[m.type].push(m);
+  const byType = meters.reduce<Record<string, MeterDTO[]>>((acc, m) => {
+    if (!acc[m.meter_type]) acc[m.meter_type] = [];
+    acc[m.meter_type].push(m);
     return acc;
   }, {});
 
@@ -636,7 +755,7 @@ function MetersTab({
                 <div>
                   <Label className="text-xs font-semibold text-slate-700">Тип счётчика</Label>
                   <div className="grid grid-cols-3 gap-1.5 mt-1.5">
-                    {(Object.keys(METER_LABELS) as MeterReading['type'][]).map((k) => (
+                    {(Object.keys(METER_LABELS) as MeterType[]).map((k) => (
                       <button
                         key={k}
                         type="button"
@@ -647,7 +766,11 @@ function MetersTab({
                             : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
                         }`}
                       >
-                        <Icon name={METER_LABELS[k].icon} size={15} className={METER_LABELS[k].color} />
+                        <Icon
+                          name={METER_LABELS[k].icon}
+                          size={15}
+                          className={METER_LABELS[k].color}
+                        />
                         {METER_LABELS[k].label}
                       </button>
                     ))}
@@ -660,11 +783,8 @@ function MetersTab({
                 <div>
                   <Label className="text-xs font-semibold text-slate-700">Показание</Label>
                   <Input
-                    type="number"
-                    step="0.001"
-                    placeholder="12345"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    type="number" step="0.001" placeholder="12345"
+                    value={value} onChange={(e) => setValue(e.target.value)}
                   />
                 </div>
                 <div>
@@ -688,9 +808,11 @@ function MetersTab({
           />
         ) : (
           <div className="space-y-3">
-            {(Object.keys(byType) as MeterReading['type'][]).map((t) => {
+            {(Object.keys(byType) as MeterType[]).map((t) => {
               const meta = METER_LABELS[t];
-              const list = [...byType[t]].sort((a, b) => b.date.localeCompare(a.date));
+              const list = [...byType[t]].sort((a, b) =>
+                b.reading_date.localeCompare(a.reading_date),
+              );
               return (
                 <div key={t} className="rounded-lg border border-slate-200">
                   <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-b border-slate-200 rounded-t-lg">
@@ -702,7 +824,7 @@ function MetersTab({
                     {list.map((m) => (
                       <li key={m.id} className="flex items-center gap-2 px-3 py-2">
                         <span className="text-[11px] text-slate-500 w-20 shrink-0">
-                          {new Date(m.date).toLocaleDateString('ru-RU')}
+                          {new Date(m.reading_date).toLocaleDateString('ru-RU')}
                         </span>
                         <span className="text-sm font-semibold text-slate-800 flex-1">
                           {m.value}
@@ -735,58 +857,88 @@ function MetersTab({
 // Таб: Ремонты
 // ─────────────────────────────────────────────────────────────
 function RepairsTab({
-  repairs,
-  setRepairs,
+  repairs, setRepairs, usingApi,
 }: {
-  repairs: RepairTask[];
-  setRepairs: (r: RepairTask[]) => void;
+  repairs: RepairDTO[];
+  setRepairs: (r: RepairDTO[]) => void;
+  usingApi: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [priority, setPriority] = useState<RepairTask['priority']>('medium');
+  const [priority, setPriority] = useState<RepairPriority>('medium');
   const [estimate, setEstimate] = useState('');
   const [notes, setNotes] = useState('');
 
-  const addRepair = () => {
+  const addRepair = async () => {
     if (!title.trim()) return;
-    const newR: RepairTask = {
-      id: Date.now().toString(),
-      title: title.trim(),
-      status: 'planned',
-      priority,
-      estimateRub: estimate || undefined,
-      notes: notes || undefined,
-    };
-    setRepairs([newR, ...repairs]);
-    setTitle('');
-    setEstimate('');
-    setNotes('');
-    setPriority('medium');
-    setOpen(false);
+    if (usingApi) {
+      try {
+        const created = await HomeAPI.createRepair({
+          title: title.trim(),
+          status: 'planned',
+          priority,
+          estimate_rub: estimate ? parseFloat(estimate) : undefined,
+          notes: notes || undefined,
+        });
+        setRepairs([created, ...repairs]);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось добавить задачу');
+        return;
+      }
+    } else {
+      const newR: RepairDTO = {
+        id: Date.now().toString(),
+        title: title.trim(),
+        status: 'planned',
+        priority,
+        estimate_rub: estimate || null,
+        notes: notes || null,
+      };
+      setRepairs([newR, ...repairs]);
+    }
+    setTitle(''); setEstimate(''); setNotes(''); setPriority('medium'); setOpen(false);
   };
 
-  const cycleStatus = (id: string) => {
-    setRepairs(
-      repairs.map((r) => {
-        if (r.id !== id) return r;
-        const next: RepairTask['status'] =
-          r.status === 'planned' ? 'in-progress' : r.status === 'in-progress' ? 'done' : 'planned';
-        return { ...r, status: next };
-      }),
-    );
+  const cycleStatus = async (id: string) => {
+    const r = repairs.find((x) => x.id === id);
+    if (!r) return;
+    const next: RepairStatus =
+      r.status === 'planned' ? 'in-progress' : r.status === 'in-progress' ? 'done' : 'planned';
+    const prev = repairs;
+    setRepairs(repairs.map((x) => (x.id === id ? { ...x, status: next } : x)));
+    if (usingApi) {
+      try {
+        await HomeAPI.updateRepair(id, { status: next });
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось обновить статус');
+        setRepairs(prev);
+      }
+    }
   };
 
-  const removeRepair = (id: string) => {
+  const removeRepair = async (id: string) => {
+    const prev = repairs;
     setRepairs(repairs.filter((r) => r.id !== id));
+    if (usingApi) {
+      try {
+        await HomeAPI.deleteRepair(id);
+      } catch (err) {
+        console.error(err);
+        toast.error('Не удалось удалить');
+        setRepairs(prev);
+      }
+    }
   };
 
-  const STATUS_META: Record<RepairTask['status'], { label: string; cls: string; icon: string }> = {
+  const STATUS_META: Record<RepairStatus, { label: string; cls: string; icon: string }> = {
     planned: { label: 'Запланировано', cls: 'bg-slate-100 text-slate-700 border-slate-300', icon: 'Clock' },
     'in-progress': { label: 'В работе', cls: 'bg-amber-100 text-amber-700 border-amber-300', icon: 'Hammer' },
     done: { label: 'Готово', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300', icon: 'Check' },
   };
 
-  const PRIORITY_META: Record<RepairTask['priority'], { label: string; cls: string }> = {
+  const PRIORITY_META: Record<RepairPriority, { label: string; cls: string }> = {
     low: { label: 'Низкий', cls: 'bg-slate-50 text-slate-500 border-slate-200' },
     medium: { label: 'Средний', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
     high: { label: 'Высокий', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
@@ -823,7 +975,7 @@ function RepairsTab({
                 <div>
                   <Label className="text-xs font-semibold text-slate-700">Приоритет</Label>
                   <div className="grid grid-cols-3 gap-1.5 mt-1.5">
-                    {(Object.keys(PRIORITY_META) as RepairTask['priority'][]).map((p) => (
+                    {(Object.keys(PRIORITY_META) as RepairPriority[]).map((p) => (
                       <button
                         key={p}
                         type="button"
@@ -842,19 +994,13 @@ function RepairsTab({
                 <div>
                   <Label className="text-xs font-semibold text-slate-700">Бюджет, ₽ (необязательно)</Label>
                   <Input
-                    type="number"
-                    placeholder="3500"
-                    value={estimate}
-                    onChange={(e) => setEstimate(e.target.value)}
+                    type="number" placeholder="3500"
+                    value={estimate} onChange={(e) => setEstimate(e.target.value)}
                   />
                 </div>
                 <div>
                   <Label className="text-xs font-semibold text-slate-700">Заметки (необязательно)</Label>
-                  <Textarea
-                    rows={2}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
+                  <Textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
                 </div>
               </div>
               <DialogFooter>
@@ -900,9 +1046,9 @@ function RepairsTab({
                     >
                       {PRIORITY_META[r.priority].label}
                     </span>
-                    {r.estimateRub && (
+                    {r.estimate_rub && (
                       <span className="text-[10px] text-slate-500">
-                        ~{parseFloat(r.estimateRub).toLocaleString('ru-RU')} ₽
+                        ~{parseFloat(r.estimate_rub).toLocaleString('ru-RU')} ₽
                       </span>
                     )}
                   </div>
