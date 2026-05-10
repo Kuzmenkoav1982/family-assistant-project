@@ -23,6 +23,34 @@ export type RealEntryStatus =
 
 export type RealNodeType = "hub" | "service" | "content" | "in-dev";
 
+// ─────────────────────────────────────────────────────────────
+// КАНОН СУЩНОСТЕЙ (что вообще существует в продукте)
+// Каждый объект меню/хаба может иметь один из этих типов.
+// Поле kind у RealRow — опциональное: если не задано,
+// тип выводится из status (для обратной совместимости).
+// ─────────────────────────────────────────────────────────────
+export type EntityKind =
+  | "hub"        // верхнеуровневый хаб (раздел меню первого уровня)
+  | "section"    // обычный внутренний раздел (рабочая страница)
+  | "overview"   // обзорная карточка / точка входа = сама страница хаба
+  | "hero-ai"    // hero / AI-блок на странице хаба (намеренная фича)
+  | "shortcut"   // намеренная карточка-шорткат на чужой раздел
+  | "content"    // контентная страница (статьи, лента, справка)
+  | "system";    // системная страница (настройки, уведомления, дашборд, реф-программа)
+
+// ─────────────────────────────────────────────────────────────
+// МОДАЛЬНОСТЬ (какого «жанра» этот раздел в глазах пользователя)
+// Помогает удерживать доверие в продукте, где рядом живут
+// серьёзные (право, госданные) и мягкие (рефлексия, ИИ) сущности.
+// ─────────────────────────────────────────────────────────────
+export type Modality =
+  | "right"       // право, юридический контекст (Кодекс РФ и т.п.)
+  | "gov-data"    // государственные данные / меры поддержки
+  | "ai"          // ИИ-помощник, AI-сценарий
+  | "reflection"  // пространство осмысления и осмысленных решений
+  | "content"     // редакционный контент / справка / блог
+  | "utility";    // повседневная утилитарная функция (бюджет, задачи, меню)
+
 export interface RealRow {
   /** Что в левом меню (если есть) */
   menu: string | null;
@@ -30,6 +58,10 @@ export interface RealRow {
   hub: string | null;
   /** Статус сопоставления */
   status: RealEntryStatus;
+  /** Канонический тип сущности (опционально; если не задан — выводится из status) */
+  kind?: EntityKind;
+  /** Модальность раздела (опционально; помогает маркировать «жанр» доверия) */
+  modality?: Modality;
   /** Кросс-хаб: пункт также показан на другом хабе */
   crossHubOn?: string;
   /** Заметка */
@@ -119,7 +151,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-blue-400 to-indigo-500",
     archHubId: "family",
     rows: [
-      { menu: null, hub: "ИИ-Воспитатель", status: "hero-ai", note: "AI-блок на странице раздела «Дети»" },
+      { menu: null, hub: "ИИ-Воспитатель", status: "hero-ai", modality: "ai", note: "AI-блок на странице раздела «Дети»" },
       { menu: "Профили семьи", hub: "Профили семьи", status: "match" },
       { menu: "Семейное дерево", hub: "Семейное дерево", status: "match", note: "порядок отличается" },
       { menu: "Дети", hub: "Дети", status: "match", note: "порядок отличается" },
@@ -135,7 +167,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-red-400 to-rose-500",
     archHubId: "health",
     rows: [
-      { menu: null, hub: "ИИ-Доктор и Фитнес-тренер", status: "hero-ai" },
+      { menu: null, hub: "ИИ-Доктор и Фитнес-тренер", status: "hero-ai", modality: "ai" },
       { menu: "Здоровье семьи", hub: "Здоровье семьи", status: "match" },
     ],
   },
@@ -147,15 +179,15 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-green-400 to-emerald-500",
     archHubId: "nutrition",
     rows: [
-      { menu: null, hub: "ИИ-Диетолог", status: "hero-ai" },
-      { menu: "ИИ-Диета по данным", hub: "ИИ-Диета по данным", status: "match" },
-      { menu: "Готовые режимы питания", hub: "Готовые режимы питания", status: "match" },
-      { menu: "Рецепт из продуктов", hub: "Рецепт из продуктов", status: "match" },
-      { menu: "Прогресс диеты", hub: "Прогресс диеты", status: "match" },
-      { menu: "Счётчик БЖУ", hub: "Счётчик БЖУ", status: "match" },
-      { menu: "Меню на неделю", hub: "Меню на неделю", status: "match" },
-      { menu: "Рецепты", hub: "Рецепты", status: "match" },
-      { menu: null, hub: "ИИ-Повар", status: "hero-ai", note: "AI-блок на странице «Рецепты»" },
+      { menu: null, hub: "ИИ-Диетолог", status: "hero-ai", modality: "ai" },
+      { menu: "ИИ-Диета по данным",   hub: "ИИ-Диета по данным",   status: "match", modality: "ai" },
+      { menu: "Готовые режимы питания", hub: "Готовые режимы питания", status: "match", modality: "utility" },
+      { menu: "Рецепт из продуктов",  hub: "Рецепт из продуктов",  status: "match", modality: "ai" },
+      { menu: "Прогресс диеты",       hub: "Прогресс диеты",       status: "match", modality: "utility" },
+      { menu: "Счётчик БЖУ",          hub: "Счётчик БЖУ",          status: "match", modality: "utility" },
+      { menu: "Меню на неделю",       hub: "Меню на неделю",       status: "match", modality: "utility" },
+      { menu: "Рецепты",              hub: "Рецепты",              status: "match", modality: "content" },
+      { menu: null, hub: "ИИ-Повар",  status: "hero-ai", modality: "ai", note: "AI-блок на странице «Рецепты»" },
     ],
   },
   {
@@ -167,11 +199,11 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-pink-400 to-rose-500",
     archHubId: "values",
     rows: [
-      { menu: "Ценности семьи", hub: "Ценности семьи", status: "match" },
-      { menu: "Вера", hub: "Вера", status: "match" },
-      { menu: "Традиции и культура", hub: "Традиции и культура", status: "match" },
-      { menu: "Мудрость народа", hub: "Мудрость народа", status: "match" },
-      { menu: "Правила дома", hub: "Правила дома", status: "match" },
+      { menu: "Ценности семьи",      hub: "Ценности семьи",      status: "match", modality: "reflection" },
+      { menu: "Вера",                hub: "Вера",                status: "match", modality: "reflection" },
+      { menu: "Традиции и культура", hub: "Традиции и культура", status: "match", modality: "reflection" },
+      { menu: "Мудрость народа",     hub: "Мудрость народа",     status: "match", modality: "content"    },
+      { menu: "Правила дома",        hub: "Правила дома",        status: "match", modality: "reflection" },
     ],
   },
   {
@@ -182,7 +214,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-violet-400 to-purple-500",
     archHubId: "planning",
     rows: [
-      { menu: null, hub: "ИИ-Организатор", status: "hero-ai" },
+      { menu: null, hub: "ИИ-Организатор", status: "hero-ai", modality: "ai" },
       { menu: "Цели семьи", hub: "Цели семьи", status: "match" },
       { menu: "Задачи", hub: "Задачи", status: "match" },
       { menu: "Календарь", hub: "Календарь", status: "match" },
@@ -198,7 +230,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-amber-400 to-orange-500",
     archHubId: "finance",
     rows: [
-      { menu: null, hub: "ИИ-Финконсультант", status: "hero-ai", note: "кастомный AI-диалог в шапке хаба Финансы" },
+      { menu: null, hub: "ИИ-Финконсультант", status: "hero-ai", modality: "ai", note: "кастомный AI-диалог в шапке хаба Финансы" },
       { menu: "Финансовый пульс", hub: "Финансовый пульс", status: "match" },
       { menu: "Стратегия погашения", hub: "Стратегия погашения", status: "match" },
       { menu: "Кэш-флоу прогноз", hub: "Кэш-флоу прогноз", status: "match" },
@@ -225,7 +257,7 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Список покупок", hub: "Список покупок", status: "match" },
       { menu: "Голосования", hub: "Голосования", status: "match" },
       { menu: "Гараж", hub: "Гараж", status: "match" },
-      { menu: null, hub: "ИИ-Автомеханик", status: "hero-ai", note: "AI-блок на странице «Гараж»" },
+      { menu: null, hub: "ИИ-Автомеханик", status: "hero-ai", modality: "ai", note: "AI-блок на странице «Гараж»" },
     ],
   },
   {
@@ -238,10 +270,10 @@ export const REAL_STRUCTURE: RealHub[] = [
     archHubId: "leisure",
     rows: [
       { menu: "Путешествия", hub: "Путешествия", status: "match" },
-      { menu: null, hub: "ИИ-Тревел-планер", status: "hero-ai", note: "AI-блок на странице «Путешествия»" },
+      { menu: null, hub: "ИИ-Тревел-планер", status: "hero-ai", modality: "ai", note: "AI-блок на странице «Путешествия»" },
       { menu: "Досуг", hub: "Досуг", status: "match" },
       { menu: "Праздники", hub: "Праздники", status: "match" },
-      { menu: null, hub: "ИИ-Организатор праздников", status: "hero-ai", note: "AI-блок на странице «Праздники»" },
+      { menu: null, hub: "ИИ-Организатор праздников", status: "hero-ai", modality: "ai", note: "AI-блок на странице «Праздники»" },
     ],
   },
   {
@@ -252,15 +284,16 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-indigo-400 to-violet-500",
     archHubId: "development",
     rows: [
-      { menu: "Портфолио развития", hub: "Портфолио развития", status: "match" },
-      { menu: "Развитие семьи", hub: "Развитие семьи", status: "match" },
-      { menu: "Семейный психолог", hub: "Семейный психолог", status: "match" },
-      { menu: null, hub: "ИИ-Психолог", status: "hero-ai", note: "AI-блок на странице «Семейный психолог»" },
-      { menu: "Мастерская жизни", hub: "Мастерская жизни", status: "match" },
+      { menu: "Портфолио развития",  hub: "Портфолио развития",  status: "match", modality: "utility"    },
+      { menu: "Развитие семьи",      hub: "Развитие семьи",      status: "match", modality: "reflection" },
+      { menu: "Семейный психолог",   hub: "Семейный психолог",   status: "match", modality: "reflection" },
+      { menu: null,                  hub: "ИИ-Психолог",         status: "hero-ai", modality: "ai", note: "AI-блок на странице «Семейный психолог»" },
+      { menu: "Мастерская жизни",    hub: "Мастерская жизни",    status: "match", modality: "reflection" },
       {
         menu: null,
         hub: "Зеркало родителя",
         status: "linked",
+        modality: "reflection",
         crossHubOn: "Семейный код",
         note: "намеренный шорткат на раздел из «Семейного кода»",
       },
@@ -274,17 +307,18 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-fuchsia-400 to-purple-500",
     archHubId: "family-matrix",
     rows: [
-      { menu: "Личный код", hub: "Личный код", status: "match" },
-      { menu: "Код пары", hub: "Код пары", status: "match" },
-      { menu: "Код семьи", hub: "Код семьи", status: "match" },
-      { menu: "Ритуалы примирения", hub: "Ритуалы примирения", status: "match" },
-      { menu: "Детский код", hub: "Детский код", status: "match" },
-      { menu: "Имя для малыша", hub: "Имя для малыша", status: "match" },
-      { menu: "Астрология", hub: "Астрология", status: "match" },
+      { menu: "Личный код",          hub: "Личный код",          status: "match", modality: "reflection" },
+      { menu: "Код пары",            hub: "Код пары",            status: "match", modality: "reflection" },
+      { menu: "Код семьи",           hub: "Код семьи",           status: "match", modality: "reflection" },
+      { menu: "Ритуалы примирения",  hub: "Ритуалы примирения",  status: "match", modality: "reflection" },
+      { menu: "Детский код",         hub: "Детский код",         status: "match", modality: "reflection" },
+      { menu: "Имя для малыша",      hub: "Имя для малыша",      status: "match", modality: "reflection" },
+      { menu: "Астрология",          hub: "Астрология",          status: "match", modality: "reflection" },
       {
         menu: "Зеркало родителя",
         hub: "Зеркало родителя",
         status: "match",
+        modality: "reflection",
         note: "канонический раздел; есть карточка-шорткат в «Развитии»",
       },
     ],
@@ -297,8 +331,8 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-yellow-400 to-amber-500",
     archHubId: "pets",
     rows: [
-      { menu: null, hub: "ИИ-Ветеринар", status: "hero-ai", note: "AI-блок в шапке хаба Питомцы (рядом со вкладками)" },
-      { menu: "ИИ-ветеринар", hub: "ИИ-ветеринар", status: "match" },
+      { menu: null, hub: "ИИ-Ветеринар", status: "hero-ai", modality: "ai", note: "AI-блок в шапке хаба Питомцы (рядом со вкладками)" },
+      { menu: "ИИ-ветеринар", hub: "ИИ-ветеринар", status: "match", modality: "ai" },
       { menu: "Прививки", hub: "Прививки", status: "match" },
       { menu: "Ветеринар", hub: "Ветеринар", status: "match" },
       { menu: "Лекарства", hub: "Лекарства", status: "match" },
@@ -321,12 +355,12 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-blue-500 to-sky-600",
     archHubId: "family-state",
     rows: [
-      { menu: "Навигатор мер поддержки", hub: "Навигатор мер поддержки", status: "match" },
-      { menu: "Что такое семья", hub: "Что такое семья", status: "match" },
-      { menu: "Семейный кодекс РФ", hub: "Семейный кодекс РФ", status: "match" },
-      { menu: "Господдержка семей", hub: "Господдержка семей", status: "match" },
-      { menu: "Семейная политика", hub: "Семейная политика", status: "match" },
-      { menu: "Новости и инициативы", hub: "Новости и инициативы", status: "match" },
+      { menu: "Навигатор мер поддержки", hub: "Навигатор мер поддержки", status: "match", modality: "gov-data" },
+      { menu: "Что такое семья",         hub: "Что такое семья",         status: "match", modality: "content"  },
+      { menu: "Семейный кодекс РФ",      hub: "Семейный кодекс РФ",      status: "match", modality: "right"    },
+      { menu: "Господдержка семей",      hub: "Господдержка семей",      status: "match", modality: "gov-data" },
+      { menu: "Семейная политика",       hub: "Семейная политика",       status: "match", modality: "content"  },
+      { menu: "Новости и инициативы",    hub: "Новости и инициативы",    status: "match", modality: "content"  },
     ],
   },
 
@@ -410,6 +444,56 @@ export const TYPE_META: Record<
   content: { label: "Контентная страница",cls: "bg-teal-50 text-teal-700 border-teal-200" },
   "in-dev":{ label: "В разработке",       cls: "bg-gray-50 text-gray-500 border-gray-200" },
 };
+
+// ─────────────────────────────────────────────────────────────
+// Метаданные канона сущностей
+// ─────────────────────────────────────────────────────────────
+export const KIND_META: Record<
+  EntityKind,
+  { label: string; cls: string; icon: string; description: string }
+> = {
+  hub:      { label: "Хаб",            cls: "bg-indigo-50 text-indigo-700 border-indigo-200", icon: "LayoutGrid",  description: "Верхнеуровневый раздел меню" },
+  section:  { label: "Раздел",         cls: "bg-slate-50 text-slate-700 border-slate-200",   icon: "FileText",    description: "Обычная рабочая страница внутри хаба" },
+  overview: { label: "Точка входа",    cls: "bg-stone-50 text-stone-600 border-stone-200",   icon: "Home",        description: "Обзорная страница самого хаба (корень)" },
+  "hero-ai":{ label: "ИИ-блок",        cls: "bg-violet-50 text-violet-700 border-violet-200", icon: "Sparkles",   description: "Hero/AI-секция на странице хаба" },
+  shortcut: { label: "Шорткат",        cls: "bg-sky-50 text-sky-700 border-sky-200",         icon: "Link",        description: "Намеренная карточка-ссылка на чужой раздел" },
+  content:  { label: "Контент",        cls: "bg-teal-50 text-teal-700 border-teal-200",      icon: "BookOpen",    description: "Редакционный или справочный контент" },
+  system:   { label: "Системная",      cls: "bg-zinc-50 text-zinc-700 border-zinc-200",      icon: "Settings",    description: "Системная страница (настройки, уведомления, дашборд)" },
+};
+
+// ─────────────────────────────────────────────────────────────
+// Метаданные модальности
+// ─────────────────────────────────────────────────────────────
+export const MODALITY_META: Record<
+  Modality,
+  { label: string; cls: string; icon: string; description: string }
+> = {
+  right:      { label: "Право",        cls: "bg-blue-50 text-blue-700 border-blue-200",       icon: "Scale",        description: "Юридический контекст: законы, кодексы, права" },
+  "gov-data": { label: "Госданные",    cls: "bg-cyan-50 text-cyan-700 border-cyan-200",       icon: "Landmark",     description: "Государственные сервисы, меры поддержки, льготы" },
+  ai:         { label: "ИИ-помощник",  cls: "bg-violet-50 text-violet-700 border-violet-200", icon: "Sparkles",     description: "ИИ-сценарий или AI-ассистент" },
+  reflection: { label: "Осмысление",   cls: "bg-amber-50 text-amber-700 border-amber-200",    icon: "Lightbulb",    description: "Пространство тихого размышления и осознанных решений" },
+  content:    { label: "Контент",      cls: "bg-teal-50 text-teal-700 border-teal-200",       icon: "BookOpen",     description: "Редакционный контент, статьи, справка" },
+  utility:    { label: "Утилитарная",  cls: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: "Wrench",    description: "Повседневная утилитарная функция: бюджет, задачи, меню" },
+};
+
+/**
+ * Вывод канонического типа сущности из status, если kind не задан явно.
+ * Это даёт обратную совместимость со всеми существующими записями.
+ */
+export function resolveEntityKind(row: RealRow, hubKind?: RealNodeType): EntityKind {
+  if (row.kind) return row.kind;
+  switch (row.status) {
+    case "hero-ai":   return "hero-ai";
+    case "linked":    return "shortcut";
+    case "hub-root":  return "overview";
+    case "cross-hub": return "shortcut";
+    default:
+      // service/content на уровне хаба → system/content
+      if (hubKind === "service") return "system";
+      if (hubKind === "content") return "content";
+      return "section";
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // Утилиты подсчёта

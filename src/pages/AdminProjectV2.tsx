@@ -24,14 +24,21 @@ import {
   REAL_HUBS,
   STATUS_META,
   TYPE_META,
+  MODALITY_META,
+  KIND_META,
   countHub,
   getDiscrepancies,
+  resolveEntityKind,
   type RealHub,
   type RealRow,
   type RealEntryStatus,
   type RealNodeType,
+  type Modality,
+  type EntityKind,
 } from "@/data/projectV2/asIsReality";
 import { LIFE_CYCLES, type LifeCycle, type LifeCycleId } from "@/data/projectV2/lifeCycles";
+import ModalityBadge from "@/components/admin/ModalityBadge";
+import KindBadge from "@/components/admin/KindBadge";
 
 // ─────────────────────────────────────────
 // Типы и константы
@@ -213,7 +220,8 @@ function HubAsIsCard({
                   <span className={`text-[11px] truncate ${r.hub ? "text-slate-700" : "text-slate-300 italic"}`}>
                     {r.hub ?? "—"}
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap justify-end">
+                    {r.modality && <ModalityBadge modality={r.modality} showLabel={false} />}
                     <StatusBadge status={r.status} />
                     {futureLayer && <RoleBadge layer={futureLayer} />}
                   </div>
@@ -482,6 +490,34 @@ function AsIsMode({
         <div className="flex gap-1.5 flex-wrap">
           {(Object.keys(STATUS_META) as RealEntryStatus[]).map((s) => (
             <StatusBadge key={s} status={s} />
+          ))}
+        </div>
+      </div>
+
+      {/* Легенда канона сущностей */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3">
+        <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Канон сущностей</p>
+        <p className="text-[10px] text-slate-400 leading-relaxed mb-2">
+          Что вообще существует в продукте. Каждый объект меню/хаба относится к одному из этих типов.
+          Поле <span className="font-mono text-slate-600">kind</span> опционально — если не задано, тип выводится из статуса автоматически.
+        </p>
+        <div className="flex gap-1.5 flex-wrap">
+          {(Object.keys(KIND_META) as EntityKind[]).map((k) => (
+            <KindBadge key={k} kind={k} />
+          ))}
+        </div>
+      </div>
+
+      {/* Легенда модальности */}
+      <div className="rounded-xl border border-slate-200 bg-white p-3">
+        <p className="text-[10px] font-bold uppercase text-slate-500 mb-1">Модальность раздела</p>
+        <p className="text-[10px] text-slate-400 leading-relaxed mb-2">
+          «Жанр» доверия в глазах пользователя. Помогает удерживать единый язык в продукте, где рядом живут серьёзные (право, госданные)
+          и мягкие (рефлексия, ИИ) сущности. Маркируется только там, где это важно — у обычных утилитарных функций бейдж не показывается.
+        </p>
+        <div className="flex gap-1.5 flex-wrap">
+          {(Object.keys(MODALITY_META) as Modality[]).map((m) => (
+            <ModalityBadge key={m} modality={m} />
           ))}
         </div>
       </div>
@@ -1687,6 +1723,8 @@ function RealRowPanel({
             <div className="flex items-center gap-1.5 mt-1 flex-wrap">
               <StatusBadge status={row.status} />
               <TypeBadge type={hub.type} />
+              <KindBadge kind={resolveEntityKind(row, hub.type)} />
+              {row.modality && <ModalityBadge modality={row.modality} />}
               {layerCfg && futureLayer && (
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${ROLE_LAYER_COLOR[futureLayer]}`}>
                   → {layerCfg.name}
