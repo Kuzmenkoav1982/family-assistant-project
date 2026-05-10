@@ -29,7 +29,7 @@ export default function FamilyHub() {
   const navigate = useNavigate();
 
   // Реальные данные семьи из backend (не localStorage)
-  const { members } = useFamilyMembersContext();
+  const { members, loading: membersLoading } = useFamilyMembersContext();
   const { members: treeMembers } = useFamilyTree();
 
   // Дети — фильтр по ролям и access_role (как в Children.tsx)
@@ -143,6 +143,10 @@ export default function FamilyHub() {
 
   const attentionItems: HubAttentionItem[] = useMemo(() => {
     const items: HubAttentionItem[] = [];
+    // Пока данные семьи ещё грузятся — не выдаём ложный сигнал «нет семьи».
+    if (membersLoading) {
+      return items;
+    }
     if (familyCount === 0) {
       items.push({
         id: 'no-family',
@@ -180,9 +184,10 @@ export default function FamilyHub() {
       });
     }
     return items;
-  }, [familyCount, childrenCount, treeCount, navigate]);
+  }, [familyCount, childrenCount, treeCount, navigate, membersLoading]);
 
   const nextStep: HubNextStep | undefined = useMemo(() => {
+    if (membersLoading) return undefined;
     if (familyCount === 0) {
       return {
         title: 'Начните с состава семьи',
@@ -200,7 +205,7 @@ export default function FamilyHub() {
       };
     }
     return undefined;
-  }, [familyCount, childrenCount, navigate]);
+  }, [familyCount, childrenCount, navigate, membersLoading]);
 
   return (
     <>

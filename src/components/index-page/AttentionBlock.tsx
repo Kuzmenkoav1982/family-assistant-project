@@ -32,7 +32,7 @@ interface AttentionItem {
 
 const AttentionBlock = () => {
   const navigate = useNavigate();
-  const { members } = useFamilyMembersContext();
+  const { members, loading: membersLoading } = useFamilyMembersContext();
   const { data: liveCtx } = useDomovoyContext(true);
 
   // Локальные сигналы из localStorage (для CTA, у которых пока нет backend-источника)
@@ -57,6 +57,11 @@ const AttentionBlock = () => {
   }, []);
 
   const items = useMemo<AttentionItem[]>(() => {
+    // Пока контекст ещё не загрузился — не выдаём ложный сигнал «нет семьи».
+    if (membersLoading) {
+      return [];
+    }
+
     const familyEmpty = !Array.isArray(members) || members.length === 0;
 
     // Гейт №1: пока нет семьи — единственный сигнал.
@@ -171,7 +176,22 @@ const AttentionBlock = () => {
     }
 
     return list.sort((a, b) => a.priority - b.priority).slice(0, 3);
-  }, [members, liveCtx, localFlags]);
+  }, [members, membersLoading, liveCtx, localFlags]);
+
+  // Скелетон во время загрузки данных семьи — не мигаем «всё на местах».
+  if (membersLoading) {
+    return (
+      <div className="rounded-2xl border bg-white dark:bg-gray-900 p-4 sm:p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-lg bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center">
+            <Icon name="Bell" size={14} className="text-orange-600" />
+          </div>
+          <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">Требует внимания</h3>
+        </div>
+        <div className="h-12 rounded-xl bg-gray-100 dark:bg-gray-800/50 animate-pulse" />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
