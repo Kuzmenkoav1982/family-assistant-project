@@ -75,7 +75,7 @@ export const getRoleAvatarBg = (role?: string): string => {
  * в широкой рамке 16:9 и стандартный zoom даёт слишком мелкого Домового.
  */
 const ROLE_IMAGE_ZOOM: Record<string, string> = {
-  'family-assistant': 'scale-[1.8] origin-center',
+  'family-assistant': 'scale-[1.4] origin-center',
 };
 
 /**
