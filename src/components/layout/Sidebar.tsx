@@ -87,15 +87,13 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
       hubPath: '/nutrition',
       items: [
-        { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
         { id: 'diet-ai', label: 'ИИ-Диета по данным', icon: 'Brain', path: '/nutrition/diet' },
         { id: 'diet-preset', label: 'Готовые режимы питания', icon: 'ListChecks', path: '/nutrition/programs' },
         { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products' },
         { id: 'diet-progress', label: 'Прогресс диеты', icon: 'TrendingUp', path: '/nutrition/progress', badge: 'Новое' },
         { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
         { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
-        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' },
-        { id: 'nutrition-wallet', label: 'Семейный кошелёк', icon: 'Wallet', path: '/wallet', badge: 'Новое' }
+        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' }
       ]
     },
     {
@@ -216,7 +214,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-violet-50 dark:bg-violet-950/40',
       hubPath: '/pets',
       items: [
-        { id: 'pets-hub', label: 'Питомцы', icon: 'PawPrint', path: '/pets' },
         { id: 'pets-ai', label: 'ИИ-ветеринар', icon: 'Sparkles', path: '/pets?tab=ai' },
         { id: 'pets-vaccines', label: 'Прививки', icon: 'Syringe', path: '/pets?tab=vaccines' },
         { id: 'pets-vet', label: 'Ветеринар', icon: 'Stethoscope', path: '/pets?tab=vet' },

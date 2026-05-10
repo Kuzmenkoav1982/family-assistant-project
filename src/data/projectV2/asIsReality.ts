@@ -141,7 +141,6 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-green-400 to-emerald-500",
     archHubId: "nutrition",
     rows: [
-      { menu: "Питание", hub: null, status: "hub-root", note: "пункт меню ведёт на корень хаба" },
       { menu: null, hub: "ИИ-Диетолог", status: "hero-ai" },
       { menu: "ИИ-Диета по данным", hub: "ИИ-Диета по данным", status: "match" },
       { menu: "Готовые режимы питания", hub: "Готовые режимы питания", status: "match" },
@@ -150,7 +149,7 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Счётчик БЖУ", hub: "Счётчик БЖУ", status: "match" },
       { menu: "Меню на неделю", hub: "Меню на неделю", status: "match" },
       { menu: "Рецепты", hub: "Рецепты", status: "match" },
-      { menu: "Семейный кошелёк", hub: "Семейный кошелёк", status: "match", crossHubOn: "finance", note: "также показан в Финансах" },
+      { menu: null, hub: "Семейный кошелёк", status: "hub-only", note: "карточка-шорткат на /wallet (живёт в Финансах)" },
     ],
   },
   {
@@ -298,7 +297,6 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-yellow-400 to-amber-500",
     archHubId: "pets",
     rows: [
-      { menu: "Питомцы", hub: null, status: "hub-root", note: "пункт меню ведёт на корень хаба" },
       { menu: "ИИ-ветеринар", hub: "ИИ-ветеринар", status: "match" },
       { menu: "Прививки", hub: "Прививки", status: "match" },
       { menu: "Ветеринар", hub: "Ветеринар", status: "match" },
