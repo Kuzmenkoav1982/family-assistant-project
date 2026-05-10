@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2, { type HubAttentionItem, type HubNextStep } from '@/components/hub/HubLayoutV2';
@@ -6,6 +6,8 @@ import HubCardV2 from '@/components/hub/HubCardV2';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import { signals } from '@/lib/cardStatus';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useFamilyTree } from '@/hooks/useFamilyTree';
 
 interface SubSection {
   id: string;
@@ -23,39 +25,33 @@ interface SubSection {
   cta?: string;
 }
 
-const readJson = <T,>(key: string, fallback: T): T => {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
 export default function FamilyHub() {
   const navigate = useNavigate();
-  const [version, setVersion] = useState(0);
 
-  // Перечитываем сигналы из localStorage при возврате на страницу
-  useEffect(() => {
-    const handler = () => setVersion(v => v + 1);
-    window.addEventListener('storage', handler);
-    window.addEventListener('focus', handler);
-    return () => {
-      window.removeEventListener('storage', handler);
-      window.removeEventListener('focus', handler);
-    };
-  }, []);
+  // Реальные данные семьи из backend (не localStorage)
+  const { members } = useFamilyMembersContext();
+  const { members: treeMembers } = useFamilyTree();
 
-  const family = readJson<unknown[]>('familyMembers', []);
-  const children = readJson<unknown[]>('children', []);
-  const tree = readJson<unknown[]>('familyTree', []);
-  // version используется для перерисовки, реальное значение неважно
-  void version;
+  // Дети — фильтр по ролям и access_role (как в Children.tsx)
+  const childrenList = useMemo(() => {
+    if (!Array.isArray(members)) return [];
+    return members.filter((m) => {
+      const role = (m.role || '').toLowerCase();
+      const accessRole = (m as { access_role?: string }).access_role;
+      return (
+        accessRole === 'child' ||
+        role.includes('сын') ||
+        role.includes('дочь') ||
+        role.includes('дочер') ||
+        role.includes('ребёнок') ||
+        role.includes('ребенок')
+      );
+    });
+  }, [members]);
 
-  const familyCount = Array.isArray(family) ? family.length : 0;
-  const childrenCount = Array.isArray(children) ? children.length : 0;
-  const treeCount = Array.isArray(tree) ? tree.length : 0;
+  const familyCount = Array.isArray(members) ? members.length : 0;
+  const childrenCount = childrenList.length;
+  const treeCount = Array.isArray(treeMembers) ? treeMembers.length : 0;
 
   const familyStatus = signals.familyProfiles(familyCount);
   const childrenStatus = signals.children(childrenCount);
