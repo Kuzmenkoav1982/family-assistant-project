@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
 import SEOHead from '@/components/SEOHead';
-import ProgressMap, { type ProgressStep } from '@/components/ui/progress-map';
+import { type ProgressStep } from '@/components/ui/progress-map';
+import HubLayoutV2, { type HubAttentionItem, type HubNextStep } from '@/components/hub/HubLayoutV2';
 import {
   Dialog,
   DialogContent,
@@ -211,6 +211,89 @@ export default function HomeModule() {
   );
   const activeRepairs = repairs.filter((r) => r.status !== 'done').length;
 
+  // ───── Зона 2: «Что важно сейчас» — собираем сигналы по дому ─────
+  const attentionItems: HubAttentionItem[] = useMemo(() => {
+    const list: HubAttentionItem[] = [];
+
+    if (!apartmentFilled) {
+      list.push({
+        id: 'no-apartment',
+        icon: 'Building',
+        title: 'Заполните параметры квартиры',
+        hint: 'Адрес и тип владения нужны для остальных разделов',
+        cta: 'Заполнить',
+        iconColor: 'text-amber-600',
+        iconBg: 'bg-amber-50 dark:bg-amber-950/40',
+        onAction: () => setActiveTab('apartment'),
+      });
+    }
+
+    if (unpaidUtilities.length > 0) {
+      list.push({
+        id: 'unpaid-utilities',
+        icon: 'Receipt',
+        title: `Не оплачено ${unpaidUtilities.length} ${unpaidUtilities.length === 1 ? 'счёт' : 'счетов'}`,
+        hint: `На сумму ${totalUnpaid.toLocaleString('ru-RU')} ₽`,
+        cta: 'Оплатить',
+        iconColor: 'text-rose-600',
+        iconBg: 'bg-rose-50 dark:bg-rose-950/40',
+        onAction: () => setActiveTab('utilities'),
+      });
+    }
+
+    if (apartmentFilled && !metersFilled) {
+      list.push({
+        id: 'no-meters',
+        icon: 'Gauge',
+        title: 'Внесите показания счётчиков',
+        hint: 'Это позволит контролировать расход и платежи',
+        cta: 'Добавить',
+        iconColor: 'text-blue-600',
+        iconBg: 'bg-blue-50 dark:bg-blue-950/40',
+        onAction: () => setActiveTab('meters'),
+      });
+    }
+
+    return list;
+  }, [apartmentFilled, unpaidUtilities.length, totalUnpaid, metersFilled]);
+
+  // ───── Зона 4: «Следующий шаг» ─────
+  const nextStep: HubNextStep | undefined = useMemo(() => {
+    if (!apartmentFilled) {
+      return {
+        title: 'Начните с параметров квартиры',
+        hint: 'Адрес, площадь и тип владения — фундамент модуля «Дом»',
+        cta: 'Заполнить',
+        onAction: () => setActiveTab('apartment'),
+      };
+    }
+    if (!utilitiesFilled) {
+      return {
+        title: 'Добавьте первый коммунальный платёж',
+        hint: 'Чтобы видеть, сколько уходит на дом ежемесячно',
+        cta: 'Добавить',
+        onAction: () => setActiveTab('utilities'),
+      };
+    }
+    if (!metersFilled) {
+      return {
+        title: 'Внесите показания счётчиков',
+        hint: 'Электричество, вода, газ — для контроля расхода',
+        cta: 'Внести',
+        onAction: () => setActiveTab('meters'),
+      };
+    }
+    if (!repairsFilled) {
+      return {
+        title: 'Запланируйте первый ремонт или работу по дому',
+        hint: 'Чтобы ничего не забыть и распределить ответственность',
+        cta: 'Запланировать',
+        onAction: () => setActiveTab('repairs'),
+      };
+    }
+    return undefined;
+  }, [apartmentFilled, utilitiesFilled, metersFilled, repairsFilled]);
+
   return (
     <>
       <SEOHead
@@ -222,150 +305,109 @@ export default function HomeModule() {
           { name: 'Дом', path: '/home-hub' },
         ]}
       />
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <button
-              onClick={() => navigate('/household-hub')}
-              className="flex items-center gap-1 hover:text-amber-700 transition-colors"
-            >
-              <Icon name="ChevronLeft" size={14} />
-              Дом и быт
-            </button>
-            <Icon name="ChevronRight" size={12} className="text-slate-300" />
-            <span className="font-semibold text-slate-700">Дом</span>
+      <HubLayoutV2
+        title="Дом"
+        subtitle="Операционный центр — Цикл: Сбор → Исполнение"
+        description="Квартира, коммуналка, показания счётчиков и ремонты — всё про ваш дом в одном месте."
+        icon="Building"
+        iconColor="text-amber-600"
+        iconBg="bg-amber-100 dark:bg-amber-900/40"
+        modalities={['service', 'family']}
+        cycleHint="Часть петли «Дом → Финансы»: оплаты попадают в расходы семьи"
+        backPath="/household-hub"
+        backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        quickFacts={[
+          { label: 'Адрес',        value: apartment.address ? 'Указан' : '—', icon: 'Building' },
+          { label: 'К оплате',     value: totalUnpaid > 0 ? `${totalUnpaid.toLocaleString('ru-RU')} ₽` : '—', icon: 'Receipt' },
+          { label: 'Показаний',    value: meters.length, icon: 'Gauge' },
+          { label: 'Ремонтов',     value: activeRepairs, icon: 'Hammer' },
+        ]}
+        primaryAction={
+          !apartmentFilled
+            ? { label: 'Заполнить квартиру', icon: 'Edit3', onClick: () => setActiveTab('apartment') }
+            : { label: 'Добавить платёж', icon: 'Plus', onClick: () => setActiveTab('utilities') }
+        }
+        secondaryAction={{
+          label: 'Внести показания',
+          icon: 'Gauge',
+          onClick: () => setActiveTab('meters'),
+        }}
+        attention={attentionItems}
+        nextStep={nextStep}
+        relatedLinks={[
+          { label: 'Финансы', icon: 'Wallet', path: '/finance' },
+          { label: 'Список покупок', icon: 'ShoppingCart', path: '/shopping' },
+          { label: 'Гараж', icon: 'Car', path: '/garage' },
+          { label: 'Дом и быт', icon: 'Home', path: '/household-hub' },
+        ]}
+      >
+        {!usingApi && !loading && (
+          <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 flex items-start gap-2">
+            <Icon name="Info" size={14} className="mt-0.5 shrink-0" />
+            <p>
+              Вы в режиме без авторизации — данные сохраняются только в этом браузере.{' '}
+              <button onClick={() => navigate('/login')} className="font-semibold underline">
+                Войдите
+              </button>
+              , чтобы данные синхронизировались для всей семьи.
+            </p>
           </div>
+        )}
 
-          <SectionHero
-            title="Дом"
-            subtitle="Квартира, коммуналка, показания и ремонты — всё в одном месте"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3846fdd1-13b2-4590-82b3-e8c37204ee0b.jpg"
-          />
+        {/* Табы выбора подраздела */}
+        <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+          {progressSteps.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setActiveTab(s.id as TabId)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 font-semibold text-sm whitespace-nowrap transition-all ${
+                activeTab === s.id
+                  ? 'bg-amber-600 text-white border-transparent shadow-md scale-105'
+                  : 'bg-white dark:bg-gray-900 text-amber-700 dark:text-amber-300 border-slate-200 dark:border-gray-700 hover:border-slate-300'
+              }`}
+            >
+              <Icon name={s.icon ?? 'Circle'} size={15} />
+              <span>{s.label}</span>
+              {s.status === 'done' && (
+                <Icon name="Check" size={12} className={activeTab === s.id ? 'text-white' : 'text-emerald-500'} />
+              )}
+            </button>
+          ))}
+        </div>
 
-          {!usingApi && !loading && (
-            <div className="rounded-xl border-2 border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 flex items-start gap-2">
-              <Icon name="Info" size={14} className="mt-0.5 shrink-0" />
-              <p>
-                Вы в режиме без авторизации — данные сохраняются только в этом браузере.{' '}
-                <button onClick={() => navigate('/login')} className="font-semibold underline">
-                  Войдите
-                </button>
-                , чтобы данные синхронизировались для всей семьи.
-              </p>
-            </div>
-          )}
-
-          <Card className="border-amber-200 bg-gradient-to-br from-amber-50/50 to-white">
-            <CardContent className="p-4">
-              <ProgressMap
-                steps={progressSteps}
-                onStepClick={(step) => setActiveTab(step.id as TabId)}
-                title="Карта раздела «Дом»"
-                subtitle="Заполняйте по мере готовности — всё сохраняется автоматически"
-                accent="amber"
-              />
+        {loading ? (
+          <Card>
+            <CardContent className="p-10 text-center text-slate-400 text-sm">
+              <Icon name="Loader2" size={20} className="animate-spin mx-auto mb-2" />
+              Загружаем данные…
             </CardContent>
           </Card>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <SummaryCard
-              icon="Building" label="Адрес"
-              value={apartment.address ? 'Указан' : '—'}
-              accent={apartment.address ? 'emerald' : 'slate'}
-            />
-            <SummaryCard
-              icon="Receipt" label="К оплате"
-              value={totalUnpaid > 0 ? `${totalUnpaid.toLocaleString('ru-RU')} ₽` : '—'}
-              accent={totalUnpaid > 0 ? 'rose' : 'slate'}
-            />
-            <SummaryCard
-              icon="Gauge" label="Показаний"
-              value={meters.length.toString()}
-              accent={meters.length > 0 ? 'blue' : 'slate'}
-            />
-            <SummaryCard
-              icon="Hammer" label="Активных ремонтов"
-              value={activeRepairs.toString()}
-              accent={activeRepairs > 0 ? 'amber' : 'slate'}
-            />
-          </div>
-
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {progressSteps.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setActiveTab(s.id as TabId)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 font-semibold text-sm whitespace-nowrap transition-all ${
-                  activeTab === s.id
-                    ? 'bg-amber-600 text-white border-transparent shadow-md scale-105'
-                    : 'bg-white text-amber-700 border-slate-200 hover:border-slate-300'
-                }`}
-              >
-                <Icon name={s.icon ?? 'Circle'} size={15} />
-                <span>{s.label}</span>
-              </button>
-            ))}
-          </div>
-
-          {loading ? (
-            <Card>
-              <CardContent className="p-10 text-center text-slate-400 text-sm">
-                <Icon name="Loader2" size={20} className="animate-spin mx-auto mb-2" />
-                Загружаем данные…
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {activeTab === 'apartment' && (
-                <ApartmentTab
-                  apartment={apartment}
-                  setApartment={setApartment}
-                  onBlurSave={saveApartmentRemote}
-                />
-              )}
-              {activeTab === 'utilities' && (
-                <UtilitiesTab
-                  utilities={utilities}
-                  setUtilities={setUtilities}
-                  usingApi={usingApi}
-                />
-              )}
-              {activeTab === 'meters' && (
-                <MetersTab meters={meters} setMeters={setMeters} usingApi={usingApi} />
-              )}
-              {activeTab === 'repairs' && (
-                <RepairsTab repairs={repairs} setRepairs={setRepairs} usingApi={usingApi} />
-              )}
-            </>
-          )}
-        </div>
-      </div>
+        ) : (
+          <>
+            {activeTab === 'apartment' && (
+              <ApartmentTab
+                apartment={apartment}
+                setApartment={setApartment}
+                onBlurSave={saveApartmentRemote}
+              />
+            )}
+            {activeTab === 'utilities' && (
+              <UtilitiesTab
+                utilities={utilities}
+                setUtilities={setUtilities}
+                usingApi={usingApi}
+              />
+            )}
+            {activeTab === 'meters' && (
+              <MetersTab meters={meters} setMeters={setMeters} usingApi={usingApi} />
+            )}
+            {activeTab === 'repairs' && (
+              <RepairsTab repairs={repairs} setRepairs={setRepairs} usingApi={usingApi} />
+            )}
+          </>
+        )}
+      </HubLayoutV2>
     </>
-  );
-}
-
-function SummaryCard({
-  icon, label, value, accent,
-}: {
-  icon: string; label: string; value: string;
-  accent: 'emerald' | 'rose' | 'blue' | 'amber' | 'slate';
-}) {
-  const cls = {
-    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    rose:    'border-rose-200 bg-rose-50 text-rose-700',
-    blue:    'border-blue-200 bg-blue-50 text-blue-700',
-    amber:   'border-amber-200 bg-amber-50 text-amber-700',
-    slate:   'border-slate-200 bg-white text-slate-500',
-  }[accent];
-
-  return (
-    <div className={`rounded-xl border-2 ${cls} p-3`}>
-      <div className="flex items-center gap-1.5 mb-1">
-        <Icon name={icon} size={13} />
-        <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
-      </div>
-      <p className="text-base font-bold leading-tight">{value}</p>
-    </div>
   );
 }
 
