@@ -338,7 +338,6 @@ export default function Trips() {
           role="travel-planner"
           title="ИИ-Тревел-планер"
           description="Направления, маршруты, бюджет, советы"
-          imageUrl="https://cdn.poehali.dev/files/%D0%A2%D1%80%D0%B5%D0%B2%D0%B5%D0%BB-%D0%BF%D0%BB%D0%B0%D0%BD%D0%B5%D1%80.png"
           gradientFrom="from-sky-500"
           gradientTo="to-blue-600"
           accentBg="bg-sky-50"

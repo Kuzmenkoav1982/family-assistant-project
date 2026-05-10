@@ -74,7 +74,6 @@ export default function Garage() {
           role="mechanic"
           title="ИИ-Автомеханик"
           description="ТО, индикаторы, поломки, выбор масла"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/281f1984-036d-49ae-a62a-879f529a2ffb.jpg"
           gradientFrom="from-blue-600"
           gradientTo="to-indigo-700"
           accentBg="bg-blue-50"

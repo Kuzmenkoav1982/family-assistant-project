@@ -1126,7 +1126,6 @@ export default function FamilyPsychologist() {
           role="psychologist"
           title="ИИ-Психолог"
           description="Отношения, конфликты, эмоции"
-          imageUrl="https://cdn.poehali.dev/files/%D0%9F%D1%81%D0%B8%D1%85%D0%BE%D0%BB%D0%BE%D0%B3.png"
           gradientFrom="from-fuchsia-500"
           gradientTo="to-purple-600"
           accentBg="bg-fuchsia-50"

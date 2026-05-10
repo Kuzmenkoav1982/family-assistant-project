@@ -164,7 +164,6 @@ export default function EventsPage() {
           role="party"
           title="ИИ-Организатор праздников"
           description="Сценарии, конкурсы, меню и подарки"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d746f916-cd13-483e-a6bb-f066b6805e05.jpg"
           gradientFrom="from-pink-500"
           gradientTo="to-rose-600"
           accentBg="bg-pink-50"

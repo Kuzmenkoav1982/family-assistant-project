@@ -157,7 +157,6 @@ export default function NutritionHub() {
           role="nutritionist"
           title="ИИ-Диетолог"
           description="Рационы, калории, меню и советы"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b2e3b0c9-dae8-4392-8208-2df4eea2a27c.jpg"
           gradientFrom="from-green-500"
           gradientTo="to-emerald-600"
           accentBg="bg-green-50"

@@ -47,7 +47,6 @@ export default function HealthHub() {
           role="fitness-trainer"
           title="ИИ-Доктор и Фитнес-тренер"
           description="Здоровье, тренировки, симптомы, профилактика"
-          imageUrl="https://cdn.poehali.dev/files/%D0%A4%D0%B8%D1%82%D0%BD%D0%B5%D1%81-%D1%82%D1%80%D0%B5%D0%BD%D0%B5%D1%80.png"
           gradientFrom="from-red-500"
           gradientTo="to-rose-600"
           accentBg="bg-red-50"

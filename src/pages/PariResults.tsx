@@ -281,7 +281,6 @@ export default function PariResults() {
             role="psychologist"
             title="Разбор с психологом-ИИ"
             description="Персональный план по итогам теста «Зеркало родителя»"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/364dd778-d8dc-4105-a314-da0ca595ed73.jpg"
             gradientFrom="from-purple-500"
             gradientTo="to-pink-500"
             accentBg="bg-purple-50"

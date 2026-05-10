@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
+import { getDomovoyImageByRole, getRoleAvatarBg } from '@/lib/domovoyRoleImages';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -21,7 +22,8 @@ interface SectionAIAdvisorProps {
   role: string;
   title: string;
   description: string;
-  imageUrl: string;
+  /** Если не передано — картинка подбирается по роли из карты ролей Домового. */
+  imageUrl?: string;
   gradientFrom: string;
   gradientTo: string;
   accentBg: string;
@@ -63,6 +65,9 @@ export default function SectionAIAdvisor({
   sectionContext,
   placeholder = 'Задайте вопрос...',
 }: SectionAIAdvisorProps) {
+  // Картинка: либо явно переданная, либо из карты ролей Домового
+  const resolvedImage = imageUrl || getDomovoyImageByRole(role);
+  const avatarBg = getRoleAvatarBg(role);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -211,11 +216,13 @@ export default function SectionAIAdvisor({
       >
         <CardContent className="p-4">
           <div className="flex items-center gap-4">
-            <img
-              src={imageUrl}
-              alt={title}
-              className="w-14 h-14 rounded-2xl object-cover border-2 border-white/40 flex-shrink-0"
-            />
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ${avatarBg} border-2 border-white/40 flex items-center justify-center overflow-hidden flex-shrink-0`}>
+              <img
+                src={resolvedImage}
+                alt={title}
+                className="w-full h-full object-contain"
+              />
+            </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-bold text-base sm:text-lg flex items-center gap-1.5">
                 {title}
@@ -232,7 +239,9 @@ export default function SectionAIAdvisor({
         <DialogContent className="max-w-lg w-[calc(100vw-1rem)] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
           <DialogHeader className={`p-4 ${accentBg} ${accentBorder} border-b`}>
             <DialogTitle className="flex items-center gap-3">
-              <img src={imageUrl} alt={title} className="w-10 h-10 rounded-xl object-cover" />
+              <div className={`w-12 h-12 rounded-xl ${avatarBg} flex items-center justify-center overflow-hidden flex-shrink-0`}>
+                <img src={resolvedImage} alt={title} className="w-full h-full object-contain" />
+              </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className={`text-base font-bold ${accentText}`}>{title}</div>
                 <div className="text-xs text-muted-foreground font-normal truncate">{description}</div>
