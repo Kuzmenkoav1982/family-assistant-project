@@ -1,20 +1,25 @@
 // ─────────────────────────────────────────────────────────────
 // РЕАЛЬНАЯ ТЕКУЩАЯ СТРУКТУРА ПРОДУКТА (источник истины «Как есть сейчас»)
 //
-// Источник A — реальное левое меню (гармошка)
-// Источник B — реальная страница хаба (карточки + hero/AI блоки)
+// Источник A — реальное левое меню (гармошка) → src/components/layout/Sidebar.tsx
+// Источник B — реальные страницы хабов → src/pages/*Hub.tsx + Pets.tsx
 //
-// Этот файл фиксирует расхождения, а не нормализует их.
+// ⚠ ПРАВИЛО (зафиксировано):
+// После любого устранения расхождения между Sidebar и хабом
+// СРАЗУ обновить соответствующую запись в этом файле, чтобы
+// админка /admin/project-v2 всегда показывала достоверную картину.
+// «Требует внимания» = реальные баги. Hero-AI / linked / hub-root = норма.
 // ─────────────────────────────────────────────────────────────
 
 export type RealEntryStatus =
   | "match"          // совпадает
-  | "rename"         // другое название
-  | "menu-only"      // только в меню
-  | "hub-only"       // только на хабе
-  | "cross-hub"      // живёт в одном хабе меню, но показан на другом хабе
-  | "hero-ai"        // hero / AI-блок
-  | "hub-root";      // корень хаба / обзор (пункт меню = сама страница хаба)
+  | "rename"         // другое название (требует внимания)
+  | "menu-only"      // только в меню (требует внимания)
+  | "hub-only"       // только на хабе (требует внимания)
+  | "cross-hub"      // живёт в одном хабе меню, но показан на другом хабе (требует внимания)
+  | "linked"         // намеренная карточка-шорткат на чужой раздел (норма)
+  | "hero-ai"        // hero / AI-блок (норма)
+  | "hub-root";      // корень хаба / точка входа (норма)
 
 export type RealNodeType = "hub" | "service" | "content" | "in-dev";
 
@@ -151,7 +156,6 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Меню на неделю", hub: "Меню на неделю", status: "match" },
       { menu: "Рецепты", hub: "Рецепты", status: "match" },
       { menu: null, hub: "ИИ-Повар", status: "hero-ai", note: "AI-блок на странице «Рецепты»" },
-      { menu: null, hub: "Семейный кошелёк", status: "hub-only", note: "карточка-шорткат на /wallet (живёт в Финансах)" },
     ],
   },
   {
@@ -256,9 +260,9 @@ export const REAL_STRUCTURE: RealHub[] = [
       {
         menu: null,
         hub: "Зеркало родителя",
-        status: "cross-hub",
+        status: "linked",
         crossHubOn: "Семейный код",
-        note: "в меню живёт в хабе «Семейный код», на странице показан и здесь",
+        note: "намеренный шорткат на раздел из «Семейного кода»",
       },
     ],
   },
@@ -280,9 +284,8 @@ export const REAL_STRUCTURE: RealHub[] = [
       {
         menu: "Зеркало родителя",
         hub: "Зеркало родителя",
-        status: "cross-hub",
-        crossHubOn: "Развитие",
-        note: "также показано на хабе «Развитие»",
+        status: "match",
+        note: "канонический раздел; есть карточка-шорткат в «Развитии»",
       },
     ],
   },
@@ -393,6 +396,7 @@ export const STATUS_META: Record<
   "menu-only":{ label: "Только в меню",    cls: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500" },
   "hub-only": { label: "Только на хабе",   cls: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500" },
   "cross-hub":{ label: "Кросс-хаб",        cls: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500" },
+  linked:     { label: "Связка-шорткат",   cls: "bg-sky-50 text-sky-700 border-sky-200",             dot: "bg-sky-500" },
   "hero-ai":  { label: "ИИ-блок",          cls: "bg-violet-50 text-violet-700 border-violet-200",    dot: "bg-violet-500" },
   "hub-root": { label: "Точка входа",      cls: "bg-slate-50 text-slate-600 border-slate-200",       dot: "bg-slate-400" },
 };
@@ -416,7 +420,7 @@ export const TYPE_META: Record<
 //   • hero-ai  — намеренный AI/hero-блок на странице (ИИ-помощник)
 //   • hub-root — пункт меню = сама страница хаба (точка входа)
 // ─────────────────────────────────────────────────────────────
-const NORMAL_STATUSES = new Set<RealEntryStatus>(["match", "hero-ai", "hub-root"]);
+const NORMAL_STATUSES = new Set<RealEntryStatus>(["match", "hero-ai", "hub-root", "linked"]);
 
 export interface HubCounters {
   menu: number;

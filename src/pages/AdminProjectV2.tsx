@@ -134,6 +134,7 @@ function HubAsIsCard({
   const counters = countHub(hub);
   const discrepancies = getDiscrepancies(hub);
   const aiBlocks = hub.rows.filter((r) => r.status === "hero-ai");
+  const linkedBlocks = hub.rows.filter((r) => r.status === "linked");
   const isHub = hub.type === "hub";
 
   return (
@@ -242,6 +243,29 @@ function HubAsIsCard({
                       )}
                       {r.crossHubOn && <> · показан также на «{r.crossHubOn}»</>}
                       {r.note && <span className="text-amber-600"> · {r.note}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Связки-шорткаты (намеренные карточки на чужие хабы) */}
+          {linkedBlocks.length > 0 && (
+            <div className="px-3 py-2 bg-sky-50 border-t border-sky-200">
+              <p className="text-[10px] font-bold uppercase text-sky-700 mb-1">
+                Связки-шорткаты ({linkedBlocks.length})
+              </p>
+              <ul className="flex flex-col gap-0.5">
+                {linkedBlocks.map((r) => (
+                  <li key={`${hub.id}-l-${hub.rows.indexOf(r)}`}>
+                    <button
+                      onClick={() => onRowClick(hub, r)}
+                      className="w-full text-left text-[10px] text-sky-800 leading-snug hover:bg-sky-100 rounded px-1 py-0.5 transition-colors"
+                    >
+                      <span className="font-semibold">«{r.hub}»</span>
+                      {r.crossHubOn && <> · из «{r.crossHubOn}»</>}
+                      {r.note && <span className="text-sky-600"> · {r.note}</span>}
                     </button>
                   </li>
                 ))}
