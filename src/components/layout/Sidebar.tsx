@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
@@ -8,6 +8,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  registerNewBadge,
+  applyTopLevelLimit,
+  dismissNewBadge,
+} from '@/lib/newBadge';
 
 const OWNER_ONLY_FINANCE_ITEMS = ['finance-analytics', 'finance-strategy', 'finance-cashflow', 'finance-budget', 'finance-accounts', 'finance-debts', 'finance-recurring', 'finance-assets'];
 
@@ -17,8 +22,8 @@ const GROUPS: { id: GroupId; title: string; hint: string }[] = [
   { id: 'life',    title: 'Жизнь семьи',       hint: 'Операционный контур' },
   { id: 'care',    title: 'Забота',            hint: 'Состояние и здоровье' },
   { id: 'meaning', title: 'Смысл и отношения', hint: 'Развитие и ценности' },
-  { id: 'world',   title: 'Внешний мир',       hint: 'Государство и досуг' },
-  { id: 'system',  title: 'Система',           hint: '' },
+  { id: 'world',   title: 'Внешний мир',       hint: 'Государство и знание' },
+  { id: 'system',  title: 'Система',           hint: 'Сервис и настройки' },
 ];
 
 interface MenuSection {
@@ -204,7 +209,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-sky-600',
       accentBg: 'bg-sky-50 dark:bg-sky-950/40',
       hubPath: '/leisure-hub',
-      group: 'world',
+      group: 'life',
       items: [
         { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' },
         { id: 'leisure', label: 'Досуг', icon: 'MapPin', path: '/leisure' },
@@ -299,6 +304,46 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       ]
     },
     {
+      id: 'sys-dashboard',
+      title: 'Дашборд',
+      icon: 'LayoutDashboard',
+      iconColor: 'text-cyan-600',
+      accentBg: 'bg-cyan-50 dark:bg-cyan-950/40',
+      hubPath: '/dashboard',
+      group: 'system',
+      items: []
+    },
+    {
+      id: 'sys-notifications',
+      title: 'Уведомления',
+      icon: 'Bell',
+      iconColor: 'text-orange-500',
+      accentBg: 'bg-orange-50 dark:bg-orange-950/40',
+      hubPath: '/notifications',
+      group: 'system',
+      items: []
+    },
+    {
+      id: 'sys-settings',
+      title: 'Настройки',
+      icon: 'Settings',
+      iconColor: 'text-slate-600',
+      accentBg: 'bg-slate-50 dark:bg-slate-800/40',
+      hubPath: '/settings',
+      group: 'system',
+      items: []
+    },
+    {
+      id: 'sys-referral',
+      title: 'Реферальная программа',
+      icon: 'Gift',
+      iconColor: 'text-violet-600',
+      accentBg: 'bg-violet-50 dark:bg-violet-950/40',
+      hubPath: '/referral',
+      group: 'system',
+      items: []
+    },
+    {
       id: 'in-dev',
       title: 'В разработке',
       icon: 'Wrench',
@@ -342,6 +387,23 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search]);
 
+  // Регистрируем «Новое»-бейджи при монтировании, считаем какие активны и помещаются в лимит
+  const visibleNewBadgeIds = useMemo(() => {
+    const candidates = menuSections.filter(s => s.topBadge).map(s => s.id);
+    candidates.forEach(registerNewBadge);
+    return applyTopLevelLimit(candidates);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Гасим бейдж при переходе на хаб
+  useEffect(() => {
+    const visited = menuSections.find(s => s.hubPath === location.pathname);
+    if (visited && visited.topBadge) {
+      dismissNewBadge(visited.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
   return (
     <>
       {isVisible && (
@@ -379,32 +441,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
             </button>
           </div>
           <button
-            onClick={() => { navigate('/dashboard'); onVisibilityChange(false); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
-              location.pathname === '/dashboard'
-                ? 'bg-cyan-50 dark:bg-cyan-950/40'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-cyan-50 dark:bg-cyan-900/30 flex items-center justify-center">
-              <Icon name="LayoutDashboard" size={15} className="text-cyan-600" />
-            </div>
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Дашборд</span>
-          </button>
-          <button
-            onClick={() => { navigate('/referral'); onVisibilityChange(false); }}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
-              location.pathname === '/referral'
-                ? 'bg-violet-50 dark:bg-violet-950/40'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-violet-50 dark:bg-violet-900/30 flex items-center justify-center shrink-0">
-              <Icon name="Gift" size={15} className="text-violet-600" />
-            </div>
-            <span className="text-sm font-semibold text-gray-700 dark:text-gray-200 text-left leading-tight">Реферальная программа</span>
-          </button>
-          <button
             onClick={() => { navigate('/notifications'); onVisibilityChange(false); }}
             className={`w-full flex items-center gap-2.5 px-3 py-2 mt-2 rounded-xl transition-colors ${
               location.pathname === '/notifications'
@@ -434,7 +470,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
               <Icon name="BookOpen" size={15} className="text-pink-600" />
             </div>
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">Блог</span>
-            <span className="ml-auto text-[10px] font-bold text-pink-600 bg-pink-100 dark:bg-pink-950/40 px-1.5 py-0.5 rounded-full">NEW</span>
           </button>
         </div>
 
@@ -481,14 +516,15 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                               navigate(section.hubPath!);
                               onVisibilityChange(false);
                             }}
+                            title={section.title}
                           >
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white/70 dark:bg-gray-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
                               <Icon name={section.icon} size={15} className={section.iconColor} />
                             </div>
-                            <span className={`text-[13px] font-semibold leading-tight whitespace-normal break-words text-left ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                            <span className={`flex-1 min-w-0 text-[13px] font-semibold leading-tight line-clamp-2 break-words text-left ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                               {section.title}
                             </span>
-                            {section.topBadge && (
+                            {section.topBadge && visibleNewBadgeIds.has(section.id) && (
                               <span className="ml-1 text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full flex-shrink-0">
                                 {section.topBadge}
                               </span>
@@ -499,14 +535,15 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                           <button
                             className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl transition-colors min-w-0"
                             onClick={() => toggleSection(section.id)}
+                            title={section.title}
                           >
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white/70 dark:bg-gray-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
                               <Icon name={section.icon} size={15} className={section.iconColor} />
                             </div>
-                            <span className={`text-[13px] font-semibold leading-tight whitespace-normal break-words text-left ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                            <span className={`flex-1 min-w-0 text-[13px] font-semibold leading-tight line-clamp-2 break-words text-left ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                               {section.title}
                             </span>
-                            {section.topBadge && (
+                            {section.topBadge && visibleNewBadgeIds.has(section.id) && (
                               <span className="ml-1 text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full flex-shrink-0">
                                 {section.topBadge}
                               </span>
@@ -540,7 +577,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                             }`}
                           >
                             <Icon name={item.icon} size={15} className={`flex-shrink-0 ${isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-[13px] leading-tight whitespace-normal break-words text-left">{item.label}</span>
+                            <span className="flex-1 min-w-0 text-[13px] leading-tight line-clamp-2 break-words text-left" title={item.label}>{item.label}</span>
                             {item.badge && !item.inDev && (
                               <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full ml-auto">
                                 {item.badge}

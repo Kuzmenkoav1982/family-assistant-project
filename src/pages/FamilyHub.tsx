@@ -5,6 +5,7 @@ import HubLayoutV2, { type HubAttentionItem, type HubNextStep } from '@/componen
 import HubCardV2 from '@/components/hub/HubCardV2';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 import type { Modality } from '@/components/hub/ModalityBadge';
+import { signals } from '@/lib/cardStatus';
 
 interface SubSection {
   id: string;
@@ -56,6 +57,10 @@ export default function FamilyHub() {
   const childrenCount = Array.isArray(children) ? children.length : 0;
   const treeCount = Array.isArray(tree) ? tree.length : 0;
 
+  const familyStatus = signals.familyProfiles(familyCount);
+  const childrenStatus = signals.children(childrenCount);
+  const treeStatus = signals.familyTree(treeCount);
+
   const subSections: SubSection[] = [
     {
       id: 'profiles',
@@ -67,8 +72,8 @@ export default function FamilyHub() {
       iconBg: 'bg-blue-50 dark:bg-blue-950/40',
       path: '/family-management',
       modality: 'service',
-      status: familyCount === 0 ? 'idle' : familyCount < 2 ? 'partial' : 'ready',
-      statusLabel: familyCount === 0 ? 'Не настроено' : familyCount < 2 ? `${familyCount} профиль` : `${familyCount} профилей`,
+      status: familyStatus.status,
+      statusLabel: familyStatus.statusLabel,
       cta: familyCount === 0 ? 'Добавить' : 'Открыть',
     },
     {
@@ -81,8 +86,8 @@ export default function FamilyHub() {
       iconBg: 'bg-pink-50 dark:bg-pink-950/40',
       path: '/children',
       modality: 'family',
-      status: childrenCount === 0 ? 'idle' : 'ready',
-      statusLabel: childrenCount === 0 ? 'Не настроено' : `${childrenCount} ${childrenCount === 1 ? 'ребёнок' : 'детей'}`,
+      status: childrenStatus.status,
+      statusLabel: childrenStatus.statusLabel,
       cta: childrenCount === 0 ? 'Добавить' : 'Открыть',
     },
     {
@@ -95,8 +100,8 @@ export default function FamilyHub() {
       iconBg: 'bg-amber-50 dark:bg-amber-950/40',
       path: '/tree',
       modality: 'reflect',
-      status: treeCount === 0 ? 'idle' : treeCount < 5 ? 'partial' : 'ready',
-      statusLabel: treeCount === 0 ? 'Не заполнено' : `${treeCount} в древе`,
+      status: treeStatus.status,
+      statusLabel: treeStatus.statusLabel,
       cta: treeCount === 0 ? 'Начать' : 'Открыть',
     },
     {

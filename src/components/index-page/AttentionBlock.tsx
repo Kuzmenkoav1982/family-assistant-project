@@ -14,90 +14,89 @@ interface AttentionItem {
   priority: number; // 1 — высокий
 }
 
-// Источник правды: собираем сигналы из разных мест (localStorage + проверки)
+// Источник правды: собираем сигналы из разных мест (localStorage + проверки).
+//
+// Правила схлопывания (защита от каскада однотипных сигналов):
+//  1. Если у семьи нет состава — показываем ТОЛЬКО про семью.
+//     Все остальные сигналы пока бессмысленны.
+//  2. Когда семья заполнена — открываем сигналы из других хабов.
+//  3. Максимум 3 карточки одновременно.
+const readJson = <T,>(key: string, fallback: T): T => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
 const collectAttentionItems = (): AttentionItem[] => {
+  const family = readJson<unknown[]>('familyMembers', []);
+  const familyEmpty = !Array.isArray(family) || family.length === 0;
+
+  // Гейт №1: пока нет семьи — единственный сигнал.
+  // Не дробим на «добавьте профили детей», «постройте древо» и т.п.
+  if (familyEmpty) {
+    return [{
+      id: 'family-empty',
+      icon: 'Users',
+      iconColor: 'text-blue-600',
+      iconBg: 'bg-blue-50 dark:bg-blue-950/40',
+      title: 'Заполните состав семьи',
+      hint: 'Это фундамент: остальные модули опираются на него',
+      cta: 'Добавить',
+      path: '/?section=family',
+      priority: 1,
+    }];
+  }
+
+  // Семья заполнена — собираем сигналы из других модулей
   const items: AttentionItem[] = [];
 
-  // 1. Профили семьи: проверяем заполненность
-  try {
-    const familyRaw = localStorage.getItem('familyMembers');
-    const family = familyRaw ? JSON.parse(familyRaw) : [];
-    if (Array.isArray(family) && family.length === 0) {
-      items.push({
-        id: 'family-empty',
-        icon: 'Users',
-        iconColor: 'text-blue-600',
-        iconBg: 'bg-blue-50 dark:bg-blue-950/40',
-        title: 'Заполните состав семьи',
-        hint: 'Без этого многие сервисы будут работать вслепую',
-        cta: 'Добавить',
-        path: '/?section=family',
-        priority: 1,
-      });
-    }
-  } catch (_e) {
-    // ignore
+  // Дом — есть смысл предложить, если квартира не заполнена
+  const home = readJson<unknown[]>('home_apartments', []);
+  if (!Array.isArray(home) || home.length === 0) {
+    items.push({
+      id: 'home-empty',
+      icon: 'Building',
+      iconColor: 'text-amber-600',
+      iconBg: 'bg-amber-50 dark:bg-amber-950/40',
+      title: 'Новый модуль «Дом»',
+      hint: 'Квартира, коммуналка, показания и ремонты в одном месте',
+      cta: 'Открыть',
+      path: '/home-hub',
+      priority: 2,
+    });
   }
 
-  // 2. Дом: проверяем, заполнен ли модуль
-  try {
-    const homeRaw = localStorage.getItem('home_apartments');
-    const home = homeRaw ? JSON.parse(homeRaw) : [];
-    if (!Array.isArray(home) || home.length === 0) {
-      items.push({
-        id: 'home-empty',
-        icon: 'Building',
-        iconColor: 'text-amber-600',
-        iconBg: 'bg-amber-50 dark:bg-amber-950/40',
-        title: 'Новый модуль «Дом»',
-        hint: 'Квартира, коммуналка, показания и ремонты в одном месте',
-        cta: 'Открыть',
-        path: '/home-hub',
-        priority: 2,
-      });
-    }
-  } catch (_e) {
-    // ignore
+  // Госуслуги: подбор мер поддержки
+  if (!localStorage.getItem('supportNavigatorOpened')) {
+    items.push({
+      id: 'support-navigator',
+      icon: 'Sparkles',
+      iconColor: 'text-slate-700',
+      iconBg: 'bg-slate-100 dark:bg-slate-800/60',
+      title: 'Подобрать меры поддержки',
+      hint: 'Что положено вашей семье от государства',
+      cta: 'Подобрать',
+      path: '/support-navigator',
+      priority: 3,
+    });
   }
 
-  // 3. Госуслуги: подбор мер поддержки
-  try {
-    const supportSeen = localStorage.getItem('supportNavigatorOpened');
-    if (!supportSeen) {
-      items.push({
-        id: 'support-navigator',
-        icon: 'Sparkles',
-        iconColor: 'text-slate-700',
-        iconBg: 'bg-slate-100 dark:bg-slate-800/60',
-        title: 'Подобрать меры поддержки',
-        hint: 'Что положено вашей семье от государства',
-        cta: 'Подобрать',
-        path: '/support-navigator',
-        priority: 3,
-      });
-    }
-  } catch (_e) {
-    // ignore
-  }
-
-  // 4. Семейный код: код пары
-  try {
-    const coupleRaw = localStorage.getItem('familyMatrix.couple');
-    if (!coupleRaw) {
-      items.push({
-        id: 'couple-code',
-        icon: 'Heart',
-        iconColor: 'text-pink-600',
-        iconBg: 'bg-pink-50 dark:bg-pink-950/40',
-        title: 'Соберите код пары',
-        hint: 'Раздел «Семейный код» — фундамент семейной ОС',
-        cta: 'Начать',
-        path: '/family-matrix/couple',
-        priority: 4,
-      });
-    }
-  } catch (_e) {
-    // ignore
+  // Семейный код пары
+  if (!localStorage.getItem('familyMatrix.couple')) {
+    items.push({
+      id: 'couple-code',
+      icon: 'Heart',
+      iconColor: 'text-pink-600',
+      iconBg: 'bg-pink-50 dark:bg-pink-950/40',
+      title: 'Соберите код пары',
+      hint: 'Семейный код — слой осмысления отношений',
+      cta: 'Начать',
+      path: '/family-matrix/couple',
+      priority: 4,
+    });
   }
 
   return items.sort((a, b) => a.priority - b.priority).slice(0, 3);
