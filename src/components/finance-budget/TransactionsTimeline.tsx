@@ -170,12 +170,25 @@ export default function TransactionsTimeline({
                                 } size={18} style={{ color: item.isPlanned && item.source === 'debt' ? '#EF4444' : (item.category_color || (item.isPlanned ? '#F59E0B' : '#6B7280')) }} />
                               </div>
                               <div className="flex-1 px-2 py-1.5 min-w-0">
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className={`text-sm font-medium truncate ${isTxConfirmed ? 'line-through text-muted-foreground' : ''}`}>{item.description}</span>
                                   {item.isPlanned && (
                                     <Badge variant="outline" className="text-[10px] px-1 py-0 border-amber-400 text-amber-600">
                                       {item.source === 'debt' ? 'долг' : 'регуляр.'}
                                     </Badge>
+                                  )}
+                                  {!item.isPlanned && item.originalTx?.source_type === 'home_utility' && (
+                                    <a
+                                      href="/home-hub"
+                                      onClick={e => e.stopPropagation()}
+                                      title="Перейти к коммунальным платежам в разделе «Дом»"
+                                      className="inline-flex"
+                                    >
+                                      <Badge variant="outline" className="text-[10px] px-1 py-0 border-amber-400 text-amber-700 bg-amber-50 hover:bg-amber-100 inline-flex items-center gap-0.5 cursor-pointer">
+                                        <Icon name="Home" size={9} />
+                                        из «Дома»
+                                      </Badge>
+                                    </a>
                                   )}
                                   {isTxConfirmed && (
                                     <Icon name="CheckCircle" size={14} className="text-emerald-500 flex-shrink-0" />

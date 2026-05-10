@@ -559,7 +559,20 @@ function UtilitiesTab({
     setUtilities(utilities.map((x) => (x.id === id ? { ...x, paid: next } : x)));
     if (usingApi) {
       try {
-        await HomeAPI.updateUtility(id, { paid: next });
+        const updated = await HomeAPI.updateUtility(id, { paid: next });
+        // backend вернёт также linked_transaction_id, обновим состояние
+        setUtilities(prev =>
+          prev.map(x => (x.id === id ? { ...x, ...updated } : x))
+        );
+        if (next && updated.linked_transaction_id) {
+          toast.success('Платёж отмечен как оплаченный', {
+            description: `Расход ${parseFloat(u.amount).toLocaleString('ru-RU')} ₽ добавлен в бюджет «Жильё и ЖКХ»`,
+          });
+        } else if (!next && u.linked_transaction_id) {
+          toast.message('Отметка снята', {
+            description: 'Связанный расход удалён из бюджета',
+          });
+        }
       } catch (err) {
         console.error(err);
         toast.error('Не удалось обновить статус');
@@ -648,6 +661,23 @@ function UtilitiesTab({
           </Dialog>
         </div>
 
+        {/* Плашка про связь с Финансами */}
+        {usingApi && (
+          <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200/70 p-3 flex items-start gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
+              <Icon name="Link2" size={14} className="text-emerald-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-slate-700 leading-tight">
+                Связано с разделом «Финансы»
+              </p>
+              <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                Когда отметите платёж оплаченным — он автоматически попадёт в бюджет в категорию «Жильё и ЖКХ»
+              </p>
+            </div>
+          </div>
+        )}
+
         {utilities.length === 0 ? (
           <EmptyState
             icon="Receipt"
@@ -673,13 +703,21 @@ function UtilitiesTab({
                   {u.paid && <Icon name="Check" size={13} />}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm font-semibold leading-tight ${
-                      u.paid ? 'text-emerald-700 line-through' : 'text-slate-800'
-                    }`}
-                  >
-                    {u.name}
-                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p
+                      className={`text-sm font-semibold leading-tight ${
+                        u.paid ? 'text-emerald-700 line-through' : 'text-slate-800'
+                      }`}
+                    >
+                      {u.name}
+                    </p>
+                    {u.paid && u.linked_transaction_id && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-700 bg-white border border-emerald-200 px-1.5 py-0.5 rounded-full">
+                        <Icon name="Wallet" size={9} />
+                        В бюджете
+                      </span>
+                    )}
+                  </div>
                   {u.due_date && (
                     <p className="text-[11px] text-slate-500">
                       до {new Date(u.due_date).toLocaleDateString('ru-RU')}

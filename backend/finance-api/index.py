@@ -295,7 +295,8 @@ def get_dashboard(family_id):
 
         cur.execute("""
             SELECT ft.id, ft.amount, ft.transaction_type, ft.description, ft.transaction_date,
-                   fc.name as category_name, fc.icon as category_icon, fc.color as category_color
+                   fc.name as category_name, fc.icon as category_icon, fc.color as category_color,
+                   ft.source_type, ft.source_id
             FROM finance_transactions ft
             LEFT JOIN finance_categories fc ON ft.category_id = fc.id
             WHERE ft.family_id = '%s'
@@ -306,7 +307,8 @@ def get_dashboard(family_id):
             {
                 'id': str(r[0]), 'amount': float(r[1]), 'type': r[2],
                 'description': r[3], 'date': str(r[4]),
-                'category_name': r[5], 'category_icon': r[6], 'category_color': r[7]
+                'category_name': r[5], 'category_icon': r[6], 'category_color': r[7],
+                'source_type': r[8], 'source_id': str(r[9]) if r[9] else None
             }
             for r in cur.fetchall()
         ]
@@ -354,7 +356,8 @@ def get_transactions(family_id, params):
             SELECT ft.id, ft.amount, ft.transaction_type, ft.description, ft.transaction_date,
                    ft.member_id, ft.account_id, ft.is_recurring,
                    fc.name as cat_name, fc.icon as cat_icon, fc.color as cat_color,
-                   fa.name as acc_name, ft.is_confirmed
+                   fa.name as acc_name, ft.is_confirmed,
+                   ft.source_type, ft.source_id
             FROM finance_transactions ft
             LEFT JOIN finance_categories fc ON ft.category_id = fc.id
             LEFT JOIN finance_accounts fa ON ft.account_id = fa.id
@@ -371,7 +374,8 @@ def get_transactions(family_id, params):
                 'account_id': str(r[6]) if r[6] else None,
                 'is_recurring': r[7],
                 'category_name': r[8], 'category_icon': r[9], 'category_color': r[10],
-                'account_name': r[11], 'is_confirmed': r[12]
+                'account_name': r[11], 'is_confirmed': r[12],
+                'source_type': r[13], 'source_id': str(r[14]) if r[14] else None
             }
             for r in cur.fetchall()
         ]

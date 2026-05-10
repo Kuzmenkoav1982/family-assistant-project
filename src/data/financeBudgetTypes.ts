@@ -11,6 +11,8 @@ export interface Transaction {
   category_color: string | null;
   account_name: string | null;
   is_confirmed?: boolean;
+  source_type?: string | null;   // 'home_utility' и т.п.
+  source_id?: string | null;     // id записи-источника
 }
 
 export interface PlannedItem {

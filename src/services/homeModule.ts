@@ -19,6 +19,7 @@ export interface UtilityDTO {
   amount: string;          // приходит как строка-десятичная
   due_date: string | null; // YYYY-MM-DD
   paid: boolean;
+  linked_transaction_id?: string | null; // связь с расходом в финансах
 }
 
 export type MeterType =

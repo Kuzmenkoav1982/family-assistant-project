@@ -138,7 +138,8 @@ def list_utilities(family_id: str) -> List[Dict]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
         cur.execute(
-            f"SELECT id, name, amount, due_date, paid, created_at, updated_at "
+            f"SELECT id, name, amount, due_date, paid, linked_transaction_id, "
+            f"created_at, updated_at "
             f"FROM {SCHEMA}.home_utilities "
             f"WHERE family_id::text = {esc(family_id)} "
             f"ORDER BY paid ASC, due_date ASC NULLS LAST, created_at DESC"
@@ -165,7 +166,8 @@ def create_utility(family_id: str, data: Dict) -> Dict:
             f"(family_id, name, amount, due_date, paid) "
             f"VALUES ({esc(family_id)}, {esc(name)}, {esc(amount)}, "
             f"{esc(due_date)}, {esc(paid)}) "
-            f"RETURNING id, name, amount, due_date, paid, created_at, updated_at"
+            f"RETURNING id, name, amount, due_date, paid, linked_transaction_id, "
+            f"created_at, updated_at"
         )
         return dict(cur.fetchone())
     finally:
@@ -173,7 +175,79 @@ def create_utility(family_id: str, data: Dict) -> Dict:
         conn.close()
 
 
+# ─────────────────────────────────────────────────────────────
+# Связь Дом → Финансы
+# ─────────────────────────────────────────────────────────────
+
+# Системная категория «Жильё и ЖКХ» — общая для всех семей
+HOUSING_CATEGORY_ID = '33bec89c-938e-45a1-8439-efaa8d154a7f'
+
+
+def create_finance_expense_for_utility(
+    family_id: str, utility_id: str, name: str,
+    amount, due_date,
+) -> Optional[str]:
+    """Создаёт расход в финансах, привязанный к коммунальному платежу.
+    Возвращает id транзакции либо None при ошибке."""
+    if amount is None or float(amount or 0) <= 0:
+        return None
+    description = f"Коммунальный платёж: {name}"
+    tx_date_sql = f"{esc(due_date)}::date" if due_date else "CURRENT_DATE"
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.finance_transactions "
+            f"(family_id, category_id, amount, transaction_type, description, "
+            f"transaction_date, source_type, source_id, is_confirmed) "
+            f"VALUES ({esc(family_id)}, {esc(HOUSING_CATEGORY_ID)}, "
+            f"{esc(float(amount))}, 'expense', {esc(description)}, "
+            f"{tx_date_sql}, 'home_utility', {esc(utility_id)}::uuid, TRUE) "
+            f"RETURNING id"
+        )
+        row = cur.fetchone()
+        return str(row['id']) if row else None
+    finally:
+        cur.close()
+        conn.close()
+
+
+def delete_finance_expense_for_utility(family_id: str, transaction_id: str) -> None:
+    """Удаляет ранее созданную транзакцию-связку."""
+    if not transaction_id:
+        return
+    conn = get_conn()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            f"DELETE FROM {SCHEMA}.finance_transactions "
+            f"WHERE id::text = {esc(transaction_id)} "
+            f"AND family_id::text = {esc(family_id)} "
+            f"AND source_type = 'home_utility'"
+        )
+    finally:
+        cur.close()
+        conn.close()
+
+
 def update_utility(family_id: str, util_id: str, data: Dict) -> Optional[Dict]:
+    # Сначала читаем текущее состояние утилиты (для логики связи)
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(
+            f"SELECT id, name, amount, due_date, paid, linked_transaction_id "
+            f"FROM {SCHEMA}.home_utilities "
+            f"WHERE id::text = {esc(util_id)} AND family_id::text = {esc(family_id)}"
+        )
+        current = cur.fetchone()
+    finally:
+        cur.close()
+        conn.close()
+
+    if not current:
+        return None
+
     fields = []
     if 'name' in data:
         fields.append(f"name = {esc(data['name'])}")
@@ -193,16 +267,87 @@ def update_utility(family_id: str, util_id: str, data: Dict) -> Optional[Dict]:
         cur.execute(
             f"UPDATE {SCHEMA}.home_utilities SET {', '.join(fields)} "
             f"WHERE id::text = {esc(util_id)} AND family_id::text = {esc(family_id)} "
-            f"RETURNING id, name, amount, due_date, paid, created_at, updated_at"
+            f"RETURNING id, name, amount, due_date, paid, linked_transaction_id, "
+            f"created_at, updated_at"
         )
         row = cur.fetchone()
-        return dict(row) if row else None
     finally:
         cur.close()
         conn.close()
 
+    if not row:
+        return None
+
+    util = dict(row)
+
+    # Логика связи Дом → Финансы
+    was_paid = bool(current['paid'])
+    is_paid = bool(util['paid'])
+    linked_tx_id = current.get('linked_transaction_id')
+
+    try:
+        if not was_paid and is_paid:
+            # Платёж оплачен — создаём расход в финансах
+            new_tx_id = create_finance_expense_for_utility(
+                family_id, util_id, util['name'],
+                util['amount'], util['due_date'],
+            )
+            if new_tx_id:
+                conn2 = get_conn()
+                cur2 = conn2.cursor()
+                try:
+                    cur2.execute(
+                        f"UPDATE {SCHEMA}.home_utilities "
+                        f"SET linked_transaction_id = {esc(new_tx_id)}::uuid "
+                        f"WHERE id::text = {esc(util_id)}"
+                    )
+                finally:
+                    cur2.close()
+                    conn2.close()
+                util['linked_transaction_id'] = new_tx_id
+        elif was_paid and not is_paid and linked_tx_id:
+            # Сняли отметку «оплачено» — удаляем связанную транзакцию
+            delete_finance_expense_for_utility(family_id, str(linked_tx_id))
+            conn2 = get_conn()
+            cur2 = conn2.cursor()
+            try:
+                cur2.execute(
+                    f"UPDATE {SCHEMA}.home_utilities "
+                    f"SET linked_transaction_id = NULL "
+                    f"WHERE id::text = {esc(util_id)}"
+                )
+            finally:
+                cur2.close()
+                conn2.close()
+            util['linked_transaction_id'] = None
+    except Exception as link_err:
+        # Не валим обновление статуса из-за сбоя связи
+        print(f"home->finance link error: {link_err}")
+
+    return util
+
 
 def delete_utility(family_id: str, util_id: str) -> bool:
+    # Удаляем связанную транзакцию, если есть
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(
+            f"SELECT linked_transaction_id FROM {SCHEMA}.home_utilities "
+            f"WHERE id::text = {esc(util_id)} AND family_id::text = {esc(family_id)}"
+        )
+        row = cur.fetchone()
+        linked_tx_id = row['linked_transaction_id'] if row else None
+    finally:
+        cur.close()
+        conn.close()
+
+    if linked_tx_id:
+        try:
+            delete_finance_expense_for_utility(family_id, str(linked_tx_id))
+        except Exception as link_err:
+            print(f"home->finance unlink error: {link_err}")
+
     conn = get_conn()
     cur = conn.cursor()
     try:
