@@ -10,6 +10,7 @@ import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
 import { getDomovoyImageByRole, getRoleAvatarBg } from '@/lib/domovoyRoleImages';
+import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -78,6 +79,9 @@ export default function SectionAIAdvisor({
   const { assistantType, assistantName } = useAIAssistant();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Живой контекст семьи (загружаем только когда диалог открыт)
+  const { data: liveCtx, isReady: ctxReady } = useDomovoyContext(open);
+
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_PREFIX + role);
@@ -106,7 +110,7 @@ export default function SectionAIAdvisor({
     }
   }, [messages, open, loading]);
 
-  const buildSystemPrompt = () => {
+  const buildSystemPrompt = async (): Promise<string> => {
     const isDomovoy = assistantType === 'domovoy';
     const name = assistantName || (isDomovoy ? 'Домовой' : 'Ассистент');
     const basePrompt = isDomovoy
@@ -115,12 +119,23 @@ export default function SectionAIAdvisor({
 
     let prompt = `${basePrompt} ${ROLE_PROMPTS[role] || ''}`;
 
+    // 1. Эзотерический контекст членов семьи (нумерология, астрология, биоритмы)
     try {
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const familyCtx = buildFamilyContext(members, userData.id);
       if (familyCtx) prompt += '\n\n' + familyCtx;
     } catch {
       // ignore
+    }
+
+    // 2. ЖИВОЙ операционный контекст из БД (финансы, дом, покупки, задачи, события)
+    try {
+      const liveCtx = await getDomovoyContext();
+      if (liveCtx?.summary) {
+        prompt += '\n\n' + liveCtx.summary;
+      }
+    } catch {
+      // ignore — Домовой просто ответит без операционного контекста
     }
 
     if (sectionContext) {
@@ -147,13 +162,14 @@ export default function SectionAIAdvisor({
     try {
       const apiUrl = (func2url as Record<string, string>)['ai-assistant'];
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const systemPrompt = await buildSystemPrompt();
 
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: next.map(m => ({ role: m.role, content: m.content })),
-          systemPrompt: buildSystemPrompt(),
+          systemPrompt,
           familyId: userData.family_id,
           userId: userData.id,
         }),
@@ -248,6 +264,29 @@ export default function SectionAIAdvisor({
               </div>
             </DialogTitle>
           </DialogHeader>
+
+          {/* Индикатор живого контекста — Домовой видит реальные данные семьи */}
+          {ctxReady && (
+            <div className="px-4 py-2 bg-emerald-50/60 border-b border-emerald-100 flex items-center gap-2">
+              <span className="relative flex-shrink-0">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
+                <span className="relative block w-2 h-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-[11px] text-emerald-800 font-medium leading-tight">
+                Видит вашу семью
+              </span>
+              <span className="text-[10px] text-emerald-600/80 truncate">
+                {(() => {
+                  const facts: string[] = [];
+                  if (liveCtx?.family?.members_count) facts.push(`${liveCtx.family.members_count} ${liveCtx.family.members_count === 1 ? 'член' : 'чел'}`);
+                  if (liveCtx?.home?.unpaid_utilities_count) facts.push(`${liveCtx.home.unpaid_utilities_count} счёт(ов) к оплате`);
+                  if (liveCtx?.shopping?.pending_count) facts.push(`${liveCtx.shopping.pending_count} к покупке`);
+                  if (liveCtx?.tasks?.open_count) facts.push(`${liveCtx.tasks.open_count} задач`);
+                  return facts.length ? '· ' + facts.slice(0, 3).join(' · ') : '';
+                })()}
+              </span>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[50vh]">
             {messages.length === 0 && (

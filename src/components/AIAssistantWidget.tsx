@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
+import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
 import Icon from '@/components/ui/icon';
 import {
   DropdownMenu,
@@ -61,6 +62,8 @@ const AIAssistantWidget = () => {
   const navigate = useNavigate();
   const { assistantType, assistantName, selectedRole } = useAIAssistant();
   const { members } = useFamilyMembersContext();
+  // Живой контекст загружаем когда чат открыт
+  const { data: liveCtx, isReady: ctxReady } = useDomovoyContext(isOpen);
 
   // Перетаскивание виджета (десктоп - для окна чата)
   const [position, setPosition] = useState(() => {
@@ -236,7 +239,7 @@ const AIAssistantWidget = () => {
   };
 
   // Получаем системный промпт в зависимости от роли
-  const getSystemPrompt = () => {
+  const getSystemPrompt = async (): Promise<string> => {
     const role = kuzyaRole;
     const isDomovoy = assistantType === 'domovoy';
     const name = assistantName || (isDomovoy ? 'Домовой' : 'Ассистент');
@@ -265,6 +268,7 @@ const AIAssistantWidget = () => {
 
     let prompt = rolePrompts[role] || rolePrompts['family-assistant'];
 
+    // 1. Эзотерический контекст (нумерология, астрология, биоритмы)
     try {
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
       const familyCtx = buildFamilyContext(members, userData.id);
@@ -273,6 +277,16 @@ const AIAssistantWidget = () => {
       }
     } catch {
       // ignore context build errors
+    }
+
+    // 2. ЖИВОЙ операционный контекст из БД (финансы, дом, покупки, задачи, события)
+    try {
+      const liveCtx = await getDomovoyContext();
+      if (liveCtx?.summary) {
+        prompt += '\n\n' + liveCtx.summary;
+      }
+    } catch {
+      // ignore — отвечаем без операционного контекста
     }
 
     return prompt;
@@ -335,7 +349,8 @@ const AIAssistantWidget = () => {
     try {
       const apiUrl = func2url['ai-assistant'];
       const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-      
+      const systemPrompt = await getSystemPrompt();
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -352,7 +367,7 @@ const AIAssistantWidget = () => {
               content: messageText
             }
           ],
-          systemPrompt: getSystemPrompt(),
+          systemPrompt,
           familyId: userData.family_id,
           userId: userData.id
         })
@@ -719,6 +734,29 @@ const AIAssistantWidget = () => {
               </div>
             )}
           </div>
+
+          {/* Индикатор живого контекста — Домовой видит реальные данные семьи */}
+          {!isMinimized && ctxReady && (
+            <div className="px-4 py-2 bg-emerald-50/60 border-b border-emerald-100 flex items-center gap-2 flex-shrink-0">
+              <span className="relative flex-shrink-0">
+                <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
+                <span className="relative block w-2 h-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-[11px] text-emerald-800 font-medium leading-tight">
+                Видит вашу семью
+              </span>
+              <span className="text-[10px] text-emerald-600/80 truncate">
+                {(() => {
+                  const facts: string[] = [];
+                  if (liveCtx?.family?.members_count) facts.push(`${liveCtx.family.members_count} ${liveCtx.family.members_count === 1 ? 'член' : 'чел'}`);
+                  if (liveCtx?.home?.unpaid_utilities_count) facts.push(`${liveCtx.home.unpaid_utilities_count} к оплате`);
+                  if (liveCtx?.shopping?.pending_count) facts.push(`${liveCtx.shopping.pending_count} к покупке`);
+                  if (liveCtx?.tasks?.open_count) facts.push(`${liveCtx.tasks.open_count} задач`);
+                  return facts.length ? '· ' + facts.slice(0, 3).join(' · ') : '';
+                })()}
+              </span>
+            </div>
+          )}
 
           {!isMinimized && (
             <>

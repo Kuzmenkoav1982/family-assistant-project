@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET without token returns 401",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET with invalid token returns 401",
+      "method": "GET",
+      "path": "/",
+      "headers": {"X-Auth-Token": "invalid_token_xyz"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "unauthorized"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST is rejected",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 405,
+      "expectedBody": {"error": "method_not_allowed"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
