@@ -24,12 +24,13 @@ export const DOMOVOY_ROLE_IMAGES: Record<string, string> = {
 };
 
 /**
- * Роли, у которых Домовой нарисован во весь рост — нужен меньший zoom,
- * чтобы было видно фигурку целиком вместе с атрибутами и иконками.
+ * Роли, у которых Домовой нарисован во весь рост в широкой рамке (16:9)
+ * с большим пустым пространством по бокам. Для них используем object-contain,
+ * чтобы было видно фигуру целиком вместе с атрибутами и иконками.
+ *
+ * Пусто пока — все картинки используют стандартный crop с лёгким zoom.
  */
-export const FULL_BODY_ROLES = new Set<string>([
-  'family-assistant',
-]);
+export const FULL_BODY_ROLES = new Set<string>([]);
 
 // Дефолтная картинка Домового (если роль не указана или не нашлась)
 // Семейный помощник — универсальный образ, наиболее «домовой» из всех.
@@ -70,13 +71,26 @@ export const getRoleAvatarBg = (role?: string): string => {
 };
 
 /**
+ * Особый zoom для отдельных ролей, у которых фигура нарисована
+ * в широкой рамке 16:9 и стандартный zoom даёт слишком мелкого Домового.
+ */
+const ROLE_IMAGE_ZOOM: Record<string, string> = {
+  'family-assistant': 'scale-[1.8] origin-center',
+};
+
+/**
  * Возвращает CSS-класс для изображения Домового в аватарке.
- * Для ролей во весь рост используем contain без zoom — чтобы было видно
- * фигуру целиком и иконки вокруг. Для остальных — лёгкий zoom для крупного плана.
+ * - FULL_BODY_ROLES → object-contain без zoom (видна вся фигура)
+ * - роли с особым zoom → cover + увеличение
+ * - остальные → стандартный лёгкий zoom для крупного плана
  */
 export const getRoleImageClass = (role?: string): string => {
   if (role && FULL_BODY_ROLES.has(role)) {
     return 'w-full h-full object-contain';
+  }
+  const customZoom = role ? ROLE_IMAGE_ZOOM[role] : undefined;
+  if (customZoom) {
+    return `w-full h-full object-cover ${customZoom}`;
   }
   return 'w-full h-full object-cover scale-[1.15] origin-center';
 };
