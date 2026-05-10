@@ -158,6 +158,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       items: [
         { id: 'shopping', label: 'Список покупок', icon: 'ShoppingCart', path: '/shopping' },
         { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' },
+        { id: 'home', label: 'Дом', icon: 'Building', path: '/home-hub', badge: 'Новое' },
         { id: 'garage', label: 'Гараж', icon: 'Car', path: '/garage' }
       ]
     },

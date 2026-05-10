@@ -256,8 +256,8 @@ export const REAL_STRUCTURE: RealHub[] = [
     rows: [
       { menu: "Список покупок", hub: "Список покупок", status: "match",   modality: "utility" },
       { menu: "Голосования",    hub: "Голосования",    status: "match",   modality: "utility" },
+      { menu: "Дом",            hub: "Дом",            status: "match",   modality: "utility", note: "квартира, коммуналка, показания счётчиков, ремонты (страница /home-hub)" },
       { menu: "Гараж",          hub: "Гараж",          status: "match",   modality: "utility", note: "на хабе сгруппирован под зонтиком «Транспорт»" },
-      { menu: null,             hub: "Дом",            status: "linked",  note: "заглушка-карточка «Скоро»: квартира, коммуналка, показания, ремонты" },
       { menu: null,             hub: "ИИ-Автомеханик", status: "hero-ai", modality: "ai", note: "AI-блок на странице «Гараж»" },
     ],
   },

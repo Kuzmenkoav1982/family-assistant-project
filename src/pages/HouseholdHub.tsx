@@ -49,13 +49,13 @@ const householdSubSections: SubSection[] = [
   {
     id: 'home',
     title: 'Дом',
-    description: 'Квартира, коммуналка, показания счётчиков, ремонты и техника',
+    description: 'Квартира, коммуналка, показания счётчиков и ремонты',
     icon: 'Building',
-    path: '/household-hub',
+    path: '/home-hub',
     gradient: 'from-amber-500 to-orange-600',
-    badge: 'Скоро',
-    badgeColor: 'bg-amber-100 text-amber-700',
-    ready: false,
+    badge: 'Новое',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    ready: true,
   },
 ];
 
@@ -113,8 +113,8 @@ export default function HouseholdHub() {
       label: 'Дом',
       hint: 'Квартира и быт',
       icon: 'Building',
-      status: 'locked',
-      tooltip: 'Скоро: учёт коммуналки, показаний и ремонтов',
+      status: 'available',
+      tooltip: 'Учёт квартиры, коммуналки, показаний и ремонтов',
     },
     {
       id: 'garage',

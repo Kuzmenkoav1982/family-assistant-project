@@ -39,19 +39,21 @@ import {
 import { LIFE_CYCLES, type LifeCycle, type LifeCycleId } from "@/data/projectV2/lifeCycles";
 import ModalityBadge from "@/components/admin/ModalityBadge";
 import KindBadge from "@/components/admin/KindBadge";
+import PrinciplesMode from "@/components/admin/PrinciplesMode";
 import ProgressMap, { type ProgressStep } from "@/components/ui/progress-map";
 
 // ─────────────────────────────────────────
 // Типы и константы
 // ─────────────────────────────────────────
-type Mode = "as-is" | "after" | "cycles" | "compare" | "conflicts";
+type Mode = "as-is" | "after" | "cycles" | "principles" | "compare" | "conflicts";
 
 const MODES: Array<{ id: Mode; label: string; icon: string }> = [
-  { id: "as-is",     label: "Как есть сейчас",   icon: "Eye" },
-  { id: "after",     label: "После изменений",    icon: "Sparkles" },
-  { id: "cycles",    label: "Циклы",              icon: "RefreshCcw" },
-  { id: "compare",   label: "Сравнение",          icon: "ArrowLeftRight" },
-  { id: "conflicts", label: "Конфликты",          icon: "AlertTriangle" },
+  { id: "as-is",      label: "Как есть сейчас",   icon: "Eye" },
+  { id: "after",      label: "После изменений",    icon: "Sparkles" },
+  { id: "cycles",     label: "Циклы",              icon: "RefreshCcw" },
+  { id: "principles", label: "Правила и логики",   icon: "BookOpen" },
+  { id: "compare",    label: "Сравнение",          icon: "ArrowLeftRight" },
+  { id: "conflicts",  label: "Конфликты",          icon: "AlertTriangle" },
 ];
 
 const ROLE_LAYER_LABEL: Record<ArchLayer, string> = {
@@ -172,6 +174,20 @@ const ROADMAP_STEPS: ProgressStep[] = [
     id: "instructions",
     label: "Инструкции",
     hint: "Раздел «Семейная ОС» добавлен",
+    icon: "BookOpen",
+    status: "done",
+  },
+  {
+    id: "home-module",
+    label: "Модуль «Дом»",
+    hint: "Квартира, коммуналка, показания, ремонты",
+    icon: "Building",
+    status: "done",
+  },
+  {
+    id: "principles",
+    label: "Правила и логики ОС",
+    hint: "Каталог паттернов в админке",
     icon: "BookOpen",
     status: "done",
   },
@@ -2345,6 +2361,7 @@ export default function AdminProjectV2() {
                 onCycleClick={handleCycleClick}
               />
             )}
+            {mode === "principles" && <PrinciplesMode />}
             {mode === "compare"   && <CompareMode />}
             {mode === "conflicts" && <ConflictsMode />}
           </div>

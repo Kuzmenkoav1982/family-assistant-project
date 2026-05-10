@@ -164,6 +164,7 @@ const FamilyHub = lazy(() => import("./pages/FamilyHub"));
 const ValuesHub = lazy(() => import("./pages/ValuesHub"));
 const PlanningHub = lazy(() => import("./pages/PlanningHub"));
 const HouseholdHub = lazy(() => import("./pages/HouseholdHub"));
+const HomeModule = lazy(() => import("./pages/HomeModule"));
 const DevelopmentHub = lazy(() => import("./pages/DevelopmentHub"));
 const PariTest = lazy(() => import("./pages/PariTest"));
 const PariResults = lazy(() => import("./pages/PariResults"));
@@ -520,6 +521,7 @@ const App = () => {
                       <Route path="/values-hub" element={<ValuesHub />} />
                       <Route path="/planning-hub" element={<PlanningHub />} />
                       <Route path="/household-hub" element={<HouseholdHub />} />
+                      <Route path="/home-hub" element={<HomeModule />} />
                       <Route path="/development-hub" element={<DevelopmentHub />} />
                       <Route path="/pari-test" element={<PariTest />} />
                       <Route path="/pari-results/:id" element={<PariResults />} />
