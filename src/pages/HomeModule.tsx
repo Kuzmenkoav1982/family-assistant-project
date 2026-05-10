@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icon';
 import SEOHead from '@/components/SEOHead';
 import { type ProgressStep } from '@/components/ui/progress-map';
 import HubLayoutV2, { type HubAttentionItem, type HubNextStep } from '@/components/hub/HubLayoutV2';
+import { signals } from '@/lib/cardStatus';
 import {
   Dialog,
   DialogContent,
@@ -173,6 +174,18 @@ export default function HomeModule() {
   const metersFilled = meters.length > 0;
   const repairsFilled = repairs.length > 0;
 
+  const unpaidUtilities = utilities.filter((u) => !u.paid);
+  const totalUnpaid = unpaidUtilities.reduce(
+    (sum, u) => sum + (parseFloat(u.amount) || 0),
+    0,
+  );
+  const activeRepairs = repairs.filter((r) => r.status !== 'done').length;
+
+  // Канонические статусы через резолвер
+  const utilitiesStatus = signals.homeUtilities(utilities.length, unpaidUtilities.length);
+  const metersStatus = signals.homeMeters(meters.length);
+  const repairsStatus = signals.homeRepairs(activeRepairs);
+
   const progressSteps: ProgressStep[] = [
     {
       id: 'apartment',
@@ -184,32 +197,25 @@ export default function HomeModule() {
     {
       id: 'utilities',
       label: 'Коммуналка',
-      hint: utilitiesFilled ? `${utilities.length} платежей` : 'Платежи и счета',
+      hint: utilitiesStatus.statusLabel || 'Платежи и счета',
       icon: 'Receipt',
       status: activeTab === 'utilities' ? 'current' : utilitiesFilled ? 'done' : 'available',
     },
     {
       id: 'meters',
       label: 'Показания',
-      hint: metersFilled ? `${meters.length} записей` : 'Счётчики',
+      hint: metersStatus.statusLabel || 'Счётчики',
       icon: 'Gauge',
       status: activeTab === 'meters' ? 'current' : metersFilled ? 'done' : 'available',
     },
     {
       id: 'repairs',
       label: 'Ремонты',
-      hint: repairsFilled ? `${repairs.length} задач` : 'Планы и работы',
+      hint: repairsStatus.statusLabel || 'Планы и работы',
       icon: 'Hammer',
       status: activeTab === 'repairs' ? 'current' : repairsFilled ? 'done' : 'available',
     },
   ];
-
-  const unpaidUtilities = utilities.filter((u) => !u.paid);
-  const totalUnpaid = unpaidUtilities.reduce(
-    (sum, u) => sum + (parseFloat(u.amount) || 0),
-    0,
-  );
-  const activeRepairs = repairs.filter((r) => r.status !== 'done').length;
 
   // ───── Зона 2: «Что важно сейчас» — собираем сигналы по дому ─────
   const attentionItems: HubAttentionItem[] = useMemo(() => {

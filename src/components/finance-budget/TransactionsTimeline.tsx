@@ -190,6 +190,19 @@ export default function TransactionsTimeline({
                                       </Badge>
                                     </a>
                                   )}
+                                  {!item.isPlanned && item.originalTx?.source_type === 'shopping' && (
+                                    <a
+                                      href="/shopping"
+                                      onClick={e => e.stopPropagation()}
+                                      title="Перейти к списку покупок"
+                                      className="inline-flex"
+                                    >
+                                      <Badge variant="outline" className="text-[10px] px-1 py-0 border-emerald-400 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 inline-flex items-center gap-0.5 cursor-pointer">
+                                        <Icon name="ShoppingCart" size={9} />
+                                        из «Покупок»
+                                      </Badge>
+                                    </a>
+                                  )}
                                   {isTxConfirmed && (
                                     <Icon name="CheckCircle" size={14} className="text-emerald-500 flex-shrink-0" />
                                   )}

@@ -26,6 +26,25 @@ def get_db_connection():
     conn.autocommit = True
     return conn
 
+
+def get_db_connection_tx():
+    """Соединение для атомарных операций (без autocommit)."""
+    conn = psycopg2.connect(DATABASE_URL)
+    conn.autocommit = False
+    return conn
+
+
+# ─────────────────────────────────────────────────────────────
+# Связь Покупки → Финансы
+# ─────────────────────────────────────────────────────────────
+# Источник истины: shopping_items_v2.
+# Финансовая транзакция — производное отображение расхода.
+# Создаётся ТОЛЬКО если у товара указана цена (price > 0).
+
+# Системная категория «Продукты» — общая для всех семей
+SHOPPING_CATEGORY_ID = '2b00cdd2-0a77-4923-ab8c-5d6f4d93a1d7'
+SOURCE_TYPE_SHOPPING = 'shopping'
+
 def escape_string(value: Any) -> str:
     if value is None or value == '':
         return 'NULL'
@@ -182,92 +201,216 @@ def create_shopping_item(family_id: str, user_id: str, data: Dict[str, Any]) -> 
         raise
 
 def update_shopping_item(item_id: str, family_id: str, user_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    check_query = f"SELECT id FROM {SCHEMA}.shopping_items_v2 WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
-    cur.execute(check_query)
-    if not cur.fetchone():
-        cur.close()
-        conn.close()
-        return {'error': 'Покупка не найдена'}
-    
-    fields = []
-    
-    if 'bought' in data and data['bought']:
-        user_query = f"SELECT name FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(user_id)} LIMIT 1"
-        cur.execute(user_query)
-        user_data = cur.fetchone()
-        user_name = user_data['name'] if user_data else 'Неизвестно'
-        
-        fields.append(f"bought = TRUE")
-        fields.append(f"bought_by = {escape_string(user_id)}::uuid")
-        fields.append(f"bought_by_name = {escape_string(user_name)}")
-        fields.append(f"bought_at = CURRENT_TIMESTAMP")
-    elif 'bought' in data and not data['bought']:
-        fields.append(f"bought = FALSE")
-        fields.append(f"bought_by = NULL")
-        fields.append(f"bought_by_name = NULL")
-        fields.append(f"bought_at = NULL")
-    
-    for field in ['name', 'category', 'quantity', 'priority', 'notes']:
-        if field in data:
-            fields.append(f"{field} = {escape_string(data[field])}")
-    
-    if not fields:
-        cur.close()
-        conn.close()
-        return {'error': 'Нет данных для обновления'}
-    
-    fields.append("updated_at = CURRENT_TIMESTAMP")
-    
-    query = f"""
-        UPDATE {SCHEMA}.shopping_items_v2 
-        SET {', '.join(fields)}
-        WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}
-        RETURNING *
+    """Обновляет товар и атомарно синхронизирует связанный расход в финансах.
+
+    Логика связи:
+      * bought=true + price>0  → создаётся / обновляется расход в категории «Продукты»
+      * bought=true без цены   → расход не создаётся (товар просто помечается)
+      * bought=false           → связанный расход удаляется
+      * Защита от дубликатов через UNIQUE INDEX (source_type, source_id)
+      * Всё внутри одной DB-транзакции с SELECT FOR UPDATE
     """
-    
-    cur.execute(query)
-    item = cur.fetchone()
-    
-    if 'priority' in data and data['priority'] == 'urgent':
-        item_name = item['name'] if item else 'Товар'
-        send_push_notification(family_id, "🚨 Срочная покупка", f"Помечено срочным: {item_name}")
-    
-    cur.close()
-    conn.close()
-    
-    return dict(item)
+    conn = get_db_connection_tx()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    try:
+        # 1. Текущее состояние с блокировкой
+        cur.execute(
+            f"SELECT id, name, bought, price, linked_transaction_id "
+            f"FROM {SCHEMA}.shopping_items_v2 "
+            f"WHERE id::text = {escape_string(item_id)} "
+            f"AND family_id::text = {escape_string(family_id)} "
+            f"FOR UPDATE"
+        )
+        current = cur.fetchone()
+        if not current:
+            conn.rollback()
+            return {'error': 'Покупка не найдена'}
+
+        fields = []
+        if 'bought' in data and data['bought']:
+            user_query = f"SELECT name FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(user_id)} LIMIT 1"
+            cur.execute(user_query)
+            user_data = cur.fetchone()
+            user_name = user_data['name'] if user_data else 'Неизвестно'
+
+            fields.append("bought = TRUE")
+            fields.append(f"bought_by = {escape_string(user_id)}::uuid")
+            fields.append(f"bought_by_name = {escape_string(user_name)}")
+            fields.append("bought_at = CURRENT_TIMESTAMP")
+        elif 'bought' in data and not data['bought']:
+            fields.append("bought = FALSE")
+            fields.append("bought_by = NULL")
+            fields.append("bought_by_name = NULL")
+            fields.append("bought_at = NULL")
+
+        for field in ['name', 'category', 'quantity', 'priority', 'notes']:
+            if field in data:
+                fields.append(f"{field} = {escape_string(data[field])}")
+
+        if 'price' in data:
+            price_val = data['price']
+            if price_val is None or price_val == '':
+                fields.append("price = NULL")
+            else:
+                try:
+                    fields.append(f"price = {float(price_val)}")
+                except (TypeError, ValueError):
+                    fields.append("price = NULL")
+
+        if not fields:
+            conn.rollback()
+            return {'error': 'Нет данных для обновления'}
+
+        fields.append("updated_at = CURRENT_TIMESTAMP")
+        cur.execute(
+            f"UPDATE {SCHEMA}.shopping_items_v2 SET {', '.join(fields)} "
+            f"WHERE id::text = {escape_string(item_id)} "
+            f"AND family_id::text = {escape_string(family_id)} "
+            f"RETURNING *"
+        )
+        item = cur.fetchone()
+        if not item:
+            conn.rollback()
+            return {'error': 'Покупка не найдена'}
+
+        item_dict = dict(item)
+        was_bought = bool(current['bought'])
+        is_bought = bool(item_dict.get('bought'))
+        linked_tx_id = current.get('linked_transaction_id')
+        price = item_dict.get('price')
+        price_value = float(price) if price not in (None, '') else 0.0
+
+        # 2. Синхронизация с финансами
+        if not was_bought and is_bought and price_value > 0:
+            # Создаём расход
+            description = f"Покупка: {item_dict.get('name', '')}"
+            cur.execute(
+                f"INSERT INTO {SCHEMA}.finance_transactions "
+                f"(family_id, category_id, amount, transaction_type, "
+                f"description, transaction_date, source_type, source_id, is_confirmed) "
+                f"VALUES ({escape_string(family_id)}, {escape_string(SHOPPING_CATEGORY_ID)}, "
+                f"{price_value}, 'expense', {escape_string(description)}, "
+                f"CURRENT_DATE, {escape_string(SOURCE_TYPE_SHOPPING)}, "
+                f"{escape_string(item_id)}::uuid, TRUE) "
+                f"ON CONFLICT (source_type, source_id) "
+                f"WHERE source_type IS NOT NULL AND source_id IS NOT NULL "
+                f"DO UPDATE SET amount = EXCLUDED.amount, "
+                f"description = EXCLUDED.description, "
+                f"updated_at = CURRENT_TIMESTAMP "
+                f"RETURNING id"
+            )
+            tx_row = cur.fetchone()
+            if tx_row:
+                new_tx_id = str(tx_row['id'])
+                cur.execute(
+                    f"UPDATE {SCHEMA}.shopping_items_v2 "
+                    f"SET linked_transaction_id = {escape_string(new_tx_id)}::uuid "
+                    f"WHERE id::text = {escape_string(item_id)}"
+                )
+                item_dict['linked_transaction_id'] = new_tx_id
+        elif was_bought and not is_bought and linked_tx_id:
+            # Снимаем отметку «куплено» — удаляем связанный расход
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.finance_transactions "
+                f"WHERE id::text = {escape_string(str(linked_tx_id))} "
+                f"AND family_id::text = {escape_string(family_id)} "
+                f"AND source_type = {escape_string(SOURCE_TYPE_SHOPPING)}"
+            )
+            cur.execute(
+                f"UPDATE {SCHEMA}.shopping_items_v2 "
+                f"SET linked_transaction_id = NULL "
+                f"WHERE id::text = {escape_string(item_id)}"
+            )
+            item_dict['linked_transaction_id'] = None
+
+        conn.commit()
+
+        if 'priority' in data and data['priority'] == 'urgent':
+            try:
+                send_push_notification(family_id, "🚨 Срочная покупка", f"Помечено срочным: {item_dict.get('name', 'Товар')}")
+            except Exception as push_err:
+                print(f"[push] {push_err}")
+
+        return item_dict
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cur.close()
+        conn.close()
 
 def delete_shopping_item(item_id: str, family_id: str) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    check_query = f"SELECT id FROM {SCHEMA}.shopping_items_v2 WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
-    cur.execute(check_query)
-    if not cur.fetchone():
+    """Удаляет товар и связанную финансовую транзакцию атомарно."""
+    conn = get_db_connection_tx()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(
+            f"SELECT linked_transaction_id FROM {SCHEMA}.shopping_items_v2 "
+            f"WHERE id::text = {escape_string(item_id)} "
+            f"AND family_id::text = {escape_string(family_id)} "
+            f"FOR UPDATE"
+        )
+        row = cur.fetchone()
+        if not row:
+            conn.rollback()
+            return {'error': 'Покупка не найдена'}
+
+        linked_tx_id = row.get('linked_transaction_id')
+        if linked_tx_id:
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.finance_transactions "
+                f"WHERE id::text = {escape_string(str(linked_tx_id))} "
+                f"AND family_id::text = {escape_string(family_id)} "
+                f"AND source_type = {escape_string(SOURCE_TYPE_SHOPPING)}"
+            )
+
+        cur.execute(
+            f"DELETE FROM {SCHEMA}.shopping_items_v2 "
+            f"WHERE id::text = {escape_string(item_id)} "
+            f"AND family_id::text = {escape_string(family_id)}"
+        )
+        conn.commit()
+        return {'success': True}
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
         cur.close()
         conn.close()
-        return {'error': 'Покупка не найдена'}
-    
-    delete_query = f"DELETE FROM {SCHEMA}.shopping_items_v2 WHERE id::text = {escape_string(item_id)} AND family_id::text = {escape_string(family_id)}"
-    cur.execute(delete_query)
-    cur.close()
-    conn.close()
-    
-    return {'success': True}
+
 
 def clear_bought_items(family_id: str) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor()
-    
-    delete_query = f"DELETE FROM {SCHEMA}.shopping_items_v2 WHERE family_id::text = {escape_string(family_id)} AND bought = TRUE"
-    cur.execute(delete_query)
-    cur.close()
-    conn.close()
-    
-    return {'success': True}
+    """Удаляет купленные товары и их связанные финансовые транзакции."""
+    conn = get_db_connection_tx()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        # Сначала собираем все linked_transaction_id и удаляем их
+        cur.execute(
+            f"SELECT linked_transaction_id FROM {SCHEMA}.shopping_items_v2 "
+            f"WHERE family_id::text = {escape_string(family_id)} AND bought = TRUE "
+            f"AND linked_transaction_id IS NOT NULL"
+        )
+        linked_ids = [str(r['linked_transaction_id']) for r in cur.fetchall() if r.get('linked_transaction_id')]
+        for tx_id in linked_ids:
+            cur.execute(
+                f"DELETE FROM {SCHEMA}.finance_transactions "
+                f"WHERE id::text = {escape_string(tx_id)} "
+                f"AND family_id::text = {escape_string(family_id)} "
+                f"AND source_type = {escape_string(SOURCE_TYPE_SHOPPING)}"
+            )
+        cur.execute(
+            f"DELETE FROM {SCHEMA}.shopping_items_v2 "
+            f"WHERE family_id::text = {escape_string(family_id)} AND bought = TRUE"
+        )
+        conn.commit()
+        return {'success': True}
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cur.close()
+        conn.close()
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')

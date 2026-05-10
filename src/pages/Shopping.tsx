@@ -8,11 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import SectionHero from '@/components/ui/section-hero';
 import { useShopping } from '@/hooks/useShopping';
 import { useNotifications } from '@/hooks/useNotifications';
+import { toast } from 'sonner';
 
 const CATEGORIES = [
   { value: 'Продукты', label: '🥛 Продукты', icon: 'ShoppingBasket', gradient: 'from-green-500 to-emerald-600' },
@@ -34,26 +35,74 @@ export default function Shopping() {
     name: '',
     category: 'Продукты',
     quantity: '',
+    price: '',
     priority: 'normal' as 'urgent' | 'normal' | 'low'
   });
 
+  // Диалог цены при отметке «куплено»
+  const [priceDialogOpen, setPriceDialogOpen] = useState(false);
+  const [pricePromptItemId, setPricePromptItemId] = useState<string | null>(null);
+  const [pricePromptName, setPricePromptName] = useState('');
+  const [pricePromptValue, setPricePromptValue] = useState('');
+
   const handleAddItem = async () => {
     if (!newItem.name.trim()) return;
+    const priceNum = newItem.price ? parseFloat(newItem.price) : null;
     await createItem({
       name: newItem.name,
       category: newItem.category,
       quantity: newItem.quantity,
-      priority: newItem.priority
+      priority: newItem.priority,
+      ...(priceNum != null && !Number.isNaN(priceNum) ? { price: priceNum } : {})
     });
     if (newItem.priority === 'urgent') {
       notifyUrgentShopping(newItem.name);
     }
-    setNewItem({ name: '', category: 'Продукты', quantity: '', priority: 'normal' });
+    setNewItem({ name: '', category: 'Продукты', quantity: '', price: '', priority: 'normal' });
     setIsDialogOpen(false);
   };
 
   const handleToggleBought = (id: string, bought: boolean) => {
-    toggleBought(id, !bought);
+    const next = !bought;
+    if (next) {
+      // Помечаем «куплено» — спрашиваем цену чтобы создать расход в Финансах
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      setPricePromptItemId(id);
+      setPricePromptName(item.name);
+      setPricePromptValue(item.price ? String(item.price) : '');
+      setPriceDialogOpen(true);
+    } else {
+      // Снятие отметки «куплено» — связанный расход удалится автоматически
+      toggleBought(id, false).then(updated => {
+        if (updated && !updated.linked_transaction_id) {
+          // ok
+        }
+      });
+    }
+  };
+
+  const confirmPriceAndMarkBought = async (skipPrice: boolean) => {
+    if (!pricePromptItemId) return;
+    const priceNum = skipPrice
+      ? null
+      : pricePromptValue
+        ? parseFloat(pricePromptValue)
+        : null;
+    const validPrice = priceNum != null && !Number.isNaN(priceNum) && priceNum > 0 ? priceNum : null;
+
+    setPriceDialogOpen(false);
+    const updated = await toggleBought(pricePromptItemId, true, validPrice);
+    if (updated?.linked_transaction_id && validPrice) {
+      toast.success('Куплено и добавлено в бюджет', {
+        description: `Расход ${validPrice.toLocaleString('ru-RU')} ₽ в категории «Продукты»`,
+      });
+    } else if (updated) {
+      toast.success('Отмечено как куплено');
+    }
+    setPricePromptItemId(null);
+    setPricePromptValue('');
+    setPricePromptName('');
   };
 
   const handleDeleteItem = (id: string) => {
@@ -141,6 +190,19 @@ export default function Shopping() {
                       value={newItem.quantity}
                       onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
                     />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Цена, ₽ (опционально)</label>
+                    <Input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="Например, 250"
+                      value={newItem.price}
+                      onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Если укажете — при отметке «куплено» расход автоматически попадёт в бюджет
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-2 block">Приоритет</label>
@@ -254,6 +316,20 @@ export default function Shopping() {
           )}
         </div>
 
+        <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200/70 p-3 flex items-start gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
+            <Icon name="Link2" size={14} className="text-emerald-600" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-slate-700 leading-tight">
+              Связано с разделом «Финансы»
+            </p>
+            <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+              Если у товара указана цена и вы отметите «куплено» — расход автоматически попадёт в бюджет в категорию «Продукты»
+            </p>
+          </div>
+        </div>
+
         <Card>
           <CardContent className="p-4">
             {filteredItems.length === 0 ? (
@@ -293,6 +369,11 @@ export default function Shopping() {
                           {item.quantity && (
                             <Badge variant="secondary" className="text-xs">{item.quantity}</Badge>
                           )}
+                          {item.price != null && Number(item.price) > 0 && (
+                            <Badge variant="outline" className="text-xs border-emerald-300 text-emerald-700 bg-emerald-50">
+                              {Number(item.price).toLocaleString('ru-RU')} ₽
+                            </Badge>
+                          )}
                           {item.priority === 'urgent' && !item.bought && (
                             <Badge variant="destructive" className="text-xs">
                               <Icon name="AlertCircle" size={12} className="mr-1" />
@@ -300,6 +381,12 @@ export default function Shopping() {
                             </Badge>
                           )}
                           <Badge variant="outline" className="text-xs">{category?.label.split(' ')[0]}</Badge>
+                          {item.bought && item.linked_transaction_id && (
+                            <Badge variant="outline" className="text-[10px] border-emerald-400 text-emerald-700 bg-white inline-flex items-center gap-0.5">
+                              <Icon name="Wallet" size={10} />
+                              В бюджете
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
                           {item.added_by_name} • {new Date(item.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
@@ -321,6 +408,46 @@ export default function Shopping() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={priceDialogOpen} onOpenChange={setPriceDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Icon name="Wallet" size={18} className="text-emerald-600" />
+              Сколько стоила покупка?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 pt-2">
+            <p className="text-sm text-gray-600">
+              <strong>{pricePromptName}</strong>
+            </p>
+            <p className="text-xs text-gray-500">
+              Если укажете цену — расход автоматически попадёт в бюджет в категорию «Продукты».
+              Без цены товар просто отметится как купленный.
+            </p>
+            <Input
+              type="number"
+              inputMode="decimal"
+              autoFocus
+              placeholder="Например, 250"
+              value={pricePromptValue}
+              onChange={(e) => setPricePromptValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') confirmPriceAndMarkBought(false);
+              }}
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => confirmPriceAndMarkBought(true)}>
+              Без цены
+            </Button>
+            <Button onClick={() => confirmPriceAndMarkBought(false)} className="bg-emerald-600 hover:bg-emerald-700">
+              <Icon name="Check" size={14} className="mr-1" />
+              Куплено
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     </>
   );

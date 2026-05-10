@@ -17,6 +17,8 @@ export interface ShoppingItem {
   bought_by_name?: string;
   bought_at?: string;
   notes?: string;
+  price?: number | null;
+  linked_transaction_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -115,14 +117,17 @@ export function useShopping() {
     }
   };
 
-  const toggleBought = async (itemId: string, bought: boolean) => {
-    setItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, bought } : item
+  const toggleBought = async (itemId: string, bought: boolean, price?: number | null): Promise<ShoppingItem | null> => {
+    setItems(prev => prev.map(item =>
+      item.id === itemId ? { ...item, bought, price: price ?? item.price } : item
     ));
-    
+
     try {
       const token = getAuthToken();
-      if (!token) return;
+      if (!token) return null;
+
+      const body: Record<string, unknown> = { id: itemId, bought };
+      if (price !== undefined) body.price = price;
 
       const response = await fetch(SHOPPING_API_URL, {
         method: 'PUT',
@@ -130,18 +135,26 @@ export function useShopping() {
           'Content-Type': 'application/json',
           'X-Auth-Token': token
         },
-        body: JSON.stringify({ id: itemId, bought })
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
-        setItems(prev => prev.map(item => 
+        setItems(prev => prev.map(item =>
           item.id === itemId ? { ...item, bought: !bought } : item
         ));
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
+      const updated: ShoppingItem = await response.json();
+      // Обновляем item с реальными данными от backend (включая linked_transaction_id)
+      setItems(prev => prev.map(item =>
+        item.id === itemId ? { ...item, ...updated } : item
+      ));
+      return updated;
     } catch (err: any) {
       console.error('[useShopping] Error toggling bought:', err);
       setError(err.message);
+      return null;
     }
   };
 
