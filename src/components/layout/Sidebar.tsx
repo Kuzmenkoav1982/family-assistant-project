@@ -14,11 +14,11 @@ const OWNER_ONLY_FINANCE_ITEMS = ['finance-analytics', 'finance-strategy', 'fina
 type GroupId = 'life' | 'care' | 'meaning' | 'world' | 'system';
 
 const GROUPS: { id: GroupId; title: string; hint: string }[] = [
-  { id: 'life',    title: 'Жизнь семьи',     hint: 'Операционный контур' },
-  { id: 'care',    title: 'Забота',          hint: 'Состояние и здоровье' },
-  { id: 'meaning', title: 'Смысл и отношения', hint: 'Ценности · развитие · код' },
-  { id: 'world',   title: 'Внешний мир',     hint: 'Государство · знание · досуг' },
-  { id: 'system',  title: 'Система',         hint: '' },
+  { id: 'life',    title: 'Жизнь семьи',       hint: 'Операционный контур' },
+  { id: 'care',    title: 'Забота',            hint: 'Состояние и здоровье' },
+  { id: 'meaning', title: 'Смысл и отношения', hint: 'Развитие и ценности' },
+  { id: 'world',   title: 'Внешний мир',       hint: 'Государство и досуг' },
+  { id: 'system',  title: 'Система',           hint: '' },
 ];
 
 interface MenuSection {
@@ -353,7 +353,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       )}
       
       <div 
-        className={`fixed left-0 top-16 bottom-0 z-40 bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 overflow-y-auto w-[280px] max-w-[85vw] ${
+        className={`fixed left-0 top-16 bottom-0 z-40 bg-white dark:bg-gray-900 shadow-xl transition-transform duration-300 overflow-y-auto w-[296px] max-w-[88vw] ${
           isVisible ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -445,14 +445,14 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
 
             return (
               <div key={group.id} className="space-y-1">
-                <div className="flex items-baseline gap-2 px-2 pb-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                <div className="px-2 pb-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 whitespace-normal break-words leading-tight">
                     {group.title}
-                  </span>
+                  </div>
                   {group.hint && (
-                    <span className="text-[10px] text-gray-300 dark:text-gray-600 truncate">
-                      · {group.hint}
-                    </span>
+                    <div className="text-[10px] text-gray-300 dark:text-gray-600 whitespace-normal break-words leading-tight mt-0.5">
+                      {group.hint}
+                    </div>
                   )}
                 </div>
 
@@ -485,7 +485,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white/70 dark:bg-gray-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
                               <Icon name={section.icon} size={15} className={section.iconColor} />
                             </div>
-                            <span className={`text-[13px] font-semibold truncate ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                            <span className={`text-[13px] font-semibold leading-tight whitespace-normal break-words text-left ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                               {section.title}
                             </span>
                             {section.topBadge && (
@@ -503,7 +503,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                             <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white/70 dark:bg-gray-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
                               <Icon name={section.icon} size={15} className={section.iconColor} />
                             </div>
-                            <span className={`text-[13px] font-semibold truncate ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                            <span className={`text-[13px] font-semibold leading-tight whitespace-normal break-words text-left ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                               {section.title}
                             </span>
                             {section.topBadge && (
@@ -539,8 +539,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400'
                             }`}
                           >
-                            <Icon name={item.icon} size={15} className={isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'} />
-                            <span className="text-[13px]">{item.label}</span>
+                            <Icon name={item.icon} size={15} className={`flex-shrink-0 ${isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <span className="text-[13px] leading-tight whitespace-normal break-words text-left">{item.label}</span>
                             {item.badge && !item.inDev && (
                               <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full ml-auto">
                                 {item.badge}
@@ -572,7 +572,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       <button
         onClick={() => onVisibilityChange(!isVisible)}
         className={`fixed left-0 top-1/2 -translate-y-1/2 z-40 bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 shadow-md rounded-r-lg py-4 px-2 transition-all duration-300 ${
-          isVisible ? 'translate-x-[280px]' : 'translate-x-0'
+          isVisible ? 'translate-x-[296px]' : 'translate-x-0'
         }`}
       >
         <Icon 
