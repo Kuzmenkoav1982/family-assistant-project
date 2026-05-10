@@ -39,6 +39,7 @@ import {
 import { LIFE_CYCLES, type LifeCycle, type LifeCycleId } from "@/data/projectV2/lifeCycles";
 import ModalityBadge from "@/components/admin/ModalityBadge";
 import KindBadge from "@/components/admin/KindBadge";
+import ProgressMap, { type ProgressStep } from "@/components/ui/progress-map";
 
 // ─────────────────────────────────────────
 // Типы и константы
@@ -96,6 +97,80 @@ const AS_IS_FILTERS: Array<{ id: AsIsFilter; label: string; icon: string }> = [
   { id: "hub",     label: "Только хабы",         icon: "LayoutGrid" },
   { id: "service", label: "Сервисные",           icon: "Settings" },
   { id: "content", label: "Контентные",          icon: "FileText" },
+];
+
+// ─────────────────────────────────────────
+// Карта реализации плана архитектурной дочистки.
+// Здесь команда сразу видит: что сделано, что в работе, что впереди.
+// Обновляется по мере прохождения этапов.
+// ─────────────────────────────────────────
+const ROADMAP_STEPS: ProgressStep[] = [
+  {
+    id: "canon",
+    label: "Канон сущностей",
+    hint: "EntityKind + Modality",
+    icon: "Boxes",
+    status: "done",
+  },
+  {
+    id: "modality",
+    label: "Бейджи модальности",
+    hint: "Право · Госданные · ИИ · …",
+    icon: "ShieldCheck",
+    status: "done",
+  },
+  {
+    id: "cycles",
+    label: "Карта циклов",
+    hint: "5 фаз семьи в админке",
+    icon: "RefreshCcw",
+    status: "done",
+  },
+  {
+    id: "household",
+    label: "Дом и быт",
+    hint: "Зонтики + заглушка «Дом»",
+    icon: "Home",
+    status: "done",
+  },
+  {
+    id: "gov",
+    label: "Госуслуги",
+    hint: "Сервисы + Знание",
+    icon: "Landmark",
+    status: "done",
+  },
+  {
+    id: "development",
+    label: "Развитие",
+    hint: "4 слоя-таба",
+    icon: "Brain",
+    status: "done",
+  },
+  {
+    id: "positioning",
+    label: "Позиционирование",
+    hint: "«Семейная ОС»",
+    icon: "Sparkles",
+    status: "available",
+    tooltip: "Лендинг и онбординг через 5 циклов",
+  },
+  {
+    id: "investor",
+    label: "Презентации",
+    hint: "Актуализация инвесторских",
+    icon: "Presentation",
+    status: "locked",
+    tooltip: "Откроется после позиционирования",
+  },
+  {
+    id: "instructions",
+    label: "Инструкции",
+    hint: "Помощь и FAQ",
+    icon: "BookOpen",
+    status: "locked",
+    tooltip: "Откроется после презентаций",
+  },
 ];
 
 function StatusBadge({ status }: { status: RealEntryStatus }) {
@@ -2195,6 +2270,16 @@ export default function AdminProjectV2() {
             </div>
           </div>
         </div>
+
+        {/* Карта реализации плана архитектурной дочистки */}
+        <Card className="p-4 bg-gradient-to-br from-violet-50/40 via-white to-fuchsia-50/40 border-violet-100">
+          <ProgressMap
+            title="План архитектурной дочистки"
+            subtitle="Видим, что сделано, что в работе и что впереди"
+            accent="violet"
+            steps={ROADMAP_STEPS}
+          />
+        </Card>
 
         {/* Сводка */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

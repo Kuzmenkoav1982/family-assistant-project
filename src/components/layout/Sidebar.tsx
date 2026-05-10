@@ -150,7 +150,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'household',
-      title: 'Быт',
+      title: 'Дом и быт',
       icon: 'Home',
       iconColor: 'text-amber-600',
       accentBg: 'bg-amber-50 dark:bg-amber-950/40',
