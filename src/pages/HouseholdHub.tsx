@@ -1,74 +1,83 @@
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
 import SEOHead from '@/components/SEOHead';
-import ProgressMap, { type ProgressStep } from '@/components/ui/progress-map';
+import HubLayoutV2 from '@/components/hub/HubLayoutV2';
+import HubCardV2 from '@/components/hub/HubCardV2';
+import type { Modality } from '@/components/hub/ModalityBadge';
+import type { CardStatus } from '@/components/hub/StatusBadge';
 
 interface SubSection {
   id: string;
   title: string;
   description: string;
   icon: string;
+  iconColor: string;
+  iconBg: string;
   path: string;
-  gradient: string;
-  badge?: string;
-  badgeColor?: string;
-  ready: boolean;
+  modality: Modality;
+  status: CardStatus;
+  isNew?: boolean;
+  cta?: string;
 }
 
 interface SubGroup {
   id: string;
   title: string;
   subtitle: string;
-  icon: string;
   sections: SubSection[];
 }
 
-// Зонт «Дом и хозяйство» — повседневные совместные дела семьи
 const householdSubSections: SubSection[] = [
   {
     id: 'shopping',
     title: 'Список покупок',
     description: 'Общий список покупок для всей семьи с категориями',
     icon: 'ShoppingCart',
+    iconColor: 'text-orange-600',
+    iconBg: 'bg-orange-50 dark:bg-orange-950/40',
     path: '/shopping',
-    gradient: 'from-orange-500 to-amber-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'voting',
     title: 'Голосования',
     description: 'Семейные голосования для принятия общих решений',
     icon: 'Vote',
+    iconColor: 'text-blue-600',
+    iconBg: 'bg-blue-50 dark:bg-blue-950/40',
     path: '/voting',
-    gradient: 'from-blue-500 to-indigo-600',
-    ready: true,
+    modality: 'family',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'home',
     title: 'Дом',
     description: 'Квартира, коммуналка, показания счётчиков и ремонты',
     icon: 'Building',
+    iconColor: 'text-amber-600',
+    iconBg: 'bg-amber-50 dark:bg-amber-950/40',
     path: '/home-hub',
-    gradient: 'from-amber-500 to-orange-600',
-    badge: 'Новое',
-    badgeColor: 'bg-emerald-100 text-emerald-700',
-    ready: true,
+    modality: 'service',
+    status: 'new',
+    isNew: true,
+    cta: 'Открыть',
   },
 ];
 
-// Зонт «Транспорт» — машины, ТО, расходы и напоминания
 const transportSubSections: SubSection[] = [
   {
     id: 'garage',
     title: 'Гараж',
     description: 'Учёт автомобилей, ТО, расходы и напоминания',
     icon: 'Car',
+    iconColor: 'text-slate-700',
+    iconBg: 'bg-slate-100 dark:bg-slate-800',
     path: '/garage',
-    gradient: 'from-slate-600 to-blue-700',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
 ];
 
@@ -77,59 +86,19 @@ const subGroups: SubGroup[] = [
     id: 'home-group',
     title: 'Дом и хозяйство',
     subtitle: 'Повседневные совместные дела',
-    icon: 'Home',
     sections: householdSubSections,
   },
   {
     id: 'transport-group',
     title: 'Транспорт',
     subtitle: 'Машины и поездки',
-    icon: 'Car',
     sections: transportSubSections,
   },
 ];
 
 export default function HouseholdHub() {
   const navigate = useNavigate();
-
-  // Карта прогресса — даёт пользователю визуальный путь по разделам быта
-  const progressSteps: ProgressStep[] = [
-    {
-      id: 'shopping',
-      label: 'Покупки',
-      hint: 'Что нужно купить',
-      icon: 'ShoppingCart',
-      status: 'available',
-    },
-    {
-      id: 'voting',
-      label: 'Решения',
-      hint: 'Голосуем семьёй',
-      icon: 'Vote',
-      status: 'available',
-    },
-    {
-      id: 'home',
-      label: 'Дом',
-      hint: 'Квартира и быт',
-      icon: 'Building',
-      status: 'available',
-      tooltip: 'Учёт квартиры, коммуналки, показаний и ремонтов',
-    },
-    {
-      id: 'garage',
-      label: 'Транспорт',
-      hint: 'Машины и ТО',
-      icon: 'Car',
-      status: 'available',
-    },
-  ];
-
-  const handleStepClick = (step: ProgressStep) => {
-    const allSections = [...householdSubSections, ...transportSubSections];
-    const target = allSections.find((s) => s.id === step.id);
-    if (target?.ready) navigate(target.path);
-  };
+  const totalSections = householdSubSections.length + transportSubSections.length;
 
   return (
     <>
@@ -139,96 +108,67 @@ export default function HouseholdHub() {
         path="/household-hub"
         breadcrumbs={[{ name: 'Дом и быт', path: '/household-hub' }]}
       />
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SectionHero
-            title="Дом и быт"
-            subtitle="Покупки, домашние решения и транспорт — всё в одном месте"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3846fdd1-13b2-4590-82b3-e8c37204ee0b.jpg"
-          />
-
-          {/* Карта прогресса */}
-          <Card className="border-amber-200 bg-gradient-to-br from-amber-50/50 to-white">
-            <CardContent className="p-4">
-              <ProgressMap
-                steps={progressSteps}
-                onStepClick={handleStepClick}
-                title="Карта быта семьи"
-                subtitle="Заглядывайте в каждый раздел — все шаги доступны независимо"
-                accent="amber"
-              />
-            </CardContent>
-          </Card>
-
-          {/* Группы разделов */}
-          {subGroups.map((group) => (
-            <div key={group.id} className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                <Icon name={group.icon} size={18} className="text-amber-700" />
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 leading-tight">{group.title}</h2>
-                  <p className="text-xs text-slate-500">{group.subtitle}</p>
-                </div>
+      <HubLayoutV2
+        title="Дом и быт"
+        subtitle="Операционный хаб — Цикл: Договорённости → Исполнение"
+        description="Покупки, домашние решения и транспорт — всё, что делает быт семьи спокойным и понятным."
+        icon="Home"
+        iconColor="text-amber-600"
+        iconBg="bg-amber-100 dark:bg-amber-900/40"
+        modalities={['service', 'family']}
+        cycleHint="Связан с Финансами и Планированием: расходы и задачи стекаются в общую картину"
+        backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        quickFacts={[
+          { label: 'Сервисов',  value: totalSections,  icon: 'LayoutGrid' },
+          { label: 'Дом',       value: 'Новое',        icon: 'Building' },
+          { label: 'Подход',    value: 'Семейный',     icon: 'Users' },
+          { label: 'Связь',     value: 'Финансы',      icon: 'Wallet' },
+        ]}
+        primaryAction={{
+          label: 'Открыть «Дом»',
+          icon: 'Building',
+          onClick: () => navigate('/home-hub'),
+        }}
+        secondaryAction={{
+          label: 'Список покупок',
+          icon: 'ShoppingCart',
+          onClick: () => navigate('/shopping'),
+        }}
+        relatedLinks={[
+          { label: 'Финансы',     icon: 'Wallet',  path: '/finance' },
+          { label: 'Планирование', icon: 'Target', path: '/planning-hub' },
+          { label: 'Семья',       icon: 'Users',   path: '/family-hub' },
+          { label: 'Питание',     icon: 'Apple',   path: '/nutrition' },
+        ]}
+      >
+        {subGroups.map(group => (
+          <div key={group.id}>
+            <div className="px-2 mb-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                {group.title}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {group.sections.map((section) => (
-                  <Card
-                    key={section.id}
-                    className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
-                      section.ready ? 'border-transparent' : 'border-dashed border-gray-200'
-                    } overflow-hidden`}
-                    onClick={() => {
-                      if (section.ready) {
-                        navigate(section.path);
-                      }
-                    }}
-                  >
-                    <CardContent className="p-0">
-                      <div className="flex items-stretch">
-                        <div
-                          className={`w-20 min-h-full bg-gradient-to-br ${section.gradient} flex items-center justify-center flex-shrink-0`}
-                        >
-                          <Icon name={section.icon} size={32} className="text-white drop-shadow-sm" />
-                        </div>
-
-                        <div className="flex-1 p-4">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-bold text-base group-hover:text-amber-700 transition-colors">
-                              {section.title}
-                            </h3>
-                            {section.badge && (
-                              <Badge
-                                variant="secondary"
-                                className={`text-[10px] px-1.5 py-0 ${section.badgeColor || ''}`}
-                              >
-                                {section.badge}
-                              </Badge>
-                            )}
-                            {!section.ready && !section.badge && (
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-600 border-amber-200"
-                              >
-                                Скоро
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-snug">{section.description}</p>
-                        </div>
-
-                        <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Icon name="ChevronRight" size={20} className="text-gray-400" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <div className="text-[12px] text-gray-500 dark:text-gray-400 mt-0.5">{group.subtitle}</div>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {group.sections.map(s => (
+                <HubCardV2
+                  key={s.id}
+                  icon={s.icon}
+                  iconColor={s.iconColor}
+                  iconBg={s.iconBg}
+                  title={s.title}
+                  description={s.description}
+                  modality={s.modality}
+                  status={s.status}
+                  isNew={s.isNew}
+                  cta={s.cta}
+                  onClick={() => navigate(s.path)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </HubLayoutV2>
     </>
   );
 }

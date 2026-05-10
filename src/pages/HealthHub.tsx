@@ -1,135 +1,87 @@
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import SEOHead from "@/components/SEOHead";
+import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
-
-interface SubSection {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  path: string;
-  gradient: string;
-  badge?: string;
-  badgeColor?: string;
-  ready: boolean;
-}
-
-const subSections: SubSection[] = [
-  {
-    id: 'health',
-    title: 'Здоровье семьи',
-    description: 'Медкарты, анализы, прививки, лекарства и телемедицина',
-    icon: 'HeartPulse',
-    path: '/health',
-    gradient: 'from-red-500 to-rose-600',
-    ready: true,
-  },
-];
+import HubLayoutV2 from '@/components/hub/HubLayoutV2';
+import HubCardV2 from '@/components/hub/HubCardV2';
 
 export default function HealthHub() {
   const navigate = useNavigate();
 
   return (
     <>
-      <SEOHead title="Здоровье — центр управления здоровьем семьи" description="Медицинские карты, прививки, лекарства, телемедицина, страховки. Полный контроль здоровья всей семьи." path="/health-hub" breadcrumbs={[{ name: "Здоровье", path: "/health-hub" }]} />
-      <div className="min-h-screen bg-gradient-to-b from-rose-50 via-red-50/30 to-white pb-24">
-        <div className="max-w-5xl mx-auto p-4 space-y-6">
-          <SectionHero
-            title="Здоровье"
-            subtitle="Медицинские карты, прививки, лекарства и врачи"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/126eb1fc-4b71-4f1c-87fd-fa88beb6d32d.jpg"
-          />
+      <SEOHead
+        title="Здоровье — центр управления здоровьем семьи"
+        description="Медицинские карты, прививки, лекарства, телемедицина, страховки. Полный контроль здоровья всей семьи."
+        path="/health-hub"
+        breadcrumbs={[{ name: 'Здоровье', path: '/health-hub' }]}
+      />
+      <HubLayoutV2
+        title="Здоровье"
+        subtitle="Хаб заботы — Цикл: Сбор → Осмысление"
+        description="Медицинские карты, прививки, лекарства и поддержка от ИИ-доктора. Состояние и забота о здоровье всей семьи."
+        icon="HeartPulse"
+        iconColor="text-rose-600"
+        iconBg="bg-rose-100 dark:bg-rose-900/40"
+        modalities={['service', 'ai']}
+        cycleHint="Здесь собираются факты о здоровье и переходят в действия и привычки"
+        backgroundClass="bg-gradient-to-b from-rose-50 via-red-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        quickFacts={[
+          { label: 'Подход',     value: 'Семейный',   icon: 'Users' },
+          { label: 'Помощник',   value: 'ИИ-доктор',  icon: 'Brain' },
+          { label: 'Хранение',   value: 'Защищено',   icon: 'ShieldCheck' },
+          { label: 'Доступ',     value: 'По ролям',   icon: 'KeyRound' },
+        ]}
+        primaryAction={{
+          label: 'Открыть карту здоровья',
+          icon: 'HeartPulse',
+          onClick: () => navigate('/health'),
+        }}
+        relatedLinks={[
+          { label: 'Питание',    icon: 'Apple',      path: '/nutrition' },
+          { label: 'Питомцы',    icon: 'PawPrint',   path: '/pets' },
+          { label: 'Семья',      icon: 'Users',      path: '/family-hub' },
+          { label: 'Развитие',   icon: 'Brain',      path: '/development-hub' },
+        ]}
+      >
+        <SectionAIAdvisor
+          role="fitness-trainer"
+          title="ИИ-Доктор и Фитнес-тренер"
+          description="Здоровье, тренировки, симптомы, профилактика"
+          imageUrl="https://cdn.poehali.dev/files/%D0%A4%D0%B8%D1%82%D0%BD%D0%B5%D1%81-%D1%82%D1%80%D0%B5%D0%BD%D0%B5%D1%80.png"
+          gradientFrom="from-red-500"
+          gradientTo="to-rose-600"
+          accentBg="bg-red-50"
+          accentText="text-red-700"
+          accentBorder="border-red-200"
+          placeholder="Спросите о здоровье..."
+          quickQuestions={[
+            'Какие анализы сдать для профилактики?',
+            'Как приучить семью к спорту?',
+            'Что делать при простуде?',
+            'Когда нужно обновить прививки?',
+            'Как нормализовать сон?',
+          ]}
+        />
 
-          <SectionAIAdvisor
-            role="fitness-trainer"
-            title="ИИ-Доктор и Фитнес-тренер"
-            description="Здоровье, тренировки, симптомы, профилактика"
-            imageUrl="https://cdn.poehali.dev/files/%D0%A4%D0%B8%D1%82%D0%BD%D0%B5%D1%81-%D1%82%D1%80%D0%B5%D0%BD%D0%B5%D1%80.png"
-            gradientFrom="from-red-500"
-            gradientTo="to-rose-600"
-            accentBg="bg-red-50"
-            accentText="text-red-700"
-            accentBorder="border-red-200"
-            placeholder="Спросите о здоровье..."
-            quickQuestions={[
-              'Какие анализы сдать для профилактики?',
-              'Как приучить семью к спорту?',
-              'Что делать при простуде?',
-              'Когда нужно обновить прививки?',
-              'Как нормализовать сон?',
-            ]}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {subSections.map((section) => (
-              <Card
-                key={section.id}
-                className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
-                  section.ready ? 'border-transparent' : 'border-dashed border-gray-200'
-                } overflow-hidden`}
-                onClick={() => {
-                  if (section.ready) {
-                    navigate(section.path);
-                  }
-                }}
-              >
-                <CardContent className="p-0">
-                  <div className="flex items-stretch">
-                    <div
-                      className={`w-20 min-h-full bg-gradient-to-br ${section.gradient} flex items-center justify-center flex-shrink-0`}
-                    >
-                      <Icon
-                        name={section.icon}
-                        size={32}
-                        className="text-white drop-shadow-sm"
-                      />
-                    </div>
-
-                    <div className="flex-1 p-4">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-base group-hover:text-rose-700 transition-colors">
-                          {section.title}
-                        </h3>
-                        {section.badge && (
-                          <Badge
-                            variant="secondary"
-                            className={`text-[10px] px-1.5 py-0 ${section.badgeColor || ''}`}
-                          >
-                            {section.badge}
-                          </Badge>
-                        )}
-                        {!section.ready && (
-                          <Badge
-                            variant="outline"
-                            className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-600 border-amber-200"
-                          >
-                            Скоро
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-snug">
-                        {section.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Icon
-                        name="ChevronRight"
-                        size={20}
-                        className="text-gray-400"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        <div>
+          <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
+            Сервисы
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <HubCardV2
+              icon="HeartPulse"
+              iconColor="text-rose-600"
+              iconBg="bg-rose-50 dark:bg-rose-950/40"
+              title="Здоровье семьи"
+              description="Медкарты, анализы, прививки, лекарства и телемедицина"
+              modality="service"
+              status="ready"
+              cta="Открыть"
+              onClick={() => navigate('/health')}
+            />
           </div>
         </div>
-      </div>
+      </HubLayoutV2>
     </>
   );
 }

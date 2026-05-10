@@ -1,21 +1,22 @@
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import SEOHead from "@/components/SEOHead";
+import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
+import HubLayoutV2 from '@/components/hub/HubLayoutV2';
+import HubCardV2 from '@/components/hub/HubCardV2';
+import type { Modality } from '@/components/hub/ModalityBadge';
+import type { CardStatus } from '@/components/hub/StatusBadge';
 
 interface SubSection {
   id: string;
   title: string;
   description: string;
   icon: string;
+  iconColor: string;
+  iconBg: string;
   path: string;
-  gradient: string;
-  badge?: string;
-  badgeColor?: string;
-  ready: boolean;
+  modality: Modality;
+  status: CardStatus;
+  cta?: string;
 }
 
 const subSections: SubSection[] = [
@@ -24,49 +25,61 @@ const subSections: SubSection[] = [
     title: 'Цели семьи',
     description: 'Общие семейные цели с отслеживанием прогресса',
     icon: 'Target',
+    iconColor: 'text-indigo-600',
+    iconBg: 'bg-indigo-50 dark:bg-indigo-950/40',
     path: '/goals',
-    gradient: 'from-indigo-500 to-blue-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'tasks',
     title: 'Задачи',
     description: 'Распределение задач между членами семьи',
     icon: 'CheckSquare',
+    iconColor: 'text-emerald-600',
+    iconBg: 'bg-emerald-50 dark:bg-emerald-950/40',
     path: '/tasks',
-    gradient: 'from-emerald-500 to-teal-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'calendar',
     title: 'Календарь',
     description: 'Общий семейный календарь событий и напоминаний',
     icon: 'Calendar',
+    iconColor: 'text-sky-600',
+    iconBg: 'bg-sky-50 dark:bg-sky-950/40',
     path: '/calendar',
-    gradient: 'from-sky-500 to-cyan-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'purchases',
     title: 'План покупок',
     description: 'Планирование крупных семейных покупок',
     icon: 'ClipboardList',
+    iconColor: 'text-orange-600',
+    iconBg: 'bg-orange-50 dark:bg-orange-950/40',
     path: '/purchases',
-    gradient: 'from-orange-500 to-amber-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'analytics',
     title: 'Аналитика',
     description: 'Статистика и графики семейной активности',
     icon: 'BarChart3',
+    iconColor: 'text-violet-600',
+    iconBg: 'bg-violet-50 dark:bg-violet-950/40',
     path: '/analytics',
-    gradient: 'from-violet-500 to-purple-600',
-    badge: 'Графики',
-    badgeColor: 'bg-violet-100 text-violet-700',
-    ready: true,
+    modality: 'service',
+    status: 'recommended',
+    cta: 'Открыть',
   },
-
 ];
 
 export default function PlanningHub() {
@@ -74,15 +87,45 @@ export default function PlanningHub() {
 
   return (
     <>
-    <SEOHead title="Планирование — цели, задачи и календарь семьи" description="Семейные цели, задачи, календарь событий, план покупок, аналитика. Эффективное планирование жизни семьи." path="/planning-hub" breadcrumbs={[{ name: "Планирование", path: "/planning-hub" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Планирование"
-          subtitle="Цели, задачи, календарь и аналитика"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b8d96cd0-c983-4192-983e-991c1440e285.jpg"
-        />
-
+      <SEOHead
+        title="Планирование — цели, задачи и календарь семьи"
+        description="Семейные цели, задачи, календарь событий, план покупок, аналитика. Эффективное планирование жизни семьи."
+        path="/planning-hub"
+        breadcrumbs={[{ name: 'Планирование', path: '/planning-hub' }]}
+      />
+      <HubLayoutV2
+        title="Планирование"
+        subtitle="Операционный хаб — Цикл: Договорённости → Исполнение"
+        description="Цели, задачи, календарь и аналитика. Превращаем намерения семьи в конкретные шаги."
+        icon="Target"
+        iconColor="text-indigo-600"
+        iconBg="bg-indigo-100 dark:bg-indigo-900/40"
+        modalities={['service', 'ai']}
+        cycleHint="Здесь договорённости становятся задачами и попадают в календарь"
+        backgroundClass="bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        quickFacts={[
+          { label: 'Сервисов',   value: subSections.length, icon: 'LayoutGrid' },
+          { label: 'Помощник',   value: 'ИИ-организатор',   icon: 'Brain' },
+          { label: 'Подход',     value: 'Семейный',         icon: 'Users' },
+          { label: 'Связь',      value: 'Все хабы',         icon: 'Link2' },
+        ]}
+        primaryAction={{
+          label: 'Открыть календарь',
+          icon: 'Calendar',
+          onClick: () => navigate('/calendar'),
+        }}
+        secondaryAction={{
+          label: 'Цели',
+          icon: 'Target',
+          onClick: () => navigate('/goals'),
+        }}
+        relatedLinks={[
+          { label: 'Семья',     icon: 'Users',   path: '/family-hub' },
+          { label: 'Финансы',   icon: 'Wallet',  path: '/finance' },
+          { label: 'Дом',       icon: 'Home',    path: '/home-hub' },
+          { label: 'Развитие',  icon: 'Brain',   path: '/development-hub' },
+        ]}
+      >
         <SectionAIAdvisor
           role="organizer"
           title="ИИ-Организатор"
@@ -103,72 +146,28 @@ export default function PlanningHub() {
           ]}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subSections.map((section) => (
-            <Card
-              key={section.id}
-              className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
-                section.ready ? 'border-transparent' : 'border-dashed border-gray-200'
-              } overflow-hidden`}
-              onClick={() => {
-                if (section.ready) {
-                  navigate(section.path);
-                }
-              }}
-            >
-              <CardContent className="p-0">
-                <div className="flex items-stretch">
-                  <div
-                    className={`w-20 min-h-full bg-gradient-to-br ${section.gradient} flex items-center justify-center flex-shrink-0`}
-                  >
-                    <Icon
-                      name={section.icon}
-                      size={32}
-                      className="text-white drop-shadow-sm"
-                    />
-                  </div>
-
-                  <div className="flex-1 p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-base group-hover:text-indigo-700 transition-colors">
-                        {section.title}
-                      </h3>
-                      {section.badge && (
-                        <Badge
-                          variant="secondary"
-                          className={`text-[10px] px-1.5 py-0 ${section.badgeColor || ''}`}
-                        >
-                          {section.badge}
-                        </Badge>
-                      )}
-                      {!section.ready && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-600 border-amber-200"
-                        >
-                          Скоро
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-snug">
-                      {section.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Icon
-                      name="ChevronRight"
-                      size={20}
-                      className="text-gray-400"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div>
+          <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
+            Сервисы
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {subSections.map(s => (
+              <HubCardV2
+                key={s.id}
+                icon={s.icon}
+                iconColor={s.iconColor}
+                iconBg={s.iconBg}
+                title={s.title}
+                description={s.description}
+                modality={s.modality}
+                status={s.status}
+                cta={s.cta}
+                onClick={() => navigate(s.path)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+      </HubLayoutV2>
     </>
   );
 }

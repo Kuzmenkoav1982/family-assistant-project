@@ -1,20 +1,21 @@
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import SEOHead from "@/components/SEOHead";
+import SEOHead from '@/components/SEOHead';
+import HubLayoutV2 from '@/components/hub/HubLayoutV2';
+import HubCardV2 from '@/components/hub/HubCardV2';
+import type { Modality } from '@/components/hub/ModalityBadge';
+import type { CardStatus } from '@/components/hub/StatusBadge';
 
 interface SubSection {
   id: string;
   title: string;
   description: string;
   icon: string;
+  iconColor: string;
+  iconBg: string;
   path: string;
-  gradient: string;
-  badge?: string;
-  badgeColor?: string;
-  ready: boolean;
+  modality: Modality;
+  status: CardStatus;
+  cta?: string;
 }
 
 const subSections: SubSection[] = [
@@ -23,27 +24,36 @@ const subSections: SubSection[] = [
     title: 'Путешествия',
     description: 'Планирование поездок, бюджет, маршруты и чек-листы',
     icon: 'Plane',
+    iconColor: 'text-sky-600',
+    iconBg: 'bg-sky-50 dark:bg-sky-950/40',
     path: '/trips',
-    gradient: 'from-sky-500 to-blue-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'leisure',
     title: 'Досуг',
     description: 'Места для отдыха, развлечения и совместные активности',
     icon: 'MapPin',
+    iconColor: 'text-emerald-600',
+    iconBg: 'bg-emerald-50 dark:bg-emerald-950/40',
     path: '/leisure',
-    gradient: 'from-emerald-500 to-teal-600',
-    ready: true,
+    modality: 'service',
+    status: 'ready',
+    cta: 'Открыть',
   },
   {
     id: 'events',
     title: 'Праздники',
     description: 'Семейные праздники, дни рождения и памятные даты',
     icon: 'PartyPopper',
+    iconColor: 'text-amber-600',
+    iconBg: 'bg-amber-50 dark:bg-amber-950/40',
     path: '/events',
-    gradient: 'from-amber-500 to-orange-600',
-    ready: true,
+    modality: 'family',
+    status: 'ready',
+    cta: 'Открыть',
   },
 ];
 
@@ -52,81 +62,67 @@ export default function LeisureHub() {
 
   return (
     <>
-    <SEOHead title="Досуг — путешествия, события и отдых" description="Планирование путешествий, организация досуга, семейные праздники и события. Яркий отдых для всей семьи." path="/leisure-hub" breadcrumbs={[{ name: "Досуг", path: "/leisure-hub" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 via-blue-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Путешествия и досуг"
-          subtitle="Поездки, развлечения и семейные праздники"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/126eb1fc-4b71-4f1c-87fd-fa88beb6d32d.jpg"
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subSections.map((section) => (
-            <Card
-              key={section.id}
-              className={`group cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] border-2 ${
-                section.ready ? 'border-transparent' : 'border-dashed border-gray-200'
-              } overflow-hidden`}
-              onClick={() => {
-                if (section.ready) {
-                  navigate(section.path);
-                }
-              }}
-            >
-              <CardContent className="p-0">
-                <div className="flex items-stretch">
-                  <div
-                    className={`w-20 min-h-full bg-gradient-to-br ${section.gradient} flex items-center justify-center flex-shrink-0`}
-                  >
-                    <Icon
-                      name={section.icon}
-                      size={32}
-                      className="text-white drop-shadow-sm"
-                    />
-                  </div>
-
-                  <div className="flex-1 p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-bold text-base group-hover:text-sky-700 transition-colors">
-                        {section.title}
-                      </h3>
-                      {section.badge && (
-                        <Badge
-                          variant="secondary"
-                          className={`text-[10px] px-1.5 py-0 ${section.badgeColor || ''}`}
-                        >
-                          {section.badge}
-                        </Badge>
-                      )}
-                      {!section.ready && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] px-1.5 py-0 bg-amber-50 text-amber-600 border-amber-200"
-                        >
-                          Скоро
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-snug">
-                      {section.description}
-                    </p>
-                  </div>
-
-                  <div className="flex items-center pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Icon
-                      name="ChevronRight"
-                      size={20}
-                      className="text-gray-400"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+      <SEOHead
+        title="Досуг — путешествия, события и отдых"
+        description="Планирование путешествий, досуг семьи, праздники и памятные даты. Всё для совместного отдыха."
+        path="/leisure-hub"
+        breadcrumbs={[{ name: 'Досуг', path: '/leisure-hub' }]}
+      />
+      <HubLayoutV2
+        title="Путешествия и досуг"
+        subtitle="Внешний мир — Цикл: Договорённости → Исполнение"
+        description="Поездки, развлечения и праздники. Время вместе как семейная инвестиция."
+        icon="Plane"
+        iconColor="text-sky-600"
+        iconBg="bg-sky-100 dark:bg-sky-900/40"
+        modalities={['service', 'family']}
+        cycleHint="Связан с Финансами и Календарём: бюджет поездки и даты праздников"
+        backgroundClass="bg-gradient-to-b from-sky-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        quickFacts={[
+          { label: 'Сервисов',  value: subSections.length, icon: 'LayoutGrid' },
+          { label: 'Подход',    value: 'Семейный',         icon: 'Users' },
+          { label: 'Связь',     value: 'Финансы · Календарь', icon: 'Link2' },
+          { label: 'Польза',    value: 'Время вместе',     icon: 'Heart' },
+        ]}
+        primaryAction={{
+          label: 'Спланировать поездку',
+          icon: 'Plane',
+          onClick: () => navigate('/trips'),
+        }}
+        secondaryAction={{
+          label: 'Праздники',
+          icon: 'PartyPopper',
+          onClick: () => navigate('/events'),
+        }}
+        relatedLinks={[
+          { label: 'Финансы',   icon: 'Wallet',   path: '/finance' },
+          { label: 'Календарь', icon: 'Calendar', path: '/calendar' },
+          { label: 'Семья',     icon: 'Users',    path: '/family-hub' },
+          { label: 'Госуслуги', icon: 'Landmark', path: '/state-hub' },
+        ]}
+      >
+        <div>
+          <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
+            Сервисы
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {subSections.map(s => (
+              <HubCardV2
+                key={s.id}
+                icon={s.icon}
+                iconColor={s.iconColor}
+                iconBg={s.iconBg}
+                title={s.title}
+                description={s.description}
+                modality={s.modality}
+                status={s.status}
+                cta={s.cta}
+                onClick={() => navigate(s.path)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </div>
+      </HubLayoutV2>
     </>
   );
 }
