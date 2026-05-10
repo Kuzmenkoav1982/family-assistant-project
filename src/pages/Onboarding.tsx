@@ -171,18 +171,18 @@ export default function Onboarding() {
 
   const stepConfig = [
     {
-      title: `${familyName ? familyName + ', добро' : 'Добро'} пожаловать!`,
-      subtitle: 'Какой размер вашей семьи?',
+      title: `${familyName ? familyName + ', добро' : 'Добро'} пожаловать в Семейную ОС`,
+      subtitle: 'Начнём со «Сбора» — какой размер вашей семьи?',
       canNext: !!familySize,
     },
     {
       title: 'Пригласите близкого человека',
-      subtitle: 'Приложение работает для всей семьи вместе — отправьте первое приглашение прямо сейчас',
+      subtitle: 'Семейная ОС работает для всей семьи вместе — отправьте первое приглашение прямо сейчас',
       canNext: true,
     },
     {
       title: 'Что для вас важно?',
-      subtitle: 'Выберите то, чем будете пользоваться. Можно изменить потом.',
+      subtitle: 'С каких фаз начнёте? Выберите то, чем будете пользоваться — можно изменить потом.',
       canNext: selectedInterests.length > 0,
     },
   ];
@@ -213,31 +213,73 @@ export default function Onboarding() {
             <p className="text-gray-500 text-sm">{current.subtitle}</p>
           </div>
 
-          {/* ШАГ 1 — Размер семьи */}
+          {/* ШАГ 1 — Размер семьи + интро в концепцию «Семейной ОС» */}
           {step === 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              {FAMILY_SIZE_OPTIONS.map(option => (
-                <button
-                  key={option.id}
-                  onClick={() => setFamilySize(option.id)}
-                  className={`flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all ${
-                    familySize === option.id
-                      ? 'border-orange-500 bg-orange-50 shadow-md'
-                      : 'border-gray-100 hover:border-gray-200 bg-white'
-                  }`}
-                >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    familySize === option.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    <Icon name={option.icon} size={22} />
-                  </div>
-                  <span className={`text-sm font-medium ${
-                    familySize === option.id ? 'text-orange-700' : 'text-gray-700'
-                  }`}>
-                    {option.label}
+            <div className="space-y-5">
+              {/* Мини-интро через 5 циклов */}
+              <div className="rounded-2xl border-2 border-violet-100 bg-gradient-to-br from-violet-50/60 via-white to-fuchsia-50/40 p-3.5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Layers" size={14} className="text-violet-600" />
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-violet-700">
+                    Как устроена «Семейная ОС»
                   </span>
-                </button>
-              ))}
+                </div>
+                <p className="text-xs text-gray-600 leading-relaxed mb-2.5">
+                  Один продукт работает в пяти фазах вашей жизни. Не нужно осваивать всё сразу — двигайтесь по фазам и возвращайтесь, когда нужно.
+                </p>
+                <div className="flex items-stretch gap-1">
+                  {[
+                    { icon: 'Database',        label: 'Сбор',           color: 'from-slate-400 to-slate-600' },
+                    { icon: 'LayoutDashboard', label: 'Картина',        color: 'from-emerald-400 to-teal-500' },
+                    { icon: 'Lightbulb',       label: 'Осмысление',     color: 'from-amber-400 to-orange-500' },
+                    { icon: 'ScrollText',      label: 'Договор.',       color: 'from-fuchsia-400 to-purple-500' },
+                    { icon: 'Target',          label: 'Дело',           color: 'from-blue-400 to-violet-500' },
+                  ].map((c, idx) => (
+                    <div key={c.label} className="flex items-center flex-1 min-w-0">
+                      <div className="flex flex-col items-center gap-0.5 flex-1 min-w-0">
+                        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${c.color} text-white flex items-center justify-center shrink-0`}>
+                          <Icon name={c.icon} size={13} />
+                        </div>
+                        <span className="text-[9px] font-semibold text-gray-600 truncate max-w-full">
+                          {c.label}
+                        </span>
+                      </div>
+                      {idx < 4 && (
+                        <Icon name="ChevronRight" size={11} className="text-violet-300 mx-0.5 shrink-0" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-500 mt-2 text-center italic">
+                  Сейчас сделаем шаг «Сбор» — расскажем, кто в семье. Это запустит вашу личную картину.
+                </p>
+              </div>
+
+              {/* Выбор размера семьи */}
+              <div className="grid grid-cols-2 gap-3">
+                {FAMILY_SIZE_OPTIONS.map(option => (
+                  <button
+                    key={option.id}
+                    onClick={() => setFamilySize(option.id)}
+                    className={`flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all ${
+                      familySize === option.id
+                        ? 'border-orange-500 bg-orange-50 shadow-md'
+                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      familySize === option.id ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      <Icon name={option.icon} size={22} />
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      familySize === option.id ? 'text-orange-700' : 'text-gray-700'
+                    }`}>
+                      {option.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 

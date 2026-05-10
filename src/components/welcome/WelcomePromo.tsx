@@ -10,7 +10,7 @@ export default function WelcomePromo() {
           />
           <div className="px-6 pb-6 sm:pb-0 sm:pr-8 flex flex-col justify-center gap-3">
             <p className="text-2xl font-extrabold text-gray-900 leading-snug">«И всё это — бесплатно. Для каждой семьи!»</p>
-            <p className="text-gray-500 text-sm">Домовёнок собрал 12 направлений семейной жизни в одном приложении. Семья, Здоровье, Питание, Финансы, Путешествия, Быт, Развитие и многое другое — бесплатно.</p>
+            <p className="text-gray-500 text-sm">Домовёнок собрал 12 направлений семейной жизни в одной операционке: Семья, Здоровье, Питание, Финансы, Путешествия, Дом и быт, Развитие, Семейный код и многое другое — бесплатно.</p>
           </div>
         </div>
       </div>

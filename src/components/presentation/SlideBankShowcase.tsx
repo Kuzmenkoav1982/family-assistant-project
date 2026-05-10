@@ -74,7 +74,7 @@ const bankPoints = [
     category: 'Travel',
   },
   {
-    hub: 'Гараж',
+    hub: 'Дом и быт → Транспорт (гараж)',
     hubIcon: 'Car',
     hubColor: '#64748b',
     hubBg: '#f1f5f9',
@@ -101,7 +101,7 @@ const bankPoints = [
     category: 'Дети',
   },
   {
-    hub: 'Быт → Покупки',
+    hub: 'Дом и быт → Покупки',
     hubIcon: 'ShoppingCart',
     hubColor: '#f97316',
     hubBg: '#ffedd5',

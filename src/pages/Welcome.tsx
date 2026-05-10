@@ -17,6 +17,7 @@ import WelcomeDomovoyAI from '@/components/welcome/WelcomeDomovoyAI';
 import WelcomeReviews from '@/components/welcome/WelcomeReviews';
 import WelcomeSecurity from '@/components/welcome/WelcomeSecurity';
 import WelcomeHowToStart from '@/components/welcome/WelcomeHowToStart';
+import WelcomeFamilyOS from '@/components/welcome/WelcomeFamilyOS';
 
 const openTelegramSupport = () => {
   window.open('https://t.me/Nasha7iya', '_blank');
@@ -49,13 +50,15 @@ export default function Welcome() {
   return (
     <div className="min-h-screen bg-white">
       <SEOHead
-        title="Приложение для семьи – мобильное приложение для семейного планирования дел, бесплатно. Вся семейная жизнь в одном месте"
-        description="Вся семейная жизнь в одном приложении: дела, дети, здоровье, бюджет и AI-помощник. Один сервис вместо десяти разрозненных приложений. Календарь, задачи, GPS-маячок семьи, медкарты, списки покупок, меню на неделю. AI-помощник и Яндекс Алиса. Бесплатно для всей семьи без ограничений по участникам — оплата только за AI-функции. Данные хранятся в России. Работает на смартфоне, планшете и компьютере. Для 0+."
+        title="Наша Семья — Семейная операционка. ОС вашей семьи: дела, отношения, здоровье, деньги и смыслы в одном месте"
+        description="Семейная ОС — не просто приложение для задач. Здесь живут профили семьи, отношения, договорённости, здоровье, бюджет и смыслы. От сбора фактов — к общей картине семьи, её осмыслению, договорённостям и ежедневному исполнению. 5 циклов жизни семьи в одном продукте. AI-помощник «Домовой», календарь, GPS-маячок, медкарты, списки покупок, меню. Бесплатно для семьи без ограничений по участникам — оплата только за AI-функции. Данные хранятся в России. Работает в браузере, на смартфоне и планшете. Для 0+."
         path="/"
       />
       <WelcomeHeader isLoggedIn={isLoggedIn} />
 
       <WelcomeHero isLoggedIn={isLoggedIn} />
+
+      <WelcomeFamilyOS />
 
       <WelcomeProblems />
 

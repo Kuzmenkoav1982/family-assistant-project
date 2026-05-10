@@ -49,19 +49,21 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
               <Icon name="Sparkles" size={16} />
-              Единственная платформа для всей семьи
+              Семейная операционка — ОС вашей семьи
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.08] tracking-tight text-gray-900">
-              Вся семейная жизнь<br />
+              Семейная<br />
               <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                в одном приложении
+                операционка
               </span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-600 max-w-xl mb-8 leading-relaxed mx-auto lg:mx-0">
-              Дела, дети, здоровье, бюджет и AI-помощник — для всей семьи.
-              Один сервис вместо десяти разрозненных приложений.
+            <p className="text-lg sm:text-xl text-gray-600 max-w-xl mb-4 leading-relaxed mx-auto lg:mx-0">
+              Не просто «органайзер». Это ОС семьи — где живут профили, отношения, договорённости, здоровье, бюджет и смыслы. От картины семьи — к договорённостям и ежедневному исполнению.
+            </p>
+            <p className="text-base text-gray-500 max-w-xl mb-8 leading-relaxed mx-auto lg:mx-0">
+              Единый ритм для всех: вы видите общую картину, договариваетесь о важном и спокойно делаете семейные дела вместе.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center lg:items-start justify-center lg:justify-start gap-3">

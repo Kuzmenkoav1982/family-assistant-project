@@ -89,12 +89,12 @@ const hubs = [
     ],
   },
   {
-    name: 'Быт',
+    name: 'Дом и быт',
     icon: 'Home',
     color: 'from-orange-500 to-amber-500',
     bg: 'bg-orange-50',
     border: 'border-orange-200',
-    sections: ['Покупки', 'Голосования', 'Гараж'],
+    sections: ['Покупки', 'Голосования', 'Транспорт', 'Дом'],
   },
   {
     name: 'Путешествия',

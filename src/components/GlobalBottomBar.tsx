@@ -24,7 +24,7 @@ const HUB_ITEMS: NavItem[] = [
   { id: 'values', path: '/values-hub', icon: 'Heart', label: 'Ценности' },
   { id: 'planning', path: '/planning-hub', icon: 'Target', label: 'Планирование' },
   { id: 'finance', path: '/finance', icon: 'Wallet', label: 'Финансы' },
-  { id: 'household', path: '/household-hub', icon: 'Home', label: 'Быт' },
+  { id: 'household', path: '/household-hub', icon: 'Home', label: 'Дом и быт' },
   { id: 'leisure', path: '/leisure-hub', icon: 'Plane', label: 'Путешествия' },
   { id: 'development', path: '/development-hub', icon: 'Brain', label: 'Развитие' },
   { id: 'family-matrix', path: '/family-matrix', icon: 'Sparkles', label: 'Семейный код' },
