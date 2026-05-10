@@ -131,6 +131,7 @@ export const SlideLiveLoops = () => {
             <p className="text-[12px] text-gray-700 leading-relaxed mb-2">
               Backend-агрегатор <code className="text-[10px] bg-white px-1 py-0.5 rounded border">domovoy-context</code> собирает живой срез семьи (финансы, дом, покупки, задачи, события)
               и передаёт ИИ перед каждым ответом. ИИ называет конкретные суммы, имена, даты — а не абстрактные советы.
+              Доступен голосовой ввод (Web Speech API, ru-RU) — можно говорить, не отвлекаясь от дел.
             </p>
             <div className="text-[11px] text-violet-700 italic bg-white/60 rounded-lg p-2 border border-violet-100">
               «Алексей, у вас 2 неоплаченных счёта на 4 850 ₽: электричество и вода. Также есть кредит «Ипотека» с остатком 1.8 млн ₽ и платежом 24 000 ₽/мес. Хотите план оптимизации?»

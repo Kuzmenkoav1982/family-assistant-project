@@ -8,6 +8,8 @@ import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
 import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
 import { getDomovoyImageByRole, getRoleAvatarBg, DOMOVOY_DEFAULT_IMAGE } from '@/lib/domovoyRoleImages';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import MicButton from '@/components/ui/mic-button';
 import Icon from '@/components/ui/icon';
 import {
   DropdownMenu,
@@ -65,6 +67,33 @@ const AIAssistantWidget = () => {
   const { members } = useFamilyMembersContext();
   // Живой контекст загружаем когда чат открыт
   const { data: liveCtx, isReady: ctxReady } = useDomovoyContext(isOpen);
+
+  // Голосовой ввод
+  const {
+    isSupported: micSupported,
+    isListening,
+    interim,
+    error: micError,
+    start: micStart,
+    stop: micStop,
+    reset: micReset,
+  } = useSpeechRecognition({
+    onFinalResult: (text) => {
+      setInput(prev => (prev ? prev + ' ' : '') + text);
+    },
+  });
+
+  useEffect(() => {
+    if (!isOpen && isListening) micStop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (micError) {
+      toast({ title: 'Микрофон', description: micError });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [micError]);
 
   // Перетаскивание виджета (десктоп - для окна чата)
   const [position, setPosition] = useState(() => {
@@ -881,12 +910,25 @@ const AIAssistantWidget = () => {
 
               {/* Input */}
               <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-white border-t border-gray-100 md:rounded-b-2xl flex-shrink-0">
-                <div className="flex gap-2">
+                {isListening && interim && (
+                  <div className="mb-2 px-2 py-1 rounded-lg bg-red-50 border border-red-100 text-[12px] text-red-700 italic truncate">
+                    «{interim}…»
+                  </div>
+                )}
+                <div className="flex gap-2 items-end">
+                  <MicButton
+                    isSupported={micSupported}
+                    isListening={isListening}
+                    onStart={() => { micReset(); micStart(); }}
+                    onStop={micStop}
+                    disabled={isLoading}
+                    className="self-end"
+                  />
                   <Textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Напишите сообщение..."
+                    placeholder={isListening ? 'Говорите…' : 'Напишите сообщение...'}
                     className="flex-1 min-h-[44px] max-h-[80px] resize-none text-sm border border-gray-200 focus:border-orange-400 rounded-xl text-base"
                     disabled={isLoading}
                   />

@@ -275,6 +275,13 @@ const ROADMAP_STEPS: ProgressStep[] = [
     icon: "Users",
     status: "done",
   },
+  {
+    id: "domovoy-voice",
+    label: "Голосовой ввод Домовому",
+    hint: "Web Speech API · ru-RU · непрерывная диктовка · бесплатно",
+    icon: "Mic",
+    status: "done",
+  },
 ];
 
 function StatusBadge({ status }: { status: RealEntryStatus }) {

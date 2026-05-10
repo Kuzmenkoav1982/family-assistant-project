@@ -11,6 +11,8 @@ import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
 import { getDomovoyImageByRole, getRoleAvatarBg } from '@/lib/domovoyRoleImages';
 import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import MicButton from '@/components/ui/mic-button';
 import func2url from '../../backend/func2url.json';
 
 interface Message {
@@ -81,6 +83,33 @@ export default function SectionAIAdvisor({
 
   // Живой контекст семьи (загружаем только когда диалог открыт)
   const { data: liveCtx, isReady: ctxReady } = useDomovoyContext(open);
+
+  // Голосовой ввод
+  const {
+    isSupported: micSupported,
+    isListening,
+    interim,
+    error: micError,
+    start: micStart,
+    stop: micStop,
+    reset: micReset,
+  } = useSpeechRecognition({
+    onFinalResult: (text) => {
+      setInput(prev => (prev ? prev + ' ' : '') + text);
+    },
+  });
+
+  useEffect(() => {
+    if (!open && isListening) micStop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  useEffect(() => {
+    if (micError) {
+      toast({ title: 'Микрофон', description: micError });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [micError]);
 
   useEffect(() => {
     try {
@@ -338,9 +367,21 @@ export default function SectionAIAdvisor({
           )}
 
           <div className="p-3 border-t bg-white flex flex-col gap-2">
-            <div className="flex gap-2">
+            {isListening && interim && (
+              <div className="px-2 py-1 rounded-lg bg-red-50 border border-red-100 text-[12px] text-red-700 italic truncate">
+                «{interim}…»
+              </div>
+            )}
+            <div className="flex gap-2 items-center">
+              <MicButton
+                isSupported={micSupported}
+                isListening={isListening}
+                onStart={() => { micReset(); micStart(); }}
+                onStop={micStop}
+                disabled={loading}
+              />
               <Input
-                placeholder={placeholder}
+                placeholder={isListening ? 'Говорите…' : placeholder}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && !loading && sendMessage()}
