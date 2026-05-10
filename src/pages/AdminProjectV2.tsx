@@ -31,15 +31,17 @@ import {
   type RealEntryStatus,
   type RealNodeType,
 } from "@/data/projectV2/asIsReality";
+import { LIFE_CYCLES, type LifeCycle, type LifeCycleId } from "@/data/projectV2/lifeCycles";
 
 // ─────────────────────────────────────────
 // Типы и константы
 // ─────────────────────────────────────────
-type Mode = "as-is" | "after" | "compare" | "conflicts";
+type Mode = "as-is" | "after" | "cycles" | "compare" | "conflicts";
 
 const MODES: Array<{ id: Mode; label: string; icon: string }> = [
   { id: "as-is",     label: "Как есть сейчас",   icon: "Eye" },
   { id: "after",     label: "После изменений",    icon: "Sparkles" },
+  { id: "cycles",    label: "Циклы",              icon: "RefreshCcw" },
   { id: "compare",   label: "Сравнение",          icon: "ArrowLeftRight" },
   { id: "conflicts", label: "Конфликты",          icon: "AlertTriangle" },
 ];
@@ -889,6 +891,184 @@ function AfterMode({
         </div>
       </div>
     </div>
+  );
+}
+
+// ─────────────────────────────────────────
+// РЕЖИМ: Циклы (5 жизненных фаз семьи)
+// Смысловая модель поверх хабов: Сбор → Панорама →
+// Осмысление → Договорённости → Исполнение → (петля).
+// ─────────────────────────────────────────
+function CyclesMode({
+  selectedCycle,
+  onCycleClick,
+}: {
+  selectedCycle: LifeCycleId | null;
+  onCycleClick: (id: LifeCycleId) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Подводка */}
+      <div className="text-xs text-slate-600 bg-gradient-to-r from-violet-50 to-fuchsia-50 border border-violet-200 rounded-lg px-3 py-2.5 leading-relaxed">
+        <span className="font-bold text-slate-800">Жизненные циклы семьи.</span>{" "}
+        Поверх предметных хабов работает 5 фаз жизни семьи: от сбора фактов до исполнения и обратной связи.
+        Это смысловая модель продукта — она помогает понять, <span className="italic">зачем</span> каждый раздел существует,
+        а не только <span className="italic">где</span> он лежит. Один хаб может работать в нескольких фазах одновременно.
+      </div>
+
+      {/* Лента циклов */}
+      <div className="flex flex-col gap-2">
+        {LIFE_CYCLES.map((cycle, idx) => (
+          <CycleCard
+            key={cycle.id}
+            cycle={cycle}
+            isSelected={selectedCycle === cycle.id}
+            onClick={() => onCycleClick(cycle.id)}
+            isLast={idx === LIFE_CYCLES.length - 1}
+          />
+        ))}
+      </div>
+
+      {/* Петля обратной связи */}
+      <div className="rounded-xl border-2 border-dashed border-slate-300 bg-white px-4 py-3 flex items-start gap-3">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white shrink-0">
+          <Icon name="RefreshCcw" size={16} />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-bold text-slate-700">Петля обратной связи</p>
+          <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">
+            Результаты <span className="font-semibold text-blue-700">Исполнения</span> (выполненные задачи, потраченные деньги,
+            пройденные привычки, состоявшиеся поездки) возвращаются в <span className="font-semibold text-slate-700">Сбор</span> как
+            новые факты. Семья видит обновлённую картину — цикл запускается заново.
+          </p>
+        </div>
+      </div>
+
+      {/* Принципы использования модели */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div className="rounded-xl border border-slate-200 bg-white p-3">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Icon name="Compass" size={13} className="text-violet-600" />
+            <p className="text-[11px] font-bold text-slate-700">Зачем эта карта</p>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Единый язык для команды: куда добавлять фичу, в какой фазе семьи она работает, какую ценность даёт.
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-3">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Icon name="Layers" size={13} className="text-emerald-600" />
+            <p className="text-[11px] font-bold text-slate-700">Как читать</p>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Циклы — горизонтальный разрез поверх вертикальных хабов. Один хаб может жить сразу в нескольких фазах.
+          </p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-3">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <Icon name="Target" size={13} className="text-amber-600" />
+            <p className="text-[11px] font-bold text-slate-700">Что это даёт</p>
+          </div>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            Помогает не превращать продукт в свалку фич: каждая идея получает место в одной из 5 фаз.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CycleCard({
+  cycle,
+  isSelected,
+  onClick,
+  isLast,
+}: {
+  cycle: LifeCycle;
+  isSelected: boolean;
+  onClick: () => void;
+  isLast: boolean;
+}) {
+  return (
+    <>
+      <button
+        onClick={onClick}
+        className={`text-left rounded-xl border-2 transition-all ${cycle.bg} ${
+          isSelected ? `${cycle.border} shadow-md ring-2 ring-offset-1 ring-violet-300` : `${cycle.border} hover:shadow-sm`
+        }`}
+      >
+        <div className="flex items-start gap-3 p-3">
+          {/* Порядковый номер + иконка */}
+          <div className="flex flex-col items-center gap-1 shrink-0">
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${cycle.color} flex items-center justify-center text-white shadow`}>
+              <Icon name={cycle.icon} size={18} />
+            </div>
+            <span className={`text-[10px] font-bold ${cycle.textAccent}`}>Фаза {cycle.order}</span>
+          </div>
+
+          {/* Тело */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <h3 className={`text-sm font-bold ${cycle.textAccent}`}>{cycle.title}</h3>
+              <span className="text-[11px] text-slate-500 italic">{cycle.subtitle}</span>
+            </div>
+            <p className="text-[11px] text-slate-700 mt-1 font-medium italic">«{cycle.question}»</p>
+            <p className="text-[11px] text-slate-600 mt-1.5 leading-relaxed">{cycle.description}</p>
+
+            {/* Хабы фазы */}
+            <div className="mt-2 flex flex-wrap gap-1">
+              {cycle.hubs.map((h) => (
+                <span
+                  key={h.hubId + h.label}
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold ${
+                    h.primary
+                      ? "bg-white border-slate-300 text-slate-700"
+                      : "bg-white/60 border-slate-200 text-slate-500"
+                  }`}
+                  title={h.role}
+                >
+                  {h.primary && <span className="mr-1">●</span>}
+                  {h.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Развёрнутая часть — роли хабов */}
+        {isSelected && (
+          <div className="border-t-2 border-dashed border-white/60 px-3 py-2.5 bg-white/50">
+            <p className="text-[10px] font-bold uppercase text-slate-500 mb-1.5">Роли хабов в этой фазе</p>
+            <ul className="flex flex-col gap-1">
+              {cycle.hubs.map((h) => (
+                <li key={h.hubId + h.label} className="text-[11px] flex items-baseline gap-2">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-semibold shrink-0 ${
+                    h.primary ? "bg-white border-slate-300 text-slate-700" : "bg-slate-50 border-slate-200 text-slate-500"
+                  }`}>
+                    {h.label}
+                  </span>
+                  <span className="text-slate-600 leading-snug">{h.role}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </button>
+
+      {/* Стрелка между циклами */}
+      {!isLast && (
+        <div className="flex items-center gap-2 px-4 py-0.5">
+          <Icon name="ChevronDown" size={14} className="text-slate-400" />
+          <span className="text-[10px] text-slate-400 italic">{cycle.nextHint}</span>
+        </div>
+      )}
+      {isLast && (
+        <div className="flex items-center gap-2 px-4 py-0.5">
+          <Icon name="RefreshCcw" size={14} className="text-slate-400" />
+          <span className="text-[10px] text-slate-400 italic">{cycle.nextHint}</span>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1873,6 +2053,8 @@ export default function AdminProjectV2() {
   const [navHistory, setNavHistory] = useState<SectionV2[]>([]);
   // Выбранная строка из режима «Как есть»
   const [selectedReal, setSelectedReal] = useState<{ hub: RealHub; row: RealRow; key: string } | null>(null);
+  // Выбранный цикл в режиме «Циклы»
+  const [selectedCycle, setSelectedCycle] = useState<LifeCycleId | null>(null);
 
   // Навигация вперёд — сохраняем текущую в историю, открываем новую
   const handleNavigate = (s: SectionV2) => {
@@ -1918,6 +2100,11 @@ export default function AdminProjectV2() {
     setSelectedFlow(null);
     setNavHistory([]);
     setSelectedReal(null);
+    setSelectedCycle(null);
+  };
+
+  const handleCycleClick = (id: LifeCycleId) => {
+    setSelectedCycle((prev) => (prev === id ? null : id));
   };
 
   // Клик по строке режима «Как есть»
@@ -2023,6 +2210,12 @@ export default function AdminProjectV2() {
                 onSectionClick={handleSectionClick}
                 selectedFlow={selectedFlow}
                 onFlowClick={handleFlowClick}
+              />
+            )}
+            {mode === "cycles"    && (
+              <CyclesMode
+                selectedCycle={selectedCycle}
+                onCycleClick={handleCycleClick}
               />
             )}
             {mode === "compare"   && <CompareMode />}
