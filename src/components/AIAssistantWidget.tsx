@@ -584,11 +584,11 @@ const AIAssistantWidget = () => {
             </button>
             <div className="flex items-start gap-3">
               {assistantType === 'domovoy' ? (
-                <div className={`relative overflow-hidden border-4 border-orange-400 flex-shrink-0 rounded-2xl w-20 h-20 flex items-center justify-center ${getRoleInfo(kuzyaRole).bg}`}>
+                <div className="relative overflow-hidden border-4 border-orange-400 flex-shrink-0 rounded-2xl w-20 h-20 bg-white">
                   <img
                     src={getRoleInfo(kuzyaRole).image}
                     alt={getRoleInfo(kuzyaRole).name}
-                    className="w-full h-full pointer-events-none object-contain"
+                    className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
                   />
@@ -647,11 +647,11 @@ const AIAssistantWidget = () => {
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3 min-w-0">
                 {assistantType === 'domovoy' ? (
-                  <div className={`relative overflow-hidden border-2 border-orange-300 rounded-xl w-14 h-14 flex-shrink-0 flex items-center justify-center ${getRoleInfo(kuzyaRole).bg}`}>
+                  <div className="relative overflow-hidden border-2 border-orange-300 rounded-xl w-14 h-14 flex-shrink-0 bg-white">
                     <img
                       src={getRoleInfo(kuzyaRole).image}
                       alt={getRoleInfo(kuzyaRole).name}
-                      className="w-full h-full pointer-events-none object-contain"
+                      className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                     />
@@ -797,11 +797,11 @@ const AIAssistantWidget = () => {
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
-                      <div className={`w-32 h-32 rounded-3xl border-4 border-orange-400 mx-auto mb-4 flex items-center justify-center overflow-hidden ${getRoleInfo(kuzyaRole).bg}`}>
+                      <div className="w-32 h-32 rounded-3xl border-4 border-orange-400 mx-auto mb-4 overflow-hidden bg-white">
                         <img
                           src={getRoleInfo(kuzyaRole).image}
                           alt={getRoleInfo(kuzyaRole).name}
-                          className="w-full h-full pointer-events-none object-contain"
+                          className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
                           draggable={false}
                           onContextMenu={(e) => e.preventDefault()}
                         />
@@ -975,11 +975,11 @@ const AIAssistantWidget = () => {
           } ${isButtonDragging ? 'scale-110' : 'hover:scale-105 animate-bounce-subtle'}`}
         >
           {assistantType === 'domovoy' ? (
-            <div className={`w-full h-full flex items-center justify-center ${getRoleInfo(kuzyaRole).bg}`}>
+            <div className="w-full h-full bg-white overflow-hidden">
               <img
                 src={getRoleInfo(kuzyaRole).image}
                 alt={getRoleInfo(kuzyaRole).name}
-                className="w-full h-full pointer-events-none object-contain"
+                className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
               />

@@ -261,11 +261,11 @@ export default function SectionAIAdvisor({
       >
         <CardContent className="p-3">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ${avatarBg} border-2 border-white/50 flex items-center justify-center overflow-hidden flex-shrink-0`}>
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-2 border-white/50 overflow-hidden flex-shrink-0">
               <img
                 src={resolvedImage}
                 alt={title}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover scale-[1.8] origin-top"
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -284,8 +284,8 @@ export default function SectionAIAdvisor({
         <DialogContent className="max-w-lg w-[calc(100vw-1rem)] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
           <DialogHeader className={`p-4 ${accentBg} ${accentBorder} border-b`}>
             <DialogTitle className="flex items-center gap-3">
-              <div className={`w-16 h-16 rounded-2xl ${avatarBg} flex items-center justify-center overflow-hidden flex-shrink-0`}>
-                <img src={resolvedImage} alt={title} className="w-full h-full object-contain" />
+              <div className="w-16 h-16 rounded-2xl bg-white overflow-hidden flex-shrink-0">
+                <img src={resolvedImage} alt={title} className="w-full h-full object-cover scale-[1.8] origin-top" />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className={`text-base font-bold ${accentText}`}>{title}</div>
