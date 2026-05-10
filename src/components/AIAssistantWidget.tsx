@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
 import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
-import { getDomovoyImageByRole, getRoleAvatarBg, DOMOVOY_DEFAULT_IMAGE } from '@/lib/domovoyRoleImages';
+import { getDomovoyImageByRole, getRoleAvatarBg, getRoleImageClass, DOMOVOY_DEFAULT_IMAGE } from '@/lib/domovoyRoleImages';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import MicButton from '@/components/ui/mic-button';
 import Icon from '@/components/ui/icon';
@@ -584,11 +584,11 @@ const AIAssistantWidget = () => {
             </button>
             <div className="flex items-start gap-3">
               {assistantType === 'domovoy' ? (
-                <div className="relative overflow-hidden border-4 border-orange-400 flex-shrink-0 rounded-2xl w-20 h-20 bg-white">
+                <div className={`relative overflow-hidden border-4 border-orange-400 flex-shrink-0 rounded-2xl w-20 h-20 ${getRoleInfo(kuzyaRole).bg}`}>
                   <img
                     src={getRoleInfo(kuzyaRole).image}
                     alt={getRoleInfo(kuzyaRole).name}
-                    className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
+                    className={`pointer-events-none ${getRoleImageClass(kuzyaRole)}`}
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
                   />
@@ -647,11 +647,11 @@ const AIAssistantWidget = () => {
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3 min-w-0">
                 {assistantType === 'domovoy' ? (
-                  <div className="relative overflow-hidden border-2 border-orange-300 rounded-xl w-14 h-14 flex-shrink-0 bg-white">
+                  <div className={`relative overflow-hidden border-2 border-orange-300 rounded-xl w-14 h-14 flex-shrink-0 ${getRoleInfo(kuzyaRole).bg}`}>
                     <img
                       src={getRoleInfo(kuzyaRole).image}
                       alt={getRoleInfo(kuzyaRole).name}
-                      className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
+                      className={`pointer-events-none ${getRoleImageClass(kuzyaRole)}`}
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                     />
@@ -797,11 +797,11 @@ const AIAssistantWidget = () => {
                 {messages.length === 0 ? (
                   <div className="text-center py-8">
                     {assistantType === 'domovoy' ? (
-                      <div className="w-32 h-32 rounded-3xl border-4 border-orange-400 mx-auto mb-4 overflow-hidden bg-white">
+                      <div className={`w-32 h-32 rounded-3xl border-4 border-orange-400 mx-auto mb-4 overflow-hidden ${getRoleInfo(kuzyaRole).bg}`}>
                         <img
                           src={getRoleInfo(kuzyaRole).image}
                           alt={getRoleInfo(kuzyaRole).name}
-                          className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
+                          className={`pointer-events-none ${getRoleImageClass(kuzyaRole)}`}
                           draggable={false}
                           onContextMenu={(e) => e.preventDefault()}
                         />
@@ -975,11 +975,11 @@ const AIAssistantWidget = () => {
           } ${isButtonDragging ? 'scale-110' : 'hover:scale-105 animate-bounce-subtle'}`}
         >
           {assistantType === 'domovoy' ? (
-            <div className="w-full h-full bg-white overflow-hidden">
+            <div className={`w-full h-full overflow-hidden ${getRoleInfo(kuzyaRole).bg}`}>
               <img
                 src={getRoleInfo(kuzyaRole).image}
                 alt={getRoleInfo(kuzyaRole).name}
-                className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
+                className={`pointer-events-none ${getRoleImageClass(kuzyaRole)}`}
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
               />

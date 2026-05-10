@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useAIAssistant } from '@/contexts/AIAssistantContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
-import { getDomovoyImageByRole, getRoleAvatarBg } from '@/lib/domovoyRoleImages';
+import { getDomovoyImageByRole, getRoleAvatarBg, getRoleImageClass } from '@/lib/domovoyRoleImages';
 import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import MicButton from '@/components/ui/mic-button';
@@ -261,11 +261,11 @@ export default function SectionAIAdvisor({
       >
         <CardContent className="p-3">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border-2 border-white/50 overflow-hidden flex-shrink-0">
+            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border-2 border-white/50 overflow-hidden flex-shrink-0 ${avatarBg}`}>
               <img
                 src={resolvedImage}
                 alt={title}
-                className="w-full h-full object-cover scale-[1.15] origin-center"
+                className={getRoleImageClass(role)}
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -284,8 +284,8 @@ export default function SectionAIAdvisor({
         <DialogContent className="max-w-lg w-[calc(100vw-1rem)] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
           <DialogHeader className={`p-4 ${accentBg} ${accentBorder} border-b`}>
             <DialogTitle className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-2xl bg-white overflow-hidden flex-shrink-0">
-                <img src={resolvedImage} alt={title} className="w-full h-full object-cover scale-[1.15] origin-center" />
+              <div className={`w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 ${avatarBg}`}>
+                <img src={resolvedImage} alt={title} className={getRoleImageClass(role)} />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className={`text-base font-bold ${accentText}`}>{title}</div>

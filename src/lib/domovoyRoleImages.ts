@@ -18,15 +18,23 @@ export const DOMOVOY_ROLE_IMAGES: Record<string, string> = {
   psychologist:       'https://cdn.poehali.dev/files/8b102ef8-7799-48fc-98c0-e7f34033f7b9.jpg',
   artist:             'https://cdn.poehali.dev/files/b95d2735-80f4-49e4-8072-7a4d68a35d89.jpg',
   mentor:             'https://cdn.poehali.dev/files/724a6dc3-10f0-44de-ad67-7254220159b4.jpg',
-  'financial-advisor':'https://cdn.poehali.dev/files/8407c014-1874-46d8-946e-8ffa5646a3ef.jpg',
-  astrologer:         'https://cdn.poehali.dev/files/00fa2eef-0756-4afc-b333-9784567399aa.jpg',
-  'family-assistant': 'https://cdn.poehali.dev/files/eb99d25a-b4b5-4eae-94e8-e5dcaafd14eb.jpg',
+  'financial-advisor':'https://cdn.poehali.dev/files/45d1924a-493d-462d-8daf-fffeef7da6d5.jpg',
+  astrologer:         'https://cdn.poehali.dev/files/7e5c4a6c-ab5a-4418-afc3-29c44dddba1c.jpg',
+  'family-assistant': 'https://cdn.poehali.dev/files/d404a167-ee74-4fd2-bd0f-edb33a7676a8.jpg',
 };
+
+/**
+ * Роли, у которых Домовой нарисован во весь рост — нужен меньший zoom,
+ * чтобы было видно фигурку целиком вместе с атрибутами и иконками.
+ */
+export const FULL_BODY_ROLES = new Set<string>([
+  'family-assistant',
+]);
 
 // Дефолтная картинка Домового (если роль не указана или не нашлась)
 // Семейный помощник — универсальный образ, наиболее «домовой» из всех.
 export const DOMOVOY_DEFAULT_IMAGE =
-  'https://cdn.poehali.dev/files/eb99d25a-b4b5-4eae-94e8-e5dcaafd14eb.jpg';
+  'https://cdn.poehali.dev/files/d404a167-ee74-4fd2-bd0f-edb33a7676a8.jpg';
 
 export const getDomovoyImageByRole = (role?: string): string => {
   if (!role) return DOMOVOY_DEFAULT_IMAGE;
@@ -59,4 +67,16 @@ export const ROLE_AVATAR_BG: Record<string, string> = {
 export const getRoleAvatarBg = (role?: string): string => {
   if (!role) return 'bg-gray-100';
   return ROLE_AVATAR_BG[role] || 'bg-gray-100';
+};
+
+/**
+ * Возвращает CSS-класс для изображения Домового в аватарке.
+ * Для ролей во весь рост используем contain без zoom — чтобы было видно
+ * фигуру целиком и иконки вокруг. Для остальных — лёгкий zoom для крупного плана.
+ */
+export const getRoleImageClass = (role?: string): string => {
+  if (role && FULL_BODY_ROLES.has(role)) {
+    return 'w-full h-full object-contain';
+  }
+  return 'w-full h-full object-cover scale-[1.15] origin-center';
 };
