@@ -83,7 +83,7 @@ type AsIsFilter = "all" | "diff" | "hub" | "service" | "content";
 
 const AS_IS_FILTERS: Array<{ id: AsIsFilter; label: string; icon: string }> = [
   { id: "all",     label: "Все",                 icon: "List" },
-  { id: "diff",    label: "Только расхождения",  icon: "AlertCircle" },
+  { id: "diff",    label: "Требуют внимания",    icon: "AlertCircle" },
   { id: "hub",     label: "Только хабы",         icon: "LayoutGrid" },
   { id: "service", label: "Сервисные",           icon: "Settings" },
   { id: "content", label: "Контентные",          icon: "FileText" },
@@ -133,6 +133,7 @@ function HubAsIsCard({
 }) {
   const counters = countHub(hub);
   const discrepancies = getDiscrepancies(hub);
+  const aiBlocks = hub.rows.filter((r) => r.status === "hero-ai");
   const isHub = hub.type === "hub";
 
   return (
@@ -162,9 +163,14 @@ function HubAsIsCard({
                 <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-medium">
                   На хабе: {counters.hub}
                 </span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${counters.diff > 0 ? "bg-red-500/40" : "bg-white/20"}`}>
-                  Расхождений: {counters.diff}
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${counters.diff > 0 ? "bg-red-500/40" : "bg-emerald-500/40"}`}>
+                  {counters.diff > 0 ? `Требуют внимания: ${counters.diff}` : "Всё в порядке"}
                 </span>
+                {counters.aiBlocks > 0 && (
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium bg-violet-500/40">
+                    ИИ-блоков: {counters.aiBlocks}
+                  </span>
+                )}
               </>
             )}
           </div>
@@ -213,11 +219,11 @@ function HubAsIsCard({
             })}
           </div>
 
-          {/* Расхождения */}
+          {/* Требуют внимания */}
           {discrepancies.length > 0 && (
             <div className="px-3 py-2 bg-amber-50 border-t border-amber-200">
               <p className="text-[10px] font-bold uppercase text-amber-700 mb-1">
-                Расхождения ({discrepancies.length})
+                Требуют внимания ({discrepancies.length})
               </p>
               <ul className="flex flex-col gap-0.5">
                 {discrepancies.map((r) => (
@@ -236,6 +242,28 @@ function HubAsIsCard({
                       )}
                       {r.crossHubOn && <> · показан также на «{r.crossHubOn}»</>}
                       {r.note && <span className="text-amber-600"> · {r.note}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* ИИ-блоки (нормальная hero-секция, не баг) */}
+          {aiBlocks.length > 0 && (
+            <div className="px-3 py-2 bg-violet-50 border-t border-violet-200">
+              <p className="text-[10px] font-bold uppercase text-violet-700 mb-1">
+                ИИ-блоки на странице ({aiBlocks.length})
+              </p>
+              <ul className="flex flex-col gap-0.5">
+                {aiBlocks.map((r) => (
+                  <li key={`${hub.id}-ai-${hub.rows.indexOf(r)}`}>
+                    <button
+                      onClick={() => onRowClick(hub, r)}
+                      className="w-full text-left text-[10px] text-violet-800 leading-snug hover:bg-violet-100 rounded px-1 py-0.5 transition-colors"
+                    >
+                      <span className="font-semibold">«{r.hub}»</span>
+                      {r.note && <span className="text-violet-600"> · {r.note}</span>}
                     </button>
                   </li>
                 ))}
@@ -347,30 +375,37 @@ function AsIsMode({
         const c = countHub(h);
         acc.hubs += 1;
         acc.diff += c.diff;
+        acc.aiBlocks += c.aiBlocks;
       } else if (h.type === "service") acc.service += 1;
       else if (h.type === "content") acc.content += 1;
       return acc;
     },
-    { hubs: 0, service: 0, content: 0, diff: 0 }
+    { hubs: 0, service: 0, content: 0, diff: 0, aiBlocks: 0 }
   );
 
   return (
     <div className="flex flex-col gap-4">
       <div className="text-xs text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 leading-relaxed">
         <span className="font-bold text-slate-800">Фактическая карта продукта.</span>{" "}
-        Слева — реальное левое меню (гармошка), справа — реальная страница хаба. Расхождения между ними не скрываются, а маркируются явно.
+        Слева — реальное левое меню (гармошка), справа — реальная страница хаба.
+        В «Требуют внимания» попадают только реальные несоответствия (другое название, только в меню, только на хабе, кросс-хаб).
+        ИИ-блоки и точки входа считаются нормой и вынесены отдельно.
         Бейджи будущих ролей оставлены как вторичный слой.
       </div>
 
       {/* Сводка */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
           <div className="text-[9px] font-bold uppercase text-slate-400">Хабов</div>
           <div className="text-lg font-bold text-slate-800">{totals.hubs}</div>
         </div>
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-          <div className="text-[9px] font-bold uppercase text-red-500">Всего расхождений</div>
-          <div className="text-lg font-bold text-red-700">{totals.diff}</div>
+        <div className={`rounded-lg border px-3 py-2 ${totals.diff > 0 ? "border-red-200 bg-red-50" : "border-emerald-200 bg-emerald-50"}`}>
+          <div className={`text-[9px] font-bold uppercase ${totals.diff > 0 ? "text-red-500" : "text-emerald-600"}`}>Требуют внимания</div>
+          <div className={`text-lg font-bold ${totals.diff > 0 ? "text-red-700" : "text-emerald-700"}`}>{totals.diff}</div>
+        </div>
+        <div className="rounded-lg border border-violet-200 bg-violet-50 px-3 py-2">
+          <div className="text-[9px] font-bold uppercase text-violet-500">ИИ-блоков</div>
+          <div className="text-lg font-bold text-violet-700">{totals.aiBlocks}</div>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
           <div className="text-[9px] font-bold uppercase text-slate-400">Сервисных</div>

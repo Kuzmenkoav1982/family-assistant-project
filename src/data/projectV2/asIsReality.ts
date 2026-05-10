@@ -393,8 +393,8 @@ export const STATUS_META: Record<
   "menu-only":{ label: "Только в меню",    cls: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500" },
   "hub-only": { label: "Только на хабе",   cls: "bg-orange-50 text-orange-700 border-orange-200",    dot: "bg-orange-500" },
   "cross-hub":{ label: "Кросс-хаб",        cls: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500" },
-  "hero-ai":  { label: "Hero / AI-блок",   cls: "bg-purple-50 text-purple-700 border-purple-200",    dot: "bg-purple-500" },
-  "hub-root": { label: "Корень хаба",      cls: "bg-slate-100 text-slate-600 border-slate-200",      dot: "bg-slate-400" },
+  "hero-ai":  { label: "ИИ-блок",          cls: "bg-violet-50 text-violet-700 border-violet-200",    dot: "bg-violet-500" },
+  "hub-root": { label: "Точка входа",      cls: "bg-slate-50 text-slate-600 border-slate-200",       dot: "bg-slate-400" },
 };
 
 export const TYPE_META: Record<
@@ -409,22 +409,42 @@ export const TYPE_META: Record<
 
 // ─────────────────────────────────────────────────────────────
 // Утилиты подсчёта
+//
+// Считаются "расхождениями" только реально требующие внимания статусы:
+// rename, menu-only, hub-only, cross-hub.
+// Нормальные технические статусы НЕ учитываются:
+//   • hero-ai  — намеренный AI/hero-блок на странице (ИИ-помощник)
+//   • hub-root — пункт меню = сама страница хаба (точка входа)
 // ─────────────────────────────────────────────────────────────
+const NORMAL_STATUSES = new Set<RealEntryStatus>(["match", "hero-ai", "hub-root"]);
+
 export interface HubCounters {
   menu: number;
   hub: number;
   diff: number;
+  aiBlocks: number;
   hasNameMismatch: boolean;
 }
 
 export function countHub(h: RealHub): HubCounters {
   const menu = h.rows.filter((r) => r.menu !== null).length;
   const hub = h.rows.filter((r) => r.hub !== null).length;
-  const diff = h.rows.filter((r) => r.status !== "match").length;
+  const diff = h.rows.filter((r) => !NORMAL_STATUSES.has(r.status)).length;
+  const aiBlocks = h.rows.filter((r) => r.status === "hero-ai").length;
   const hasNameMismatch = !!h.hubLabel && h.hubLabel !== h.menuLabel;
-  return { menu, hub, diff: diff + (hasNameMismatch ? 1 : 0), hasNameMismatch };
+  return {
+    menu,
+    hub,
+    diff: diff + (hasNameMismatch ? 1 : 0),
+    aiBlocks,
+    hasNameMismatch,
+  };
 }
 
 export function getDiscrepancies(h: RealHub): RealRow[] {
-  return h.rows.filter((r) => r.status !== "match");
+  return h.rows.filter((r) => !NORMAL_STATUSES.has(r.status));
+}
+
+export function getAiBlocks(h: RealHub): RealRow[] {
+  return h.rows.filter((r) => r.status === "hero-ai");
 }
