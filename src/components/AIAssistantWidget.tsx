@@ -588,7 +588,7 @@ const AIAssistantWidget = () => {
                   <img
                     src={getRoleInfo(kuzyaRole).image}
                     alt={getRoleInfo(kuzyaRole).name}
-                    className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
+                    className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
                     draggable={false}
                     onContextMenu={(e) => e.preventDefault()}
                   />
@@ -651,7 +651,7 @@ const AIAssistantWidget = () => {
                     <img
                       src={getRoleInfo(kuzyaRole).image}
                       alt={getRoleInfo(kuzyaRole).name}
-                      className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
+                      className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                     />
@@ -801,7 +801,7 @@ const AIAssistantWidget = () => {
                         <img
                           src={getRoleInfo(kuzyaRole).image}
                           alt={getRoleInfo(kuzyaRole).name}
-                          className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
+                          className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
                           draggable={false}
                           onContextMenu={(e) => e.preventDefault()}
                         />
@@ -979,7 +979,7 @@ const AIAssistantWidget = () => {
               <img
                 src={getRoleInfo(kuzyaRole).image}
                 alt={getRoleInfo(kuzyaRole).name}
-                className="w-full h-full pointer-events-none object-cover scale-[1.8] origin-top"
+                className="w-full h-full pointer-events-none object-cover scale-[1.15] origin-center"
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
               />

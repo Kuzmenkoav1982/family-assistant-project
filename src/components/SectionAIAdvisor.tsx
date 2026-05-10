@@ -265,7 +265,7 @@ export default function SectionAIAdvisor({
               <img
                 src={resolvedImage}
                 alt={title}
-                className="w-full h-full object-cover scale-[1.8] origin-top"
+                className="w-full h-full object-cover scale-[1.15] origin-center"
               />
             </div>
             <div className="flex-1 min-w-0">
@@ -285,7 +285,7 @@ export default function SectionAIAdvisor({
           <DialogHeader className={`p-4 ${accentBg} ${accentBorder} border-b`}>
             <DialogTitle className="flex items-center gap-3">
               <div className="w-16 h-16 rounded-2xl bg-white overflow-hidden flex-shrink-0">
-                <img src={resolvedImage} alt={title} className="w-full h-full object-cover scale-[1.8] origin-top" />
+                <img src={resolvedImage} alt={title} className="w-full h-full object-cover scale-[1.15] origin-center" />
               </div>
               <div className="flex-1 min-w-0 text-left">
                 <div className={`text-base font-bold ${accentText}`}>{title}</div>
