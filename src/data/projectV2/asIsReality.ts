@@ -114,6 +114,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-blue-400 to-indigo-500",
     archHubId: "family",
     rows: [
+      { menu: null, hub: "ИИ-Воспитатель", status: "hero-ai", note: "AI-блок на странице раздела «Дети»" },
       { menu: "Профили семьи", hub: "Профили семьи", status: "match" },
       { menu: "Семейное дерево", hub: "Семейное дерево", status: "match", note: "порядок отличается" },
       { menu: "Дети", hub: "Дети", status: "match", note: "порядок отличается" },
@@ -149,6 +150,7 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Счётчик БЖУ", hub: "Счётчик БЖУ", status: "match" },
       { menu: "Меню на неделю", hub: "Меню на неделю", status: "match" },
       { menu: "Рецепты", hub: "Рецепты", status: "match" },
+      { menu: null, hub: "ИИ-Повар", status: "hero-ai", note: "AI-блок на странице «Рецепты»" },
       { menu: null, hub: "Семейный кошелёк", status: "hub-only", note: "карточка-шорткат на /wallet (живёт в Финансах)" },
     ],
   },
@@ -192,6 +194,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-amber-400 to-orange-500",
     archHubId: "finance",
     rows: [
+      { menu: null, hub: "ИИ-Финконсультант", status: "hero-ai", note: "кастомный AI-диалог в шапке хаба Финансы" },
       { menu: "Финансовый пульс", hub: "Финансовый пульс", status: "match" },
       { menu: "Стратегия погашения", hub: "Стратегия погашения", status: "match" },
       { menu: "Кэш-флоу прогноз", hub: "Кэш-флоу прогноз", status: "match" },
@@ -218,6 +221,7 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Список покупок", hub: "Список покупок", status: "match" },
       { menu: "Голосования", hub: "Голосования", status: "match" },
       { menu: "Гараж", hub: "Гараж", status: "match" },
+      { menu: null, hub: "ИИ-Автомеханик", status: "hero-ai", note: "AI-блок на странице «Гараж»" },
     ],
   },
   {
@@ -230,8 +234,10 @@ export const REAL_STRUCTURE: RealHub[] = [
     archHubId: "leisure",
     rows: [
       { menu: "Путешествия", hub: "Путешествия", status: "match" },
+      { menu: null, hub: "ИИ-Тревел-планер", status: "hero-ai", note: "AI-блок на странице «Путешествия»" },
       { menu: "Досуг", hub: "Досуг", status: "match" },
       { menu: "Праздники", hub: "Праздники", status: "match" },
+      { menu: null, hub: "ИИ-Организатор праздников", status: "hero-ai", note: "AI-блок на странице «Праздники»" },
     ],
   },
   {
@@ -245,6 +251,7 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Портфолио развития", hub: "Портфолио развития", status: "match" },
       { menu: "Развитие семьи", hub: "Развитие семьи", status: "match" },
       { menu: "Семейный психолог", hub: "Семейный психолог", status: "match" },
+      { menu: null, hub: "ИИ-Психолог", status: "hero-ai", note: "AI-блок на странице «Семейный психолог»" },
       { menu: "Мастерская жизни", hub: "Мастерская жизни", status: "match" },
       {
         menu: null,
@@ -280,16 +287,6 @@ export const REAL_STRUCTURE: RealHub[] = [
     ],
   },
   {
-    id: "household-pets",
-    type: "hub",
-    menuLabel: "Быт",
-    icon: "Home",
-    color: "from-orange-400 to-red-500",
-    archHubId: "household",
-    description: "",
-    rows: [],
-  },
-  {
     id: "pets",
     type: "hub",
     menuLabel: "Питомцы",
@@ -297,6 +294,7 @@ export const REAL_STRUCTURE: RealHub[] = [
     color: "from-yellow-400 to-amber-500",
     archHubId: "pets",
     rows: [
+      { menu: null, hub: "ИИ-Ветеринар", status: "hero-ai", note: "AI-блок в шапке хаба Питомцы (рядом со вкладками)" },
       { menu: "ИИ-ветеринар", hub: "ИИ-ветеринар", status: "match" },
       { menu: "Прививки", hub: "Прививки", status: "match" },
       { menu: "Ветеринар", hub: "Ветеринар", status: "match" },
