@@ -1477,7 +1477,7 @@ def get_expenses(conn, trip_id: int) -> List[Dict]:
 
 
 def add_expense(conn, data: Dict) -> Dict:
-    """Добавить расход"""
+    """Добавить расход. Если payment_status='paid' — сразу создаётся расход в финансах."""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             """
@@ -1491,18 +1491,139 @@ def add_expense(conn, data: Dict) -> Dict:
              data.get('payment_date'), data.get('booking_number'), data.get('provider'), data.get('notes'),
              data.get('exchange_rate', 1.0))
         )
-        conn.commit()
-        return convert_for_json(dict(cur.fetchone()))
+        created = dict(cur.fetchone())
+
+    try:
+        new_tx = _sync_trip_expense_to_finance(conn, created, created['trip_id'])
+        if new_tx:
+            created['linked_transaction_id'] = new_tx
+    except Exception as link_err:
+        print(f"[trip_expense link on create] error: {link_err}")
+
+    conn.commit()
+    return convert_for_json(created)
+
+
+# ─────────────────────────────────────────────────────────────
+# Связь Поездки → Финансы (третья петля Семейной ОС)
+# ─────────────────────────────────────────────────────────────
+# Источник истины: trip_expenses.
+# Финансовая транзакция — производное отображение расхода.
+# Создаётся ТОЛЬКО при payment_status = 'paid' и amount > 0.
+
+# Категория «Развлечения» — общая для всех поездочных расходов
+ENTERTAINMENT_CATEGORY_ID = '0c893cb4-933d-4ed7-b697-262186a37c64'
+SOURCE_TYPE_TRIP = 'trip_expense'
+
+TRIP_CATEGORY_LABELS = {
+    'tours':     'Экскурсии',
+    'transport': 'Транспорт',
+    'flights':   'Авиабилеты',
+    'food':      'Еда в поездке',
+    'hotels':    'Проживание',
+    'shopping':  'Шопинг в поездке',
+    'tickets':   'Билеты',
+    'other':     'Прочее',
+}
+
+
+def _get_trip_family_id(conn, trip_id: int) -> Optional[str]:
+    """Возвращает family_id поездки."""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            "SELECT family_id FROM t_p5815085_family_assistant_pro.trips WHERE id = %s",
+            (trip_id,)
+        )
+        row = cur.fetchone()
+        return str(row['family_id']) if row and row['family_id'] else None
+
+
+def _sync_trip_expense_to_finance(conn, expense: Dict, trip_id: int) -> Optional[str]:
+    """Создаёт/обновляет/удаляет связанную транзакцию в финансах.
+    Возвращает id транзакции либо None."""
+    family_id = _get_trip_family_id(conn, trip_id)
+    if not family_id:
+        return None
+
+    expense_id = expense['id']
+    payment_status = expense.get('payment_status') or 'pending'
+    amount_value = float(expense.get('amount') or 0)
+    is_paid = payment_status == 'paid'
+
+    # Конвертация в RUB (если другая валюта — используем exchange_rate)
+    rate = float(expense.get('exchange_rate') or 1.0)
+    amount_rub = amount_value * rate if rate > 0 else amount_value
+
+    source_id = str(expense_id)
+    linked = expense.get('linked_transaction_id')
+
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        if is_paid and amount_rub > 0:
+            # Создаём/обновляем расход
+            cat_label = TRIP_CATEGORY_LABELS.get(expense.get('category', ''), expense.get('category', ''))
+            description = f"Поездка: {expense.get('title', '')} ({cat_label})"
+            tx_date = expense.get('payment_date')
+            cur.execute(
+                """
+                INSERT INTO t_p5815085_family_assistant_pro.finance_transactions
+                  (family_id, category_id, amount, transaction_type, description,
+                   transaction_date, source_type, source_id, is_confirmed)
+                VALUES (%s, %s, %s, 'expense', %s, COALESCE(%s, CURRENT_DATE), %s, %s, TRUE)
+                ON CONFLICT (source_type, source_id)
+                  WHERE source_type IS NOT NULL AND source_id IS NOT NULL
+                DO UPDATE SET
+                  amount = EXCLUDED.amount,
+                  description = EXCLUDED.description,
+                  transaction_date = EXCLUDED.transaction_date,
+                  updated_at = CURRENT_TIMESTAMP
+                RETURNING id
+                """,
+                (family_id, ENTERTAINMENT_CATEGORY_ID, amount_rub,
+                 description, tx_date, SOURCE_TYPE_TRIP, source_id)
+            )
+            row = cur.fetchone()
+            new_tx_id = str(row['id']) if row else None
+            if new_tx_id:
+                cur.execute(
+                    "UPDATE t_p5815085_family_assistant_pro.trip_expenses "
+                    "SET linked_transaction_id = %s WHERE id = %s",
+                    (new_tx_id, expense_id)
+                )
+            return new_tx_id
+        elif not is_paid and linked:
+            # Снимаем оплату — удаляем связанный расход
+            cur.execute(
+                "DELETE FROM t_p5815085_family_assistant_pro.finance_transactions "
+                "WHERE id = %s AND family_id = %s AND source_type = %s",
+                (linked, family_id, SOURCE_TYPE_TRIP)
+            )
+            cur.execute(
+                "UPDATE t_p5815085_family_assistant_pro.trip_expenses "
+                "SET linked_transaction_id = NULL WHERE id = %s",
+                (expense_id,)
+            )
+            return None
+    return None
 
 
 def update_expense(conn, data: Dict) -> Dict:
-    """Обновить расход"""
+    """Обновить расход и атомарно синхронизировать с финансами."""
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        # SELECT FOR UPDATE — блокировка строки
+        cur.execute(
+            "SELECT * FROM t_p5815085_family_assistant_pro.trip_expenses "
+            "WHERE id = %s FOR UPDATE",
+            (data['id'],)
+        )
+        current = cur.fetchone()
+        if not current:
+            return {}
+
         cur.execute(
             """
-            UPDATE t_p5815085_family_assistant_pro.trip_expenses 
-            SET category = %s, title = %s, amount = %s, currency = %s, 
-                payment_status = %s, payment_date = %s, booking_number = %s, 
+            UPDATE t_p5815085_family_assistant_pro.trip_expenses
+            SET category = %s, title = %s, amount = %s, currency = %s,
+                payment_status = %s, payment_date = %s, booking_number = %s,
                 provider = %s, notes = %s, exchange_rate = %s
             WHERE id = %s
             RETURNING *
@@ -1511,14 +1632,51 @@ def update_expense(conn, data: Dict) -> Dict:
              data['payment_status'], data.get('payment_date'), data.get('booking_number'),
              data.get('provider'), data.get('notes'), data.get('exchange_rate', 1.0), data['id'])
         )
-        conn.commit()
-        return convert_for_json(dict(cur.fetchone()))
+        updated = dict(cur.fetchone())
+
+    # Синхронизация с финансами (отдельный блок чтобы курсор закрылся)
+    try:
+        new_tx = _sync_trip_expense_to_finance(conn, updated, updated['trip_id'])
+        if new_tx:
+            updated['linked_transaction_id'] = new_tx
+        elif current.get('linked_transaction_id') and updated.get('payment_status') != 'paid':
+            updated['linked_transaction_id'] = None
+    except Exception as link_err:
+        print(f"[trip_expense link] error: {link_err}")
+        conn.rollback()
+        # повторно откроем изменение, но без связи с финансами
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                "SELECT * FROM t_p5815085_family_assistant_pro.trip_expenses WHERE id = %s",
+                (data['id'],)
+            )
+            updated = dict(cur.fetchone())
+
+    conn.commit()
+    return convert_for_json(updated)
 
 
 def delete_expense(conn, expense_id: int):
-    """Удалить расход"""
-    with conn.cursor() as cur:
-        cur.execute("DELETE FROM t_p5815085_family_assistant_pro.trip_expenses WHERE id = %s", (expense_id,))
+    """Удалить расход и связанную транзакцию атомарно."""
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            "SELECT trip_id, linked_transaction_id FROM t_p5815085_family_assistant_pro.trip_expenses "
+            "WHERE id = %s FOR UPDATE",
+            (expense_id,)
+        )
+        row = cur.fetchone()
+        if row and row.get('linked_transaction_id'):
+            family_id = _get_trip_family_id(conn, row['trip_id'])
+            if family_id:
+                cur.execute(
+                    "DELETE FROM t_p5815085_family_assistant_pro.finance_transactions "
+                    "WHERE id = %s AND family_id = %s AND source_type = %s",
+                    (row['linked_transaction_id'], family_id, SOURCE_TYPE_TRIP)
+                )
+        cur.execute(
+            "DELETE FROM t_p5815085_family_assistant_pro.trip_expenses WHERE id = %s",
+            (expense_id,)
+        )
         conn.commit()
 
 

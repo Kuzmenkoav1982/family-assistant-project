@@ -248,6 +248,13 @@ const ROADMAP_STEPS: ProgressStep[] = [
     status: "done",
   },
   {
+    id: "loop-trips-finance",
+    label: "Петля Поездки → Финансы",
+    hint: "«Оплачено» в расходах поездки → бюджет «Развлечения»",
+    icon: "Link2",
+    status: "done",
+  },
+  {
     id: "loops-integrity",
     label: "Гарантии целостности петель",
     hint: "UNIQUE INDEX, CHECK constraint, SELECT FOR UPDATE",

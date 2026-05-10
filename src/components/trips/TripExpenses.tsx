@@ -26,6 +26,7 @@ interface Expense {
   provider?: string;
   notes?: string;
   exchange_rate?: number;
+  linked_transaction_id?: string | null;
   created_at: string;
 }
 
@@ -276,6 +277,21 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
 
   return (
     <div className="space-y-2 sm:space-y-3">
+      {/* Плашка про связь с Финансами */}
+      <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200/70 p-3 flex items-start gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
+          <Icon name="Link2" size={14} className="text-emerald-600" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-slate-700 leading-tight">
+            Связано с разделом «Финансы»
+          </p>
+          <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+            Расходы со статусом «Оплачено» автоматически попадают в семейный бюджет в категорию «Развлечения»
+          </p>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <span className="text-sm text-gray-600">Запланировано</span>
         {!isEditingBudget ? (
@@ -389,7 +405,7 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
                           <div key={expense.id} className="p-3 hover:bg-gray-50 transition-colors">
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
                                   <h5 className="font-medium text-sm truncate">{expense.title}</h5>
                                   {expense.payment_status === 'paid' ? (
                                     <span className="flex items-center gap-1 text-xs text-green-600">
@@ -400,6 +416,12 @@ export function TripExpenses({ tripId, tripCurrency, tripBudget, onBudgetUpdate,
                                     <span className="flex items-center gap-1 text-xs text-yellow-600">
                                       <Icon name="MapPin" size={12} />
                                       На месте
+                                    </span>
+                                  )}
+                                  {expense.linked_transaction_id && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 bg-white border border-emerald-200 px-1.5 py-0.5 rounded-full">
+                                      <Icon name="Wallet" size={9} />
+                                      В бюджете
                                     </span>
                                   )}
                                 </div>

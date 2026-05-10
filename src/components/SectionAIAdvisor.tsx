@@ -230,9 +230,9 @@ export default function SectionAIAdvisor({
         className={`bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white border-0 cursor-pointer hover:shadow-xl transition-all hover:scale-[1.01]`}
         onClick={() => setOpen(true)}
       >
-        <CardContent className="p-4">
-          <div className="flex items-center gap-4">
-            <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl ${avatarBg} border-2 border-white/40 flex items-center justify-center overflow-hidden flex-shrink-0`}>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl ${avatarBg} border-2 border-white/50 flex items-center justify-center overflow-hidden flex-shrink-0`}>
               <img
                 src={resolvedImage}
                 alt={title}
@@ -255,7 +255,7 @@ export default function SectionAIAdvisor({
         <DialogContent className="max-w-lg w-[calc(100vw-1rem)] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
           <DialogHeader className={`p-4 ${accentBg} ${accentBorder} border-b`}>
             <DialogTitle className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl ${avatarBg} flex items-center justify-center overflow-hidden flex-shrink-0`}>
+              <div className={`w-16 h-16 rounded-2xl ${avatarBg} flex items-center justify-center overflow-hidden flex-shrink-0`}>
                 <img src={resolvedImage} alt={title} className="w-full h-full object-contain" />
               </div>
               <div className="flex-1 min-w-0 text-left">

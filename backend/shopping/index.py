@@ -292,7 +292,7 @@ def update_shopping_item(item_id: str, family_id: str, user_id: str, data: Dict[
                 f"VALUES ({escape_string(family_id)}, {escape_string(SHOPPING_CATEGORY_ID)}, "
                 f"{price_value}, 'expense', {escape_string(description)}, "
                 f"CURRENT_DATE, {escape_string(SOURCE_TYPE_SHOPPING)}, "
-                f"{escape_string(item_id)}::uuid, TRUE) "
+                f"{escape_string(item_id)}, TRUE) "
                 f"ON CONFLICT (source_type, source_id) "
                 f"WHERE source_type IS NOT NULL AND source_id IS NOT NULL "
                 f"DO UPDATE SET amount = EXCLUDED.amount, "

@@ -203,6 +203,19 @@ export default function TransactionsTimeline({
                                       </Badge>
                                     </a>
                                   )}
+                                  {!item.isPlanned && item.originalTx?.source_type === 'trip_expense' && (
+                                    <a
+                                      href="/trips"
+                                      onClick={e => e.stopPropagation()}
+                                      title="Перейти к разделу «Путешествия»"
+                                      className="inline-flex"
+                                    >
+                                      <Badge variant="outline" className="text-[10px] px-1 py-0 border-sky-400 text-sky-700 bg-sky-50 hover:bg-sky-100 inline-flex items-center gap-0.5 cursor-pointer">
+                                        <Icon name="Plane" size={9} />
+                                        из «Поездок»
+                                      </Badge>
+                                    </a>
+                                  )}
                                   {isTxConfirmed && (
                                     <Icon name="CheckCircle" size={14} className="text-emerald-500 flex-shrink-0" />
                                   )}

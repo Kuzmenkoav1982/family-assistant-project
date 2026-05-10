@@ -283,7 +283,7 @@ def update_utility(family_id: str, util_id: str, data: Dict) -> Optional[Dict]:
                         f"VALUES ({esc(family_id)}, {esc(HOUSING_CATEGORY_ID)}, "
                         f"{esc(amount_value)}, 'expense', {esc(description)}, "
                         f"{tx_date_sql}, {esc(SOURCE_TYPE_HOME_UTILITY)}, "
-                        f"{esc(util_id)}::uuid, TRUE) "
+                        f"{esc(util_id)}, TRUE) "
                         f"ON CONFLICT (source_type, source_id) "
                         f"WHERE source_type IS NOT NULL AND source_id IS NOT NULL "
                         f"DO UPDATE SET amount = EXCLUDED.amount, "
