@@ -218,16 +218,17 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       items: [
         { id: 'pets-hub', label: 'Питомцы', icon: 'PawPrint', path: '/pets' },
         { id: 'pets-ai', label: 'ИИ-ветеринар', icon: 'Sparkles', path: '/pets?tab=ai' },
-        { id: 'pets-vaccines', label: 'Вакцинация', icon: 'Syringe', path: '/pets?tab=vaccines' },
-        { id: 'pets-vet', label: 'Визиты к ветеринару', icon: 'Stethoscope', path: '/pets?tab=vet' },
+        { id: 'pets-vaccines', label: 'Прививки', icon: 'Syringe', path: '/pets?tab=vaccines' },
+        { id: 'pets-vet', label: 'Ветеринар', icon: 'Stethoscope', path: '/pets?tab=vet' },
         { id: 'pets-meds', label: 'Лекарства', icon: 'Pill', path: '/pets?tab=medications' },
         { id: 'pets-food', label: 'Питание', icon: 'Bone', path: '/pets?tab=food' },
         { id: 'pets-grooming', label: 'Груминг', icon: 'Scissors', path: '/pets?tab=grooming' },
         { id: 'pets-activity', label: 'Активность', icon: 'Activity', path: '/pets?tab=activities' },
         { id: 'pets-expenses', label: 'Расходы', icon: 'Wallet', path: '/pets?tab=expenses' },
-        { id: 'pets-health', label: 'Показатели здоровья', icon: 'LineChart', path: '/pets?tab=health' },
-        { id: 'pets-items', label: 'Вещи и игрушки', icon: 'Package', path: '/pets?tab=items' },
-        { id: 'pets-photos', label: 'Фотоальбом', icon: 'Camera', path: '/pets?tab=photos' }
+        { id: 'pets-health', label: 'Здоровье', icon: 'LineChart', path: '/pets?tab=health' },
+        { id: 'pets-items', label: 'Вещи', icon: 'Package', path: '/pets?tab=items' },
+        { id: 'pets-responsibilities', label: 'Обязанности', icon: 'Users', path: '/pets?tab=responsibilities' },
+        { id: 'pets-photos', label: 'Фото', icon: 'Camera', path: '/pets?tab=photos' }
       ]
     },
     {
