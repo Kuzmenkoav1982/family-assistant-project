@@ -91,9 +91,11 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'diet-ai', label: 'ИИ-Диета по данным', icon: 'Brain', path: '/nutrition/diet' },
         { id: 'diet-preset', label: 'Готовые режимы питания', icon: 'ListChecks', path: '/nutrition/programs' },
         { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products' },
+        { id: 'diet-progress', label: 'Прогресс диеты', icon: 'TrendingUp', path: '/nutrition/progress', badge: 'Новое' },
         { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
         { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
-        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' }
+        { id: 'recipes', label: 'Рецепты', icon: 'BookOpen', path: '/recipes' },
+        { id: 'nutrition-wallet', label: 'Семейный кошелёк', icon: 'Wallet', path: '/wallet', badge: 'Новое' }
       ]
     },
     {
@@ -156,7 +158,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-amber-50 dark:bg-amber-950/40',
       hubPath: '/household-hub',
       items: [
-        { id: 'shopping', label: 'Покупки', icon: 'ShoppingCart', path: '/shopping' },
+        { id: 'shopping', label: 'Список покупок', icon: 'ShoppingCart', path: '/shopping' },
         { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' },
         { id: 'garage', label: 'Гараж', icon: 'Car', path: '/garage' }
       ]
