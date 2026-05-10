@@ -8,6 +8,7 @@ import type { FamilyMember, CalendarEvent } from '@/types/family.types';
 import FamilySetupChecklist from '@/components/index-page/FamilySetupChecklist';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import FamilyOsCycleWidget from '@/components/index-page/FamilyOsCycleWidget';
+import FamilyOsLiveCard from '@/components/index-page/FamilyOsLiveCard';
 import AttentionBlock from '@/components/index-page/AttentionBlock';
 import ContinueBlock from '@/components/index-page/ContinueBlock';
 
@@ -139,6 +140,9 @@ export default function TodayTabContent({
 
       {/* Семейная ОС: 5 циклов */}
       <FamilyOsCycleWidget />
+
+      {/* Живая сводка ОС — то же что видит Домовой */}
+      <FamilyOsLiveCard />
 
       {/* Требует внимания */}
       <AttentionBlock />

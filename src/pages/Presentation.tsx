@@ -7,6 +7,8 @@ import { PresentationTitleSlide } from '@/components/presentation/PresentationTi
 import { PresentationContentSections } from '@/components/presentation/PresentationContentSections';
 import { PresentationFooter } from '@/components/presentation/PresentationFooter';
 import { SlideHubs } from '@/components/presentation/SlideHubs';
+import { SlideOsArchitecture } from '@/components/presentation/SlideOsArchitecture';
+import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 import { SlidePortfolio } from '@/components/presentation/SlidePortfolio';
 import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
@@ -225,6 +227,8 @@ export default function Presentation() {
         <PresentationTitleSlide />
         <PresentationContentSections />
         <SlideHubs />
+        <SlideOsArchitecture />
+        <SlideLiveLoops />
         <SlidePortfolio />
         <SlideEcosystem />
         <SlideAIMap />

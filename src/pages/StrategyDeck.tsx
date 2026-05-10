@@ -11,6 +11,8 @@ import { SlideMatryoshkaAsk } from '@/components/presentation/SlideMatryoshkaAsk
 import { MatryoshkaPrintCards } from '@/components/presentation/MatryoshkaPrintCards';
 import { SlideAudienceMatrix } from '@/components/presentation/SlideAudienceMatrix';
 import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
+import { SlideOsArchitecture } from '@/components/presentation/SlideOsArchitecture';
+import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -261,6 +263,8 @@ export default function StrategyDeck() {
         <MatryoshkaPrintCards />
         <SlideAudienceMatrix />
         <SlidePlatformBeforeAfter />
+        <SlideOsArchitecture />
+        <SlideLiveLoops />
         <StrategyFooter />
       </div>
     </div>
