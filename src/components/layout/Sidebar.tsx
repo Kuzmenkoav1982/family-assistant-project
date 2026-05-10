@@ -314,26 +314,6 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       items: []
     },
     {
-      id: 'sys-notifications',
-      title: 'Уведомления',
-      icon: 'Bell',
-      iconColor: 'text-orange-500',
-      accentBg: 'bg-orange-50 dark:bg-orange-950/40',
-      hubPath: '/notifications',
-      group: 'system',
-      items: []
-    },
-    {
-      id: 'sys-settings',
-      title: 'Настройки',
-      icon: 'Settings',
-      iconColor: 'text-slate-600',
-      accentBg: 'bg-slate-50 dark:bg-slate-800/40',
-      hubPath: '/settings',
-      group: 'system',
-      items: []
-    },
-    {
       id: 'sys-referral',
       title: 'Реферальная программа',
       icon: 'Gift',
