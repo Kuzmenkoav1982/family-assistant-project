@@ -88,8 +88,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/nutrition',
       items: [
         { id: 'nutrition-hub', label: 'Питание', icon: 'Apple', path: '/nutrition' },
-        { id: 'diet-ai', label: 'ИИ-Диета', icon: 'Brain', path: '/nutrition/diet' },
-        { id: 'diet-preset', label: 'Готовые режимы', icon: 'ListChecks', path: '/nutrition/programs' },
+        { id: 'diet-ai', label: 'ИИ-Диета по данным', icon: 'Brain', path: '/nutrition/diet' },
+        { id: 'diet-preset', label: 'Готовые режимы питания', icon: 'ListChecks', path: '/nutrition/programs' },
         { id: 'recipe-products', label: 'Рецепт из продуктов', icon: 'ChefHat', path: '/nutrition/recipe-from-products' },
         { id: 'nutrition-tracker', label: 'Счётчик БЖУ', icon: 'Calculator', path: '/nutrition/tracker' },
         { id: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', path: '/meals' },
@@ -98,15 +98,15 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     },
     {
       id: 'values',
-      title: 'Ценности',
+      title: 'Ценности и культура',
       icon: 'Heart',
       iconColor: 'text-pink-600',
       accentBg: 'bg-pink-50 dark:bg-pink-950/40',
       hubPath: '/values-hub',
       items: [
-        { id: 'values', label: 'Ценности', icon: 'Heart', path: '/values' },
+        { id: 'values', label: 'Ценности семьи', icon: 'Heart', path: '/values' },
         { id: 'faith', label: 'Вера', icon: 'Church', path: '/faith' },
-        { id: 'traditions', label: 'Традиции', icon: 'Sparkles', path: '/culture' },
+        { id: 'traditions', label: 'Традиции и культура', icon: 'Sparkles', path: '/culture' },
         { id: 'wisdom', label: 'Мудрость народа', icon: 'BookOpen', path: '/wisdom' },
         { id: 'house-rules', label: 'Правила дома', icon: 'FileText', path: '/rules' }
       ]
@@ -119,7 +119,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       accentBg: 'bg-indigo-50 dark:bg-indigo-950/40',
       hubPath: '/planning-hub',
       items: [
-        { id: 'goals', label: 'Цели', icon: 'Target', path: '/?section=goals' },
+        { id: 'goals', label: 'Цели семьи', icon: 'Target', path: '/?section=goals' },
         { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/tasks' },
         { id: 'calendar', label: 'Календарь', icon: 'Calendar', path: '/calendar' },
         { id: 'purchases', label: 'План покупок', icon: 'ShoppingBag', path: '/purchases' },
@@ -141,7 +141,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
         { id: 'finance-accounts', label: 'Счета и карты', icon: 'CreditCard', path: '/finance/accounts' },
         { id: 'finance-debts', label: 'Кредиты и долги', icon: 'Receipt', path: '/finance/debts' },
         { id: 'finance-goals', label: 'Финансовые цели', icon: 'Target', path: '/finance/goals' },
-        { id: 'finance-literacy', label: 'Финграмотность', icon: 'GraduationCap', path: '/finance/literacy' },
+        { id: 'finance-literacy', label: 'Финансовая грамотность', icon: 'GraduationCap', path: '/finance/literacy' },
         { id: 'finance-assets', label: 'Имущество', icon: 'Home', path: '/finance/assets' },
         { id: 'finance-loyalty', label: 'Скидочные карты', icon: 'Ticket', path: '/finance/loyalty' },
         { id: 'finance-antiscam', label: 'Антимошенник', icon: 'ShieldAlert', path: '/finance/antiscam' },
@@ -183,8 +183,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       hubPath: '/development-hub',
       items: [
         { id: 'portfolio', label: 'Портфолио развития', icon: 'Sparkles', path: '/portfolio', badge: 'Новое' },
-        { id: 'development', label: 'Развитие', icon: 'Brain', path: '/development' },
-        { id: 'psychologist', label: 'Психолог ИИ', icon: 'BrainCircuit', path: '/psychologist' },
+        { id: 'development', label: 'Развитие семьи', icon: 'Brain', path: '/development' },
+        { id: 'psychologist', label: 'Семейный психолог', icon: 'BrainCircuit', path: '/psychologist' },
         { id: 'life-road', label: 'Мастерская жизни', icon: 'Hammer', path: '/life-road' }
       ]
     },
