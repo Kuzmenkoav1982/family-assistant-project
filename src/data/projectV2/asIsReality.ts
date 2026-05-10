@@ -119,7 +119,7 @@ export const REAL_STRUCTURE: RealHub[] = [
       { menu: "Семейное дерево", hub: "Семейное дерево", status: "match", note: "порядок отличается" },
       { menu: "Дети", hub: "Дети", status: "match", note: "порядок отличается" },
       { menu: "Семейный маячок", hub: "Семейный маячок", status: "match" },
-      { menu: "Чат семьи", hub: null, status: "menu-only" },
+      { menu: "Чат семьи", hub: "Чат семьи", status: "match" },
     ],
   },
   {

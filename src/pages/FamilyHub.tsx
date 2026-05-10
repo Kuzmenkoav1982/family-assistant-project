@@ -56,7 +56,17 @@ const subSections: SubSection[] = [
     badgeColor: 'bg-emerald-100 text-emerald-700',
     ready: true,
   },
-
+  {
+    id: 'family-chat',
+    title: 'Чат семьи',
+    description: 'Общий чат для всей семьи: обсуждения, фото, голосовые',
+    icon: 'MessagesSquare',
+    path: '/family-chat',
+    gradient: 'from-violet-500 to-purple-600',
+    badge: 'Новое',
+    badgeColor: 'bg-violet-100 text-violet-700',
+    ready: true,
+  },
 ];
 
 export default function FamilyHub() {
