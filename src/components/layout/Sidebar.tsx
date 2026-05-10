@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
@@ -12,6 +11,16 @@ import {
 
 const OWNER_ONLY_FINANCE_ITEMS = ['finance-analytics', 'finance-strategy', 'finance-cashflow', 'finance-budget', 'finance-accounts', 'finance-debts', 'finance-recurring', 'finance-assets'];
 
+type GroupId = 'life' | 'care' | 'meaning' | 'world' | 'system';
+
+const GROUPS: { id: GroupId; title: string; hint: string }[] = [
+  { id: 'life',    title: 'Жизнь семьи',     hint: 'Операционный контур' },
+  { id: 'care',    title: 'Забота',          hint: 'Состояние и здоровье' },
+  { id: 'meaning', title: 'Смысл и отношения', hint: 'Ценности · развитие · код' },
+  { id: 'world',   title: 'Внешний мир',     hint: 'Государство · знание · досуг' },
+  { id: 'system',  title: 'Система',         hint: '' },
+];
+
 interface MenuSection {
   id: string;
   title: string;
@@ -20,6 +29,8 @@ interface MenuSection {
   accentBg: string;
   items: MenuItem[];
   hubPath?: string;
+  group: GroupId;
+  topBadge?: string;
 }
 
 interface MenuItem {
@@ -42,7 +53,22 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   const location = useLocation();
   const { unreadCount } = useNotificationCenter();
   const isOwner = useIsFamilyOwner();
-  const [openSections, setOpenSections] = useState<string[]>([]);
+  const [openSections, setOpenSections] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('sidebarOpenSections');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sidebarOpenSections', JSON.stringify(openSections));
+    } catch (_e) {
+      // ignore quota / private mode errors
+    }
+  }, [openSections]);
 
   const toggleSection = (sectionId: string) => {
     setOpenSections(prev =>
@@ -60,6 +86,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-blue-600',
       accentBg: 'bg-blue-50 dark:bg-blue-950/40',
       hubPath: '/family-hub',
+      group: 'life',
+      topBadge: 'Новое',
       items: [
         { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
         { id: 'tree', label: 'Семейное древо', icon: 'GitBranch', path: '/tree' },
@@ -75,6 +103,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-rose-600',
       accentBg: 'bg-rose-50 dark:bg-rose-950/40',
       hubPath: '/health-hub',
+      group: 'care',
       items: [
         { id: 'health', label: 'Здоровье семьи', icon: 'HeartPulse', path: '/health' }
       ]
@@ -86,6 +115,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-emerald-600',
       accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
       hubPath: '/nutrition',
+      group: 'care',
       items: [
         { id: 'diet-ai', label: 'ИИ-Диета по данным', icon: 'Brain', path: '/nutrition/diet' },
         { id: 'diet-preset', label: 'Готовые режимы питания', icon: 'ListChecks', path: '/nutrition/programs' },
@@ -103,6 +133,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-pink-600',
       accentBg: 'bg-pink-50 dark:bg-pink-950/40',
       hubPath: '/values-hub',
+      group: 'meaning',
       items: [
         { id: 'values', label: 'Ценности семьи', icon: 'Heart', path: '/values' },
         { id: 'faith', label: 'Вера', icon: 'Church', path: '/faith' },
@@ -118,6 +149,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-indigo-600',
       accentBg: 'bg-indigo-50 dark:bg-indigo-950/40',
       hubPath: '/planning-hub',
+      group: 'life',
       items: [
         { id: 'goals', label: 'Цели семьи', icon: 'Target', path: '/?section=goals' },
         { id: 'tasks', label: 'Задачи', icon: 'CheckSquare', path: '/tasks' },
@@ -133,6 +165,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-emerald-600',
       accentBg: 'bg-emerald-50 dark:bg-emerald-950/40',
       hubPath: '/finance',
+      group: 'life',
       items: [
         { id: 'finance-analytics', label: 'Финансовый пульс', icon: 'Activity', path: '/finance/analytics' },
         { id: 'finance-strategy', label: 'Стратегия погашения', icon: 'Swords', path: '/finance/strategy' },
@@ -155,6 +188,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-amber-600',
       accentBg: 'bg-amber-50 dark:bg-amber-950/40',
       hubPath: '/household-hub',
+      group: 'life',
+      topBadge: 'Новое',
       items: [
         { id: 'shopping', label: 'Список покупок', icon: 'ShoppingCart', path: '/shopping' },
         { id: 'voting', label: 'Голосования', icon: 'ThumbsUp', path: '/voting' },
@@ -169,6 +204,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-sky-600',
       accentBg: 'bg-sky-50 dark:bg-sky-950/40',
       hubPath: '/leisure-hub',
+      group: 'world',
       items: [
         { id: 'trips', label: 'Путешествия', icon: 'Plane', path: '/trips' },
         { id: 'leisure', label: 'Досуг', icon: 'MapPin', path: '/leisure' },
@@ -182,6 +218,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-violet-600',
       accentBg: 'bg-violet-50 dark:bg-violet-950/40',
       hubPath: '/development-hub',
+      group: 'meaning',
+      topBadge: 'Новое',
       items: [
         { id: 'portfolio', label: 'Портфолио развития', icon: 'Sparkles', path: '/portfolio', badge: 'Новое' },
         { id: 'development', label: 'Развитие семьи', icon: 'Brain', path: '/development' },
@@ -196,6 +234,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-purple-600',
       accentBg: 'bg-purple-50 dark:bg-purple-950/40',
       hubPath: '/family-matrix',
+      group: 'meaning',
       items: [
         { id: 'family-matrix-personal', label: 'Личный код', icon: 'UserCircle2', path: '/family-matrix/personal' },
         { id: 'family-matrix-couple', label: 'Код пары', icon: 'Heart', path: '/family-matrix/couple' },
@@ -214,6 +253,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-violet-600',
       accentBg: 'bg-violet-50 dark:bg-violet-950/40',
       hubPath: '/pets',
+      group: 'care',
       items: [
         { id: 'pets-ai', label: 'ИИ-ветеринар', icon: 'Sparkles', path: '/pets?tab=ai' },
         { id: 'pets-vaccines', label: 'Прививки', icon: 'Syringe', path: '/pets?tab=vaccines' },
@@ -236,6 +276,8 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       iconColor: 'text-slate-600',
       accentBg: 'bg-slate-50 dark:bg-slate-800/40',
       hubPath: '/state-hub',
+      group: 'world',
+      topBadge: 'Новое',
       items: [
         { id: 'support-navigator', label: 'Навигатор мер поддержки', icon: 'Sparkles', path: '/support-navigator', badge: 'Новое' },
         { id: 'what-is-family', label: 'Что такое семья', icon: 'Users', path: '/what-is-family' },
@@ -251,6 +293,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       icon: 'BookOpen',
       iconColor: 'text-orange-600',
       accentBg: 'bg-orange-50 dark:bg-orange-950/40',
+      group: 'world',
       items: [
         { id: 'articles', label: 'Все статьи', icon: 'FileText', path: '/articles' }
       ]
@@ -261,6 +304,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
       icon: 'Wrench',
       iconColor: 'text-gray-500',
       accentBg: 'bg-gray-50 dark:bg-gray-800/40',
+      group: 'system',
       items: [
         { id: 'in-development-list', label: 'В разработке', icon: 'Construction', path: '/in-development' }
       ]
@@ -288,6 +332,15 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
     if (section.hubPath && location.pathname === section.hubPath) return true;
     return section.items.some(item => isActive(item));
   };
+
+  // Авторазворот активной секции
+  useEffect(() => {
+    const active = menuSections.find(s => isSectionActive(s));
+    if (active && !openSections.includes(active.id)) {
+      setOpenSections(prev => [...prev, active.id]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.search]);
 
   return (
     <>
@@ -385,89 +438,126 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
           </button>
         </div>
 
-        <div className="p-3 space-y-1">
-          {menuSections.map((section) => {
-            const isOpen = openSections.includes(section.id);
-            const active = isSectionActive(section);
+        <div className="p-3 space-y-4">
+          {GROUPS.map((group) => {
+            const sectionsInGroup = menuSections.filter(s => s.group === group.id);
+            if (sectionsInGroup.length === 0) return null;
 
             return (
-              <Collapsible
-                key={section.id}
-                open={isOpen}
-                onOpenChange={() => toggleSection(section.id)}
-              >
-                <div className={`flex items-center rounded-xl transition-colors ${active ? section.accentBg : 'hover:bg-gray-50 dark:hover:bg-gray-800/30'}`}>
-                  {section.hubPath ? (
-                    <button
-                      className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl hover:bg-gray-100/80 dark:hover:bg-gray-700/40 transition-colors group"
-                      onClick={() => {
-                        navigate(section.hubPath!);
-                        onVisibilityChange(false);
-                      }}
-                    >
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? section.accentBg : 'bg-gray-100 dark:bg-gray-800'}`}>
-                        <Icon name={section.icon} size={15} className={section.iconColor} />
-                      </div>
-                      <span className={`text-[13px] font-semibold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                        {section.title}
-                      </span>
-                      <Icon name="ArrowRight" size={12} className="text-gray-300 dark:text-gray-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </button>
-                  ) : (
-                    <button
-                      className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl transition-colors"
-                      onClick={() => toggleSection(section.id)}
-                    >
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? section.accentBg : 'bg-gray-100 dark:bg-gray-800'}`}>
-                        <Icon name={section.icon} size={15} className={section.iconColor} />
-                      </div>
-                      <span className={`text-[13px] font-semibold ${active ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
-                        {section.title}
-                      </span>
-                    </button>
+              <div key={group.id} className="space-y-1">
+                <div className="flex items-baseline gap-2 px-2 pb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    {group.title}
+                  </span>
+                  {group.hint && (
+                    <span className="text-[10px] text-gray-300 dark:text-gray-600 truncate">
+                      · {group.hint}
+                    </span>
                   )}
-                  <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
-                  <CollapsibleTrigger asChild>
-                    <button className="px-3 py-2.5 rounded-r-xl hover:bg-gray-100/80 dark:hover:bg-gray-700/40 transition-colors" title="Разделы">
-                      <Icon 
-                        name={isOpen ? "ChevronDown" : "ChevronRight"} 
-                        size={14} 
-                        className={`transition-colors ${isOpen ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}
-                      />
-                    </button>
-                  </CollapsibleTrigger>
                 </div>
-                
-                <CollapsibleContent className="mt-0.5 ml-5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-800 pl-3">
-                  {section.items.filter(item => isOwner || !OWNER_ONLY_FINANCE_ITEMS.includes(item.id)).map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleItemClick(item)}
-                      disabled={item.inDev}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${
-                        isActive(item)
-                          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                          : item.inDev
-                          ? 'opacity-40 cursor-not-allowed'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400'
-                      }`}
+
+                {sectionsInGroup.map((section) => {
+                  const isOpen = openSections.includes(section.id);
+                  const active = isSectionActive(section);
+
+                  return (
+                    <Collapsible
+                      key={section.id}
+                      open={isOpen}
+                      onOpenChange={() => toggleSection(section.id)}
                     >
-                      <Icon name={item.icon} size={15} className={isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'} />
-                      <span className="text-[13px]">{item.label}</span>
-                      {item.badge && !item.inDev && (
-                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full ml-auto">
-                          {item.badge}
-                        </span>
-                      )}
-                      {item.inDev && (
-                        <span className="text-[9px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded-full ml-auto">
-                          DEV
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+                      <div className={`flex items-center rounded-xl transition-all relative ${
+                        active
+                          ? `${section.accentBg} ring-1 ring-inset ring-black/5 dark:ring-white/10`
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/30'
+                      }`}>
+                        {active && (
+                          <span className={`absolute left-0 top-2 bottom-2 w-0.5 rounded-r-full ${section.iconColor.replace('text-', 'bg-')}`} />
+                        )}
+                        {section.hubPath ? (
+                          <button
+                            className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl hover:bg-gray-100/60 dark:hover:bg-gray-700/30 transition-colors group min-w-0"
+                            onClick={() => {
+                              navigate(section.hubPath!);
+                              onVisibilityChange(false);
+                            }}
+                          >
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white/70 dark:bg-gray-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                              <Icon name={section.icon} size={15} className={section.iconColor} />
+                            </div>
+                            <span className={`text-[13px] font-semibold truncate ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                              {section.title}
+                            </span>
+                            {section.topBadge && (
+                              <span className="ml-1 text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                {section.topBadge}
+                              </span>
+                            )}
+                            <Icon name="ArrowRight" size={12} className="text-gray-300 dark:text-gray-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                          </button>
+                        ) : (
+                          <button
+                            className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-l-xl transition-colors min-w-0"
+                            onClick={() => toggleSection(section.id)}
+                          >
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${active ? 'bg-white/70 dark:bg-gray-900/40' : 'bg-gray-100 dark:bg-gray-800'}`}>
+                              <Icon name={section.icon} size={15} className={section.iconColor} />
+                            </div>
+                            <span className={`text-[13px] font-semibold truncate ${active ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}>
+                              {section.title}
+                            </span>
+                            {section.topBadge && (
+                              <span className="ml-1 text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                {section.topBadge}
+                              </span>
+                            )}
+                          </button>
+                        )}
+                        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
+                        <CollapsibleTrigger asChild>
+                          <button className="px-3 py-2.5 rounded-r-xl hover:bg-gray-100/60 dark:hover:bg-gray-700/30 transition-colors" title="Разделы">
+                            <Icon
+                              name={isOpen ? 'ChevronDown' : 'ChevronRight'}
+                              size={14}
+                              className={`transition-colors ${isOpen ? 'text-gray-600 dark:text-gray-300' : 'text-gray-400'}`}
+                            />
+                          </button>
+                        </CollapsibleTrigger>
+                      </div>
+
+                      <CollapsibleContent className="mt-0.5 ml-5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-800 pl-3">
+                        {section.items.filter(item => isOwner || !OWNER_ONLY_FINANCE_ITEMS.includes(item.id)).map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => handleItemClick(item)}
+                            disabled={item.inDev}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${
+                              isActive(item)
+                                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                : item.inDev
+                                ? 'opacity-40 cursor-not-allowed'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 text-gray-600 dark:text-gray-400'
+                            }`}
+                          >
+                            <Icon name={item.icon} size={15} className={isActive(item) ? 'text-blue-600' : 'text-gray-400 dark:text-gray-500'} />
+                            <span className="text-[13px]">{item.label}</span>
+                            {item.badge && !item.inDev && (
+                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 px-1.5 py-0.5 rounded-full ml-auto">
+                                {item.badge}
+                              </span>
+                            )}
+                            {item.inDev && (
+                              <span className="text-[9px] bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded-full ml-auto">
+                                DEV
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                })}
+              </div>
             );
           })}
         </div>
