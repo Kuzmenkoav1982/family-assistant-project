@@ -413,10 +413,23 @@ function LocalPathsIndexDialog({
         });
         onDone();
       } else {
-        toast({ title: 'Ошибка индексации', description: r.error || r.message });
+        const err = r.error || r.message;
+        const detailStr = typeof r.detail === 'string'
+          ? r.detail
+          : r.detail ? JSON.stringify(r.detail).slice(0, 200) : null;
+        const desc = err || detailStr || 'Пустой ответ от индексатора (вероятно, 504 timeout). Подними таймаут функции dev-agent-indexer до 180с в Ядро → Функции.';
+        toast({ title: 'Ошибка индексации', description: desc });
+        if (!err && !detailStr) {
+          setResult({
+            success: false,
+            error: 'empty_response',
+            message: '504 / пустой ответ. Подними таймаут функции dev-agent-indexer до 180с.',
+          } as typeof r);
+        }
       }
     } catch (e) {
       toast({ title: 'Ошибка', description: String(e) });
+      setResult({ success: false, error: 'network_error', message: String(e) } as Awaited<ReturnType<typeof devAgent.indexFromLocalPaths>>);
     } finally {
       setLoading(false);
     }
