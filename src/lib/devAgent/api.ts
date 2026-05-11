@@ -1,0 +1,238 @@
+/**
+ * Dev Agent Studio — клиент API.
+ * Action-based эндпоинт, две функции: dev-agent-admin (read+chat) и dev-agent-indexer (seed).
+ */
+import func2url from '../../../backend/func2url.json';
+
+const ADMIN_URL = (func2url as Record<string, string>)['dev-agent-admin'];
+const INDEXER_URL = (func2url as Record<string, string>)['dev-agent-indexer'];
+
+export type DAEnv = 'stage' | 'prod';
+export type DAMode = 'explain' | 'locate' | 'plan' | 'patch';
+
+async function call<T>(url: string, action: string, env: DAEnv,
+                       query: Record<string, string> = {}, body?: Record<string, unknown>): Promise<T> {
+  const userId = localStorage.getItem('userId') || '';
+  const qs = new URLSearchParams({ action, env, ...query }).toString();
+  const init: RequestInit = {
+    method: body ? 'POST' : 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(userId ? { 'X-User-Id': userId } : {}),
+    },
+  };
+  if (body) init.body = JSON.stringify({ action, env, ...body });
+  const resp = await fetch(`${url}?${qs}`, init);
+  return resp.json();
+}
+
+export interface DASnapshot {
+  id: number;
+  snapshot_uuid?: string;
+  commit_sha: string;
+  commit_message?: string;
+  branch_name?: string;
+  indexing_status: string;
+  files_count: number;
+  chunks_count: number;
+  symbols_count: number;
+  routes_count: number;
+  endpoints_count: number;
+  indexed_at?: string;
+  created_at: string;
+  is_active: boolean;
+}
+
+export interface DAOverview {
+  environment: DAEnv;
+  active_snapshot: DASnapshot | null;
+  snapshot_id: number | null;
+  metrics: { runs_7d: number; active_sessions: number };
+  flags: Array<{ code: string; env: string; enabled: boolean }>;
+}
+
+export interface DAConfig {
+  id: number;
+  environment: DAEnv;
+  primary_model: string;
+  fallback_model?: string;
+  repo_provider: string;
+  repo_slug?: string;
+  default_branch: string;
+  snapshot_s3_prefix: string;
+  max_context_chars: number;
+  max_chunks: number;
+  patch_apply_mode: string;
+  sandbox_enabled: boolean;
+  updated_at?: string;
+}
+
+export interface DASearchItem {
+  type: 'file' | 'symbol' | 'route' | 'api' | 'chunk';
+  score: number;
+  path?: string;
+  file_id?: number;
+  language?: string;
+  category?: string;
+  line_count?: number;
+  symbol_id?: number;
+  symbol_name?: string;
+  symbol_kind?: string;
+  line_no?: number;
+  route_id?: number;
+  route_path?: string;
+  page_component?: string;
+  area?: string;
+  api_id?: number;
+  function_name?: string;
+  action_name?: string;
+  http_method?: string;
+  endpoint_path?: string;
+  chunk_id?: number;
+  start_line?: number;
+  end_line?: number;
+  snippet?: string;
+}
+
+export interface DAFile {
+  id: number;
+  snapshot_id: number;
+  path: string;
+  language?: string;
+  category?: string;
+  line_count?: number;
+  size_bytes: number;
+  sha256?: string;
+  raw_s3_key?: string;
+  chunks?: Array<{ id: number; chunk_index: number; chunk_kind: string; symbol_name?: string; start_line?: number; end_line?: number; preview: string }>;
+  symbols?: Array<{ id: number; symbol_name: string; symbol_kind: string; exported: boolean; line_no?: number }>;
+}
+
+export interface DARoute {
+  id: number;
+  route_path: string;
+  page_component?: string;
+  area: string;
+  auth_scope?: string;
+  source_path?: string;
+}
+
+export interface DAApiEndpoint {
+  id: number;
+  function_name: string;
+  action_name?: string;
+  http_method?: string;
+  endpoint_path?: string;
+  auth_scope?: string;
+  source_path?: string;
+}
+
+export interface DADbTable {
+  id: number;
+  table_name: string;
+  columns_count: number;
+  indexes_count: number;
+  fk_count: number;
+  columns_json?: Array<{ name: string; type: string; nullable: boolean; default: string | null }>;
+}
+
+export interface DASession {
+  id: number;
+  session_uuid?: string;
+  title: string;
+  default_mode: DAMode;
+  status: 'active' | 'archived';
+  last_run_at?: string;
+  created_at: string;
+  updated_at: string;
+  messages?: Array<{ id: number; speaker: string; content: string; citations: unknown; metadata: unknown; created_at: string }>;
+}
+
+export interface DAChatResult {
+  success: boolean;
+  session_id: number;
+  run_id: number;
+  question_msg_id: number;
+  answer_msg_id: number;
+  answer: string;
+  citations: Array<{
+    type?: string;
+    path?: string;
+    start_line?: number;
+    end_line?: number;
+    symbol_name?: string;
+    snippet?: string;
+  }>;
+  retrieval?: { total: number; snapshot_id: number | null; latency_ms: number };
+  error?: string;
+}
+
+export interface DARun {
+  id: number;
+  run_uuid?: string;
+  session_id?: number;
+  mode: DAMode;
+  status: string;
+  model: string;
+  input_tokens?: number;
+  output_tokens?: number;
+  latency_ms?: number;
+  created_at: string;
+  session_title?: string;
+}
+
+export const devAgent = {
+  overview: (env: DAEnv) => call<DAOverview>(ADMIN_URL, 'overview.get', env),
+  config: (env: DAEnv) => call<DAConfig>(ADMIN_URL, 'config.get', env),
+  snapshotsList: (env: DAEnv) => call<{ items: DASnapshot[] }>(ADMIN_URL, 'snapshots.list', env),
+  search: (env: DAEnv, query: string) =>
+    call<{ items: DASearchItem[]; total: number; query: string }>(ADMIN_URL, 'search.query', env, {}, { query }),
+  filesTree: (env: DAEnv) =>
+    call<{ items: Array<{ id: number; path: string; language?: string; category?: string; line_count?: number; size_bytes: number }>; snapshot_id: number }>(
+      ADMIN_URL, 'files.tree', env
+    ),
+  fileGet: (env: DAEnv, fileId: number) =>
+    call<DAFile>(ADMIN_URL, 'files.get', env, { file_id: String(fileId) }),
+  symbolsFind: (env: DAEnv, name: string, kind?: string) =>
+    call<{ items: Array<{ id: number; symbol_name: string; symbol_kind: string; exported: boolean; line_no?: number; path: string }> }>(
+      ADMIN_URL, 'symbols.find', env, {}, { name, kind }
+    ),
+  routesList: (env: DAEnv) => call<{ items: DARoute[] }>(ADMIN_URL, 'routes.list', env),
+  apiList: (env: DAEnv) => call<{ items: DAApiEndpoint[] }>(ADMIN_URL, 'api.list', env),
+  dbTablesList: (env: DAEnv) => call<{ items: DADbTable[]; db_snapshot_id: number }>(ADMIN_URL, 'db.tables.list', env),
+  dbTableGet: (env: DAEnv, tableId: number) =>
+    call<DADbTable & { columns_json: DADbTable['columns_json']; metadata: unknown }>(
+      ADMIN_URL, 'db.tables.get', env, { table_id: String(tableId) }
+    ),
+  sessionsList: (env: DAEnv) => call<{ items: DASession[] }>(ADMIN_URL, 'sessions.list', env),
+  sessionCreate: (env: DAEnv, title: string, mode: DAMode = 'explain') =>
+    call<{ success: boolean; id: number; session_uuid: string }>(
+      ADMIN_URL, 'sessions.create', env, {}, { title, default_mode: mode }
+    ),
+  sessionGet: (env: DAEnv, sessionId: number) =>
+    call<DASession>(ADMIN_URL, 'sessions.get', env, { session_id: String(sessionId) }),
+  chatSend: (env: DAEnv, message: string, sessionId?: number, mode: DAMode = 'explain') =>
+    call<DAChatResult>(ADMIN_URL, 'chat.send', env, {}, {
+      message, mode, ...(sessionId ? { session_id: sessionId } : {}),
+    }),
+  runsList: (env: DAEnv) => call<{ items: DARun[] }>(ADMIN_URL, 'runs.list', env),
+  runGet: (env: DAEnv, runId: number) =>
+    call<{ run: DARun; tool_calls: Array<{ id: number; tool_name: string; tool_input: unknown; tool_output: unknown; latency_ms?: number; status: string; created_at: string }> }>(
+      ADMIN_URL, 'runs.get', env, { run_id: String(runId) }
+    ),
+
+  // Indexer
+  seedCreate: (env: DAEnv, payload: {
+    commit_sha?: string;
+    commit_message?: string;
+    files?: Array<{ path: string; language?: string; category?: string; size_bytes?: number; line_count?: number }>;
+    routes?: Array<{ route_path: string; page_component?: string; area: string; auth_scope?: string }>;
+    endpoints?: Array<{ function_name: string; action_name?: string; http_method?: string; endpoint_path?: string }>;
+    symbols?: Array<{ path: string; symbol_name: string; symbol_kind?: string; exported?: boolean; line_no?: number }>;
+  }) => call<{ success: boolean; snapshot_id: number; files_count: number; routes_count: number; endpoints_count: number; symbols_count: number; db_snapshot_id: number }>(
+    INDEXER_URL, 'seed.create', env, {}, payload
+  ),
+  seedStatus: (env: DAEnv) => call<{ snapshot: DASnapshot | null }>(INDEXER_URL, 'seed.status', env),
+  snapshotActivate: (env: DAEnv, snapshotId: number) =>
+    call<{ success: boolean }>(INDEXER_URL, 'snapshots.activate', env, {}, { snapshot_id: snapshotId }),
+};

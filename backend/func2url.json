@@ -1,4 +1,6 @@
 {
+  "dev-agent-admin": "https://functions.poehali.dev/87b3d00e-76cb-4972-b1d6-8268b57f316d",
+  "dev-agent-indexer": "https://functions.poehali.dev/90f5f376-4d08-46ec-934a-a18cec5d2ecb",
   "domovoy-studio": "https://functions.poehali.dev/44c0b340-df18-4068-b7c3-b8acd4aaeea1",
   "domovoy-context": "https://functions.poehali.dev/5bdac4ac-63d2-4e8e-9bef-bec020bf2b25",
   "home-module": "https://functions.poehali.dev/592bc978-3755-41e2-b7c2-09f5280f66dc",

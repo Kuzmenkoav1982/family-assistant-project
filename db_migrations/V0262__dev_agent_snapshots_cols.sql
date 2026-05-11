@@ -1,0 +1,16 @@
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS snapshot_uuid UUID UNIQUE;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS branch_name TEXT NOT NULL DEFAULT 'main';
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS commit_message TEXT;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS manifest_s3_key TEXT;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS snapshot_s3_key TEXT;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS indexing_status TEXT NOT NULL DEFAULT 'pending';
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS files_count INT NOT NULL DEFAULT 0;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS chunks_count INT NOT NULL DEFAULT 0;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS symbols_count INT NOT NULL DEFAULT 0;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS routes_count INT NOT NULL DEFAULT 0;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS endpoints_count INT NOT NULL DEFAULT 0;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS indexed_at TIMESTAMPTZ;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS created_by BIGINT;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS err_text TEXT;
+ALTER TABLE dev_agent_repo_snapshots ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_dasnap_env_active ON dev_agent_repo_snapshots(environment, is_active);

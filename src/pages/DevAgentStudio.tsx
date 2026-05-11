@@ -1,0 +1,806 @@
+/**
+ * Dev Agent Studio — внутренний инженерный AI-агент админки.
+ * Stage 1: read-only индекс проекта + поиск + чат без LLM.
+ */
+import { useEffect, useMemo, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Icon from '@/components/ui/icon';
+import { useToast } from '@/hooks/use-toast';
+import {
+  devAgent, DAEnv, DAMode, DAOverview, DASnapshot, DASearchItem,
+  DARoute, DAApiEndpoint, DADbTable, DASession, DARun,
+} from '@/lib/devAgent/api';
+import {
+  SEED_FILES, SEED_ROUTES, SEED_SYMBOLS, buildSeedEndpoints,
+} from '@/lib/devAgent/seedData';
+
+type ToastFn = ReturnType<typeof useToast>['toast'];
+
+function formatDate(d?: string) {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+  } catch { return d; }
+}
+
+function Empty({ text }: { text: string }) {
+  return <div className="text-center py-8 text-xs text-slate-400">{text}</div>;
+}
+
+export default function DevAgentStudio() {
+  const [env, setEnv] = useState<DAEnv>('stage');
+  const [tab, setTab] = useState('overview');
+  const { toast } = useToast();
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="bg-white border-b sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-bold flex items-center gap-2">
+              <Icon name="Bot" size={20} /> Dev Agent Studio
+            </h1>
+            <p className="text-xs text-slate-500">Внутренний инженерный AI-агент · Stage 1 (read-only)</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={env}
+              onChange={e => setEnv(e.target.value as DAEnv)}
+              className="border rounded-md px-2 py-1.5 text-sm bg-white"
+            >
+              <option value="stage">stage</option>
+              <option value="prod">prod</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <Tabs value={tab} onValueChange={setTab}>
+          <TabsList className="grid grid-cols-4 md:grid-cols-7 gap-1 mb-6">
+            <TabsTrigger value="overview">Обзор</TabsTrigger>
+            <TabsTrigger value="search">Поиск</TabsTrigger>
+            <TabsTrigger value="chat">Чат</TabsTrigger>
+            <TabsTrigger value="files">Файлы</TabsTrigger>
+            <TabsTrigger value="routes">Роуты/API</TabsTrigger>
+            <TabsTrigger value="db">БД</TabsTrigger>
+            <TabsTrigger value="runs">Запуски</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview"><OverviewTab env={env} toast={toast} /></TabsContent>
+          <TabsContent value="search"><SearchTab env={env} /></TabsContent>
+          <TabsContent value="chat"><ChatTab env={env} toast={toast} /></TabsContent>
+          <TabsContent value="files"><FilesTab env={env} /></TabsContent>
+          <TabsContent value="routes"><RoutesApiTab env={env} /></TabsContent>
+          <TabsContent value="db"><DbTab env={env} /></TabsContent>
+          <TabsContent value="runs"><RunsTab env={env} /></TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// Overview
+// ============================================================
+function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
+  const [data, setData] = useState<DAOverview | null>(null);
+  const [reindexing, setReindexing] = useState(false);
+
+  const load = () => devAgent.overview(env).then(setData);
+  useEffect(() => { load();   }, [env]);
+
+  const reindex = async () => {
+    setReindexing(true);
+    try {
+      const res = await devAgent.seedCreate(env, {
+        commit_sha: 'seed-' + Date.now(),
+        commit_message: 'Manual reindex from admin UI',
+        files: SEED_FILES,
+        routes: SEED_ROUTES,
+        endpoints: buildSeedEndpoints(),
+        symbols: SEED_SYMBOLS,
+      });
+      if (res.success) {
+        toast({
+          title: 'Индекс обновлён',
+          description: `Файлов: ${res.files_count}, символов: ${res.symbols_count}, роутов: ${res.routes_count}, API: ${res.endpoints_count}`,
+        });
+        load();
+      } else {
+        toast({ title: 'Не удалось переиндексировать', description: 'Проверь логи функции' });
+      }
+    } finally {
+      setReindexing(false);
+    }
+  };
+
+  if (!data) return <div className="text-sm text-slate-500">Загрузка…</div>;
+
+  const snap = data.active_snapshot;
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Активный snapshot</CardTitle>
+            <Button size="sm" onClick={reindex} disabled={reindexing}>
+              {reindexing
+                ? <><Icon name="Loader2" size={14} className="mr-1 animate-spin" /> Индексация…</>
+                : <><Icon name="RefreshCw" size={14} className="mr-1" /> Переиндексировать</>}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {snap ? (
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <div className="text-xs text-slate-500">Commit</div>
+                <div className="font-mono text-xs">{snap.commit_sha}</div>
+                <div className="text-xs text-slate-500 mt-1">{snap.commit_message}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">Статус</div>
+                <Badge variant={snap.is_active ? 'default' : 'outline'} className="mt-1">
+                  {snap.indexing_status} {snap.is_active ? '· активный' : ''}
+                </Badge>
+                <div className="text-xs text-slate-500 mt-1">Создан: {formatDate(snap.created_at)}</div>
+                <div className="text-xs text-slate-500">Проиндексирован: {formatDate(snap.indexed_at)}</div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div><div className="text-slate-500">Файлы</div><div className="text-lg font-bold">{snap.files_count}</div></div>
+                <div><div className="text-slate-500">Символы</div><div className="text-lg font-bold">{snap.symbols_count}</div></div>
+                <div><div className="text-slate-500">Роуты</div><div className="text-lg font-bold">{snap.routes_count}</div></div>
+                <div><div className="text-slate-500">API</div><div className="text-lg font-bold">{snap.endpoints_count}</div></div>
+              </div>
+            </div>
+          ) : (
+            <Empty text="Snapshot ещё не создан. Нажми «Переиндексировать» — соберём первый индекс." />
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Активность</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-slate-500">Запусков за 7 дней</div>
+                <div className="text-2xl font-bold">{data.metrics.runs_7d}</div>
+              </div>
+              <div>
+                <div className="text-xs text-slate-500">Активных сессий</div>
+                <div className="text-2xl font-bold">{data.metrics.active_sessions}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-sm">Feature flags</CardTitle></CardHeader>
+          <CardContent>
+            <div className="space-y-1.5">
+              {data.flags.length === 0 && <Empty text="Нет flag для среды" />}
+              {data.flags.map(f => (
+                <div key={f.code} className="flex items-center justify-between text-xs">
+                  <span className="font-mono">{f.code}</span>
+                  <Badge variant={f.enabled ? 'default' : 'outline'} className="text-[10px]">
+                    {f.enabled ? 'on' : 'off'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Что умеет агент сейчас</CardTitle></CardHeader>
+        <CardContent className="text-sm space-y-1.5 text-slate-600">
+          <div>· Хранит индекс файлов, символов, роутов, API и схемы БД</div>
+          <div>· Ищет grounded-цитаты по индексу через вкладку «Поиск»</div>
+          <div>· Чат без LLM — пока работает как технический поисковик с цитатами</div>
+          <div>· Логирует все запуски в audit и tool_calls</div>
+          <div className="text-xs text-slate-400 pt-2">
+            Patch generation и PR-интеграция — в Stage 2.
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================
+// Search
+// ============================================================
+function SearchTab({ env }: { env: DAEnv }) {
+  const [q, setQ] = useState('');
+  const [items, setItems] = useState<DASearchItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [reason, setReason] = useState<string | null>(null);
+
+  const run = async (query: string) => {
+    if (!query.trim()) { setItems([]); setReason(null); return; }
+    setLoading(true);
+    try {
+      const r = await devAgent.search(env, query);
+      setItems(r.items || []);
+      setReason((r as unknown as { reason?: string }).reason || null);
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex gap-2">
+            <Input
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') run(q); }}
+              placeholder="FamilyWallet, /admin/domovoy, ai-assistant, handler…"
+              className="text-sm"
+            />
+            <Button onClick={() => run(q)} disabled={loading}>
+              {loading ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Search" size={14} />}
+            </Button>
+          </div>
+          {reason === 'no_snapshot' && (
+            <div className="mt-2 text-xs text-amber-600">
+              Snapshot не создан — открой вкладку «Обзор» и нажми «Переиндексировать».
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {items.length === 0 && q && !loading && (
+        <Empty text="Ничего не нашёл. Попробуй имя компонента, роута, action или таблицы." />
+      )}
+
+      {items.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Результаты ({items.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1.5">
+              {items.map((it, i) => (
+                <SearchHit key={i} item={it} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function SearchHit({ item }: { item: DASearchItem }) {
+  const typeColor: Record<string, string> = {
+    file: 'bg-blue-100 text-blue-700',
+    symbol: 'bg-emerald-100 text-emerald-700',
+    route: 'bg-violet-100 text-violet-700',
+    api: 'bg-amber-100 text-amber-700',
+    chunk: 'bg-slate-100 text-slate-700',
+  };
+  return (
+    <div className="flex items-start gap-2 text-xs border rounded p-2 hover:bg-slate-50">
+      <span className={`text-[10px] uppercase px-1.5 py-0.5 rounded ${typeColor[item.type] || ''}`}>{item.type}</span>
+      <div className="flex-1 min-w-0">
+        {item.type === 'file' && <div className="font-mono truncate">{item.path} <span className="text-slate-400">· {item.language || '?'}</span></div>}
+        {item.type === 'symbol' && (
+          <div className="truncate">
+            <span className="font-semibold">{item.symbol_name}</span>
+            <span className="text-slate-400 ml-1">[{item.symbol_kind}]</span>
+            <span className="font-mono text-slate-500 ml-2">{item.path}:{item.line_no || '?'}</span>
+          </div>
+        )}
+        {item.type === 'route' && (
+          <div className="truncate">
+            <span className="font-mono">{item.route_path}</span>
+            <span className="text-slate-400 ml-2">→ {item.page_component}</span>
+            <span className="text-slate-400 ml-1">[{item.area}]</span>
+          </div>
+        )}
+        {item.type === 'api' && (
+          <div className="truncate">
+            <span className="font-mono">{item.function_name}</span>
+            {item.action_name && <span className="text-slate-400 ml-1">#{item.action_name}</span>}
+          </div>
+        )}
+        {item.type === 'chunk' && (
+          <div>
+            <div className="font-mono text-[10px] text-slate-500">{item.path}:{item.start_line}—{item.end_line}</div>
+            <div className="text-slate-600 mt-0.5 truncate">{item.snippet}</div>
+          </div>
+        )}
+      </div>
+      <span className="text-[10px] text-slate-400">{Math.round((item.score || 0) * 100)}%</span>
+    </div>
+  );
+}
+
+// ============================================================
+// Chat
+// ============================================================
+function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
+  const [sessions, setSessions] = useState<DASession[]>([]);
+  const [activeSess, setActiveSess] = useState<number | null>(null);
+  const [sessDetail, setSessDetail] = useState<DASession | null>(null);
+  const [message, setMessage] = useState('');
+  const [mode, setMode] = useState<DAMode>('explain');
+  const [sending, setSending] = useState(false);
+  const [lastCitations, setLastCitations] = useState<DASearchItem[] | null>(null);
+
+  const loadSessions = async () => {
+    const r = await devAgent.sessionsList(env);
+    setSessions(r.items || []);
+  };
+  useEffect(() => { loadSessions();   }, [env]);
+
+  const openSession = async (id: number) => {
+    setActiveSess(id);
+    const r = await devAgent.sessionGet(env, id);
+    if (!r.id) {
+      toast({ title: 'Сессия не найдена' });
+      return;
+    }
+    setSessDetail(r);
+  };
+
+  const send = async () => {
+    if (!message.trim()) return;
+    setSending(true);
+    try {
+      const r = await devAgent.chatSend(env, message.trim(), activeSess || undefined, mode);
+      if (!r.success) {
+        if (r.error === 'auth_required') {
+          toast({ title: 'Нужно войти как админ', description: 'X-User-Id не передан в запросе' });
+        } else {
+          toast({ title: 'Ошибка', description: r.error });
+        }
+        return;
+      }
+      setMessage('');
+      setLastCitations((r.citations || []) as unknown as DASearchItem[]);
+      if (!activeSess) setActiveSess(r.session_id);
+      await openSession(r.session_id);
+      await loadSessions();
+    } finally { setSending(false); }
+  };
+
+  return (
+    <div className="grid md:grid-cols-[260px_1fr_300px] gap-3 h-[calc(100vh-220px)]">
+      {/* Sessions */}
+      <Card className="overflow-hidden flex flex-col">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs flex items-center justify-between">
+            Сессии
+            <Button size="sm" variant="ghost" onClick={() => { setActiveSess(null); setSessDetail(null); }}>
+              <Icon name="Plus" size={12} />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-y-auto flex-1 space-y-1 p-2">
+          {sessions.length === 0 && <Empty text="Нет сессий" />}
+          {sessions.map(s => (
+            <button
+              key={s.id}
+              onClick={() => openSession(s.id)}
+              className={`w-full text-left text-xs px-2 py-1.5 rounded hover:bg-slate-100 ${activeSess === s.id ? 'bg-slate-100 font-medium' : ''}`}
+            >
+              <div className="truncate">{s.title}</div>
+              <div className="text-[10px] text-slate-400">{formatDate(s.updated_at)} · {s.default_mode}</div>
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Chat */}
+      <Card className="flex flex-col">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs flex items-center justify-between">
+            {sessDetail?.title || 'Новый запрос'}
+            <select value={mode} onChange={e => setMode(e.target.value as DAMode)}
+              className="border rounded px-1.5 py-0.5 text-[10px] bg-white">
+              <option value="explain">explain</option>
+              <option value="locate">locate</option>
+              <option value="plan">plan (V2)</option>
+              <option value="patch">patch (V2)</option>
+            </select>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto space-y-2 px-3">
+          {!sessDetail && (
+            <div className="text-xs text-slate-400 text-center py-12">
+              Выбери сессию слева или задай новый вопрос внизу.<br />
+              Например: «где AIAssistantWidget», «routes admin», «backend chat».
+            </div>
+          )}
+          {sessDetail?.messages?.map(m => (
+            <div key={m.id} className={`text-xs ${m.speaker === 'asker' ? 'text-right' : ''}`}>
+              <div className={`inline-block max-w-[85%] px-3 py-2 rounded-lg ${m.speaker === 'asker' ? 'bg-blue-50 text-blue-900' : 'bg-slate-100'}`}>
+                <div className="text-[10px] uppercase text-slate-400 mb-0.5">{m.speaker}</div>
+                <div className="whitespace-pre-wrap">{m.content}</div>
+              </div>
+              <div className="text-[10px] text-slate-400 mt-0.5">{formatDate(m.created_at)}</div>
+            </div>
+          ))}
+        </CardContent>
+        <div className="border-t p-2 flex gap-2">
+          <Textarea
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send(); }}
+            placeholder="Спроси про код проекта (Ctrl+Enter = отправить)…"
+            rows={2}
+            className="text-xs"
+          />
+          <Button onClick={send} disabled={sending || !message.trim()}>
+            {sending ? <Icon name="Loader2" size={14} className="animate-spin" /> : <Icon name="Send" size={14} />}
+          </Button>
+        </div>
+      </Card>
+
+      {/* Inspector */}
+      <Card className="overflow-hidden flex flex-col">
+        <CardHeader className="pb-2"><CardTitle className="text-xs">Цитаты</CardTitle></CardHeader>
+        <CardContent className="overflow-y-auto flex-1 space-y-1.5 p-2">
+          {!lastCitations && <Empty text="Здесь появятся источники для ответа" />}
+          {lastCitations?.map((c, i) => (
+            <div key={i} className="text-[11px] border rounded p-2 bg-slate-50">
+              <div className="font-mono text-slate-700 truncate">{c.path || '(no path)'}</div>
+              {(c.start_line || c.line_no) && (
+                <div className="text-slate-400">строки {c.start_line || c.line_no}{c.end_line ? `—${c.end_line}` : ''}</div>
+              )}
+              {c.symbol_name && <div className="text-emerald-700">{c.symbol_name}</div>}
+              {c.snippet && <div className="text-slate-500 mt-1 line-clamp-3">{c.snippet}</div>}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================
+// Files
+// ============================================================
+function FilesTab({ env }: { env: DAEnv }) {
+  const [items, setItems] = useState<Array<{ id: number; path: string; language?: string; category?: string; line_count?: number; size_bytes: number }>>([]);
+  const [filter, setFilter] = useState('');
+  const [selected, setSelected] = useState<number | null>(null);
+  const [file, setFile] = useState<Awaited<ReturnType<typeof devAgent.fileGet>> | null>(null);
+
+  useEffect(() => {
+    devAgent.filesTree(env).then(r => setItems(r.items || []));
+  }, [env]);
+
+  const filtered = useMemo(() => {
+    if (!filter) return items;
+    const f = filter.toLowerCase();
+    return items.filter(i => i.path.toLowerCase().includes(f));
+  }, [items, filter]);
+
+  const open = async (id: number) => {
+    setSelected(id);
+    const r = await devAgent.fileGet(env, id);
+    setFile(r);
+  };
+
+  return (
+    <div className="grid md:grid-cols-[320px_1fr] gap-3 h-[calc(100vh-220px)]">
+      <Card className="flex flex-col">
+        <CardHeader className="pb-2">
+          <Input value={filter} onChange={e => setFilter(e.target.value)}
+            placeholder="Фильтр по пути…" className="text-xs" />
+        </CardHeader>
+        <CardContent className="overflow-y-auto flex-1 space-y-0.5 p-2">
+          {filtered.map(f => (
+            <button key={f.id} onClick={() => open(f.id)}
+              className={`w-full text-left text-[11px] px-2 py-1 rounded hover:bg-slate-100 font-mono truncate ${selected === f.id ? 'bg-slate-100 font-semibold' : ''}`}>
+              {f.path}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Card className="flex flex-col">
+        <CardHeader><CardTitle className="text-sm">{file?.path || 'Выбери файл'}</CardTitle></CardHeader>
+        <CardContent className="overflow-y-auto flex-1">
+          {!file && <Empty text="Выбери файл слева" />}
+          {file && (
+            <div className="space-y-3 text-xs">
+              <div className="flex gap-3 text-slate-500">
+                <span>{file.language}</span>
+                <span>· {file.category}</span>
+                <span>· {file.line_count || '?'} строк</span>
+                <span>· {(file.size_bytes / 1024).toFixed(1)} KB</span>
+              </div>
+              {file.symbols && file.symbols.length > 0 && (
+                <div>
+                  <div className="font-semibold mb-1">Символы ({file.symbols.length})</div>
+                  <div className="space-y-1">
+                    {file.symbols.map(s => (
+                      <div key={s.id} className="flex items-center gap-2 text-[11px]">
+                        <Badge variant="outline" className="text-[9px]">{s.symbol_kind}</Badge>
+                        <span className="font-semibold">{s.symbol_name}</span>
+                        {s.exported && <span className="text-emerald-600">export</span>}
+                        {s.line_no && <span className="text-slate-400 ml-auto">L{s.line_no}</span>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {file.chunks && file.chunks.length > 0 && (
+                <div>
+                  <div className="font-semibold mb-1">Чанки ({file.chunks.length})</div>
+                  <div className="space-y-1.5">
+                    {file.chunks.map(c => (
+                      <details key={c.id} className="border rounded">
+                        <summary className="cursor-pointer text-[11px] px-2 py-1 bg-slate-50">
+                          {c.symbol_name || c.chunk_kind} · L{c.start_line}—{c.end_line}
+                        </summary>
+                        <div className="p-2 font-mono text-[10px] whitespace-pre-wrap text-slate-600">{c.preview}</div>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================
+// Routes / API
+// ============================================================
+function RoutesApiTab({ env }: { env: DAEnv }) {
+  const [routes, setRoutes] = useState<DARoute[]>([]);
+  const [apis, setApis] = useState<DAApiEndpoint[]>([]);
+
+  useEffect(() => {
+    devAgent.routesList(env).then(r => setRoutes(r.items || []));
+    devAgent.apiList(env).then(r => setApis(r.items || []));
+  }, [env]);
+
+  return (
+    <div className="grid md:grid-cols-2 gap-4">
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Frontend роуты ({routes.length})</CardTitle></CardHeader>
+        <CardContent>
+          {routes.length === 0 ? <Empty text="Нет роутов в индексе" /> : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Path</TableHead>
+                  <TableHead>Компонент</TableHead>
+                  <TableHead className="w-20">Area</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {routes.map(r => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-mono text-xs">{r.route_path}</TableCell>
+                    <TableCell className="text-xs">{r.page_component || '—'}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-[10px]">{r.area}</Badge></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Backend API ({apis.length})</CardTitle></CardHeader>
+        <CardContent>
+          {apis.length === 0 ? <Empty text="Нет endpoint в индексе" /> : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Функция</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead className="w-16">Метод</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {apis.map(a => (
+                  <TableRow key={a.id}>
+                    <TableCell className="text-xs font-mono">{a.function_name}</TableCell>
+                    <TableCell className="text-xs">{a.action_name || '—'}</TableCell>
+                    <TableCell className="text-xs">{a.http_method || '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================
+// DB
+// ============================================================
+function DbTab({ env }: { env: DAEnv }) {
+  const [tables, setTables] = useState<DADbTable[]>([]);
+  const [selected, setSelected] = useState<DADbTable | null>(null);
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    devAgent.dbTablesList(env).then(r => setTables(r.items || []));
+  }, [env]);
+
+  const filtered = useMemo(() => {
+    if (!filter) return tables;
+    const f = filter.toLowerCase();
+    return tables.filter(t => t.table_name.toLowerCase().includes(f));
+  }, [tables, filter]);
+
+  const open = async (id: number) => {
+    const r = await devAgent.dbTableGet(env, id);
+    setSelected(r as unknown as DADbTable);
+  };
+
+  return (
+    <div className="grid md:grid-cols-[320px_1fr] gap-3">
+      <Card>
+        <CardHeader className="pb-2">
+          <Input value={filter} onChange={e => setFilter(e.target.value)}
+            placeholder="Фильтр таблиц…" className="text-xs" />
+        </CardHeader>
+        <CardContent className="max-h-[60vh] overflow-y-auto space-y-0.5 p-2">
+          {filtered.map(t => (
+            <button key={t.id} onClick={() => open(t.id)}
+              className="w-full text-left text-[11px] px-2 py-1 rounded hover:bg-slate-100 font-mono flex items-center justify-between">
+              <span className="truncate">{t.table_name}</span>
+              <span className="text-slate-400 text-[10px] ml-1">{t.columns_count}c</span>
+            </button>
+          ))}
+          {tables.length === 0 && <Empty text="БД snapshot ещё не создан" />}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-sm">{selected?.table_name || 'Выбери таблицу'}</CardTitle></CardHeader>
+        <CardContent>
+          {!selected && <Empty text="Выбери таблицу слева" />}
+          {selected && Array.isArray(selected.columns_json) && (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Колонка</TableHead>
+                  <TableHead>Тип</TableHead>
+                  <TableHead className="w-20">Null</TableHead>
+                  <TableHead>Default</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(selected.columns_json || []).map((c, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-mono text-xs">{c.name}</TableCell>
+                    <TableCell className="text-xs">{c.type}</TableCell>
+                    <TableCell className="text-xs">{c.nullable ? 'yes' : 'no'}</TableCell>
+                    <TableCell className="text-xs text-slate-500">{c.default || '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================
+// Runs
+// ============================================================
+function RunsTab({ env }: { env: DAEnv }) {
+  const [runs, setRuns] = useState<DARun[]>([]);
+  const [selected, setSelected] = useState<Awaited<ReturnType<typeof devAgent.runGet>> | null>(null);
+
+  useEffect(() => {
+    devAgent.runsList(env).then(r => setRuns(r.items || []));
+  }, [env]);
+
+  const open = async (id: number) => {
+    const r = await devAgent.runGet(env, id);
+    setSelected(r);
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader><CardTitle className="text-sm">Запуски ({runs.length})</CardTitle></CardHeader>
+        <CardContent>
+          {runs.length === 0 ? <Empty text="Запусков пока нет" /> : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Когда</TableHead>
+                  <TableHead>Сессия</TableHead>
+                  <TableHead className="w-20">Mode</TableHead>
+                  <TableHead className="w-20">Статус</TableHead>
+                  <TableHead className="w-20">Latency</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {runs.map(r => (
+                  <TableRow key={r.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(r.id)}>
+                    <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
+                    <TableCell className="text-xs">{r.session_title || '—'}</TableCell>
+                    <TableCell className="text-xs">{r.mode}</TableCell>
+                    <TableCell><Badge variant={r.status === 'ok' ? 'default' : 'destructive'} className="text-[10px]">{r.status}</Badge></TableCell>
+                    <TableCell className="text-xs">{r.latency_ms || '—'} мс</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {selected && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center justify-between">
+              Run #{selected.run.id}
+              <Button size="sm" variant="ghost" onClick={() => setSelected(null)}>
+                <Icon name="X" size={14} />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-4 text-xs">
+              <div>
+                <div className="text-slate-500">UUID</div>
+                <div className="font-mono">{selected.run.run_uuid}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Mode / status</div>
+                <div>{selected.run.mode} · <Badge variant="outline" className="text-[10px]">{selected.run.status}</Badge></div>
+              </div>
+              <div>
+                <div className="text-slate-500">Tokens</div>
+                <div>{selected.run.input_tokens || 0} / {selected.run.output_tokens || 0}</div>
+              </div>
+              <div>
+                <div className="text-slate-500">Latency</div>
+                <div>{selected.run.latency_ms} мс</div>
+              </div>
+            </div>
+            {selected.tool_calls.length > 0 && (
+              <div className="mt-4">
+                <div className="text-xs font-semibold mb-1">Tool calls ({selected.tool_calls.length})</div>
+                <div className="space-y-1">
+                  {selected.tool_calls.map(t => (
+                    <div key={t.id} className="text-[11px] border rounded p-2 bg-slate-50">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono">{t.tool_name}</span>
+                        <span className="text-slate-400">{t.latency_ms} мс · {t.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

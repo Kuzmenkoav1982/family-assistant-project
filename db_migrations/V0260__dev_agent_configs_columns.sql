@@ -1,0 +1,10 @@
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS fallback_model TEXT;
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS repo_provider TEXT NOT NULL DEFAULT 's3';
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS repo_slug TEXT;
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS default_branch TEXT NOT NULL DEFAULT 'main';
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS snapshot_s3_prefix TEXT NOT NULL DEFAULT 'dev-agent/snapshots/';
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS max_context_chars INT NOT NULL DEFAULT 32000;
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS max_chunks INT NOT NULL DEFAULT 12;
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS patch_apply_mode TEXT NOT NULL DEFAULT 'disabled';
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS sandbox_enabled BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE dev_agent_configs ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();

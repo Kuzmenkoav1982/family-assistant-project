@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing action",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "action_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Seed status",
+      "method": "GET",
+      "path": "/?action=seed.status",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Snapshot activate missing id",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "snapshots.activate"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "snapshot_id_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unknown action",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "foo"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "unknown_action"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

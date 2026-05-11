@@ -1,0 +1,135 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing action",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "action_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Overview returns env",
+      "method": "GET",
+      "path": "/?action=overview.get",
+      "expectedStatus": 200,
+      "expectedBody": {"environment": "stage"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Config get",
+      "method": "GET",
+      "path": "/?action=config.get",
+      "expectedStatus": 200,
+      "expectedBody": {"environment": "stage"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Snapshots list",
+      "method": "GET",
+      "path": "/?action=snapshots.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Search empty query",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "search.query"},
+      "expectedStatus": 200,
+      "expectedBody": {"total": 0},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Files tree",
+      "method": "GET",
+      "path": "/?action=files.tree",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Files get missing id",
+      "method": "GET",
+      "path": "/?action=files.get",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "file_id_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Symbols find",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "symbols.find", "name": "App"},
+      "expectedStatus": 200
+    },
+    {
+      "name": "Routes list",
+      "method": "GET",
+      "path": "/?action=routes.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "API list",
+      "method": "GET",
+      "path": "/?action=api.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "DB tables list",
+      "method": "GET",
+      "path": "/?action=db.tables.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Sessions list",
+      "method": "GET",
+      "path": "/?action=sessions.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Sessions create without auth",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "sessions.create"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "auth_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Chat without auth",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "chat.send", "message": "test"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "auth_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Runs list",
+      "method": "GET",
+      "path": "/?action=runs.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Run get missing",
+      "method": "GET",
+      "path": "/?action=runs.get",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "run_id_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Unknown action",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "foo.bar"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "unknown_action"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

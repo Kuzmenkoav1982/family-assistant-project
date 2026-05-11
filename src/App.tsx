@@ -148,6 +148,7 @@ const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
 const DomovoyStudio = lazy(() => import("./pages/DomovoyStudio"));
+const DevAgentStudio = lazy(() => import("./pages/DevAgentStudio"));
 const DomovoyPage = lazy(() => import("./pages/DomovoyPage"));
 const AliceIntegration = lazy(() => import("./pages/AliceIntegration"));
 const AdminAlice = lazy(() => import("./pages/AdminAlice"));
@@ -518,6 +519,7 @@ const App = () => {
                       <Route path="/admin/subscriptions" element={<Navigate to="/" replace />} />
                       <Route path="/admin/domovoy" element={<AdminDomovoy />} />
                       <Route path="/admin/domovoy/studio" element={<DomovoyStudio />} />
+                      <Route path="/admin/dev-agent" element={<DevAgentStudio />} />
                       <Route path="/domovoy" element={<DomovoyPage />} />
                       <Route path="/services" element={<TelegramServices />} />
                       <Route path="/debug-auth" element={<DebugAuth />} />
