@@ -64,7 +64,7 @@ export default function DevAgentStudio() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-4 md:grid-cols-7 gap-1 mb-6">
+          <TabsList className="grid grid-cols-4 md:grid-cols-8 gap-1 mb-6">
             <TabsTrigger value="overview">Обзор</TabsTrigger>
             <TabsTrigger value="search">Поиск</TabsTrigger>
             <TabsTrigger value="chat">Чат</TabsTrigger>
@@ -72,6 +72,7 @@ export default function DevAgentStudio() {
             <TabsTrigger value="routes">Роуты/API</TabsTrigger>
             <TabsTrigger value="db">БД</TabsTrigger>
             <TabsTrigger value="runs">Запуски</TabsTrigger>
+            <TabsTrigger value="help">Инструкция</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview"><OverviewTab env={env} toast={toast} /></TabsContent>
@@ -81,6 +82,7 @@ export default function DevAgentStudio() {
           <TabsContent value="routes"><RoutesApiTab env={env} /></TabsContent>
           <TabsContent value="db"><DbTab env={env} /></TabsContent>
           <TabsContent value="runs"><RunsTab env={env} toast={toast} /></TabsContent>
+          <TabsContent value="help"><HelpTab /></TabsContent>
         </Tabs>
       </div>
     </div>
@@ -1117,6 +1119,267 @@ function RunsTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+// ============================================================
+// Help / Инструкция
+// ============================================================
+function HelpTab() {
+  return (
+    <div className="max-w-4xl mx-auto space-y-4 text-sm leading-relaxed">
+      {/* Intro */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="Bot" size={18} className="text-violet-600" />
+            Что такое Dev Agent
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-slate-700">
+          <p>
+            Dev Agent — это внутренний инженерный AI-агент для админки проекта. Он индексирует кодовую базу,
+            понимает её структуру (файлы, символы, маршруты, API-эндпоинты, таблицы БД) и помогает разбираться,
+            где что находится и как устроено.
+          </p>
+          <p>
+            Сейчас агент работает в режиме <b>V1.5</b>: только чтение индекса + ответы YandexGPT с обязательными цитатами.
+            Изменять файлы, делать PR или выкатывать патчи он <b>не умеет</b> — это безопасный диагностический инструмент.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Tabs guide */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="LayoutDashboard" size={18} />
+            Вкладки и что в них делать
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <HelpItem icon="Home" title="Обзор" >
+            Состояние индекса: сколько файлов, символов, роутов, API, таблиц проиндексировано.
+            Здесь же кнопка <b>«Переиндексировать»</b> — запускает свежий снапшот по текущему коду.
+            Делай это после крупных изменений в проекте.
+          </HelpItem>
+          <HelpItem icon="Search" title="Поиск">
+            Быстрый поиск по индексу без LLM. Ищет одновременно по файлам, символам, роутам, API-эндпоинтам
+            и фрагментам кода. Подходит для точечных запросов: «AIAssistantWidget», «family-wallet», «/admin/».
+          </HelpItem>
+          <HelpItem icon="MessageSquare" title="Чат — главная фича">
+            Здесь задаёшь вопросы агенту на русском. В правом верхнем углу есть тоггл:
+            <ul className="list-disc ml-5 mt-1 space-y-1">
+              <li><b>Поиск</b> — только grounded search, без LLM. Быстро и без расхода токенов.</li>
+              <li><b>YandexGPT</b> — полный режим: retrieval → prompt → ответ модели с цитатами.</li>
+            </ul>
+            Селектор <b>mode</b>:
+            <ul className="list-disc ml-5 mt-1 space-y-1">
+              <li><b>explain</b> — объяснить, как устроен участок («как работает chat.send_llm»).</li>
+              <li><b>locate</b> — найти, где что лежит («где зарегистрирован /admin/dev-agent»).</li>
+            </ul>
+            <div className="text-[11px] text-slate-500 mt-1">Ctrl+Enter — отправить.</div>
+          </HelpItem>
+          <HelpItem icon="FolderTree" title="Файлы">
+            Дерево всех проиндексированных файлов с метаданными: язык, категория, размер, количество строк.
+            Клик по файлу — превью содержимого + извлечённые символы.
+          </HelpItem>
+          <HelpItem icon="Route" title="Роуты/API">
+            Все маршруты фронта (React Router) и backend-эндпоинты (Cloud Functions). Полезно, когда хочешь
+            понять, какие URL обслуживаются и какая функция за это отвечает.
+          </HelpItem>
+          <HelpItem icon="Database" title="БД">
+            Структура PostgreSQL: список таблиц, колонки, типы, ключи. Снимок берётся из живой БД.
+          </HelpItem>
+          <HelpItem icon="History" title="Запуски">
+            История всех LLM-вызовов: latency, токены, статус (<code>ok</code>/<code>partial</code>),
+            модель. Колонка <b>Trace</b> — открывает полный лог конкретного запроса:
+            какой prompt ушёл в YandexGPT, что вернула модель, какие цитаты были разрешены.
+          </HelpItem>
+        </CardContent>
+      </Card>
+
+      {/* How LLM mode works */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="Sparkles" size={18} className="text-violet-600" />
+            Как работает режим YandexGPT
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-slate-700">
+          <ol className="list-decimal ml-5 space-y-1.5">
+            <li>Твой вопрос идёт в backend <code>chat.send_llm</code>.</li>
+            <li>
+              Делается <b>retrieval</b> по индексу: до 8 фрагментов кода, 5 символов, 5 файлов,
+              3 роута, 3 API-эндпоинта, 3 таблицы БД.
+            </li>
+            <li>Каждой найденной сущности присваивается <code>citation_id</code>: c1, c2, c3…</li>
+            <li>Собирается prompt из 7 слоёв: правила → режим → разрешённые цитаты → контекст → вопрос → схема ответа.</li>
+            <li>
+              YandexGPT возвращает <b>только</b> JSON: <code>answer</code>, <code>citation_ids</code>,
+              <code> confidence</code>. Модель <b>не</b> видит file_path — только id, чтобы не выдумывать пути.
+            </li>
+            <li>
+              Backend валидирует JSON. Если что-то не так — graceful <b>fallback</b>:
+              ответ собирается из retrieval, status = <code>partial</code>, в чате жёлтый баннер.
+            </li>
+            <li>
+              Run сохраняется в БД, tool_calls — 4 шага: <code>search.query</code>, <code>context.build</code>,
+              <code>llm.generate</code>, <code>response.validate</code>.
+            </li>
+          </ol>
+        </CardContent>
+      </Card>
+
+      {/* Examples */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="Lightbulb" size={18} className="text-amber-500" />
+            Примеры запросов
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <ExampleBlock mode="explain" examples={[
+            'Как устроен chat.send_llm в backend dev-agent-admin?',
+            'Объясни архитектуру FamilyWallet — где данные, где UI, где backend',
+            'Как работает индексация в Dev Agent — какие таблицы используются?',
+            'Опиши, как устроена авторизация пользователя в проекте',
+          ]} />
+          <ExampleBlock mode="locate" examples={[
+            'Где зарегистрирован маршрут /admin/dev-agent?',
+            'В каких файлах используется hook useToast?',
+            'Найди все upload-функции в backend',
+            'Где хранится таблица dev_agent_runs и кто её пишет?',
+          ]} />
+        </CardContent>
+      </Card>
+
+      {/* Trace */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="FileSearch" size={18} />
+            Полный trace
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-slate-700">
+          <p>
+            После каждого LLM-ответа в правом инспекторе появляется кнопка <b>«Открыть полный trace»</b>.
+            То же доступно во вкладке <b>Запуски</b> — колонка Trace.
+          </p>
+          <p>Внутри 4 вкладки:</p>
+          <ul className="list-disc ml-5 space-y-0.5 text-[13px]">
+            <li><b>Prompt</b> — финальный текст, ушедший в YandexGPT (все 7 слоёв).</li>
+            <li><b>Raw response</b> — сырой ответ модели до парсинга.</li>
+            <li><b>Validated</b> — нормализованный объект после валидации.</li>
+            <li><b>Allowed citations</b> — какие цитаты были разрешены модели.</li>
+          </ul>
+          <p className="text-[12px] text-slate-500">
+            Trace сохраняется в S3 (<code>dev-agent/traces/&#123;env&#125;/&#123;uuid&#125;.json</code>)
+            если: включён флаг <code>dev_agent.llm_debug_enabled</code>, был fallback, или ошибка модели.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Feature flags */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="ToggleRight" size={18} />
+            Конфиг и флаги
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-slate-700">
+          <FlagRow code="dev_agent.llm_enabled" desc="Включает режим YandexGPT в чате. На stage = ON, на prod = OFF по умолчанию." />
+          <FlagRow code="dev_agent.llm_debug_enabled" desc="Сохранять полный trace в S3 для каждого запроса. Stage = ON, prod = OFF." />
+          <p className="text-[12px] text-slate-500 pt-1">
+            Управление флагами — таблица <code>domovoy_feature_flags</code> в БД.
+            Конфиг агента (max_chunks, max_context_chars, primary_model) — <code>dev_agent_configs</code>.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Limits */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="AlertTriangle" size={18} className="text-amber-500" />
+            Что Dev Agent НЕ умеет (пока)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="list-disc ml-5 space-y-1 text-slate-700">
+            <li>Изменять файлы (patch generation, apply)</li>
+            <li>Создавать pull requests или коммиты</li>
+            <li>Запускать тесты или билд</li>
+            <li>Выполнять SQL-запросы (только смотреть структуру)</li>
+            <li>Многошаговые автономные циклы</li>
+          </ul>
+          <p className="mt-2 text-[12px] text-slate-500">
+            Если хочешь что-то изменить в коде — пиши Юре в обычный чат. Dev Agent сейчас только показывает и объясняет.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Quick start */}
+      <Card className="border-violet-200 bg-violet-50">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2 text-violet-900">
+            <Icon name="Rocket" size={18} />
+            Быстрый старт
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ol className="list-decimal ml-5 space-y-1 text-slate-800">
+            <li>Вкладка <b>Обзор</b> → если индекс пустой, нажми <b>«Переиндексировать»</b>.</li>
+            <li>Вкладка <b>Чат</b> → переключи на <b>YandexGPT</b>, выбери mode <b>explain</b>.</li>
+            <li>Спроси что-нибудь конкретное про код.</li>
+            <li>Изучи цитаты справа и открой <b>полный trace</b>, чтобы убедиться, что ответ обоснован.</li>
+            <li>Если модель ошиблась — в jellow-баннере увидишь fallback reason.</li>
+          </ol>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function HelpItem({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3 pb-3 border-b last:border-b-0 last:pb-0">
+      <div className="shrink-0 w-8 h-8 rounded bg-slate-100 flex items-center justify-center">
+        <Icon name={icon} size={16} className="text-slate-700" />
+      </div>
+      <div className="flex-1">
+        <div className="font-semibold text-slate-900">{title}</div>
+        <div className="text-[13px] text-slate-600 mt-0.5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function ExampleBlock({ mode, examples }: { mode: 'explain' | 'locate'; examples: string[] }) {
+  return (
+    <div>
+      <Badge variant="outline" className="mb-1 text-[10px]">mode: {mode}</Badge>
+      <ul className="space-y-1">
+        {examples.map((e, i) => (
+          <li key={i} className="text-[13px] text-slate-700 pl-3 border-l-2 border-slate-200">
+            «{e}»
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FlagRow({ code, desc }: { code: string; desc: string }) {
+  return (
+    <div className="flex flex-col gap-0.5 border-l-2 border-violet-300 pl-3">
+      <code className="text-[12px] font-mono text-violet-700">{code}</code>
+      <span className="text-[12px] text-slate-600">{desc}</span>
     </div>
   );
 }
