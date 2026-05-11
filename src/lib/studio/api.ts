@@ -152,6 +152,33 @@ async function call<T>(action: string, env: StudioEnv, params: Record<string, st
   return res.json() as Promise<T>;
 }
 
+export interface StudioSandboxResult {
+  success: boolean;
+  status: string;
+  error_code?: string | null;
+  response: string;
+  role: { code: string; name: string };
+  version: { id: number; version_number: number; environment: StudioEnv; status: string };
+  model: string;
+  temperature: number;
+  max_tokens: number;
+  final_prompt: string;
+  prompt_checksum: string;
+  input_tokens: number;
+  output_tokens: number;
+  latency_ms: number;
+  cost_rub: number;
+  trace_uuid?: string | null;
+  error?: string;
+  message?: string;
+}
+
+export interface StudioVersionFull extends StudioRoleVersion {
+  role_code?: string;
+  role_name?: string;
+  role_id?: number;
+}
+
 export const studioApi = {
   overview: (env: StudioEnv) => call<StudioOverview>('overview', env),
   rolesList: (env: StudioEnv) => call<{ items: StudioRole[]; env: StudioEnv }>('roles.list', env),
@@ -165,6 +192,20 @@ export const studioApi = {
     call<{ success: boolean }>('versions.publish', env, {}, { version_id: versionId }),
   rollback: (env: StudioEnv, roleCode: string) =>
     call<{ success: boolean; version_id: number }>('versions.rollback', env, {}, { role_code: roleCode }),
+  versionGet: (env: StudioEnv, versionId: number) =>
+    call<StudioVersionFull>('versions.get', env, { version_id: String(versionId) }),
+  versionsCompare: (env: StudioEnv, a: number, b: number) =>
+    call<{ a: StudioVersionFull; b: StudioVersionFull }>(
+      'versions.compare', env, { a: String(a), b: String(b) }
+    ),
+  sandboxRun: (env: StudioEnv, params: {
+    question: string;
+    role_code?: string;
+    version_id?: number;
+    persona?: 'domovoy' | 'neutral';
+    extra_context?: string;
+    family_id?: number;
+  }) => call<StudioSandboxResult>('sandbox.run', env, {}, params),
   aiConfig: (env: StudioEnv) => call<StudioAIConfig>('ai_config.get', env),
   contextSources: (env: StudioEnv) =>
     call<{ items: StudioContextSource[] }>('context_sources.list', env),

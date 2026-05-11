@@ -13,7 +13,8 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import {
   studioApi, StudioEnv, StudioRole, StudioRoleVersion, StudioAIConfig,
-  StudioContextSource, StudioAsset, StudioTrace, StudioAuditEvent, StudioOverview,
+  StudioContextSource, StudioTrace, StudioAuditEvent, StudioOverview,
+  StudioSandboxResult,
 } from '@/lib/studio/api';
 
 const ENV_OPTIONS: StudioEnv[] = ['stage', 'prod'];
@@ -55,12 +56,13 @@ export default function DomovoyStudio() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-1 mb-6">
+          <TabsList className="grid grid-cols-4 md:grid-cols-8 gap-1 mb-6">
             <TabsTrigger value="overview">Обзор</TabsTrigger>
             <TabsTrigger value="architecture">Архитектура</TabsTrigger>
             <TabsTrigger value="roles">Роли</TabsTrigger>
             <TabsTrigger value="engine">Движок</TabsTrigger>
             <TabsTrigger value="context">Контекст</TabsTrigger>
+            <TabsTrigger value="sandbox">Песочница</TabsTrigger>
             <TabsTrigger value="traces">Логи</TabsTrigger>
             <TabsTrigger value="audit">Аудит</TabsTrigger>
           </TabsList>
@@ -70,6 +72,7 @@ export default function DomovoyStudio() {
           <TabsContent value="roles"><RolesTab env={env} toast={toast} /></TabsContent>
           <TabsContent value="engine"><EngineTab env={env} /></TabsContent>
           <TabsContent value="context"><ContextTab env={env} /></TabsContent>
+          <TabsContent value="sandbox"><SandboxTab env={env} toast={toast} /></TabsContent>
           <TabsContent value="traces"><TracesTab env={env} /></TabsContent>
           <TabsContent value="audit"><AuditTab env={env} /></TabsContent>
         </Tabs>
@@ -460,6 +463,252 @@ function ContextTab({ env }: { env: StudioEnv }) {
             ))}
           </TableBody>
         </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ============================================================
+// Sandbox
+// ============================================================
+function SandboxTab({ env, toast }: { env: StudioEnv; toast: ToastFn }) {
+  const [mode, setMode] = useState<'single' | 'compare'>('single');
+  const [roles, setRoles] = useState<StudioRole[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [versionsA, setVersionsA] = useState<StudioRoleVersion[]>([]);
+  const [versionA, setVersionA] = useState<number | null>(null);
+  const [versionB, setVersionB] = useState<number | null>(null);
+  const [persona, setPersona] = useState<'domovoy' | 'neutral'>('domovoy');
+  const [question, setQuestion] = useState('Какие три блюда можно приготовить из курицы, картошки и моркови?');
+  const [extraContext, setExtraContext] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [resultA, setResultA] = useState<StudioSandboxResult | null>(null);
+  const [resultB, setResultB] = useState<StudioSandboxResult | null>(null);
+
+  useEffect(() => {
+    studioApi.rolesList(env).then(d => {
+      setRoles(d.items);
+      if (d.items.length && !selectedRole) {
+        setSelectedRole(d.items[0].code);
+      }
+    });
+  }, [env]);
+
+  useEffect(() => {
+    if (!selectedRole) return;
+    studioApi.roleGet(env, selectedRole).then(d => {
+      setVersionsA(d.versions);
+      const published = d.versions.find(v => v.status === 'published');
+      const draft = d.versions.find(v => v.status === 'draft');
+      setVersionA(published?.id || d.versions[0]?.id || null);
+      setVersionB(draft?.id || published?.id || null);
+    });
+  }, [selectedRole, env]);
+
+  const run = async () => {
+    if (!question.trim() || !versionA) return;
+    setLoading(true);
+    setResultA(null);
+    setResultB(null);
+    try {
+      const payloadA = {
+        question,
+        version_id: versionA,
+        persona,
+        extra_context: extraContext || undefined,
+      };
+      if (mode === 'compare' && versionB && versionB !== versionA) {
+        const [a, b] = await Promise.all([
+          studioApi.sandboxRun(env, payloadA),
+          studioApi.sandboxRun(env, { ...payloadA, version_id: versionB }),
+        ]);
+        setResultA(a);
+        setResultB(b);
+      } else {
+        const a = await studioApi.sandboxRun(env, payloadA);
+        setResultA(a);
+      }
+    } catch (e) {
+      toast({ title: 'Ошибка', description: String(e) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const role = roles.find(r => r.code === selectedRole);
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Песочница</CardTitle>
+            <div className="inline-flex bg-slate-100 rounded-lg p-0.5 text-xs">
+              <button
+                onClick={() => setMode('single')}
+                className={`px-3 py-1 rounded-md ${mode === 'single' ? 'bg-white shadow font-semibold' : 'text-slate-600'}`}
+              >
+                Одна версия
+              </button>
+              <button
+                onClick={() => setMode('compare')}
+                className={`px-3 py-1 rounded-md ${mode === 'compare' ? 'bg-white shadow font-semibold' : 'text-slate-600'}`}
+              >
+                A/B сравнение
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Тестовый прогон. Кошелёк не списываем. Trace сохраняется с reason=sandbox.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid md:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-slate-500">Роль</label>
+              <select
+                value={selectedRole}
+                onChange={e => setSelectedRole(e.target.value)}
+                className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+              >
+                {roles.map(r => (
+                  <option key={r.code} value={r.code}>{r.emoji} {r.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500">Persona</label>
+              <select
+                value={persona}
+                onChange={e => setPersona(e.target.value as 'domovoy' | 'neutral')}
+                className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+              >
+                <option value="domovoy">Домовой (тёплый)</option>
+                <option value="neutral">Neutral (профессиональный)</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500">{mode === 'compare' ? 'Версия A' : 'Версия'}</label>
+              <select
+                value={versionA || ''}
+                onChange={e => setVersionA(Number(e.target.value))}
+                className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+              >
+                {versionsA.map(v => (
+                  <option key={v.id} value={v.id}>
+                    v{v.version_number} · {v.status}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {mode === 'compare' && (
+              <div>
+                <label className="text-xs text-slate-500">Версия B</label>
+                <select
+                  value={versionB || ''}
+                  onChange={e => setVersionB(Number(e.target.value))}
+                  className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+                >
+                  {versionsA.map(v => (
+                    <option key={v.id} value={v.id}>
+                      v{v.version_number} · {v.status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-500">Вопрос пользователя</label>
+            <Textarea
+              value={question}
+              onChange={e => setQuestion(e.target.value)}
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-500">Доп. контекст (опционально)</label>
+            <Textarea
+              value={extraContext}
+              onChange={e => setExtraContext(e.target.value)}
+              rows={2}
+              placeholder="Например: семья из 4 человек, ребёнок 5 лет, аллергия на орехи"
+              className="mt-1 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button onClick={run} disabled={loading || !versionA || !question.trim()}>
+              {loading
+                ? <><Icon name="Loader2" size={14} className="mr-1 animate-spin" /> Запрос…</>
+                : <><Icon name="Play" size={14} className="mr-1" /> Запустить</>}
+            </Button>
+            {role && (
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                {role.image_url && (
+                  <img src={role.image_url} alt={role.name} className="w-7 h-7 rounded-full object-cover" />
+                )}
+                <span>{role.name}</span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {mode === 'single' && resultA && <SandboxResult result={resultA} title="Результат" />}
+      {mode === 'compare' && (resultA || resultB) && (
+        <div className="grid md:grid-cols-2 gap-4">
+          {resultA && <SandboxResult result={resultA} title="Версия A" />}
+          {resultB && <SandboxResult result={resultB} title="Версия B" />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SandboxResult({ result, title }: { result: StudioSandboxResult; title: string }) {
+  const [showPrompt, setShowPrompt] = useState(false);
+  const ok = result.status === 'ok';
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm">{title} · v{result.version?.version_number}</CardTitle>
+          <Badge variant={ok ? 'default' : 'destructive'}>{result.status}</Badge>
+        </div>
+        <div className="flex flex-wrap gap-3 text-xs text-slate-500 mt-1">
+          <span>⚡ {result.latency_ms} мс</span>
+          <span>📥 {result.input_tokens} ток.</span>
+          <span>📤 {result.output_tokens} ток.</span>
+          <span className="font-mono">{result.model}</span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {result.error || !ok ? (
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm p-3 rounded">
+            {result.message || result.error_code || result.error || 'Ошибка'}
+          </div>
+        ) : (
+          <div className="bg-slate-50 p-3 rounded text-sm whitespace-pre-wrap">{result.response}</div>
+        )}
+
+        <div className="border-t pt-2">
+          <button
+            onClick={() => setShowPrompt(s => !s)}
+            className="text-xs text-violet-600 hover:underline flex items-center gap-1"
+          >
+            <Icon name={showPrompt ? 'ChevronDown' : 'ChevronRight'} size={12} />
+            Финальный prompt (checksum: <span className="font-mono">{result.prompt_checksum}</span>)
+          </button>
+          {showPrompt && (
+            <pre className="mt-2 text-xs bg-slate-900 text-slate-100 p-3 rounded overflow-x-auto whitespace-pre-wrap">
+              {result.final_prompt}
+            </pre>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

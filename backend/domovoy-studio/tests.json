@@ -76,6 +76,31 @@
       "expectedStatus": 200
     },
     {
+      "name": "Versions.get missing id",
+      "method": "GET",
+      "path": "/?action=versions.get",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "version_id_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Versions.compare missing params",
+      "method": "GET",
+      "path": "/?action=versions.compare",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "a_and_b_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Sandbox.run without question",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "sandbox.run", "env": "prod", "role_code": "cook"},
+      "expectedStatus": 200,
+      "expectedBody": {"error": "question_required"},
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Unknown action 400",
       "method": "POST",
       "path": "/",
