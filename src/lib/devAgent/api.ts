@@ -200,6 +200,30 @@ export interface DAChatLLMResult {
   error?: string;
 }
 
+export interface DARunTraceResponse {
+  success?: boolean;
+  run_uuid?: string;
+  s3_key?: string;
+  environment?: string;
+  model?: string;
+  status?: string;
+  trace?: {
+    mode: string;
+    environment: string;
+    prompt: string;
+    prompt_checksum: string;
+    message: string;
+    allowed_citations: Array<Record<string, unknown>>;
+    llm_raw: unknown;
+    llm_text: string | null;
+    validated: Record<string, unknown>;
+    fallback_used: boolean;
+    fallback_reason: string | null;
+  };
+  error?: string;
+  reason?: string;
+}
+
 export interface DARun {
   id: number;
   run_uuid?: string;
@@ -260,6 +284,8 @@ export const devAgent = {
     call<{ run: DARun; tool_calls: Array<{ id: number; tool_name: string; tool_input: unknown; tool_output: unknown; latency_ms?: number; status: string; created_at: string }> }>(
       ADMIN_URL, 'runs.get', env, { run_id: String(runId) }
     ),
+  runTrace: (env: DAEnv, runId: number) =>
+    call<DARunTraceResponse>(ADMIN_URL, 'runs.trace', env, { run_id: String(runId) }),
 
   // Indexer
   seedCreate: (env: DAEnv, payload: {

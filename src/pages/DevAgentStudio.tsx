@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
@@ -344,6 +345,28 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [stage, setStage] = useState<string>('');
   const [lastLLM, setLastLLM] = useState<Awaited<ReturnType<typeof devAgent.chatSendLLM>> | null>(null);
   const [lastSearchCitations, setLastSearchCitations] = useState<DASearchItem[] | null>(null);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [traceLoading, setTraceLoading] = useState(false);
+  const [traceData, setTraceData] = useState<Awaited<ReturnType<typeof devAgent.runTrace>> | null>(null);
+  const [traceTab, setTraceTab] = useState<'prompt' | 'raw' | 'validated' | 'citations'>('prompt');
+
+  const openTrace = async (runId: number) => {
+    setTraceOpen(true);
+    setTraceLoading(true);
+    setTraceData(null);
+    setTraceTab('prompt');
+    try {
+      const r = await devAgent.runTrace(env, runId);
+      setTraceData(r);
+      if (r.error) {
+        toast({ title: 'Trace недоступен', description: r.reason || r.error });
+      }
+    } catch (e) {
+      toast({ title: 'Ошибка чтения trace', description: String(e) });
+    } finally {
+      setTraceLoading(false);
+    }
+  };
 
   const loadSessions = async () => {
     const r = await devAgent.sessionsList(env);
@@ -542,9 +565,15 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
               <div className="flex justify-between"><span>статус</span><Badge variant="outline" className="text-[9px] py-0">{lastLLM.run_meta.status}</Badge></div>
               <div className="flex justify-between"><span>latency</span><span>{lastLLM.run_meta.latency_ms} мс</span></div>
               <div className="flex justify-between"><span>tokens in/out</span><span>{lastLLM.run_meta.input_tokens} / {lastLLM.run_meta.output_tokens}</span></div>
-              {lastLLM.run_meta.full_trace_s3_key && (
-                <div className="text-[10px] text-slate-500 truncate">trace: {lastLLM.run_meta.full_trace_s3_key}</div>
-              )}
+              <Button
+                size="sm"
+                variant={lastLLM.run_meta.full_trace_s3_key ? 'default' : 'outline'}
+                className="w-full h-7 text-[10px] mt-1"
+                onClick={() => openTrace(lastLLM.run_id)}
+              >
+                <Icon name="FileSearch" size={11} className="mr-1" />
+                {lastLLM.run_meta.full_trace_s3_key ? 'Открыть полный trace' : 'Trace недоступен'}
+              </Button>
             </div>
           )}
 
@@ -609,6 +638,105 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
           ))}
         </CardContent>
       </Card>
+
+      {/* Full trace modal */}
+      <Dialog open={traceOpen} onOpenChange={setTraceOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <Icon name="FileSearch" size={16} />
+              Полный trace YandexGPT
+              {traceData?.run_uuid && (
+                <code className="text-[10px] text-slate-400 font-mono">{traceData.run_uuid.slice(0, 8)}</code>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+
+          {traceLoading && (
+            <div className="flex items-center gap-2 text-xs text-slate-500 py-8 justify-center">
+              <Icon name="Loader2" size={14} className="animate-spin" />
+              Читаем trace из S3…
+            </div>
+          )}
+
+          {!traceLoading && traceData?.error && (
+            <div className="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded p-3">
+              <div className="font-semibold mb-1">{traceData.error}</div>
+              <div className="text-amber-600">{traceData.reason}</div>
+            </div>
+          )}
+
+          {!traceLoading && traceData?.trace && (
+            <>
+              {/* Meta strip */}
+              <div className="flex flex-wrap gap-2 text-[10px] text-slate-500 pb-1">
+                <Badge variant="outline" className="text-[9px]">mode: {traceData.trace.mode}</Badge>
+                <Badge variant="outline" className="text-[9px]">env: {traceData.environment}</Badge>
+                <Badge variant="outline" className="text-[9px]">model: {traceData.model}</Badge>
+                <Badge variant="outline" className="text-[9px]">status: {traceData.status}</Badge>
+                {traceData.trace.fallback_used && (
+                  <Badge className="bg-amber-100 text-amber-800 text-[9px]">
+                    fallback: {traceData.trace.fallback_reason}
+                  </Badge>
+                )}
+                <span className="font-mono">checksum: {traceData.trace.prompt_checksum}</span>
+              </div>
+
+              {/* Tabs */}
+              <div className="flex gap-1 border-b">
+                {([
+                  { id: 'prompt', label: 'Prompt', icon: 'FileText' },
+                  { id: 'raw', label: 'Raw response', icon: 'Code2' },
+                  { id: 'validated', label: 'Validated', icon: 'CheckCircle2' },
+                  { id: 'citations', label: 'Allowed citations', icon: 'Quote' },
+                ] as const).map(t => (
+                  <button
+                    key={t.id}
+                    onClick={() => setTraceTab(t.id)}
+                    className={`flex items-center gap-1 px-3 py-1.5 text-xs border-b-2 transition-colors ${
+                      traceTab === t.id ? 'border-violet-600 text-violet-700 font-semibold' : 'border-transparent text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Icon name={t.icon} size={12} />
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto bg-slate-950 text-slate-100 rounded p-3 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-words">
+                {traceTab === 'prompt' && (traceData.trace.prompt || '(пусто)')}
+                {traceTab === 'raw' && (
+                  traceData.trace.llm_text
+                    ? traceData.trace.llm_text
+                    : JSON.stringify(traceData.trace.llm_raw, null, 2) || '(нет ответа от модели)'
+                )}
+                {traceTab === 'validated' && JSON.stringify(traceData.trace.validated, null, 2)}
+                {traceTab === 'citations' && JSON.stringify(traceData.trace.allowed_citations, null, 2)}
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+                <code className="truncate flex-1">s3://files/{traceData.s3_key}</code>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 text-[10px]"
+                  onClick={() => {
+                    const content = traceTab === 'prompt' ? traceData.trace!.prompt
+                      : traceTab === 'raw' ? (traceData.trace!.llm_text || JSON.stringify(traceData.trace!.llm_raw, null, 2))
+                      : traceTab === 'validated' ? JSON.stringify(traceData.trace!.validated, null, 2)
+                      : JSON.stringify(traceData.trace!.allowed_citations, null, 2);
+                    navigator.clipboard.writeText(content || '');
+                    toast({ title: 'Скопировано в буфер' });
+                  }}
+                >
+                  <Icon name="Copy" size={11} className="mr-1" /> Копировать
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

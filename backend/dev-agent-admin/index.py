@@ -1275,6 +1275,52 @@ def action_run_get(conn, run_id: int) -> Dict[str, Any]:
     return {'run': run, 'tool_calls': tools}
 
 
+def action_run_trace_get(conn, run_id: int, actor_id: int, env: str) -> Dict[str, Any]:
+    """Читает full trace из S3 по run_id. Только для админа."""
+    if not actor_id:
+        return {'error': 'auth_required'}
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT run_uuid, full_trace_s3_key, full_trace_available, environment, model, status "
+        f"FROM {SCHEMA}.dev_agent_runs WHERE id = {int(run_id)}"
+    )
+    row = cur.fetchone()
+    if not row:
+        return {'error': 'run_not_found'}
+    run_uuid_v, s3_key, available, run_env, model, status = row
+    if not available or not s3_key:
+        return {'error': 'trace_not_available', 'run_uuid': run_uuid_v,
+                'reason': 'Run выполнялся без full trace (включи dev_agent.llm_debug_enabled или debug=true)'}
+
+    try:
+        import boto3
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        )
+        obj = s3.get_object(Bucket='files', Key=s3_key)
+        body = obj['Body'].read().decode('utf-8')
+        trace = json.loads(body)
+    except Exception as e:
+        return {'error': 'trace_read_failed', 'message': str(e)[:300],
+                'run_uuid': run_uuid_v, 's3_key': s3_key}
+
+    audit(conn, actor_id, 'dev_agent.chat_llm_trace_opened', 'dev_agent_run',
+          int(run_id), run_env, f"key={s3_key}")
+
+    return {
+        'success': True,
+        'run_uuid': run_uuid_v,
+        's3_key': s3_key,
+        'environment': run_env,
+        'model': model,
+        'status': status,
+        'trace': trace,
+    }
+
+
 # ============================================================
 # Handler
 # ============================================================
@@ -1370,6 +1416,20 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                     return jr(400, {'error': 'run_id_required'})
                 res = action_run_get(conn, int(rid))
                 return jr(404 if res.get('error') else 200, res)
+            if action == 'runs.trace':
+                if not actor_id:
+                    return jr(401, {'error': 'auth_required'})
+                rid = params.get('run_id') or body.get('run_id')
+                if not rid:
+                    return jr(400, {'error': 'run_id_required'})
+                res = action_run_trace_get(conn, int(rid), actor_id, env)
+                if res.get('error') == 'run_not_found':
+                    return jr(404, res)
+                if res.get('error') == 'trace_not_available':
+                    return jr(404, res)
+                if res.get('error'):
+                    return jr(400, res)
+                return jr(200, res)
             return jr(400, {'error': 'unknown_action', 'action': action})
         finally:
             conn.close()

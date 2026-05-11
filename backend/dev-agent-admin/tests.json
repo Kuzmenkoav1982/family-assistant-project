@@ -132,6 +132,15 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "Run trace without auth",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "runs.trace", "run_id": 1},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "auth_required"},
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Unknown action",
       "method": "POST",
       "path": "/",
