@@ -1,0 +1,88 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Missing action returns 400",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "action_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Overview returns counts",
+      "method": "GET",
+      "path": "/?action=overview&env=prod",
+      "expectedStatus": 200,
+      "expectedBody": {"environment": "prod"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Roles list returns items",
+      "method": "GET",
+      "path": "/?action=roles.list&env=prod",
+      "expectedStatus": 200,
+      "expectedBody": {"env": "prod"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Role get by code",
+      "method": "GET",
+      "path": "/?action=roles.get&env=prod&code=cook",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown role returns 404",
+      "method": "GET",
+      "path": "/?action=roles.get&env=prod&code=__no_such_role__",
+      "expectedStatus": 404,
+      "expectedBody": {"error": "role_not_found"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "AI config get",
+      "method": "GET",
+      "path": "/?action=ai_config.get&env=prod",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Context sources list",
+      "method": "GET",
+      "path": "/?action=context_sources.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Assets list",
+      "method": "GET",
+      "path": "/?action=assets.list",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Traces list",
+      "method": "GET",
+      "path": "/?action=traces.list&env=prod&limit=10",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Audit list",
+      "method": "GET",
+      "path": "/?action=audit.list&limit=10",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unknown action 400",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "foo.bar"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "unknown_action"},
+      "bodyMatcher": "partial"
+    }
+  ]
+}

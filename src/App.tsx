@@ -147,6 +147,7 @@ const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
 const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
+const DomovoyStudio = lazy(() => import("./pages/DomovoyStudio"));
 const DomovoyPage = lazy(() => import("./pages/DomovoyPage"));
 const AliceIntegration = lazy(() => import("./pages/AliceIntegration"));
 const AdminAlice = lazy(() => import("./pages/AdminAlice"));
@@ -516,6 +517,7 @@ const App = () => {
                       {/* Подписки временно скрыты — используется кошелёк */}
                       <Route path="/admin/subscriptions" element={<Navigate to="/" replace />} />
                       <Route path="/admin/domovoy" element={<AdminDomovoy />} />
+                      <Route path="/admin/domovoy/studio" element={<DomovoyStudio />} />
                       <Route path="/domovoy" element={<DomovoyPage />} />
                       <Route path="/services" element={<TelegramServices />} />
                       <Route path="/debug-auth" element={<DebugAuth />} />

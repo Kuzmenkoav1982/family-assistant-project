@@ -149,6 +149,10 @@ export default function AdminDomovoy() {
             <p className="text-gray-600 mt-2">Управление донатами и статистикой</p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate('/admin/domovoy/studio')} className="bg-violet-600 hover:bg-violet-700">
+              <Icon name="Sparkles" className="mr-2" size={18} />
+              Открыть Studio
+            </Button>
             <Button onClick={exportData} variant="outline">
               <Icon name="Download" className="mr-2" size={18} />
               Экспорт

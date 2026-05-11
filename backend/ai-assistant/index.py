@@ -1,9 +1,14 @@
 import json
 import os
+import time
+import uuid
+import hashlib
 import requests
 import psycopg2
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+
+SCHEMA = '"t_p5815085_family_assistant_pro"'
 
 
 def get_db_connection():
@@ -104,6 +109,72 @@ def save_message(family_id: str, user_id: Optional[int], role: str, content: str
         conn.close()
     except Exception as e:
         print(f'[ERROR] Ошибка сохранения сообщения: {str(e)}')
+
+
+def write_short_trace(family_id, user_id, role_code, entry_point, model, temperature,
+                      max_tokens, history_depth, input_tokens, output_tokens, latency_ms,
+                      status, error_code, prompt_checksum, environment='prod'):
+    """Краткий trace в БД на каждый AI-ответ (Domovoy Studio §3.4)."""
+    try:
+        trace_uuid = str(uuid.uuid4())
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        def esc(v):
+            if v is None:
+                return 'NULL'
+            return "'" + str(v).replace("'", "''") + "'"
+
+        def num(v):
+            return 'NULL' if v is None else str(int(v))
+
+        fid = num(family_id) if family_id else 'NULL'
+        uid = num(user_id) if user_id else 'NULL'
+
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.domovoy_prompt_traces "
+            f"(trace_uuid, family_id, user_id, environment, role_code, entry_point, "
+            f" model, temperature, max_tokens, history_depth, "
+            f" input_tokens, output_tokens, latency_ms, status, error_code, prompt_checksum) "
+            f"VALUES ({esc(trace_uuid)}, {fid}, {uid}, {esc(environment)}, {esc(role_code)}, {esc(entry_point)}, "
+            f"{esc(model)}, {('NULL' if temperature is None else str(temperature))}, {num(max_tokens)}, {num(history_depth)}, "
+            f"{num(input_tokens)}, {num(output_tokens)}, {num(latency_ms)}, {esc(status)}, {esc(error_code)}, {esc(prompt_checksum)})"
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+        return trace_uuid
+    except Exception as e:
+        print(f'[trace] failed: {e}')
+        return None
+
+
+def detect_role_from_prompt(system_prompt: str) -> Optional[str]:
+    """Best-effort определение role_code по началу промпта (до миграции на Studio)."""
+    if not system_prompt:
+        return None
+    markers = {
+        'ветеринар': 'vet',
+        'специалист по здоровому питанию': 'nutritionist',
+        'праздничный организатор': 'party',
+        'автомеханик': 'mechanic',
+        'художник': 'artist',
+        'мудрый наставник': 'mentor',
+        'семейный психолог': 'psychologist',
+        'специалист по воспитанию': 'child-educator',
+        'опытный повар': 'cook',
+        'тревел-планер': 'travel-planner',
+        'фитнес-тренер': 'fitness-trainer',
+        'тайм-менеджменту': 'organizer',
+        'финансовый советник': 'financial-advisor',
+        'астролог': 'astrologer',
+        'семейный помощник': 'family-assistant',
+    }
+    lower = system_prompt.lower()
+    for marker, code in markers.items():
+        if marker in lower:
+            return code
+    return None
 
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -211,16 +282,43 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         correct_folder_id = 'b1gaglg8i7v2i32nvism'
 
+        model_name = 'yandexgpt-lite'
+        temperature = 0.7
+        max_tokens_cfg = 3000
+        history_depth_cfg = 10
+
         payload = {
-            'modelUri': f'gpt://{correct_folder_id}/yandexgpt-lite',
-            'completionOptions': {'stream': False, 'temperature': 0.7, 'maxTokens': 3000},
+            'modelUri': f'gpt://{correct_folder_id}/{model_name}',
+            'completionOptions': {'stream': False, 'temperature': temperature, 'maxTokens': max_tokens_cfg},
             'messages': yandex_messages
         }
 
-        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        role_code = detect_role_from_prompt(system_prompt or '')
+        prompt_checksum = hashlib.sha256((system_prompt or '').encode('utf-8')).hexdigest()[:32]
+        approx_input_tokens = sum(len(m.get('text', '')) for m in yandex_messages) // 4
+
+        t0 = time.time()
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+        except requests.exceptions.Timeout:
+            latency_ms = int((time.time() - t0) * 1000)
+            write_short_trace(family_id, user_id, role_code, 'ai_assistant', model_name,
+                              temperature, max_tokens_cfg, history_depth_cfg,
+                              approx_input_tokens, 0, latency_ms, 'timeout', 'request_timeout',
+                              prompt_checksum)
+            return {
+                'statusCode': 504,
+                'headers': {**cors_headers, 'Content-Type': 'application/json'},
+                'body': json.dumps({'error': 'Таймаут AI'})
+            }
+        latency_ms = int((time.time() - t0) * 1000)
 
         if response.status_code != 200:
             print(f'[ERROR] YandexGPT ответ: {response.status_code} {response.text[:500]}')
+            write_short_trace(family_id, user_id, role_code, 'ai_assistant', model_name,
+                              temperature, max_tokens_cfg, history_depth_cfg,
+                              approx_input_tokens, 0, latency_ms, 'error', f'http_{response.status_code}',
+                              prompt_checksum)
             return {
                 'statusCode': 502,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
@@ -233,15 +331,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not ai_text:
             ai_text = 'Не удалось получить ответ от AI.'
 
+        approx_output_tokens = len(ai_text) // 4
+
         if family_id and user_message_content:
             save_message(family_id, user_id, 'user', user_message_content)
         if family_id and ai_text:
             save_message(family_id, user_id, 'assistant', ai_text)
 
+        write_short_trace(family_id, user_id, role_code, 'ai_assistant', model_name,
+                          temperature, max_tokens_cfg, history_depth_cfg,
+                          approx_input_tokens, approx_output_tokens, latency_ms, 'ok', None,
+                          prompt_checksum)
+
         return {
             'statusCode': 200,
             'headers': {**cors_headers, 'Content-Type': 'application/json'},
-            'body': json.dumps({'response': ai_text, 'model': 'yandexgpt-lite'})
+            'body': json.dumps({'response': ai_text, 'model': model_name})
         }
 
     except json.JSONDecodeError:
