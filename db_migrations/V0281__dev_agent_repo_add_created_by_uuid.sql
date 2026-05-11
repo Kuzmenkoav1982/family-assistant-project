@@ -1,0 +1,1 @@
+ALTER TABLE t_p5815085_family_assistant_pro.dev_agent_repo_snapshots ADD COLUMN created_by uuid NULL REFERENCES t_p5815085_family_assistant_pro.users(id);

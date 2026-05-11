@@ -1,0 +1,1 @@
+ALTER TABLE t_p5815085_family_assistant_pro.dev_agent_patches ALTER COLUMN created_by_legacy SET DEFAULT 0;

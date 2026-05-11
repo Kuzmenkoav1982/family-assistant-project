@@ -1,0 +1,1 @@
+ALTER TABLE t_p5815085_family_assistant_pro.dev_agent_runs RENAME COLUMN created_by TO created_by_legacy;
