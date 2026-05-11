@@ -199,6 +199,8 @@ export default function AdminDashboard() {
     color: string;
     href?: string;
   }> = [
+    { icon: 'Brain', label: 'Кабинет Домового', tab: 'domovoy-studio', color: 'from-amber-400 to-orange-500', href: '/admin/domovoy/studio' },
+    { icon: 'Bot', label: 'AgentStudio', tab: 'dev-agent', color: 'from-violet-500 to-fuchsia-600', href: '/admin/dev-agent' },
     { icon: 'Home', label: 'Семьи', tab: 'families', color: 'from-blue-400 to-indigo-500' },
     { icon: 'DollarSign', label: 'Финансы', tab: 'finance', color: 'from-green-400 to-emerald-500' },
     { icon: 'Ticket', label: 'Промокоды', tab: 'promo', color: 'from-pink-400 to-rose-500' },
