@@ -27,6 +27,7 @@ from parsing import (
     extract_routes, extract_symbols, sha256_hex,
 )
 from github_source import load_files_from_github, DEFAULT_WHITELIST
+from local_paths_loader import load_files_from_local_paths
 
 SCHEMA = '"' + os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro') + '"'
 
@@ -327,6 +328,96 @@ def action_index_from_github(conn, env: str, body: Dict[str, Any],
     }
 
 
+def action_index_from_local_paths(conn, env: str, body: Dict[str, Any],
+                                  actor_id: Optional[int]) -> Dict[str, Any]:
+    """Fetch a small repo slice (targets + direct imports) and ingest it.
+
+    Required body: repo ('owner/repo'), commit_sha, target_paths.
+    Optional: include_direct_imports (default True), app_import_mode
+    ('structural-only' | 'all', default 'structural-only'), activate_snapshot
+    (default True).
+    """
+    repo_full = (body.get('repo') or '').strip()
+    commit_sha = (body.get('commit_sha') or '').strip()
+    target_paths = body.get('target_paths') or []
+    include_neighbors = body.get('include_direct_imports', True)
+    app_mode = body.get('app_import_mode') or 'structural-only'
+    activate = body.get('activate_snapshot', True)
+    branch = (body.get('branch') or '').strip() or None
+
+    if not repo_full or '/' not in repo_full:
+        return {'success': False, 'error': 'repo_required',
+                'message': 'body.repo must be "owner/repo"'}
+    if not commit_sha:
+        return {'success': False, 'error': 'commit_sha_required'}
+    if not isinstance(target_paths, list) or not target_paths:
+        return {'success': False, 'error': 'target_paths_required'}
+
+    owner, repo = repo_full.split('/', 1)
+    started = time.time()
+    loaded = load_files_from_local_paths(
+        owner=owner, repo=repo, commit_sha_in=commit_sha,
+        target_paths=target_paths,
+        include_direct_imports=bool(include_neighbors),
+        app_import_mode=app_mode,
+    )
+    if not loaded.get('success'):
+        return {'success': False, 'error': loaded.get('error'),
+                'detail': loaded.get('detail') or loaded.get('message')}
+
+    cur = conn.cursor()
+    snap_id = _create_snapshot(
+        cur, env=env, branch=branch or commit_sha[:12],
+        commit_sha=loaded['commit_sha'],
+        message=loaded.get('commit_message') or '',
+        source_kind='local_paths',
+        source_repo=repo_full,
+        source_ref=commit_sha,
+        source_meta={
+            'target_paths': loaded.get('target_paths') or [],
+            'neighbor_paths': loaded.get('neighbor_paths') or [],
+            'missing_paths': loaded.get('missing_paths') or [],
+            'alias_sources': loaded.get('alias_sources') or {},
+            'app_import_mode': app_mode,
+        },
+        actor_id=actor_id,
+    )
+    conn.commit()
+
+    try:
+        counts = ingest_files(cur, snap_id, loaded['files'])
+        conn.commit()
+        _capture_db_snapshot(cur, env, actor_id)
+        _finalize_snapshot(cur, snap_id, env, counts,
+                           status='ready' if activate else 'ready')
+        if not activate:
+            cur.execute(
+                f"UPDATE {SCHEMA}.dev_agent_repo_snapshots SET is_active = FALSE "
+                f"WHERE id = {snap_id}"
+            )
+        conn.commit()
+    except Exception as e:
+        _finalize_snapshot(cur, snap_id, env, {}, status='failed', err=str(e)[:300])
+        conn.commit()
+        return {'success': False, 'error': 'ingest_failed', 'message': str(e)[:300],
+                'snapshot_id': snap_id}
+
+    return {
+        'success': True,
+        'snapshot_id': snap_id,
+        'commit_sha': loaded['commit_sha'],
+        'commit_message': loaded.get('commit_message'),
+        'counts': counts,
+        'targets_loaded': len([p for p in loaded.get('target_paths') or []
+                              if p not in {m.get('path') for m in loaded.get('missing_paths') or []}]),
+        'neighbors_loaded': len(loaded.get('neighbor_paths') or []),
+        'missing_paths': loaded.get('missing_paths') or [],
+        'alias_sources': loaded.get('alias_sources') or {},
+        'activated': bool(activate),
+        'elapsed_sec': round(time.time() - started, 2),
+    }
+
+
 def action_index_from_snapshot(conn, env: str, body: Dict[str, Any],
                                actor_id: Optional[int]) -> Dict[str, Any]:
     branch = body.get('branch_name') or 'manual'
@@ -470,6 +561,9 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         try:
             if action == 'index.from_github':
                 res = action_index_from_github(conn, env, body, actor_id)
+                return jr(200 if res.get('success') else 400, res)
+            if action == 'index.from_local_paths':
+                res = action_index_from_local_paths(conn, env, body, actor_id)
                 return jr(200 if res.get('success') else 400, res)
             if action == 'index.from_snapshot':
                 res = action_index_from_snapshot(conn, env, body, actor_id)

@@ -2018,7 +2018,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                     return jr(401, {'error': 'auth_required'})
                 res = action_chat_send_llm(conn, env, actor_id, body)
                 return jr(200 if res.get('success') else 400, res)
-            if action == 'review.file':
+            if action in ('review.file', 'review.by_path'):
                 if not actor_id:
                     return jr(401, {'error': 'auth_required'})
                 res = action_review_file(conn, env, actor_id, body)

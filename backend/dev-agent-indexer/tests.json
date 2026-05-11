@@ -36,6 +36,42 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "from_local_paths requires repo",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "index.from_local_paths"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "repo_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "from_local_paths requires commit_sha",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "index.from_local_paths", "repo": "owner/repo"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "commit_sha_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "from_local_paths requires target_paths",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "index.from_local_paths", "repo": "owner/repo", "commit_sha": "abc123"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "target_paths_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "from_local_paths rejects bad repo format",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "index.from_local_paths", "repo": "no-slash", "commit_sha": "abc", "target_paths": ["src/x.tsx"]},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "repo_required"},
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "from_snapshot requires files",
       "method": "POST",
       "path": "/",
