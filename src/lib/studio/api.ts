@@ -221,4 +221,89 @@ export const studioApi = {
     }>('traces.get', env, { trace_uuid: traceUuid }),
   audit: (env: StudioEnv, limit = 50) =>
     call<{ items: StudioAuditEvent[] }>('audit.list', env, { limit: String(limit) }),
+
+  regressionQuestions: (env: StudioEnv, roleCode?: string) =>
+    call<{ items: RegressionQuestion[] }>('regression.questions.list', env,
+      roleCode ? { role_code: roleCode } : {}),
+  regressionQuestionCreate: (env: StudioEnv, params: {
+    role_code: string; question: string; expected_hint?: string; weight?: number;
+  }) => call<{ success: boolean; id: number; error?: string }>(
+    'regression.questions.create', env, {}, params
+  ),
+  regressionQuestionUpdate: (env: StudioEnv, params: {
+    id: number; question?: string; expected_hint?: string; weight?: number; is_active?: boolean;
+  }) => call<{ success: boolean; error?: string }>('regression.questions.update', env, {}, params),
+  regressionRun: (env: StudioEnv, params: {
+    role_code: string; version_id?: number; persona?: 'domovoy' | 'neutral';
+  }) => call<RegressionRunResult>('regression.run', env, {}, params),
+  regressionRunsList: (env: StudioEnv, roleCode?: string) =>
+    call<{ items: RegressionRunSummary[] }>('regression.runs.list', env,
+      roleCode ? { role_code: roleCode } : {}),
+  regressionRunGet: (env: StudioEnv, runId: number) =>
+    call<{ run: RegressionRunSummary; results: RegressionResult[] }>(
+      'regression.run.get', env, { run_id: String(runId) }
+    ),
 };
+
+export interface RegressionQuestion {
+  id: number;
+  role_id: number;
+  question: string;
+  expected_hint?: string | null;
+  tags?: string[];
+  weight: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface RegressionResult {
+  id?: number;
+  question_id: number;
+  question: string;
+  question_text?: string;
+  expected_hint?: string | null;
+  response?: string | null;
+  ai_response?: string | null;
+  status: string;
+  error_code?: string | null;
+  latency_ms?: number | null;
+  input_tokens?: number | null;
+  output_tokens?: number | null;
+  trace_uuid?: string | null;
+}
+
+export interface RegressionRunSummary {
+  id: number;
+  run_uuid: string;
+  role_code: string;
+  version_id?: number | null;
+  version_number?: number | null;
+  environment: string;
+  persona?: string | null;
+  total_questions: number;
+  passed: number;
+  errored: number;
+  avg_latency_ms?: number | null;
+  status: string;
+  started_at: string;
+  finished_at?: string | null;
+}
+
+export interface RegressionRunResult {
+  success: boolean;
+  run_id: number;
+  run_uuid: string;
+  role: { code: string; name: string };
+  version: { id: number; version_number: number; environment: string; status: string };
+  summary: {
+    total: number;
+    passed: number;
+    errored: number;
+    avg_latency_ms: number;
+    input_tokens: number;
+    output_tokens: number;
+  };
+  results: RegressionResult[];
+  error?: string;
+  message?: string;
+}

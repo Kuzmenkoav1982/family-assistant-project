@@ -573,6 +573,319 @@ def action_sandbox_run(conn, actor_id: Optional[int], env: str, body: Dict[str, 
     }
 
 
+# ============================================================
+# Regression Suite
+# ============================================================
+def _call_yandex_gpt(api_key: str, model_uri: str, system_prompt: str, user_text: str,
+                     temperature: float, max_tokens: int, timeout_sec: int) -> Dict[str, Any]:
+    """Низкоуровневый вызов YandexGPT. Возвращает dict с полями status, text, error_code,
+    latency_ms, raw_status, raw_body."""
+    yandex_messages = [
+        {'role': 'system', 'text': system_prompt},
+        {'role': 'user', 'text': user_text},
+    ]
+    payload = {
+        'modelUri': model_uri,
+        'completionOptions': {'stream': False, 'temperature': temperature, 'maxTokens': max_tokens},
+        'messages': yandex_messages,
+    }
+    headers = {'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'}
+    t0 = time.time()
+    try:
+        resp = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers=headers, json=payload, timeout=timeout_sec
+        )
+        latency_ms = int((time.time() - t0) * 1000)
+        try:
+            raw_body = resp.json()
+        except Exception:
+            raw_body = resp.text[:2000]
+        if resp.status_code != 200:
+            return {'status': 'error', 'error_code': f'http_{resp.status_code}',
+                    'text': '', 'latency_ms': latency_ms, 'raw_status': resp.status_code, 'raw_body': raw_body}
+        text = (raw_body or {}).get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+        if not text:
+            return {'status': 'error', 'error_code': 'empty_response',
+                    'text': '', 'latency_ms': latency_ms, 'raw_status': 200, 'raw_body': raw_body}
+        return {'status': 'ok', 'error_code': None, 'text': text,
+                'latency_ms': latency_ms, 'raw_status': 200, 'raw_body': raw_body}
+    except requests.exceptions.Timeout:
+        return {'status': 'timeout', 'error_code': 'request_timeout',
+                'text': '', 'latency_ms': int((time.time() - t0) * 1000),
+                'raw_status': None, 'raw_body': None}
+    except Exception as e:
+        return {'status': 'error', 'error_code': f'exception:{type(e).__name__}',
+                'text': '', 'latency_ms': int((time.time() - t0) * 1000),
+                'raw_status': None, 'raw_body': None}
+
+
+def action_regression_questions_list(conn, role_code: Optional[str] = None) -> Dict[str, Any]:
+    cur = conn.cursor()
+    if role_code:
+        cur.execute(f"SELECT id FROM {SCHEMA}.domovoy_roles WHERE code = {esc(role_code)}")
+        rrow = cur.fetchone()
+        if not rrow:
+            return {'items': []}
+        cur.execute(
+            f"SELECT id, role_id, question, expected_hint, tags, weight, is_active, created_at "
+            f"FROM {SCHEMA}.domovoy_regression_questions "
+            f"WHERE role_id = {rrow[0]} ORDER BY id"
+        )
+    else:
+        cur.execute(
+            f"SELECT id, role_id, question, expected_hint, tags, weight, is_active, created_at "
+            f"FROM {SCHEMA}.domovoy_regression_questions ORDER BY role_id, id"
+        )
+    cols = ['id', 'role_id', 'question', 'expected_hint', 'tags', 'weight', 'is_active', 'created_at']
+    items = [dict(zip(cols, r)) for r in cur.fetchall()]
+    return {'items': items}
+
+
+def action_regression_question_create(conn, actor_id: Optional[int], body: Dict[str, Any]) -> Dict[str, Any]:
+    role_code = (body.get('role_code') or '').strip()
+    question = (body.get('question') or '').strip()
+    hint = body.get('expected_hint')
+    weight = int(body.get('weight') or 1)
+    if not role_code or not question:
+        return {'error': 'role_code_and_question_required'}
+    cur = conn.cursor()
+    cur.execute(f"SELECT id FROM {SCHEMA}.domovoy_roles WHERE code = {esc(role_code)}")
+    rrow = cur.fetchone()
+    if not rrow:
+        return {'error': 'role_not_found'}
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.domovoy_regression_questions "
+        f"(role_id, question, expected_hint, weight, created_by) "
+        f"VALUES ({rrow[0]}, {esc(question)}, {esc(hint)}, {weight}, {actor_id if actor_id else 'NULL'}) "
+        f"RETURNING id"
+    )
+    new_id = cur.fetchone()[0]
+    conn.commit()
+    audit(conn, actor_id, 'regression_question_add', 'regression_question', new_id, None,
+          f'role={role_code}')
+    return {'success': True, 'id': new_id}
+
+
+def action_regression_question_update(conn, actor_id: Optional[int], body: Dict[str, Any]) -> Dict[str, Any]:
+    qid = body.get('id')
+    if not qid:
+        return {'error': 'id_required'}
+    sets = []
+    if 'question' in body:
+        sets.append(f"question = {esc(body['question'])}")
+    if 'expected_hint' in body:
+        sets.append(f"expected_hint = {esc(body['expected_hint'])}")
+    if 'weight' in body:
+        sets.append(f"weight = {int(body['weight'])}")
+    if 'is_active' in body:
+        sets.append(f"is_active = {'TRUE' if body['is_active'] else 'FALSE'}")
+    if not sets:
+        return {'error': 'nothing_to_update'}
+    sets.append('updated_at = NOW()')
+    cur = conn.cursor()
+    cur.execute(
+        f"UPDATE {SCHEMA}.domovoy_regression_questions SET {', '.join(sets)} WHERE id = {int(qid)}"
+    )
+    conn.commit()
+    audit(conn, actor_id, 'regression_question_update', 'regression_question', int(qid), None, '')
+    return {'success': True}
+
+
+def action_regression_run(conn, actor_id: Optional[int], env: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    """Прогон ВСЕХ активных вопросов роли против выбранной версии (или published).
+    Кошелёк НЕ списываем. Полный trace для каждого вопроса не пишем (для экономии S3),
+    пишем только trace_uuid и краткую запись в БД через write_sandbox_trace.
+    """
+    role_code = (body.get('role_code') or '').strip()
+    version_id = body.get('version_id')
+    persona_kind = body.get('persona') or 'domovoy'
+    if not role_code:
+        return {'error': 'role_code_required'}
+
+    cur = conn.cursor()
+    cur.execute(f"SELECT id, name FROM {SCHEMA}.domovoy_roles WHERE code = {esc(role_code)}")
+    rrow = cur.fetchone()
+    if not rrow:
+        return {'error': 'role_not_found'}
+    role_id, role_name = rrow
+
+    version = None
+    if version_id:
+        version = _fetch_version_by_id(conn, int(version_id))
+    else:
+        cur.execute(
+            f"SELECT id FROM {SCHEMA}.domovoy_role_versions "
+            f"WHERE role_id = {role_id} AND environment = {esc(env)} AND status = 'published' LIMIT 1"
+        )
+        vrow = cur.fetchone()
+        if vrow:
+            version = _fetch_version_by_id(conn, vrow[0])
+    if not version:
+        return {'error': 'no_version'}
+
+    ai_cfg = action_ai_config_get(conn, version['environment'])
+    if not ai_cfg:
+        return {'error': 'no_ai_config'}
+
+    cur.execute(
+        f"SELECT id, question, expected_hint, weight FROM {SCHEMA}.domovoy_regression_questions "
+        f"WHERE role_id = {role_id} AND is_active = TRUE ORDER BY id"
+    )
+    questions = cur.fetchall()
+    if not questions:
+        return {'error': 'no_questions', 'message': 'Сначала добавь вопросы для этой роли'}
+
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    if not api_key:
+        return {'error': 'no_api_key'}
+    folder_id = os.environ.get('YANDEX_FOLDER_ID') or 'b1gaglg8i7v2i32nvism'
+    model_uri = ai_cfg['model_uri']
+    if folder_id and '/' in model_uri:
+        parts = model_uri.split('/')
+        if len(parts) >= 4:
+            parts[2] = folder_id
+            model_uri = '/'.join(parts)
+    temperature = float(ai_cfg.get('temperature') or 0.7)
+    max_tokens = int(ai_cfg.get('max_tokens') or 3000)
+    timeout_sec = int(ai_cfg.get('timeout_sec') or 30)
+
+    persona_text = ai_cfg.get('persona_domovoy') if persona_kind == 'domovoy' else ai_cfg.get('persona_neutral')
+    final_prompt = _build_final_prompt(persona_text or '', version.get('role_prompt') or '', '')
+    prompt_checksum = hashlib.sha256(final_prompt.encode('utf-8')).hexdigest()[:32]
+
+    run_uuid = str(uuid.uuid4())
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.domovoy_regression_runs "
+        f"(run_uuid, role_id, role_code, version_id, version_number, environment, persona, "
+        f" total_questions, status, triggered_by) "
+        f"VALUES ({esc(run_uuid)}, {role_id}, {esc(role_code)}, {version['id']}, {version['version_number']}, "
+        f"{esc(env)}, {esc(persona_kind)}, {len(questions)}, 'running', "
+        f"{actor_id if actor_id else 'NULL'}) RETURNING id"
+    )
+    run_id = cur.fetchone()[0]
+    conn.commit()
+
+    results = []
+    total_lat = 0
+    passed = errored = 0
+    total_in = total_out = 0
+
+    for qid, qtext, qhint, _qweight in questions:
+        out = _call_yandex_gpt(api_key, model_uri, final_prompt, qtext, temperature, max_tokens, timeout_sec)
+        in_tok = _approx_tokens(final_prompt) + _approx_tokens(qtext)
+        out_tok = _approx_tokens(out.get('text') or '')
+        total_in += in_tok
+        total_out += out_tok
+        total_lat += out.get('latency_ms') or 0
+        if out.get('status') == 'ok':
+            passed += 1
+        else:
+            errored += 1
+
+        trace_uuid = write_sandbox_trace(
+            conn, None, actor_id, env, role_code, version['id'], ai_cfg.get('id'),
+            model_uri.split('/')[-1], temperature, max_tokens, prompt_checksum,
+            in_tok, out_tok, out.get('latency_ms') or 0, out.get('status'), out.get('error_code'),
+            full_payload=None,
+        )
+
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.domovoy_regression_results "
+            f"(run_id, question_id, question_text, expected_hint, ai_response, status, error_code, "
+            f" latency_ms, input_tokens, output_tokens, trace_uuid) "
+            f"VALUES ({run_id}, {qid}, {esc(qtext)}, {esc(qhint)}, {esc(out.get('text') or '')}, "
+            f"{esc(out.get('status'))}, {esc(out.get('error_code'))}, "
+            f"{int(out.get('latency_ms') or 0)}, {in_tok}, {out_tok}, "
+            f"{esc(trace_uuid) if trace_uuid else 'NULL'})"
+        )
+        conn.commit()
+        results.append({
+            'question_id': qid,
+            'question': qtext,
+            'expected_hint': qhint,
+            'response': out.get('text'),
+            'status': out.get('status'),
+            'error_code': out.get('error_code'),
+            'latency_ms': out.get('latency_ms'),
+            'input_tokens': in_tok,
+            'output_tokens': out_tok,
+            'trace_uuid': trace_uuid,
+        })
+
+    avg_lat = int(total_lat / len(questions)) if questions else 0
+    cur.execute(
+        f"UPDATE {SCHEMA}.domovoy_regression_runs SET "
+        f"passed = {passed}, failed = 0, errored = {errored}, avg_latency_ms = {avg_lat}, "
+        f"total_input_tokens = {total_in}, total_output_tokens = {total_out}, "
+        f"status = 'done', finished_at = NOW() WHERE id = {run_id}"
+    )
+    conn.commit()
+    audit(conn, actor_id, 'regression_run', 'role_version', version['id'], env,
+          f"role={role_code} passed={passed}/{len(questions)}")
+
+    return {
+        'success': True,
+        'run_id': run_id,
+        'run_uuid': run_uuid,
+        'role': {'code': role_code, 'name': role_name},
+        'version': {'id': version['id'], 'version_number': version['version_number'],
+                    'environment': version['environment'], 'status': version['status']},
+        'summary': {
+            'total': len(questions),
+            'passed': passed,
+            'errored': errored,
+            'avg_latency_ms': avg_lat,
+            'input_tokens': total_in,
+            'output_tokens': total_out,
+        },
+        'results': results,
+    }
+
+
+def action_regression_runs_list(conn, role_code: Optional[str] = None, limit: int = 30) -> Dict[str, Any]:
+    cur = conn.cursor()
+    where = ''
+    if role_code:
+        where = f"WHERE role_code = {esc(role_code)}"
+    cur.execute(
+        f"SELECT id, run_uuid, role_code, version_id, version_number, environment, persona, "
+        f"total_questions, passed, errored, avg_latency_ms, status, started_at, finished_at "
+        f"FROM {SCHEMA}.domovoy_regression_runs {where} "
+        f"ORDER BY started_at DESC LIMIT {int(limit)}"
+    )
+    cols = ['id', 'run_uuid', 'role_code', 'version_id', 'version_number', 'environment', 'persona',
+            'total_questions', 'passed', 'errored', 'avg_latency_ms', 'status', 'started_at', 'finished_at']
+    items = [dict(zip(cols, r)) for r in cur.fetchall()]
+    return {'items': items}
+
+
+def action_regression_run_get(conn, run_id: int) -> Dict[str, Any]:
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT id, run_uuid, role_code, version_id, version_number, environment, persona, "
+        f"total_questions, passed, errored, avg_latency_ms, total_input_tokens, total_output_tokens, "
+        f"status, started_at, finished_at, notes "
+        f"FROM {SCHEMA}.domovoy_regression_runs WHERE id = {int(run_id)}"
+    )
+    row = cur.fetchone()
+    if not row:
+        return {'error': 'run_not_found'}
+    cols = ['id', 'run_uuid', 'role_code', 'version_id', 'version_number', 'environment', 'persona',
+            'total_questions', 'passed', 'errored', 'avg_latency_ms', 'total_input_tokens',
+            'total_output_tokens', 'status', 'started_at', 'finished_at', 'notes']
+    run = dict(zip(cols, row))
+    cur.execute(
+        f"SELECT id, question_id, question_text, expected_hint, ai_response, status, error_code, "
+        f"latency_ms, input_tokens, output_tokens, trace_uuid "
+        f"FROM {SCHEMA}.domovoy_regression_results WHERE run_id = {int(run_id)} ORDER BY id"
+    )
+    rcols = ['id', 'question_id', 'question_text', 'expected_hint', 'ai_response', 'status',
+             'error_code', 'latency_ms', 'input_tokens', 'output_tokens', 'trace_uuid']
+    results = [dict(zip(rcols, r)) for r in cur.fetchall()]
+    return {'run': run, 'results': results}
+
+
 def action_ai_config_get(conn, env: str) -> Dict[str, Any]:
     cur = conn.cursor()
     cur.execute(
@@ -726,6 +1039,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             if not trace_uuid:
                 return jr(400, {'error': 'trace_uuid_required'})
             res = action_traces_get(conn, trace_uuid)
+            return jr(404 if res.get('error') else 200, res)
+
+        if action == 'regression.questions.list':
+            rc = params.get('role_code') or body.get('role_code')
+            return jr(200, action_regression_questions_list(conn, rc))
+
+        if action == 'regression.questions.create':
+            res = action_regression_question_create(conn, actor_id, body)
+            return jr(200 if res.get('success') else 400, res)
+
+        if action == 'regression.questions.update':
+            res = action_regression_question_update(conn, actor_id, body)
+            return jr(200 if res.get('success') else 400, res)
+
+        if action == 'regression.run':
+            res = action_regression_run(conn, actor_id, env, body)
+            return jr(200 if res.get('success') else 400, res)
+
+        if action == 'regression.runs.list':
+            rc = params.get('role_code') or body.get('role_code')
+            return jr(200, action_regression_runs_list(conn, rc))
+
+        if action == 'regression.run.get':
+            rid = params.get('run_id') or body.get('run_id')
+            if not rid:
+                return jr(400, {'error': 'run_id_required'})
+            res = action_regression_run_get(conn, int(rid))
             return jr(404 if res.get('error') else 200, res)
 
         if action == 'versions.rollback':

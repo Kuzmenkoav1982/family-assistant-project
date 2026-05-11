@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   studioApi, StudioEnv, StudioRole, StudioRoleVersion, StudioAIConfig,
   StudioContextSource, StudioTrace, StudioAuditEvent, StudioOverview,
-  StudioSandboxResult,
+  StudioSandboxResult, RegressionQuestion, RegressionRunSummary, RegressionRunResult,
 } from '@/lib/studio/api';
 
 const ENV_OPTIONS: StudioEnv[] = ['stage', 'prod'];
@@ -56,13 +56,14 @@ export default function DomovoyStudio() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-4 md:grid-cols-8 gap-1 mb-6">
+          <TabsList className="grid grid-cols-5 md:grid-cols-9 gap-1 mb-6">
             <TabsTrigger value="overview">Обзор</TabsTrigger>
             <TabsTrigger value="architecture">Архитектура</TabsTrigger>
             <TabsTrigger value="roles">Роли</TabsTrigger>
             <TabsTrigger value="engine">Движок</TabsTrigger>
             <TabsTrigger value="context">Контекст</TabsTrigger>
             <TabsTrigger value="sandbox">Песочница</TabsTrigger>
+            <TabsTrigger value="regression">Тесты</TabsTrigger>
             <TabsTrigger value="traces">Логи</TabsTrigger>
             <TabsTrigger value="audit">Аудит</TabsTrigger>
           </TabsList>
@@ -73,6 +74,7 @@ export default function DomovoyStudio() {
           <TabsContent value="engine"><EngineTab env={env} /></TabsContent>
           <TabsContent value="context"><ContextTab env={env} /></TabsContent>
           <TabsContent value="sandbox"><SandboxTab env={env} toast={toast} /></TabsContent>
+          <TabsContent value="regression"><RegressionTab env={env} toast={toast} /></TabsContent>
           <TabsContent value="traces"><TracesTab env={env} /></TabsContent>
           <TabsContent value="audit"><AuditTab env={env} /></TabsContent>
         </Tabs>
@@ -465,6 +467,303 @@ function ContextTab({ env }: { env: StudioEnv }) {
         </Table>
       </CardContent>
     </Card>
+  );
+}
+
+// ============================================================
+// Regression Suite (Tests)
+// ============================================================
+function RegressionTab({ env, toast }: { env: StudioEnv; toast: ToastFn }) {
+  const [roles, setRoles] = useState<StudioRole[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [questions, setQuestions] = useState<RegressionQuestion[]>([]);
+  const [versions, setVersions] = useState<StudioRoleVersion[]>([]);
+  const [versionId, setVersionId] = useState<number | null>(null);
+  const [persona, setPersona] = useState<'domovoy' | 'neutral'>('domovoy');
+  const [newQ, setNewQ] = useState('');
+  const [newHint, setNewHint] = useState('');
+  const [running, setRunning] = useState(false);
+  const [lastRun, setLastRun] = useState<RegressionRunResult | null>(null);
+  const [history, setHistory] = useState<RegressionRunSummary[]>([]);
+
+  useEffect(() => {
+    studioApi.rolesList(env).then(d => {
+      setRoles(d.items);
+      if (d.items.length && !selectedRole) setSelectedRole(d.items[0].code);
+    });
+  }, [env]);
+
+  const loadRoleData = async (code: string) => {
+    const [rg, qs, runs] = await Promise.all([
+      studioApi.roleGet(env, code),
+      studioApi.regressionQuestions(env, code),
+      studioApi.regressionRunsList(env, code),
+    ]);
+    setVersions(rg.versions);
+    const pub = rg.versions.find(v => v.status === 'published');
+    setVersionId(pub?.id || rg.versions[0]?.id || null);
+    setQuestions(qs.items);
+    setHistory(runs.items);
+  };
+
+  useEffect(() => {
+    if (selectedRole) loadRoleData(selectedRole);
+  }, [selectedRole, env]);
+
+  const addQuestion = async () => {
+    if (!newQ.trim() || !selectedRole) return;
+    const r = await studioApi.regressionQuestionCreate(env, {
+      role_code: selectedRole,
+      question: newQ.trim(),
+      expected_hint: newHint.trim() || undefined,
+    });
+    if (r.success) {
+      setNewQ('');
+      setNewHint('');
+      loadRoleData(selectedRole);
+    } else {
+      toast({ title: 'Ошибка', description: r.error || 'Не удалось добавить' });
+    }
+  };
+
+  const toggleActive = async (q: RegressionQuestion) => {
+    await studioApi.regressionQuestionUpdate(env, { id: q.id, is_active: !q.is_active });
+    loadRoleData(selectedRole);
+  };
+
+  const runAll = async () => {
+    if (!selectedRole || !versionId) return;
+    setRunning(true);
+    setLastRun(null);
+    try {
+      const res = await studioApi.regressionRun(env, {
+        role_code: selectedRole, version_id: versionId, persona,
+      });
+      if (!res.success) {
+        toast({ title: 'Прогон не запустился', description: res.message || res.error });
+      }
+      setLastRun(res);
+      loadRoleData(selectedRole);
+    } catch (e) {
+      toast({ title: 'Ошибка', description: String(e) });
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const role = roles.find(r => r.code === selectedRole);
+  const activeQs = questions.filter(q => q.is_active);
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Регрессионный набор тестов</CardTitle>
+            <Badge variant="outline" className="text-[10px]">
+              {activeQs.length} активных / {questions.length}
+            </Badge>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Контрольные вопросы для роли. Запускаем все сразу против выбранной версии — проверяем, что роль
+            не сломалась после правки промпта. Кошелёк не списываем.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid md:grid-cols-3 gap-3">
+            <div>
+              <label className="text-xs text-slate-500">Роль</label>
+              <select
+                value={selectedRole}
+                onChange={e => setSelectedRole(e.target.value)}
+                className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+              >
+                {roles.map(r => (
+                  <option key={r.code} value={r.code}>{r.emoji} {r.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500">Версия</label>
+              <select
+                value={versionId || ''}
+                onChange={e => setVersionId(Number(e.target.value))}
+                className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+              >
+                {versions.map(v => (
+                  <option key={v.id} value={v.id}>v{v.version_number} · {v.status}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs text-slate-500">Persona</label>
+              <select
+                value={persona}
+                onChange={e => setPersona(e.target.value as 'domovoy' | 'neutral')}
+                className="w-full mt-1 border rounded-md px-2 py-1.5 text-sm bg-white"
+              >
+                <option value="domovoy">Домовой</option>
+                <option value="neutral">Neutral</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-2">
+            <Button onClick={runAll} disabled={running || activeQs.length === 0 || !versionId}>
+              {running
+                ? <><Icon name="Loader2" size={14} className="mr-1 animate-spin" /> Прогон {activeQs.length} вопросов…</>
+                : <><Icon name="PlayCircle" size={14} className="mr-1" /> Прогнать все ({activeQs.length})</>}
+            </Button>
+            {role && <span className="text-xs text-slate-500">{role.name}</span>}
+          </div>
+        </CardContent>
+      </Card>
+
+      {lastRun && lastRun.success && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">Последний прогон</CardTitle>
+              <div className="flex gap-2 text-xs">
+                <Badge variant="default" className="bg-emerald-600">
+                  ✓ {lastRun.summary.passed}
+                </Badge>
+                {lastRun.summary.errored > 0 && (
+                  <Badge variant="destructive">✗ {lastRun.summary.errored}</Badge>
+                )}
+                <Badge variant="outline">{lastRun.summary.avg_latency_ms} мс ср.</Badge>
+                <Badge variant="outline">{lastRun.summary.input_tokens}/{lastRun.summary.output_tokens} ток.</Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {lastRun.results.map((r, i) => (
+                <details key={i} className="border rounded">
+                  <summary className="cursor-pointer text-xs px-3 py-2 flex items-center gap-2 bg-slate-50">
+                    <Badge variant={r.status === 'ok' ? 'default' : 'destructive'} className="text-[10px]">
+                      {r.status === 'ok' ? '✓' : '✗'}
+                    </Badge>
+                    <span className="flex-1 truncate">{r.question}</span>
+                    <span className="text-slate-400">{r.latency_ms} мс</span>
+                  </summary>
+                  <div className="p-3 space-y-2 text-xs">
+                    {r.expected_hint && (
+                      <div>
+                        <div className="text-[10px] uppercase text-slate-500">Ожидалось</div>
+                        <div className="text-slate-600 italic">{r.expected_hint}</div>
+                      </div>
+                    )}
+                    <div>
+                      <div className="text-[10px] uppercase text-slate-500">Ответ</div>
+                      <div className="bg-slate-50 p-2 rounded whitespace-pre-wrap">
+                        {r.response || r.error_code || '—'}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Банк вопросов</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2 border rounded p-3 bg-slate-50">
+            <div className="text-xs font-semibold text-slate-600">Новый вопрос</div>
+            <Textarea
+              value={newQ}
+              onChange={e => setNewQ(e.target.value)}
+              placeholder="Например: Что делать, если у ребёнка температура 38,5?"
+              rows={2}
+              className="text-sm"
+            />
+            <Textarea
+              value={newHint}
+              onChange={e => setNewHint(e.target.value)}
+              placeholder="Подсказка проверяющему: что должно быть в ответе (опционально)"
+              rows={1}
+              className="text-xs"
+            />
+            <Button size="sm" onClick={addQuestion} disabled={!newQ.trim()}>
+              <Icon name="Plus" size={12} className="mr-1" /> Добавить
+            </Button>
+          </div>
+
+          {questions.length === 0 ? (
+            <EmptyState text="Вопросов пока нет — добавь первый сверху" />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Вопрос</TableHead>
+                  <TableHead>Подсказка</TableHead>
+                  <TableHead className="w-20">Вес</TableHead>
+                  <TableHead className="w-24">Активен</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {questions.map(q => (
+                  <TableRow key={q.id}>
+                    <TableCell className="text-xs">{q.question}</TableCell>
+                    <TableCell className="text-xs text-slate-500">{q.expected_hint || '—'}</TableCell>
+                    <TableCell className="text-xs">{q.weight}</TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => toggleActive(q)}
+                        className={`text-xs px-2 py-0.5 rounded ${q.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}
+                      >
+                        {q.is_active ? 'да' : 'нет'}
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {history.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">История прогонов</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Когда</TableHead>
+                  <TableHead>Версия</TableHead>
+                  <TableHead>Persona</TableHead>
+                  <TableHead>Результат</TableHead>
+                  <TableHead>Средняя задержка</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {history.map(h => (
+                  <TableRow key={h.id}>
+                    <TableCell className="text-xs">{formatDate(h.started_at)}</TableCell>
+                    <TableCell className="text-xs">v{h.version_number}</TableCell>
+                    <TableCell className="text-xs">{h.persona}</TableCell>
+                    <TableCell className="text-xs">
+                      <span className="text-emerald-600">✓{h.passed}</span>
+                      {h.errored > 0 && <span className="text-rose-600 ml-2">✗{h.errored}</span>}
+                      <span className="text-slate-400"> / {h.total_questions}</span>
+                    </TableCell>
+                    <TableCell className="text-xs">{h.avg_latency_ms} мс</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
