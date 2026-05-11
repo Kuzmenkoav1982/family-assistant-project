@@ -93,6 +93,7 @@ export interface StudioTrace {
   family_id?: number | null;
   role_code?: string | null;
   role_version_id?: number | null;
+  entry_point?: string | null;
   model?: string | null;
   latency_ms?: number | null;
   input_tokens?: number | null;
@@ -212,6 +213,12 @@ export const studioApi = {
   assets: (env: StudioEnv) => call<{ items: StudioAsset[] }>('assets.list', env),
   traces: (env: StudioEnv, limit = 50) =>
     call<{ items: StudioTrace[]; env: StudioEnv }>('traces.list', env, { limit: String(limit) }),
+  traceGet: (env: StudioEnv, traceUuid: string) =>
+    call<{
+      short: StudioTrace & { full_trace_s3_key?: string | null };
+      full: Record<string, unknown> | null;
+      error?: string;
+    }>('traces.get', env, { trace_uuid: traceUuid }),
   audit: (env: StudioEnv, limit = 50) =>
     call<{ items: StudioAuditEvent[] }>('audit.list', env, { limit: String(limit) }),
 };

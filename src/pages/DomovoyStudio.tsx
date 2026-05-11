@@ -719,50 +719,177 @@ function SandboxResult({ result, title }: { result: StudioSandboxResult; title: 
 // ============================================================
 function TracesTab({ env }: { env: StudioEnv }) {
   const [traces, setTraces] = useState<StudioTrace[]>([]);
+  const [selectedUuid, setSelectedUuid] = useState<string | null>(null);
+  const [fullData, setFullData] = useState<Record<string, unknown> | null>(null);
+  const [shortData, setShortData] = useState<StudioTrace | null>(null);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     studioApi.traces(env, 100).then(d => setTraces(d.items)).catch(() => setTraces([]));
   }, [env]);
+
+  const openTrace = async (t: StudioTrace) => {
+    setSelectedUuid(t.trace_uuid);
+    setFullData(null);
+    setShortData(t);
+    if (t.full_trace_available) {
+      setLoading(true);
+      try {
+        const res = await studioApi.traceGet(env, t.trace_uuid);
+        setFullData(res.full);
+        setShortData(res.short);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm">Trace последних 100 ответов</CardTitle>
-        <p className="text-xs text-slate-500">Краткий «паспорт» каждого ответа Домового.</p>
-      </CardHeader>
-      <CardContent>
-        {traces.length === 0 ? (
-          <EmptyState text="Trace пока нет — диалоги ещё не шли через новый pipeline" />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Когда</TableHead>
-                <TableHead>Роль</TableHead>
-                <TableHead>Модель</TableHead>
-                <TableHead>Семья</TableHead>
-                <TableHead>Задержка</TableHead>
-                <TableHead>Токены in/out</TableHead>
-                <TableHead>Статус</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {traces.map(t => (
-                <TableRow key={t.trace_uuid}>
-                  <TableCell className="text-xs">{formatDate(t.created_at)}</TableCell>
-                  <TableCell className="font-mono text-xs">{t.role_code || '—'}</TableCell>
-                  <TableCell className="font-mono text-xs">{t.model || '—'}</TableCell>
-                  <TableCell className="text-xs">{t.family_id || '—'}</TableCell>
-                  <TableCell className="text-xs">{t.latency_ms ? `${t.latency_ms} мс` : '—'}</TableCell>
-                  <TableCell className="text-xs">{t.input_tokens ?? '—'}/{t.output_tokens ?? '—'}</TableCell>
-                  <TableCell>
-                    <Badge variant={t.status === 'ok' ? 'default' : 'destructive'}>{t.status}</Badge>
-                  </TableCell>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Trace последних 100 ответов</CardTitle>
+          <p className="text-xs text-slate-500">
+            Краткий «паспорт» каждого ответа. Строки с «полным» trace кликабельны — внутри полная сборка prompt и raw-ответ модели.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {traces.length === 0 ? (
+            <EmptyState text="Trace пока нет — диалоги ещё не шли через новый pipeline" />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Когда</TableHead>
+                  <TableHead>Роль</TableHead>
+                  <TableHead>Точка входа</TableHead>
+                  <TableHead>Модель</TableHead>
+                  <TableHead>Задержка</TableHead>
+                  <TableHead>Токены in/out</TableHead>
+                  <TableHead>Статус</TableHead>
+                  <TableHead>Full</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {traces.map(t => (
+                  <TableRow
+                    key={t.trace_uuid}
+                    onClick={() => openTrace(t)}
+                    className={t.full_trace_available ? 'cursor-pointer hover:bg-slate-50' : 'cursor-pointer hover:bg-slate-50/50'}
+                  >
+                    <TableCell className="text-xs">{formatDate(t.created_at)}</TableCell>
+                    <TableCell className="font-mono text-xs">{t.role_code || '—'}</TableCell>
+                    <TableCell className="text-xs">{t.entry_point || '—'}</TableCell>
+                    <TableCell className="font-mono text-xs">{t.model || '—'}</TableCell>
+                    <TableCell className="text-xs">{t.latency_ms ? `${t.latency_ms} мс` : '—'}</TableCell>
+                    <TableCell className="text-xs">{t.input_tokens ?? '—'}/{t.output_tokens ?? '—'}</TableCell>
+                    <TableCell>
+                      <Badge variant={t.status === 'ok' ? 'default' : 'destructive'}>{t.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {t.full_trace_available && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {t.full_trace_reason || 'full'}
+                        </Badge>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={!!selectedUuid} onOpenChange={(o) => !o && (setSelectedUuid(null), setFullData(null))}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Trace</DialogTitle>
+          </DialogHeader>
+          {shortData && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                <Field label="UUID" value={shortData.trace_uuid.slice(0, 8) + '…'} mono />
+                <Field label="Когда" value={formatDate(shortData.created_at)} />
+                <Field label="Роль" value={shortData.role_code || '—'} mono />
+                <Field label="Статус" value={shortData.status} />
+                <Field label="Модель" value={shortData.model || '—'} mono />
+                <Field label="Задержка" value={shortData.latency_ms ? `${shortData.latency_ms} мс` : '—'} />
+                <Field label="Токены вход" value={String(shortData.input_tokens ?? '—')} />
+                <Field label="Токены выход" value={String(shortData.output_tokens ?? '—')} />
+              </div>
+
+              {!shortData.full_trace_available && (
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-3 rounded">
+                  Полный trace для этого запроса не сохранён. Полный trace пишется в 5 случаях: песочница, ошибка/таймаут,
+                  явный debug-target, первые 24ч после publish роли/конфига, явный sample.
+                </div>
+              )}
+
+              {loading && <Loader />}
+
+              {fullData && (
+                <div className="space-y-3">
+                  <TraceSection title="Блоки prompt" data={(fullData.blocks as Record<string, string>) || {}} kind="blocks" />
+                  {(fullData.final_prompt as string) && (
+                    <details className="border rounded">
+                      <summary className="cursor-pointer text-xs font-semibold px-3 py-2 bg-slate-50">
+                        Финальный prompt (checksum: {fullData.prompt_checksum as string})
+                      </summary>
+                      <pre className="text-xs bg-slate-900 text-slate-100 p-3 overflow-x-auto whitespace-pre-wrap">
+                        {fullData.final_prompt as string}
+                      </pre>
+                    </details>
+                  )}
+                  {fullData.request && (
+                    <details className="border rounded">
+                      <summary className="cursor-pointer text-xs font-semibold px-3 py-2 bg-slate-50">Запрос к модели</summary>
+                      <pre className="text-xs bg-slate-900 text-slate-100 p-3 overflow-x-auto whitespace-pre-wrap">
+                        {JSON.stringify(fullData.request, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                  {fullData.response && (
+                    <details className="border rounded" open>
+                      <summary className="cursor-pointer text-xs font-semibold px-3 py-2 bg-slate-50">Ответ модели</summary>
+                      <pre className="text-xs bg-slate-900 text-slate-100 p-3 overflow-x-auto whitespace-pre-wrap">
+                        {JSON.stringify(fullData.response, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                  {fullData.metrics && (
+                    <details className="border rounded">
+                      <summary className="cursor-pointer text-xs font-semibold px-3 py-2 bg-slate-50">Метрики</summary>
+                      <pre className="text-xs bg-slate-50 p-3 overflow-x-auto">
+                        {JSON.stringify(fullData.metrics, null, 2)}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function TraceSection({ title, data, kind }: { title: string; data: Record<string, string>; kind: string }) {
+  const entries = Object.entries(data || {}).filter(([, v]) => v);
+  if (!entries.length) return null;
+  return (
+    <details className="border rounded" open={kind === 'blocks'}>
+      <summary className="cursor-pointer text-xs font-semibold px-3 py-2 bg-slate-50">{title}</summary>
+      <div className="p-3 space-y-2">
+        {entries.map(([key, value]) => (
+          <div key={key}>
+            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-mono">{key}</div>
+            <pre className="text-xs bg-slate-50 p-2 rounded whitespace-pre-wrap mt-0.5">{value}</pre>
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
 

@@ -113,10 +113,32 @@ def save_message(family_id: str, user_id: Optional[int], role: str, content: str
 
 def write_short_trace(family_id, user_id, role_code, entry_point, model, temperature,
                       max_tokens, history_depth, input_tokens, output_tokens, latency_ms,
-                      status, error_code, prompt_checksum, environment='prod'):
-    """Краткий trace в БД на каждый AI-ответ (Domovoy Studio §3.4)."""
+                      status, error_code, prompt_checksum, environment='prod',
+                      full_payload=None):
+    """Краткий trace в БД на каждый AI-ответ + полный trace в S3 при ошибках/таймаутах.
+
+    Правило §3.4: полный trace пишется автоматически только если status != 'ok'.
+    """
     try:
         trace_uuid = str(uuid.uuid4())
+
+        # S3: полный trace только при ошибках или если явно передан
+        s3_key = None
+        full_available = False
+        full_reason = None
+        if full_payload is not None and status != 'ok':
+            try:
+                from s3_trace import write_full_trace
+                payload_with_meta = dict(full_payload)
+                payload_with_meta['trace_uuid'] = trace_uuid
+                payload_with_meta['created_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+                s3_key = write_full_trace(trace_uuid, payload_with_meta)
+                if s3_key:
+                    full_available = True
+                    full_reason = 'error'
+            except Exception as e:
+                print(f'[trace] s3 write failed: {e}')
+
         conn = get_db_connection()
         cur = conn.cursor()
 
@@ -135,10 +157,12 @@ def write_short_trace(family_id, user_id, role_code, entry_point, model, tempera
             f"INSERT INTO {SCHEMA}.domovoy_prompt_traces "
             f"(trace_uuid, family_id, user_id, environment, role_code, entry_point, "
             f" model, temperature, max_tokens, history_depth, "
-            f" input_tokens, output_tokens, latency_ms, status, error_code, prompt_checksum) "
+            f" input_tokens, output_tokens, latency_ms, status, error_code, prompt_checksum, "
+            f" full_trace_available, full_trace_reason, full_trace_s3_key) "
             f"VALUES ({esc(trace_uuid)}, {fid}, {uid}, {esc(environment)}, {esc(role_code)}, {esc(entry_point)}, "
             f"{esc(model)}, {('NULL' if temperature is None else str(temperature))}, {num(max_tokens)}, {num(history_depth)}, "
-            f"{num(input_tokens)}, {num(output_tokens)}, {num(latency_ms)}, {esc(status)}, {esc(error_code)}, {esc(prompt_checksum)})"
+            f"{num(input_tokens)}, {num(output_tokens)}, {num(latency_ms)}, {esc(status)}, {esc(error_code)}, {esc(prompt_checksum)}, "
+            f"{'TRUE' if full_available else 'FALSE'}, {esc(full_reason)}, {esc(s3_key)})"
         )
         conn.commit()
         cur.close()
@@ -297,6 +321,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         prompt_checksum = hashlib.sha256((system_prompt or '').encode('utf-8')).hexdigest()[:32]
         approx_input_tokens = sum(len(m.get('text', '')) for m in yandex_messages) // 4
 
+        def build_error_payload(extra: dict) -> dict:
+            return {
+                'kind': 'ai_assistant',
+                'entry_point': 'ai_assistant',
+                'role_code': role_code,
+                'request': {
+                    'url': url,
+                    'modelUri': payload.get('modelUri'),
+                    'completionOptions': payload.get('completionOptions'),
+                    'messages': yandex_messages,
+                },
+                'blocks': {'system_prompt': system_prompt or '', 'user_question': user_message_content or ''},
+                'final_prompt': system_prompt or '',
+                'actor': {'family_id': family_id, 'user_id': user_id},
+                **extra,
+            }
+
         t0 = time.time()
         try:
             response = requests.post(url, headers=headers, json=payload, timeout=30)
@@ -305,7 +346,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             write_short_trace(family_id, user_id, role_code, 'ai_assistant', model_name,
                               temperature, max_tokens_cfg, history_depth_cfg,
                               approx_input_tokens, 0, latency_ms, 'timeout', 'request_timeout',
-                              prompt_checksum)
+                              prompt_checksum,
+                              full_payload=build_error_payload({
+                                  'response': {'status_code': None, 'error': 'timeout'},
+                                  'metrics': {'latency_ms': latency_ms, 'status': 'timeout',
+                                              'error_code': 'request_timeout'},
+                              }))
             return {
                 'statusCode': 504,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
@@ -315,10 +361,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         if response.status_code != 200:
             print(f'[ERROR] YandexGPT ответ: {response.status_code} {response.text[:500]}')
+            raw_body = None
+            try:
+                raw_body = response.json()
+            except Exception:
+                raw_body = response.text[:2000]
             write_short_trace(family_id, user_id, role_code, 'ai_assistant', model_name,
                               temperature, max_tokens_cfg, history_depth_cfg,
                               approx_input_tokens, 0, latency_ms, 'error', f'http_{response.status_code}',
-                              prompt_checksum)
+                              prompt_checksum,
+                              full_payload=build_error_payload({
+                                  'response': {'status_code': response.status_code, 'body': raw_body},
+                                  'metrics': {'latency_ms': latency_ms, 'status': 'error',
+                                              'error_code': f'http_{response.status_code}'},
+                              }))
             return {
                 'statusCode': 502,
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},

@@ -14,6 +14,8 @@ from typing import Any, Dict, List, Optional
 import psycopg2
 import requests
 
+from s3_trace import write_full_trace, read_full_trace
+
 SCHEMA = '"t_p5815085_family_assistant_pro"'
 
 CORS_HEADERS = {
@@ -329,29 +331,67 @@ def _approx_tokens(text: str) -> int:
 
 def write_sandbox_trace(conn, family_id, user_id, env, role_code, version_id, ai_config_id,
                         model, temperature, max_tokens, prompt_checksum,
-                        input_tokens, output_tokens, latency_ms, status, error_code):
+                        input_tokens, output_tokens, latency_ms, status, error_code,
+                        full_payload=None):
+    """Пишет краткий trace в БД и (опционально) полный JSON в S3.
+    Возвращает trace_uuid.
+    """
     try:
         trace_uuid = str(uuid.uuid4())
+
+        s3_key = None
+        full_available = False
+        if full_payload is not None:
+            full_payload_with_meta = dict(full_payload)
+            full_payload_with_meta['trace_uuid'] = trace_uuid
+            full_payload_with_meta['created_at'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+            s3_key = write_full_trace(trace_uuid, full_payload_with_meta)
+            full_available = bool(s3_key)
+
         cur = conn.cursor()
         cur.execute(
             f"INSERT INTO {SCHEMA}.domovoy_prompt_traces "
             f"(trace_uuid, family_id, user_id, environment, role_code, role_version_id, ai_config_id, "
             f" entry_point, model, temperature, max_tokens, history_depth, "
             f" input_tokens, output_tokens, latency_ms, status, error_code, prompt_checksum, "
-            f" full_trace_available, full_trace_reason) "
+            f" full_trace_available, full_trace_reason, full_trace_s3_key) "
             f"VALUES ({esc(trace_uuid)}, "
             f"{family_id if family_id else 'NULL'}, {user_id if user_id else 'NULL'}, {esc(env)}, "
             f"{esc(role_code)}, {version_id if version_id else 'NULL'}, "
             f"{ai_config_id if ai_config_id else 'NULL'}, "
             f"'sandbox', {esc(model)}, {temperature}, {int(max_tokens)}, 0, "
             f"{int(input_tokens)}, {int(output_tokens)}, {int(latency_ms)}, {esc(status)}, {esc(error_code)}, "
-            f"{esc(prompt_checksum)}, FALSE, 'sandbox')"
+            f"{esc(prompt_checksum)}, {'TRUE' if full_available else 'FALSE'}, 'sandbox', {esc(s3_key)})"
         )
         conn.commit()
         return trace_uuid
     except Exception as e:
         print(f'[sandbox-trace] failed: {e}')
         return None
+
+
+def action_traces_get(conn, trace_uuid: str) -> Dict[str, Any]:
+    """Возвращает краткий trace из БД + полный trace из S3 (если доступен)."""
+    cur = conn.cursor()
+    cur.execute(
+        f"SELECT trace_uuid, created_at, family_id, user_id, environment, role_code, "
+        f"role_version_id, ai_config_id, entry_point, model, temperature, max_tokens, "
+        f"history_depth, input_tokens, output_tokens, latency_ms, status, error_code, "
+        f"prompt_checksum, full_trace_available, full_trace_s3_key, full_trace_reason "
+        f"FROM {SCHEMA}.domovoy_prompt_traces WHERE trace_uuid = {esc(trace_uuid)}"
+    )
+    row = cur.fetchone()
+    if not row:
+        return {'error': 'trace_not_found'}
+    cols = ['trace_uuid', 'created_at', 'family_id', 'user_id', 'environment', 'role_code',
+            'role_version_id', 'ai_config_id', 'entry_point', 'model', 'temperature', 'max_tokens',
+            'history_depth', 'input_tokens', 'output_tokens', 'latency_ms', 'status', 'error_code',
+            'prompt_checksum', 'full_trace_available', 'full_trace_s3_key', 'full_trace_reason']
+    short = dict(zip(cols, row))
+    full = None
+    if short.get('full_trace_available') and short.get('full_trace_s3_key'):
+        full = read_full_trace(short['full_trace_s3_key'])
+    return {'short': short, 'full': full}
 
 
 def action_sandbox_run(conn, actor_id: Optional[int], env: str, body: Dict[str, Any]) -> Dict[str, Any]:
@@ -432,18 +472,24 @@ def action_sandbox_run(conn, actor_id: Optional[int], env: str, body: Dict[str, 
     status = 'ok'
     error_code = None
     ai_text = ''
+    raw_response_body: Any = None
+    raw_response_status: Optional[int] = None
     try:
         resp = requests.post(
             'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
             headers=headers, json=payload, timeout=timeout_sec
         )
         latency_ms = int((time.time() - t0) * 1000)
+        raw_response_status = resp.status_code
+        try:
+            raw_response_body = resp.json()
+        except Exception:
+            raw_response_body = resp.text[:2000]
         if resp.status_code != 200:
             status = 'error'
             error_code = f'http_{resp.status_code}'
         else:
-            result = resp.json()
-            ai_text = result.get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+            ai_text = (raw_response_body or {}).get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
             if not ai_text:
                 status = 'error'
                 error_code = 'empty_response'
@@ -457,10 +503,51 @@ def action_sandbox_run(conn, actor_id: Optional[int], env: str, body: Dict[str, 
         error_code = f'exception:{type(e).__name__}'
 
     output_tokens = _approx_tokens(ai_text)
+
+    full_payload = {
+        'kind': 'sandbox',
+        'environment': env,
+        'role': {'code': version['role_code'], 'name': version['role_name'], 'version_id': version['id'],
+                 'version_number': version['version_number'], 'version_status': version['status'],
+                 'version_env': version['environment']},
+        'ai_config': {'id': ai_cfg.get('id'), 'provider': ai_cfg.get('provider'),
+                      'model_uri': model_uri, 'temperature': temperature, 'max_tokens': max_tokens,
+                      'timeout_sec': timeout_sec},
+        'blocks': {
+            'persona': persona_text or '',
+            'role_prompt': version.get('role_prompt') or '',
+            'extra_context': sandbox_context or '',
+            'user_question': question,
+        },
+        'final_prompt': final_prompt,
+        'prompt_checksum': prompt_checksum,
+        'request': {
+            'url': 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            'modelUri': model_uri,
+            'completionOptions': {'stream': False, 'temperature': temperature, 'maxTokens': max_tokens},
+            'messages': yandex_messages,
+        },
+        'response': {
+            'status_code': raw_response_status,
+            'body': raw_response_body,
+            'text': ai_text,
+        },
+        'metrics': {
+            'input_tokens': input_tokens,
+            'output_tokens': output_tokens,
+            'latency_ms': latency_ms,
+            'status': status,
+            'error_code': error_code,
+            'cost_rub': float(ai_cfg.get('price_rub') or 0),
+        },
+        'actor': {'user_id': actor_id, 'family_id': body.get('family_id')},
+    }
+
     trace_id = write_sandbox_trace(
         conn, body.get('family_id'), actor_id, env, version['role_code'], version['id'],
         ai_cfg.get('id'), model_uri.split('/')[-1], temperature, max_tokens, prompt_checksum,
         input_tokens, output_tokens, latency_ms, status, error_code,
+        full_payload=full_payload,
     )
     audit(conn, actor_id, 'sandbox_run', 'role_version', version['id'], env,
           f"role={version['role_code']} status={status}")
@@ -537,14 +624,14 @@ def action_assets_list(conn) -> List[Dict[str, Any]]:
 def action_traces_list(conn, env: str, limit: int = 50) -> List[Dict[str, Any]]:
     cur = conn.cursor()
     cur.execute(
-        f"SELECT trace_uuid, created_at, family_id, role_code, role_version_id, model, "
+        f"SELECT trace_uuid, created_at, family_id, role_code, role_version_id, entry_point, model, "
         f"latency_ms, input_tokens, output_tokens, status, error_code, "
         f"full_trace_available, full_trace_reason "
         f"FROM {SCHEMA}.domovoy_prompt_traces "
         f"WHERE environment = {esc(env)} "
         f"ORDER BY created_at DESC LIMIT {int(limit)}"
     )
-    cols = ['trace_uuid', 'created_at', 'family_id', 'role_code', 'role_version_id', 'model',
+    cols = ['trace_uuid', 'created_at', 'family_id', 'role_code', 'role_version_id', 'entry_point', 'model',
             'latency_ms', 'input_tokens', 'output_tokens', 'status', 'error_code',
             'full_trace_available', 'full_trace_reason']
     return [dict(zip(cols, r)) for r in cur.fetchall()]
@@ -633,6 +720,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if action == 'sandbox.run':
             res = action_sandbox_run(conn, actor_id, env, body)
             return jr(200 if res.get('success') is not False else 200, res)
+
+        if action == 'traces.get':
+            trace_uuid = params.get('trace_uuid') or body.get('trace_uuid')
+            if not trace_uuid:
+                return jr(400, {'error': 'trace_uuid_required'})
+            res = action_traces_get(conn, trace_uuid)
+            return jr(404 if res.get('error') else 200, res)
 
         if action == 'versions.rollback':
             code = body.get('role_code') or params.get('code')

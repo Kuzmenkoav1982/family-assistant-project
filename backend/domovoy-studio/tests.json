@@ -101,6 +101,22 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "Traces.get missing uuid",
+      "method": "GET",
+      "path": "/?action=traces.get",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "trace_uuid_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Traces.get unknown uuid",
+      "method": "GET",
+      "path": "/?action=traces.get&trace_uuid=00000000-0000-0000-0000-000000000000",
+      "expectedStatus": 404,
+      "expectedBody": {"error": "trace_not_found"},
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Unknown action 400",
       "method": "POST",
       "path": "/",
