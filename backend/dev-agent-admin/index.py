@@ -13,9 +13,12 @@ import json
 import os
 import time
 import uuid
-from typing import Any, Dict, List, Optional
+import hashlib
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 import psycopg2
+import requests
 
 SCHEMA = '"t_p5815085_family_assistant_pro"'
 
@@ -615,6 +618,621 @@ def action_chat_send(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dic
     }
 
 
+# ============================================================
+# V1.5 — LLM-ответ через YandexGPT
+# ============================================================
+def _flag_enabled(cur, code: str, env: str) -> bool:
+    cur.execute(
+        f"SELECT is_enabled FROM {SCHEMA}.domovoy_feature_flags "
+        f"WHERE code = {esc(code)} AND environment = {esc(env)}"
+    )
+    row = cur.fetchone()
+    return bool(row and row[0])
+
+
+def _build_allowed_citations(conn, env: str, query: str, max_chunks: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """Делает retrieval по dev_agent_* и формирует список allowed citations [c1..cN].
+    Возвращает (allowed_list, retrieval_summary).
+    """
+    cur = conn.cursor()
+    snap_id = _active_snapshot(cur, env)
+    if not snap_id:
+        return [], {'snapshot_id': None, 'total': 0, 'reason': 'no_snapshot'}
+
+    q_like = '%' + query.replace("'", "''") + '%'
+    allowed: List[Dict[str, Any]] = []
+    counters = {'files': 0, 'symbols': 0, 'routes': 0, 'api': 0, 'chunks': 0, 'db': 0}
+
+    # 1. Code chunks (top 8)
+    cur.execute(
+        f"SELECT c.id, c.symbol_name, c.start_line, c.end_line, "
+        f"substring(c.chunk_text from 1 for 1200), f.path "
+        f"FROM {SCHEMA}.dev_agent_code_chunks c "
+        f"JOIN {SCHEMA}.dev_agent_files f ON f.id = c.file_id "
+        f"WHERE c.snapshot_id = {snap_id} AND c.chunk_text ILIKE '{q_like}' "
+        f"ORDER BY c.id LIMIT {min(max_chunks, 8)}"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'chunk', 'file_path': r[5],
+            'start_line': r[2], 'end_line': r[3],
+            'symbol_name': r[1], 'snippet': r[4] or '',
+            'reason': f"Код в {r[5]}" + (f" (символ {r[1]})" if r[1] else ''),
+        })
+        counters['chunks'] += 1
+
+    # 2. Symbols (top 5)
+    cur.execute(
+        f"SELECT s.symbol_name, s.symbol_kind, s.line_no, f.path "
+        f"FROM {SCHEMA}.dev_agent_symbols s "
+        f"JOIN {SCHEMA}.dev_agent_files f ON f.id = s.file_id "
+        f"WHERE s.snapshot_id = {snap_id} AND s.symbol_name ILIKE '{q_like}' "
+        f"ORDER BY s.symbol_name LIMIT 5"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'symbol', 'file_path': r[3],
+            'start_line': r[2], 'end_line': r[2],
+            'symbol_name': r[0], 'snippet': f"{r[1]} {r[0]}",
+            'reason': f"{r[1]} {r[0]} в {r[3]}",
+        })
+        counters['symbols'] += 1
+
+    # 3. Files (top 5)
+    cur.execute(
+        f"SELECT id, path, lang_code, file_category "
+        f"FROM {SCHEMA}.dev_agent_files "
+        f"WHERE snapshot_id = {snap_id} AND path ILIKE '{q_like}' "
+        f"ORDER BY path LIMIT 5"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'file', 'file_path': r[1],
+            'start_line': None, 'end_line': None,
+            'symbol_name': None, 'snippet': f"file: {r[1]} ({r[2]})",
+            'reason': f"Файл {r[1]}",
+        })
+        counters['files'] += 1
+
+    # 4. Routes (top 3)
+    cur.execute(
+        f"SELECT r.route_path, r.page_component, r.area, f.path "
+        f"FROM {SCHEMA}.dev_agent_routes r "
+        f"LEFT JOIN {SCHEMA}.dev_agent_files f ON f.id = r.source_file_id "
+        f"WHERE r.snapshot_id = {snap_id} "
+        f"AND (r.route_path ILIKE '{q_like}' OR r.page_component ILIKE '{q_like}') "
+        f"ORDER BY r.route_path LIMIT 3"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'route', 'file_path': r[3] or 'src/App.tsx',
+            'start_line': None, 'end_line': None, 'symbol_name': r[1],
+            'snippet': f"route {r[0]} → {r[1]} [{r[2]}]",
+            'reason': f"Роут {r[0]} → {r[1]}",
+        })
+        counters['routes'] += 1
+
+    # 5. API endpoints (top 3)
+    cur.execute(
+        f"SELECT a.function_name, a.action_name, a.http_method, f.path "
+        f"FROM {SCHEMA}.dev_agent_api_endpoints a "
+        f"LEFT JOIN {SCHEMA}.dev_agent_files f ON f.id = a.source_file_id "
+        f"WHERE a.snapshot_id = {snap_id} "
+        f"AND (a.function_name ILIKE '{q_like}' OR a.action_name ILIKE '{q_like}') "
+        f"ORDER BY a.function_name LIMIT 3"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'api', 'file_path': r[3] or f"backend/{r[0]}/index.py",
+            'start_line': None, 'end_line': None, 'symbol_name': r[1],
+            'snippet': f"api {r[0]}" + (f"#{r[1]}" if r[1] else ''),
+            'reason': f"Endpoint {r[0]}" + (f"#{r[1]}" if r[1] else ''),
+        })
+        counters['api'] += 1
+
+    # 6. DB tables (top 3) — берём имена по name match
+    cur.execute(
+        f"SELECT t.id, t.table_name "
+        f"FROM {SCHEMA}.dev_agent_db_tables t "
+        f"WHERE t.table_name ILIKE '{q_like}' "
+        f"ORDER BY t.table_name LIMIT 3"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'db_table', 'file_path': f"db:{r[1]}",
+            'start_line': None, 'end_line': None, 'symbol_name': r[1],
+            'snippet': f"table {r[1]}",
+            'reason': f"Таблица БД {r[1]}",
+        })
+        counters['db'] += 1
+
+    # назначаем citation_id
+    for i, c in enumerate(allowed, 1):
+        c['citation_id'] = f'c{i}'
+
+    summary = {
+        'snapshot_id': snap_id, 'total': len(allowed),
+        'breakdown': counters, 'query': query,
+    }
+    return allowed, summary
+
+
+def _build_llm_prompt(mode: str, message: str, allowed: List[Dict[str, Any]],
+                     max_context_chars: int) -> str:
+    """Собирает финальный prompt по слоям 1-7 из ТЗ."""
+    mode_contracts = {
+        'explain': (
+            "Задача: объяснить, как устроен указанный участок проекта.\n"
+            "Нужно: дать сжатое объяснение, сослаться на самые важные цитаты, "
+            "назвать ключевые файлы."
+        ),
+        'locate': (
+            "Задача: найти, где находится или используется сущность.\n"
+            "Нужно: назвать основные релевантные места, кратко объяснить, "
+            "почему они подходят, сослаться на цитаты."
+        ),
+    }
+    mode_text = mode_contracts.get(mode, mode_contracts['explain'])
+
+    system = (
+        "Ты — внутренний технический AI-агент проекта.\n"
+        "Ты помогаешь разработчику разбираться в кодовой базе.\n\n"
+        "Правила:\n"
+        "1. Отвечай только на основе переданного контекста.\n"
+        "2. Не выдумывай файлы, маршруты, таблицы, функции и строки.\n"
+        "3. Используй только разрешённые citation_id (c1..cN).\n"
+        "4. Если данных недостаточно — явно напиши об этом и поставь confidence=low.\n"
+        "5. Ответ должен быть кратким, техническим и полезным.\n"
+        "6. Верни только JSON без markdown, без ```json, без пояснений вне JSON."
+    )
+
+    cit_lines = []
+    for c in allowed:
+        lines = ''
+        if c.get('start_line'):
+            lines = f":{c['start_line']}"
+            if c.get('end_line') and c['end_line'] != c['start_line']:
+                lines += f"-{c['end_line']}"
+        cit_lines.append(f"[{c['citation_id']}] {c['file_path']}{lines} — {c['reason']}")
+    citations_block = "\n".join(cit_lines) or "(контекст пуст — данных нет)"
+
+    # Снизим контекстный бюджет
+    ctx_lines = []
+    used = 0
+    for c in allowed:
+        snippet = (c.get('snippet') or '').strip()
+        if not snippet:
+            continue
+        block = f"\n[{c['citation_id']}]\n{snippet}\n"
+        if used + len(block) > max_context_chars:
+            break
+        ctx_lines.append(block)
+        used += len(block)
+    context_block = "".join(ctx_lines) or "(контекст пуст)"
+
+    schema_block = (
+        "Верни JSON строго по схеме:\n"
+        "{\n"
+        '  "answer": "string — краткий технический ответ",\n'
+        '  "citation_ids": ["c1", "c2"],\n'
+        '  "confidence": "low | medium | high"\n'
+        "}"
+    )
+
+    return (
+        f"{system}\n\n"
+        f"=== РЕЖИМ ===\n{mode_text}\n\n"
+        f"=== РАЗРЕШЁННЫЕ ЦИТАТЫ ===\n{citations_block}\n\n"
+        f"=== КОНТЕКСТ ===\n{context_block}\n\n"
+        f"=== ВОПРОС ПОЛЬЗОВАТЕЛЯ ===\n{message}\n\n"
+        f"=== ВЫВОД ===\n{schema_block}"
+    )
+
+
+def _call_yandex_gpt_dev(prompt: str, user_msg: str, model_uri: str,
+                       timeout_sec: int = 25) -> Dict[str, Any]:
+    """Вызов YandexGPT. Возвращает dict {status, text, latency_ms, error_code, raw, input_tokens_approx}."""
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID') or 'b1gaglg8i7v2i32nvism'
+    if not api_key:
+        return {'status': 'error', 'error_code': 'no_api_key', 'text': '',
+                'latency_ms': 0, 'raw': None, 'input_tokens_approx': 0}
+
+    if '/' in model_uri:
+        parts = model_uri.split('/')
+        if len(parts) >= 4:
+            parts[2] = folder_id
+            model_uri = '/'.join(parts)
+
+    payload = {
+        'modelUri': model_uri,
+        'completionOptions': {'stream': False, 'temperature': 0.2, 'maxTokens': 1500},
+        'messages': [
+            {'role': 'system', 'text': prompt},
+            {'role': 'user', 'text': user_msg},
+        ],
+    }
+    headers = {'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'}
+    t0 = time.time()
+    try:
+        resp = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers=headers, json=payload, timeout=timeout_sec,
+        )
+        latency_ms = int((time.time() - t0) * 1000)
+        try:
+            raw_body = resp.json()
+        except Exception:
+            raw_body = {'_text': resp.text[:1500]}
+        if resp.status_code != 200:
+            return {'status': 'error', 'error_code': f'http_{resp.status_code}',
+                    'text': '', 'latency_ms': latency_ms, 'raw': raw_body,
+                    'input_tokens_approx': len(prompt) // 4}
+        text = (raw_body or {}).get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+        if not text:
+            return {'status': 'error', 'error_code': 'empty_response',
+                    'text': '', 'latency_ms': latency_ms, 'raw': raw_body,
+                    'input_tokens_approx': len(prompt) // 4}
+        return {'status': 'ok', 'error_code': None, 'text': text,
+                'latency_ms': latency_ms, 'raw': raw_body,
+                'input_tokens_approx': len(prompt) // 4}
+    except requests.exceptions.Timeout:
+        return {'status': 'timeout', 'error_code': 'request_timeout',
+                'text': '', 'latency_ms': int((time.time() - t0) * 1000),
+                'raw': None, 'input_tokens_approx': len(prompt) // 4}
+    except Exception as e:
+        return {'status': 'error', 'error_code': f'exception:{type(e).__name__}',
+                'text': '', 'latency_ms': int((time.time() - t0) * 1000),
+                'raw': None, 'input_tokens_approx': len(prompt) // 4}
+
+
+def _parse_llm_json(text: str) -> Optional[Dict[str, Any]]:
+    """Парсит ответ модели — пытается выделить JSON-объект."""
+    if not text:
+        return None
+    # уберём markdown-обёртку
+    cleaned = text.strip()
+    cleaned = re.sub(r'^```(?:json)?\s*', '', cleaned)
+    cleaned = re.sub(r'\s*```$', '', cleaned)
+    # ищем первый { ... }
+    m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(0))
+    except Exception:
+        return None
+
+
+def _validate_llm_response(parsed: Optional[Dict[str, Any]],
+                          allowed_ids: List[str]) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+    """Возвращает (ok, error_code, normalized)."""
+    if not parsed:
+        return False, 'invalid_model_json', {}
+    if not isinstance(parsed, dict):
+        return False, 'not_object', {}
+    answer = parsed.get('answer')
+    cit_ids = parsed.get('citation_ids')
+    confidence = parsed.get('confidence') or 'medium'
+    if not isinstance(answer, str) or not answer.strip():
+        return False, 'empty_answer', {}
+    if not isinstance(cit_ids, list) or not cit_ids:
+        return False, 'no_citations', {}
+    allowed_set = set(allowed_ids)
+    valid_ids = [c for c in cit_ids if isinstance(c, str) and c in allowed_set]
+    if not valid_ids:
+        return False, 'invalid_citations', {}
+    if confidence not in ('low', 'medium', 'high'):
+        confidence = 'medium'
+    if len(answer) > 8000:
+        answer = answer[:8000]
+    return True, None, {
+        'answer': answer.strip(),
+        'citation_ids': valid_ids[:8],
+        'confidence': confidence,
+    }
+
+
+def _build_fallback(allowed: List[Dict[str, Any]], reason: str) -> Dict[str, Any]:
+    """Серверный grounded-ответ, когда LLM недоступен или вернул мусор."""
+    if not allowed:
+        answer = (
+            "LLM не использован. По запросу ничего не найдено в индексе — "
+            "уточни имя файла, компонента, action или таблицы БД."
+        )
+        return {'answer': answer, 'citation_ids': [], 'confidence': 'low'}
+    top = allowed[:3]
+    files = sorted({c['file_path'] for c in top})
+    file_list = ', '.join(files)
+    answer = (
+        f"LLM не использован ({reason}). Найдены релевантные места: {file_list}. "
+        f"Открой цитаты справа для точной навигации."
+    )
+    return {
+        'answer': answer,
+        'citation_ids': [c['citation_id'] for c in top],
+        'confidence': 'low',
+    }
+
+
+def _write_full_trace_s3(env: str, run_uuid: str, payload: Dict[str, Any]) -> Optional[str]:
+    """Сохраняет полный trace в S3. Возвращает s3 key или None."""
+    try:
+        import boto3
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+        )
+        key = f"dev-agent/traces/{env}/{run_uuid}.json"
+        s3.put_object(
+            Bucket='files', Key=key,
+            Body=json.dumps(payload, ensure_ascii=False, default=str).encode('utf-8'),
+            ContentType='application/json',
+        )
+        return key
+    except Exception as e:
+        print(f"[dev-agent] full trace save failed: {e}")
+        return None
+
+
+def action_chat_send_llm(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dict[str, Any]:
+    """V1.5 — chat с LLM. Retrieval → prompt → YandexGPT → validation → fallback."""
+    if not actor_id:
+        return {'error': 'auth_required'}
+    message = (body.get('message') or '').strip()
+    if not message:
+        return {'error': 'message_required'}
+    mode = body.get('mode') or 'explain'
+    if mode not in ('explain', 'locate'):
+        mode = 'explain'
+    sess_id = body.get('session_id')
+    debug = bool(body.get('debug'))
+    include_ctx_preview = body.get('include_context_preview', True)
+
+    cur = conn.cursor()
+    llm_enabled = _flag_enabled(cur, 'dev_agent.llm_enabled', env)
+    full_trace_enabled = _flag_enabled(cur, 'dev_agent.llm_debug_enabled', env)
+
+    # config
+    cfg = action_config_get(conn, env)
+    max_chunks = int(body.get('max_chunks') or cfg.get('max_chunks') or 12)
+    max_context_chars = int(cfg.get('max_context_chars') or 32000)
+    primary_model = cfg.get('primary_model') or 'yandexgpt'
+    model_uri = f"gpt://b1gaglg8i7v2i32nvism/{primary_model}/latest"
+
+    # session
+    if not sess_id:
+        sr = action_session_create(conn, env, actor_id, {
+            'title': message[:80], 'default_mode': mode
+        })
+        sess_id = sr['id']
+
+    # save user msg
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.dev_agent_messages "
+        f"(session_id, speaker, content_text) "
+        f"VALUES ({int(sess_id)}, 'asker', {esc(message)}) RETURNING id"
+    )
+    q_id = cur.fetchone()[0]
+    conn.commit()
+
+    audit(conn, actor_id, 'dev_agent.chat_llm_requested', 'dev_agent_session',
+          int(sess_id), env, f"mode={mode}")
+
+    tool_calls = []
+    overall_t0 = time.time()
+
+    # tool 1: search.query (retrieval)
+    t_search = time.time()
+    allowed, retrieval_summary = _build_allowed_citations(conn, env, message, max_chunks)
+    tool_calls.append({
+        'name': 'search.query',
+        'input': {'query': message, 'max_chunks': max_chunks},
+        'output': {'allowed_count': len(allowed), 'breakdown': retrieval_summary.get('breakdown')},
+        'latency_ms': int((time.time() - t_search) * 1000),
+        'status': 'ok',
+    })
+
+    # tool 2: context.build
+    t_ctx = time.time()
+    prompt = _build_llm_prompt(mode, message, allowed, max_context_chars)
+    prompt_checksum = hashlib.sha256(prompt.encode('utf-8')).hexdigest()[:32]
+    tool_calls.append({
+        'name': 'context.build',
+        'input': {'mode': mode, 'allowed_count': len(allowed)},
+        'output': {'prompt_chars': len(prompt), 'prompt_checksum': prompt_checksum},
+        'latency_ms': int((time.time() - t_ctx) * 1000),
+        'status': 'ok',
+    })
+
+    # tool 3: llm.generate
+    llm_result: Dict[str, Any] = {'status': 'skipped', 'error_code': 'llm_disabled',
+                                   'text': '', 'latency_ms': 0,
+                                   'input_tokens_approx': 0, 'raw': None}
+    fallback_used = False
+    fallback_reason: Optional[str] = None
+    validated: Dict[str, Any] = {}
+
+    if not llm_enabled:
+        fallback_used = True
+        fallback_reason = 'llm_disabled'
+        tool_calls.append({
+            'name': 'llm.generate', 'input': {'model': model_uri},
+            'output': {'reason': 'llm_disabled'}, 'latency_ms': 0, 'status': 'skipped',
+        })
+    elif not allowed:
+        fallback_used = True
+        fallback_reason = 'empty_retrieval'
+        tool_calls.append({
+            'name': 'llm.generate', 'input': {'model': model_uri},
+            'output': {'reason': 'no_context'}, 'latency_ms': 0, 'status': 'skipped',
+        })
+    else:
+        llm_result = _call_yandex_gpt_dev(prompt, message, model_uri)
+        tool_calls.append({
+            'name': 'llm.generate',
+            'input': {'model': model_uri, 'temperature': 0.2},
+            'output': {'status': llm_result['status'], 'error_code': llm_result.get('error_code'),
+                      'output_chars': len(llm_result.get('text') or '')},
+            'latency_ms': llm_result['latency_ms'],
+            'status': 'ok' if llm_result['status'] == 'ok' else 'error',
+        })
+        if llm_result['status'] != 'ok':
+            fallback_used = True
+            fallback_reason = llm_result.get('error_code') or 'llm_error'
+        else:
+            # tool 4: response.validate
+            t_val = time.time()
+            parsed = _parse_llm_json(llm_result['text'])
+            allowed_ids = [c['citation_id'] for c in allowed]
+            ok, err, norm = _validate_llm_response(parsed, allowed_ids)
+            tool_calls.append({
+                'name': 'response.validate',
+                'input': {'allowed_count': len(allowed_ids)},
+                'output': {'ok': ok, 'error': err},
+                'latency_ms': int((time.time() - t_val) * 1000),
+                'status': 'ok' if ok else 'error',
+            })
+            if not ok:
+                fallback_used = True
+                fallback_reason = err
+            else:
+                validated = norm
+
+    # build final response (validated or fallback)
+    if fallback_used:
+        validated = _build_fallback(allowed, fallback_reason or 'unknown')
+
+    # map citation_ids -> full objects
+    by_id = {c['citation_id']: c for c in allowed}
+    citations = []
+    for cid in validated.get('citation_ids', []):
+        c = by_id.get(cid)
+        if c:
+            citations.append({
+                'citation_id': cid,
+                'file_path': c['file_path'],
+                'start_line': c.get('start_line'),
+                'end_line': c.get('end_line'),
+                'symbol_name': c.get('symbol_name'),
+                'reason': c.get('reason'),
+            })
+    affected_files = sorted({c['file_path'] for c in citations})
+
+    overall_latency = int((time.time() - overall_t0) * 1000)
+    output_tokens = len(validated.get('answer') or '') // 4
+    input_tokens = llm_result.get('input_tokens_approx') or (len(prompt) // 4)
+
+    # save assistant msg
+    cit_json = json.dumps(citations, ensure_ascii=False)
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.dev_agent_messages "
+        f"(session_id, speaker, content_text, citations_json) "
+        f"VALUES ({int(sess_id)}, 'assistant', {esc(validated.get('answer') or '')}, "
+        f"{esc(cit_json)}::jsonb) RETURNING id"
+    )
+    a_id = cur.fetchone()[0]
+    conn.commit()
+
+    # snapshot id
+    snap_id = retrieval_summary.get('snapshot_id')
+
+    # full trace decision
+    save_full = debug or full_trace_enabled or fallback_used or (llm_result.get('status') == 'error')
+    full_trace_key: Optional[str] = None
+    run_uuid_v = str(uuid.uuid4())
+    if save_full:
+        full_trace_key = _write_full_trace_s3(env, run_uuid_v, {
+            'mode': mode, 'environment': env, 'prompt': prompt,
+            'prompt_checksum': prompt_checksum,
+            'message': message,
+            'allowed_citations': allowed,
+            'llm_raw': llm_result.get('raw'),
+            'llm_text': llm_result.get('text'),
+            'validated': validated,
+            'fallback_used': fallback_used, 'fallback_reason': fallback_reason,
+        })
+
+    # final status
+    if fallback_used:
+        run_status = 'partial'
+    elif llm_result.get('status') == 'ok':
+        run_status = 'ok'
+    else:
+        run_status = 'partial'
+
+    # save run
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.dev_agent_runs "
+        f"(run_uuid, session_id, question_msg_id, answer_msg_id, environment, snapshot_id, "
+        f"mode, status, model, prompt_checksum, retrieval_summary, "
+        f"input_tokens, output_tokens, latency_ms, error_code, "
+        f"full_trace_available, full_trace_s3_key, created_by) "
+        f"VALUES ({esc(run_uuid_v)}, {int(sess_id)}, {q_id}, {a_id}, {esc(env)}, "
+        f"{snap_id if snap_id else 'NULL'}, {esc(mode)}, {esc(run_status)}, "
+        f"{esc(primary_model)}, {esc(prompt_checksum)}, "
+        f"{esc(json.dumps(retrieval_summary))}::jsonb, "
+        f"{input_tokens}, {output_tokens}, {overall_latency}, "
+        f"{esc(fallback_reason)}, "
+        f"{'TRUE' if full_trace_key else 'FALSE'}, "
+        f"{esc(full_trace_key) if full_trace_key else 'NULL'}, "
+        f"{actor_id}) RETURNING id"
+    )
+    run_id = cur.fetchone()[0]
+
+    # save tool calls
+    for tc in tool_calls:
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.dev_agent_tool_calls "
+            f"(run_id, tool_name, tool_input_json, tool_output_summary_json, latency_ms, status) "
+            f"VALUES ({run_id}, {esc(tc['name'])}, "
+            f"{esc(json.dumps(tc.get('input') or {}))}::jsonb, "
+            f"{esc(json.dumps(tc.get('output') or {}))}::jsonb, "
+            f"{int(tc.get('latency_ms') or 0)}, {esc(tc['status'])})"
+        )
+
+    cur.execute(
+        f"UPDATE {SCHEMA}.dev_agent_sessions SET last_run_at = NOW(), updated_at = NOW() "
+        f"WHERE id = {int(sess_id)}"
+    )
+    conn.commit()
+
+    audit_evt = 'dev_agent.chat_llm_fallback' if fallback_used else 'dev_agent.chat_llm_completed'
+    audit(conn, actor_id, audit_evt, 'dev_agent_run', run_id, env,
+          f"mode={mode} status={run_status} citations={len(citations)}")
+
+    response: Dict[str, Any] = {
+        'success': True,
+        'session_id': sess_id,
+        'run_id': run_id,
+        'run_uuid': run_uuid_v,
+        'answer': validated.get('answer'),
+        'citations': citations,
+        'affected_files': affected_files,
+        'confidence': validated.get('confidence', 'low'),
+        'run_meta': {
+            'model': primary_model,
+            'status': run_status,
+            'latency_ms': overall_latency,
+            'input_tokens': input_tokens,
+            'output_tokens': output_tokens,
+            'fallback_used': fallback_used,
+            'fallback_reason': fallback_reason,
+            'llm_enabled': llm_enabled,
+            'full_trace_s3_key': full_trace_key,
+        },
+    }
+    if include_ctx_preview:
+        response['context_preview'] = {
+            'files': affected_files or sorted({c['file_path'] for c in allowed[:5]}),
+            'chunks_count': retrieval_summary.get('breakdown', {}).get('chunks', 0),
+            'total_allowed': len(allowed),
+        }
+    return response
+
+
 def action_runs_list(conn, env: str) -> Dict[str, Any]:
     cur = conn.cursor()
     cur.execute(
@@ -738,6 +1356,11 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 if not actor_id:
                     return jr(401, {'error': 'auth_required'})
                 res = action_chat_send(conn, env, actor_id, body)
+                return jr(200 if res.get('success') else 400, res)
+            if action == 'chat.send_llm':
+                if not actor_id:
+                    return jr(401, {'error': 'auth_required'})
+                res = action_chat_send_llm(conn, env, actor_id, body)
                 return jr(200 if res.get('success') else 400, res)
             if action == 'runs.list':
                 return jr(200, action_runs_list(conn, env))

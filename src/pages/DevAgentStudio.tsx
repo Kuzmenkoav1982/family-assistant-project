@@ -329,22 +329,27 @@ function SearchHit({ item }: { item: DASearchItem }) {
 }
 
 // ============================================================
-// Chat
+// Chat (V1.5 — Search + LLM)
 // ============================================================
+type ChatBackend = 'search' | 'llm';
+
 function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [sessions, setSessions] = useState<DASession[]>([]);
   const [activeSess, setActiveSess] = useState<number | null>(null);
   const [sessDetail, setSessDetail] = useState<DASession | null>(null);
   const [message, setMessage] = useState('');
-  const [mode, setMode] = useState<DAMode>('explain');
+  const [mode, setMode] = useState<'explain' | 'locate'>('explain');
+  const [backend, setBackend] = useState<ChatBackend>('llm');
   const [sending, setSending] = useState(false);
-  const [lastCitations, setLastCitations] = useState<DASearchItem[] | null>(null);
+  const [stage, setStage] = useState<string>('');
+  const [lastLLM, setLastLLM] = useState<Awaited<ReturnType<typeof devAgent.chatSendLLM>> | null>(null);
+  const [lastSearchCitations, setLastSearchCitations] = useState<DASearchItem[] | null>(null);
 
   const loadSessions = async () => {
     const r = await devAgent.sessionsList(env);
     setSessions(r.items || []);
   };
-  useEffect(() => { loadSessions();   }, [env]);
+  useEffect(() => { loadSessions(); }, [env]);
 
   const openSession = async (id: number) => {
     setActiveSess(id);
@@ -360,31 +365,56 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
     if (!message.trim()) return;
     setSending(true);
     try {
-      const r = await devAgent.chatSend(env, message.trim(), activeSess || undefined, mode);
-      if (!r.success) {
-        if (r.error === 'auth_required') {
-          toast({ title: 'Нужно войти как админ', description: 'X-User-Id не передан в запросе' });
-        } else {
-          toast({ title: 'Ошибка', description: r.error });
+      if (backend === 'llm') {
+        setStage('Поиск контекста…');
+        await new Promise(r => setTimeout(r, 50));
+        setStage('Сбор prompt…');
+        const r = await devAgent.chatSendLLM(env, message.trim(), activeSess || undefined, mode);
+        if (!r.success) {
+          if (r.error === 'auth_required') {
+            toast({ title: 'Нужно войти как админ', description: 'X-User-Id не передан в запросе' });
+          } else {
+            toast({ title: 'Ошибка', description: r.error });
+          }
+          return;
         }
-        return;
+        setLastLLM(r);
+        setLastSearchCitations(null);
+        if (!activeSess) setActiveSess(r.session_id);
+        await openSession(r.session_id);
+      } else {
+        const r = await devAgent.chatSend(env, message.trim(), activeSess || undefined, mode as DAMode);
+        if (!r.success) {
+          if (r.error === 'auth_required') {
+            toast({ title: 'Нужно войти как админ' });
+          } else {
+            toast({ title: 'Ошибка', description: r.error });
+          }
+          return;
+        }
+        setLastSearchCitations((r.citations || []) as unknown as DASearchItem[]);
+        setLastLLM(null);
+        if (!activeSess) setActiveSess(r.session_id);
+        await openSession(r.session_id);
       }
       setMessage('');
-      setLastCitations((r.citations || []) as unknown as DASearchItem[]);
-      if (!activeSess) setActiveSess(r.session_id);
-      await openSession(r.session_id);
       await loadSessions();
-    } finally { setSending(false); }
+    } finally {
+      setSending(false);
+      setStage('');
+    }
   };
 
   return (
-    <div className="grid md:grid-cols-[260px_1fr_300px] gap-3 h-[calc(100vh-220px)]">
+    <div className="grid md:grid-cols-[240px_1fr_320px] gap-3 h-[calc(100vh-220px)]">
       {/* Sessions */}
       <Card className="overflow-hidden flex flex-col">
         <CardHeader className="pb-2">
           <CardTitle className="text-xs flex items-center justify-between">
             Сессии
-            <Button size="sm" variant="ghost" onClick={() => { setActiveSess(null); setSessDetail(null); }}>
+            <Button size="sm" variant="ghost" onClick={() => {
+              setActiveSess(null); setSessDetail(null); setLastLLM(null); setLastSearchCitations(null);
+            }}>
               <Icon name="Plus" size={12} />
             </Button>
           </CardTitle>
@@ -407,24 +437,54 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
       {/* Chat */}
       <Card className="flex flex-col">
         <CardHeader className="pb-2">
-          <CardTitle className="text-xs flex items-center justify-between">
-            {sessDetail?.title || 'Новый запрос'}
-            <select value={mode} onChange={e => setMode(e.target.value as DAMode)}
-              className="border rounded px-1.5 py-0.5 text-[10px] bg-white">
-              <option value="explain">explain</option>
-              <option value="locate">locate</option>
-              <option value="plan">plan (V2)</option>
-              <option value="patch">patch (V2)</option>
-            </select>
-          </CardTitle>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <CardTitle className="text-xs truncate flex-1">{sessDetail?.title || 'Новый запрос'}</CardTitle>
+            <div className="flex items-center gap-1">
+              {/* Backend toggle */}
+              <div className="flex rounded-md border overflow-hidden text-[10px]">
+                <button
+                  onClick={() => setBackend('search')}
+                  className={`px-2 py-1 ${backend === 'search' ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                >
+                  <Icon name="Search" size={10} className="inline mr-1" />Поиск
+                </button>
+                <button
+                  onClick={() => setBackend('llm')}
+                  className={`px-2 py-1 ${backend === 'llm' ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}
+                >
+                  <Icon name="Sparkles" size={10} className="inline mr-1" />YandexGPT
+                </button>
+              </div>
+              <select value={mode} onChange={e => setMode(e.target.value as 'explain' | 'locate')}
+                className="border rounded px-1.5 py-0.5 text-[10px] bg-white">
+                <option value="explain">explain</option>
+                <option value="locate">locate</option>
+              </select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex-1 overflow-y-auto space-y-2 px-3">
           {!sessDetail && (
             <div className="text-xs text-slate-400 text-center py-12">
               Выбери сессию слева или задай новый вопрос внизу.<br />
-              Например: «где AIAssistantWidget», «routes admin», «backend chat».
+              Например: «где AIAssistantWidget», «как работает chat.send_llm», «routes admin».
             </div>
           )}
+
+          {/* Fallback / status banner */}
+          {lastLLM?.run_meta?.fallback_used && (
+            <div className="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded p-2">
+              <Icon name="AlertTriangle" size={12} className="inline mr-1" />
+              LLM недоступен или вернул невалидный JSON. Показан grounded fallback.
+              <div className="text-[10px] text-amber-600 mt-0.5">reason: {lastLLM.run_meta.fallback_reason}</div>
+            </div>
+          )}
+          {lastLLM && !lastLLM.run_meta?.llm_enabled && (
+            <div className="text-[11px] bg-slate-50 border border-slate-200 text-slate-600 rounded p-2">
+              LLM выключен флагом <code>dev_agent.llm_enabled</code>. Включи в БД, чтобы получать ответы YandexGPT.
+            </div>
+          )}
+
           {sessDetail?.messages?.map(m => (
             <div key={m.id} className={`text-xs ${m.speaker === 'asker' ? 'text-right' : ''}`}>
               <div className={`inline-block max-w-[85%] px-3 py-2 rounded-lg ${m.speaker === 'asker' ? 'bg-blue-50 text-blue-900' : 'bg-slate-100'}`}>
@@ -434,13 +494,22 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
               <div className="text-[10px] text-slate-400 mt-0.5">{formatDate(m.created_at)}</div>
             </div>
           ))}
+
+          {sending && (
+            <div className="text-xs text-slate-500 flex items-center gap-2 py-2">
+              <Icon name="Loader2" size={12} className="animate-spin" />
+              <span>{stage || 'Отвечаем…'}</span>
+            </div>
+          )}
         </CardContent>
         <div className="border-t p-2 flex gap-2">
           <Textarea
             value={message}
             onChange={e => setMessage(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send(); }}
-            placeholder="Спроси про код проекта (Ctrl+Enter = отправить)…"
+            placeholder={backend === 'llm'
+              ? 'Спроси YandexGPT по коду проекта (Ctrl+Enter = отправить)…'
+              : 'Поиск по индексу (Ctrl+Enter)…'}
             rows={2}
             className="text-xs"
           />
@@ -452,11 +521,84 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
 
       {/* Inspector */}
       <Card className="overflow-hidden flex flex-col">
-        <CardHeader className="pb-2"><CardTitle className="text-xs">Цитаты</CardTitle></CardHeader>
-        <CardContent className="overflow-y-auto flex-1 space-y-1.5 p-2">
-          {!lastCitations && <Empty text="Здесь появятся источники для ответа" />}
-          {lastCitations?.map((c, i) => (
-            <div key={i} className="text-[11px] border rounded p-2 bg-slate-50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xs flex items-center justify-between">
+            Инспектор
+            {lastLLM && (
+              <Badge variant={lastLLM.confidence === 'high' ? 'default' : lastLLM.confidence === 'medium' ? 'secondary' : 'outline'} className="text-[9px]">
+                {lastLLM.confidence}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-y-auto flex-1 space-y-2 p-2 text-[11px]">
+          {!lastLLM && !lastSearchCitations && <Empty text="Здесь появится контекст ответа" />}
+
+          {/* LLM Run meta */}
+          {lastLLM && (
+            <div className="border rounded p-2 bg-slate-50 space-y-1">
+              <div className="text-[10px] uppercase text-slate-400">Run meta</div>
+              <div className="flex justify-between"><span>модель</span><span className="font-mono">{lastLLM.run_meta.model}</span></div>
+              <div className="flex justify-between"><span>статус</span><Badge variant="outline" className="text-[9px] py-0">{lastLLM.run_meta.status}</Badge></div>
+              <div className="flex justify-between"><span>latency</span><span>{lastLLM.run_meta.latency_ms} мс</span></div>
+              <div className="flex justify-between"><span>tokens in/out</span><span>{lastLLM.run_meta.input_tokens} / {lastLLM.run_meta.output_tokens}</span></div>
+              {lastLLM.run_meta.full_trace_s3_key && (
+                <div className="text-[10px] text-slate-500 truncate">trace: {lastLLM.run_meta.full_trace_s3_key}</div>
+              )}
+            </div>
+          )}
+
+          {/* Context preview */}
+          {lastLLM?.context_preview && (
+            <details className="border rounded bg-slate-50">
+              <summary className="cursor-pointer px-2 py-1 text-[10px] uppercase text-slate-500">
+                Контекст ({lastLLM.context_preview.total_allowed} цитат)
+              </summary>
+              <div className="p-2 space-y-0.5">
+                {lastLLM.context_preview.files.map(f => (
+                  <div key={f} className="font-mono text-[10px] text-slate-600 truncate">{f}</div>
+                ))}
+              </div>
+            </details>
+          )}
+
+          {/* Citations */}
+          {lastLLM && lastLLM.citations.length > 0 && (
+            <div>
+              <div className="text-[10px] uppercase text-slate-400 mb-1">Цитаты ({lastLLM.citations.length})</div>
+              <div className="space-y-1.5">
+                {lastLLM.citations.map(c => (
+                  <div key={c.citation_id} className="border rounded p-2 bg-white">
+                    <div className="flex items-center gap-1">
+                      <Badge variant="outline" className="text-[9px] py-0">{c.citation_id}</Badge>
+                      <span className="font-mono text-slate-700 truncate flex-1">{c.file_path}</span>
+                    </div>
+                    {c.start_line && (
+                      <div className="text-slate-400 text-[10px]">строки {c.start_line}{c.end_line && c.end_line !== c.start_line ? `—${c.end_line}` : ''}</div>
+                    )}
+                    {c.symbol_name && <div className="text-emerald-700 text-[10px]">{c.symbol_name}</div>}
+                    {c.reason && <div className="text-slate-500 text-[10px] mt-0.5">{c.reason}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Affected files */}
+          {lastLLM && lastLLM.affected_files.length > 0 && (
+            <div>
+              <div className="text-[10px] uppercase text-slate-400 mb-1">Затронутые файлы</div>
+              <div className="space-y-0.5">
+                {lastLLM.affected_files.map(f => (
+                  <div key={f} className="font-mono text-[10px] text-slate-600 truncate">{f}</div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Search-only citations */}
+          {lastSearchCitations?.map((c, i) => (
+            <div key={i} className="border rounded p-2 bg-slate-50">
               <div className="font-mono text-slate-700 truncate">{c.path || '(no path)'}</div>
               {(c.start_line || c.line_no) && (
                 <div className="text-slate-400">строки {c.start_line || c.line_no}{c.end_line ? `—${c.end_line}` : ''}</div>

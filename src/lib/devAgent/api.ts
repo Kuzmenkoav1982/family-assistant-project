@@ -167,6 +167,39 @@ export interface DAChatResult {
   error?: string;
 }
 
+export interface DALLMCitation {
+  citation_id: string;
+  file_path: string;
+  start_line?: number | null;
+  end_line?: number | null;
+  symbol_name?: string | null;
+  reason?: string | null;
+}
+
+export interface DAChatLLMResult {
+  success: boolean;
+  session_id: number;
+  run_id: number;
+  run_uuid: string;
+  answer: string;
+  citations: DALLMCitation[];
+  affected_files: string[];
+  confidence: 'low' | 'medium' | 'high';
+  context_preview?: { files: string[]; chunks_count: number; total_allowed: number };
+  run_meta: {
+    model: string;
+    status: 'ok' | 'partial' | 'error';
+    latency_ms: number;
+    input_tokens: number;
+    output_tokens: number;
+    fallback_used: boolean;
+    fallback_reason: string | null;
+    llm_enabled: boolean;
+    full_trace_s3_key: string | null;
+  };
+  error?: string;
+}
+
 export interface DARun {
   id: number;
   run_uuid?: string;
@@ -214,6 +247,13 @@ export const devAgent = {
   chatSend: (env: DAEnv, message: string, sessionId?: number, mode: DAMode = 'explain') =>
     call<DAChatResult>(ADMIN_URL, 'chat.send', env, {}, {
       message, mode, ...(sessionId ? { session_id: sessionId } : {}),
+    }),
+  chatSendLLM: (env: DAEnv, message: string, sessionId?: number,
+                mode: 'explain' | 'locate' = 'explain', debug = false) =>
+    call<DAChatLLMResult>(ADMIN_URL, 'chat.send_llm', env, {}, {
+      message, mode, debug,
+      include_context_preview: true,
+      ...(sessionId ? { session_id: sessionId } : {}),
     }),
   runsList: (env: DAEnv) => call<{ items: DARun[] }>(ADMIN_URL, 'runs.list', env),
   runGet: (env: DAEnv, runId: number) =>

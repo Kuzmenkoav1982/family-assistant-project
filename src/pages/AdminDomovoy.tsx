@@ -153,6 +153,10 @@ export default function AdminDomovoy() {
               <Icon name="Sparkles" className="mr-2" size={18} />
               Открыть Studio
             </Button>
+            <Button onClick={() => navigate('/admin/dev-agent')} className="bg-slate-900 hover:bg-slate-800 text-white">
+              <Icon name="Bot" className="mr-2" size={18} />
+              Dev Agent
+            </Button>
             <Button onClick={exportData} variant="outline">
               <Icon name="Download" className="mr-2" size={18} />
               Экспорт
