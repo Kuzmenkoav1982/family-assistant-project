@@ -48,26 +48,38 @@ def esc(value: Optional[str]) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
-def get_actor_user_id(event: Dict[str, Any]) -> Optional[int]:
+def get_actor_user_id(event: Dict[str, Any]) -> Optional[str]:
+    """Extract acting user UUID from X-User-Id header.
+    Returns canonical UUID string or None for anonymous calls.
+    """
     headers = event.get('headers') or {}
-    uid = headers.get('X-User-Id') or headers.get('x-user-id')
+    uid = headers.get('X-User-Id') or headers.get('x-user-id') or headers.get('x-userId')
     if not uid:
         return None
     try:
-        return int(uid)
+        from uuid import UUID
+        return str(UUID(str(uid).strip()))
     except Exception:
         return None
 
 
-def audit(conn, actor_id: Optional[int], event_type: str, entity_type: str,
+def audit(conn, actor_id: Optional[str], event_type: str, entity_type: str,
           entity_id: Optional[int], env: Optional[str], notes: Optional[str] = None):
+    """Append a row to domovoy_audit_log. Note: actor_user_id is integer there
+    (legacy schema), but our DevAgent actors are UUIDs in users.id. We can't
+    write the UUID into actor_user_id, so we always write NULL and prepend the
+    UUID into notes for traceability.
+    """
+    notes_with_actor = notes or ''
+    if actor_id:
+        notes_with_actor = f"actor={actor_id}" + (f" | {notes}" if notes else "")
     cur = conn.cursor()
     cur.execute(
         f"INSERT INTO {SCHEMA}.domovoy_audit_log "
         f"(actor_user_id, event_type, entity_type, entity_id, environment, notes) "
-        f"VALUES ({actor_id if actor_id else 'NULL'}, "
+        f"VALUES (NULL, "
         f"{esc(event_type)}, {esc(entity_type)}, "
-        f"{entity_id if entity_id else 'NULL'}, {esc(env)}, {esc(notes)})"
+        f"{entity_id if entity_id else 'NULL'}, {esc(env)}, {esc(notes_with_actor)})"
     )
     conn.commit()
 
@@ -427,11 +439,11 @@ def action_db_tables_get(conn, env: str, table_id: int) -> Dict[str, Any]:
     return dict(zip(cols, row))
 
 
-def action_sessions_list(conn, env: str, actor_id: Optional[int]) -> Dict[str, Any]:
+def action_sessions_list(conn, env: str, actor_id: Optional[str]) -> Dict[str, Any]:
     cur = conn.cursor()
     where = f"environment = {esc(env)}"
     if actor_id:
-        where += f" AND (created_by = {actor_id} OR created_by IS NULL)"
+        where += f" AND (created_by = {esc(actor_id)} OR created_by IS NULL)"
     cur.execute(
         f"SELECT id, session_uuid, title, default_mode, status, last_run_at, created_at, updated_at "
         f"FROM {SCHEMA}.dev_agent_sessions WHERE {where} "
@@ -442,7 +454,7 @@ def action_sessions_list(conn, env: str, actor_id: Optional[int]) -> Dict[str, A
     return {'items': items}
 
 
-def action_session_create(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dict[str, Any]:
+def action_session_create(conn, env: str, actor_id: Optional[str], body: Dict[str, Any]) -> Dict[str, Any]:
     if not actor_id:
         return {'error': 'actor_required'}
     title = (body.get('title') or 'New session').strip()[:200]
@@ -454,7 +466,7 @@ def action_session_create(conn, env: str, actor_id: int, body: Dict[str, Any]) -
     cur.execute(
         f"INSERT INTO {SCHEMA}.dev_agent_sessions "
         f"(session_uuid, environment, title, default_mode, created_by) "
-        f"VALUES ({esc(sess_uuid)}, {esc(env)}, {esc(title)}, {esc(default_mode)}, {actor_id}) "
+        f"VALUES ({esc(sess_uuid)}, {esc(env)}, {esc(title)}, {esc(default_mode)}, {esc(actor_id)}) "
         f"RETURNING id"
     )
     new_id = cur.fetchone()[0]
@@ -489,7 +501,7 @@ def action_session_get(conn, sess_id: int) -> Dict[str, Any]:
     return sess
 
 
-def action_chat_send(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dict[str, Any]:
+def action_chat_send(conn, env: str, actor_id: Optional[str], body: Dict[str, Any]) -> Dict[str, Any]:
     """В V1 — без LLM. Сохраняем user-сообщение, делаем поиск по индексу, возвращаем найденные
     цитаты + автоматически сгенерированный assistant-ответ-заглушку.
     """
@@ -579,7 +591,7 @@ def action_chat_send(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dic
         f"mode, status, model, retrieval_summary, latency_ms, created_by) "
         f"VALUES ({esc(run_uuid)}, {int(sess_id)}, {q_id}, {a_id}, {esc(env)}, "
         f"{snap_id if snap_id else 'NULL'}, {esc(mode)}, 'ok', 'none', "
-        f"{esc(json.dumps(retrieval))}::jsonb, {latency_ms}, {actor_id}) RETURNING id"
+        f"{esc(json.dumps(retrieval))}::jsonb, {latency_ms}, {esc(actor_id)}) RETURNING id"
     )
     run_id = cur.fetchone()[0]
 
@@ -977,7 +989,7 @@ def _write_full_trace_s3(env: str, run_uuid: str, payload: Dict[str, Any]) -> Op
         return None
 
 
-def action_chat_send_llm(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dict[str, Any]:
+def action_chat_send_llm(conn, env: str, actor_id: Optional[str], body: Dict[str, Any]) -> Dict[str, Any]:
     """V1.5 — chat с LLM. Retrieval → prompt → YandexGPT → validation → fallback."""
     if not actor_id:
         return {'error': 'auth_required'}
@@ -1178,7 +1190,7 @@ def action_chat_send_llm(conn, env: str, actor_id: int, body: Dict[str, Any]) ->
         f"{esc(fallback_reason)}, "
         f"{'TRUE' if full_trace_key else 'FALSE'}, "
         f"{esc(full_trace_key) if full_trace_key else 'NULL'}, "
-        f"{actor_id}) RETURNING id"
+        f"{esc(actor_id)}) RETURNING id"
     )
     run_id = cur.fetchone()[0]
 
@@ -1277,7 +1289,7 @@ def action_run_get(conn, run_id: int) -> Dict[str, Any]:
     return {'run': run, 'tool_calls': tools}
 
 
-def action_run_trace_get(conn, run_id: int, actor_id: int, env: str) -> Dict[str, Any]:
+def action_run_trace_get(conn, run_id: int, actor_id: Optional[str], env: str) -> Dict[str, Any]:
     """Читает full trace из S3 по run_id. Только для админа."""
     if not actor_id:
         return {'error': 'auth_required'}
@@ -1670,7 +1682,7 @@ def _build_review_fallback(allowed: List[Dict[str, Any]], reason: str,
     }
 
 
-def action_review_file(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dict[str, Any]:
+def action_review_file(conn, env: str, actor_id: Optional[str], body: Dict[str, Any]) -> Dict[str, Any]:
     """V1.7 — структурированный review/improve файла с цитатами."""
     if not actor_id:
         return {'error': 'auth_required'}
@@ -1883,7 +1895,7 @@ def action_review_file(conn, env: str, actor_id: int, body: Dict[str, Any]) -> D
         f"{esc(fallback_reason)}, "
         f"{'TRUE' if full_trace_key else 'FALSE'}, "
         f"{esc(full_trace_key) if full_trace_key else 'NULL'}, "
-        f"{actor_id}) RETURNING id"
+        f"{esc(actor_id)}) RETURNING id"
     )
     run_id = cur.fetchone()[0]
 

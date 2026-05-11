@@ -57,11 +57,17 @@ def esc(value: Optional[str]) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
-def _get_actor(event: Dict[str, Any]) -> Optional[int]:
+def _get_actor(event: Dict[str, Any]) -> Optional[str]:
+    """Extract acting user UUID from X-User-Id header.
+    Returns canonical UUID string or None for system / anonymous calls.
+    """
     h = event.get('headers') or {}
-    uid = h.get('X-User-Id') or h.get('x-user-id')
+    raw = h.get('X-User-Id') or h.get('x-user-id') or h.get('x-userId')
+    if not raw:
+        return None
     try:
-        return int(uid) if uid else None
+        from uuid import UUID
+        return str(UUID(str(raw).strip()))
     except Exception:
         return None
 
@@ -72,7 +78,7 @@ def _get_actor(event: Dict[str, Any]) -> Optional[int]:
 
 def _create_snapshot(cur, env: str, branch: str, commit_sha: str, message: str,
                      source_kind: str, source_repo: Optional[str], source_ref: Optional[str],
-                     source_meta: Dict[str, Any], actor_id: Optional[int]) -> int:
+                     source_meta: Dict[str, Any], actor_id: Optional[str]) -> int:
     snap_uuid = str(uuid.uuid4())
     cur.execute(
         f"INSERT INTO {SCHEMA}.dev_agent_repo_snapshots "
@@ -81,7 +87,7 @@ def _create_snapshot(cur, env: str, branch: str, commit_sha: str, message: str,
         f"VALUES ({esc(snap_uuid)}, {esc(env)}, {esc(branch)}, {esc(commit_sha)}, "
         f"{esc(message)}, 'running', {esc(source_kind)}, {esc(source_repo)}, "
         f"{esc(source_ref)}, {esc(json.dumps(source_meta, ensure_ascii=False))}::jsonb, "
-        f"{actor_id if actor_id else 'NULL'}) RETURNING id"
+        f"{esc(actor_id)}) RETURNING id"
     )
     return cur.fetchone()[0]
 
@@ -232,13 +238,13 @@ def ingest_files(cur, snap_id: int, files: List[Dict[str, Any]]) -> Dict[str, in
 # DB schema capture
 # ============================================================
 
-def _capture_db_snapshot(cur, env: str, actor_id: Optional[int]) -> int:
+def _capture_db_snapshot(cur, env: str, actor_id: Optional[str]) -> int:
     schema_name = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
     cur.execute(
         f"INSERT INTO {SCHEMA}.dev_agent_db_snapshots "
         f"(environment, source_type, schema_name, created_by, is_active) "
         f"VALUES ({esc(env)}, 'live_db', {esc(schema_name)}, "
-        f"{actor_id if actor_id else 'NULL'}, TRUE) RETURNING id"
+        f"{esc(actor_id)}, TRUE) RETURNING id"
     )
     db_snap_id = cur.fetchone()[0]
     cur.execute(
@@ -272,7 +278,7 @@ def _capture_db_snapshot(cur, env: str, actor_id: Optional[int]) -> int:
 # ============================================================
 
 def action_index_from_github(conn, env: str, body: Dict[str, Any],
-                             actor_id: Optional[int]) -> Dict[str, Any]:
+                             actor_id: Optional[str]) -> Dict[str, Any]:
     owner = body.get('owner')
     repo = body.get('repo')
     ref = body.get('ref') or 'main'
@@ -329,7 +335,7 @@ def action_index_from_github(conn, env: str, body: Dict[str, Any],
 
 
 def action_index_from_local_paths(conn, env: str, body: Dict[str, Any],
-                                  actor_id: Optional[int]) -> Dict[str, Any]:
+                                  actor_id: Optional[str]) -> Dict[str, Any]:
     """Fetch a small repo slice (targets + direct imports) and ingest it.
 
     Required body: repo ('owner/repo'), commit_sha, target_paths.
@@ -419,7 +425,7 @@ def action_index_from_local_paths(conn, env: str, body: Dict[str, Any],
 
 
 def action_index_from_snapshot(conn, env: str, body: Dict[str, Any],
-                               actor_id: Optional[int]) -> Dict[str, Any]:
+                               actor_id: Optional[str]) -> Dict[str, Any]:
     branch = body.get('branch_name') or 'manual'
     commit_sha = body.get('commit_sha') or ('manual-' + uuid.uuid4().hex[:8])
     message = body.get('commit_message') or 'Manual snapshot'
@@ -488,7 +494,7 @@ def action_activate_snapshot(conn, env: str, snap_id: int) -> Dict[str, Any]:
 # kept for backward compat
 # ============================================================
 
-def action_seed_create(conn, env: str, body: Dict[str, Any], actor_id: Optional[int]) -> Dict[str, Any]:
+def action_seed_create(conn, env: str, body: Dict[str, Any], actor_id: Optional[str]) -> Dict[str, Any]:
     """Legacy: accept metadata-only seed (no real file contents)."""
     commit_sha = body.get('commit_sha') or 'seed-' + uuid.uuid4().hex[:8]
     message = body.get('commit_message') or 'Seed snapshot'

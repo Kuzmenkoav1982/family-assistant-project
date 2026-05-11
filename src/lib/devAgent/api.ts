@@ -11,24 +11,25 @@ export type DAEnv = 'stage' | 'prod';
 export type DAMode = 'explain' | 'locate' | 'plan' | 'patch';
 
 /**
- * Resolve current user id for X-User-Id header.
- * Tries (in order): explicit 'userId' / 'familyMemberId' keys → user_data/userData JSON
- * (member_id → memberId → id). Returns '' if nothing usable found.
+ * Resolve current user UUID for X-User-Id header.
+ * DevAgent backend expects users.id (uuid), NOT family_members.member_id.
+ * Priority: userData.id → user_data.id → fallback to explicit 'userId' key.
+ * Returns '' if nothing usable found.
  */
 function resolveUserId(): string {
-  const direct = localStorage.getItem('userId') || localStorage.getItem('familyMemberId');
-  if (direct) return String(direct);
-  for (const key of ['user_data', 'userData', 'user']) {
+  for (const key of ['userData', 'user_data', 'user']) {
     const raw = localStorage.getItem(key);
     if (!raw) continue;
     try {
       const u = JSON.parse(raw);
-      const id = u?.member_id ?? u?.memberId ?? u?.id;
+      const id = u?.id;
       if (id !== undefined && id !== null && id !== '') return String(id);
     } catch {
       /* ignore parse errors, try next key */
     }
   }
+  const direct = localStorage.getItem('userId');
+  if (direct) return String(direct);
   return '';
 }
 
