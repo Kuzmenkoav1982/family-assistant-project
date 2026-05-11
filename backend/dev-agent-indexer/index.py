@@ -93,7 +93,9 @@ def _create_snapshot(cur, env: str, branch: str, commit_sha: str, message: str,
 
 
 def _finalize_snapshot(cur, snap_id: int, env: str, counts: Dict[str, int],
-                       status: str = 'ready', err: Optional[str] = None):
+                       status: str = 'ready', err: Optional[str] = None,
+                       activate: bool = True):
+    should_activate = (status == 'ready') and activate
     cur.execute(
         f"UPDATE {SCHEMA}.dev_agent_repo_snapshots SET "
         f"indexing_status = {esc(status)}, "
@@ -103,11 +105,11 @@ def _finalize_snapshot(cur, snap_id: int, env: str, counts: Dict[str, int],
         f"endpoints_count = {int(counts.get('endpoints', 0))}, "
         f"symbols_count = {int(counts.get('symbols', 0))}, "
         f"indexed_at = NOW(), "
-        f"is_active = {'TRUE' if status == 'ready' else 'FALSE'}, "
+        f"is_active = {'TRUE' if should_activate else 'FALSE'}, "
         f"err_text = {esc(err)} "
         f"WHERE id = {snap_id}"
     )
-    if status == 'ready':
+    if should_activate:
         cur.execute(
             f"UPDATE {SCHEMA}.dev_agent_repo_snapshots SET is_active = FALSE "
             f"WHERE environment = {esc(env)} AND id <> {snap_id}"
@@ -395,12 +397,7 @@ def action_index_from_local_paths(conn, env: str, body: Dict[str, Any],
         conn.commit()
         _capture_db_snapshot(cur, env, actor_id)
         _finalize_snapshot(cur, snap_id, env, counts,
-                           status='ready' if activate else 'ready')
-        if not activate:
-            cur.execute(
-                f"UPDATE {SCHEMA}.dev_agent_repo_snapshots SET is_active = FALSE "
-                f"WHERE id = {snap_id}"
-            )
+                           status='ready', activate=bool(activate))
         conn.commit()
     except Exception as e:
         _finalize_snapshot(cur, snap_id, env, {}, status='failed', err=str(e)[:300])
@@ -430,6 +427,7 @@ def action_index_from_snapshot(conn, env: str, body: Dict[str, Any],
     commit_sha = body.get('commit_sha') or ('manual-' + uuid.uuid4().hex[:8])
     message = body.get('commit_message') or 'Manual snapshot'
     files = body.get('files') or []
+    activate = body.get('activate_snapshot', True)
     if not isinstance(files, list) or not files:
         return {'success': False, 'error': 'files_required'}
 
@@ -445,7 +443,7 @@ def action_index_from_snapshot(conn, env: str, body: Dict[str, Any],
         counts = ingest_files(cur, snap_id, files)
         conn.commit()
         _capture_db_snapshot(cur, env, actor_id)
-        _finalize_snapshot(cur, snap_id, env, counts, status='ready')
+        _finalize_snapshot(cur, snap_id, env, counts, status='ready', activate=bool(activate))
         conn.commit()
     except Exception as e:
         _finalize_snapshot(cur, snap_id, env, {}, status='failed', err=str(e)[:300])
@@ -453,7 +451,7 @@ def action_index_from_snapshot(conn, env: str, body: Dict[str, Any],
         return {'success': False, 'error': 'ingest_failed', 'message': str(e)[:300]}
 
     return {'success': True, 'snapshot_id': snap_id, 'counts': counts,
-            'commit_sha': commit_sha}
+            'commit_sha': commit_sha, 'activated': bool(activate)}
 
 
 def action_index_status(conn, env: str) -> Dict[str, Any]:

@@ -88,6 +88,7 @@
         "action": "index.from_snapshot",
         "env": "stage",
         "commit_sha": "test-v16",
+        "activate_snapshot": false,
         "files": [
           {
             "path": "src/components/Hello.tsx",
@@ -96,7 +97,7 @@
         ]
       },
       "expectedStatus": 200,
-      "expectedBody": {"success": true},
+      "expectedBody": {"success": true, "activated": false},
       "bodyMatcher": "partial"
     },
     {

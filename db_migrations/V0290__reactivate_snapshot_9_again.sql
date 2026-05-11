@@ -1,0 +1,2 @@
+UPDATE t_p5815085_family_assistant_pro.dev_agent_repo_snapshots SET is_active = FALSE WHERE environment = 'stage' AND id <> 9;
+UPDATE t_p5815085_family_assistant_pro.dev_agent_repo_snapshots SET is_active = TRUE WHERE id = 9;
