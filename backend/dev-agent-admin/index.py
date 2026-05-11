@@ -1324,6 +1324,614 @@ def action_run_trace_get(conn, run_id: int, actor_id: int, env: str) -> Dict[str
 
 
 # ============================================================
+# V1.7 — review.file (file-centric review/improve with citations)
+# ============================================================
+
+_REVIEW_MODE_CONTRACTS = {
+    'review': (
+        "Задача: провести технический обзор файла.\n"
+        "Нужно: выявить проблемы (issues), указать severity, кратко описать.\n"
+        "Не предлагай поверхностный рефакторинг без обоснования."
+    ),
+    'improve': (
+        "Задача: предложить план улучшений файла.\n"
+        "Нужно: дать конкретные actionable рекомендации (suggestions) "
+        "с приоритетом и оценкой impact. Выделить quick_wins."
+    ),
+}
+
+_REVIEW_FOCUS_TIPS = {
+    'readability': 'читаемость кода и именование',
+    'architecture': 'разделение ответственности и связанность',
+    'performance': 'избыточные ре-рендеры, тяжёлые операции',
+    'state': 'управление состоянием, useState/useReducer',
+    'types': 'TypeScript-типизация, any, unknown',
+    'routing': 'маршрутизация и навигация',
+    'forms': 'формы, валидация, контролируемые компоненты',
+    'effects': 'useEffect, зависимости, side-effects',
+    'api': 'работа с backend и обработка ошибок',
+    'testing': 'тестируемость и изоляция логики',
+}
+
+
+def _build_review_citations(conn, env: str, file_path: str, max_chunks: int) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """File-centric retrieval для review.file.
+
+    Источники:
+      P1 — chunks целевого файла (до max_chunks-2)
+      P1 — symbols целевого файла (до 5)
+      P2 — routes, в которых файл встречается (до 2)
+      P2 — api endpoints с этим source_file (до 2)
+    """
+    cur = conn.cursor()
+    snap_id = _active_snapshot(cur, env)
+    if not snap_id:
+        return [], {'snapshot_id': None, 'total': 0, 'reason': 'no_snapshot',
+                    'file_path': file_path}
+
+    fp = file_path.replace("'", "''")
+    cur.execute(
+        f"SELECT id, lang_code, file_category, line_count, size_bytes "
+        f"FROM {SCHEMA}.dev_agent_files "
+        f"WHERE snapshot_id = {snap_id} AND path = '{fp}' LIMIT 1"
+    )
+    row = cur.fetchone()
+    if not row:
+        return [], {'snapshot_id': snap_id, 'total': 0,
+                    'reason': 'file_not_in_snapshot', 'file_path': file_path}
+    file_id, lang_code, category, line_count, size_bytes = row
+
+    allowed: List[Dict[str, Any]] = []
+    counters = {'chunks': 0, 'symbols': 0, 'routes': 0, 'api': 0}
+
+    chunks_limit = max(2, min(max_chunks - 2, 10))
+    cur.execute(
+        f"SELECT id, chunk_kind, symbol_name, start_line, end_line, "
+        f"substring(chunk_text from 1 for 1800), byte_size "
+        f"FROM {SCHEMA}.dev_agent_code_chunks "
+        f"WHERE snapshot_id = {snap_id} AND file_id = {file_id} "
+        f"ORDER BY chunk_index LIMIT {chunks_limit}"
+    )
+    for r in cur.fetchall():
+        sym = r[2]
+        reason = f"Чанк {r[1]}"
+        if sym:
+            reason += f" ({sym})"
+        if r[3] and r[4]:
+            reason += f" [строки {r[3]}–{r[4]}]"
+        allowed.append({
+            'kind': 'chunk', 'file_path': file_path,
+            'start_line': r[3], 'end_line': r[4], 'symbol_name': sym,
+            'snippet': r[5] or '', 'reason': reason,
+        })
+        counters['chunks'] += 1
+
+    cur.execute(
+        f"SELECT symbol_name, symbol_kind, exported, line_no "
+        f"FROM {SCHEMA}.dev_agent_symbols "
+        f"WHERE snapshot_id = {snap_id} AND file_id = {file_id} "
+        f"ORDER BY line_no NULLS LAST LIMIT 5"
+    )
+    for r in cur.fetchall():
+        exp = 'exported ' if r[2] else ''
+        allowed.append({
+            'kind': 'symbol', 'file_path': file_path,
+            'start_line': r[3], 'end_line': r[3], 'symbol_name': r[0],
+            'snippet': f"{exp}{r[1]} {r[0]}",
+            'reason': f"{exp}{r[1]} {r[0]}",
+        })
+        counters['symbols'] += 1
+
+    cur.execute(
+        f"SELECT route_path, page_component, area "
+        f"FROM {SCHEMA}.dev_agent_routes "
+        f"WHERE snapshot_id = {snap_id} AND source_file_id = {file_id} "
+        f"ORDER BY route_path LIMIT 2"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'route', 'file_path': file_path,
+            'start_line': None, 'end_line': None, 'symbol_name': r[1],
+            'snippet': f"route {r[0]} → {r[1]} [{r[2]}]",
+            'reason': f"Роут {r[0]} ведёт к {r[1]}",
+        })
+        counters['routes'] += 1
+
+    cur.execute(
+        f"SELECT function_name, action_name, http_method "
+        f"FROM {SCHEMA}.dev_agent_api_endpoints "
+        f"WHERE snapshot_id = {snap_id} AND source_file_id = {file_id} "
+        f"ORDER BY function_name LIMIT 2"
+    )
+    for r in cur.fetchall():
+        allowed.append({
+            'kind': 'api', 'file_path': file_path,
+            'start_line': None, 'end_line': None, 'symbol_name': r[1],
+            'snippet': f"api {r[0]}" + (f"#{r[1]}" if r[1] else ''),
+            'reason': f"Endpoint {r[0]}" + (f"#{r[1]}" if r[1] else ''),
+        })
+        counters['api'] += 1
+
+    for i, c in enumerate(allowed, 1):
+        c['citation_id'] = f'c{i}'
+
+    summary = {
+        'snapshot_id': snap_id, 'total': len(allowed),
+        'breakdown': counters, 'file_path': file_path, 'file_id': file_id,
+        'lang_code': lang_code, 'file_category': category,
+        'line_count': line_count, 'size_bytes': size_bytes,
+    }
+    return allowed, summary
+
+
+def _build_review_prompt(mode: str, file_path: str, focus: List[str],
+                         allowed: List[Dict[str, Any]], max_context_chars: int) -> str:
+    """Prompt для review.file."""
+    mode_text = _REVIEW_MODE_CONTRACTS.get(mode, _REVIEW_MODE_CONTRACTS['review'])
+
+    focus_text = ''
+    if focus:
+        tips = [f"- {f}: {_REVIEW_FOCUS_TIPS[f]}" for f in focus
+                if f in _REVIEW_FOCUS_TIPS]
+        if tips:
+            focus_text = "Сфокусируйся на:\n" + "\n".join(tips)
+
+    system = (
+        "Ты — внутренний AI-ревьюер кода проекта.\n"
+        "Твоя задача — проанализировать переданный файл и предложить полезные улучшения.\n\n"
+        "Правила:\n"
+        "1. Опирайся только на переданный контекст.\n"
+        "2. Не выдумывай код, архитектуру и зависимости.\n"
+        "3. Используй только разрешённые citation_id.\n"
+        "4. Замечания должны быть техническими и конкретными.\n"
+        "5. Не предлагай абстрактные советы без привязки к цитатам.\n"
+        "6. Каждый issue/suggestion обязан иметь минимум 1 citation_id.\n"
+        "7. Верни только JSON, без markdown, без ```json."
+    )
+
+    cit_lines = []
+    for c in allowed:
+        lines = ''
+        if c.get('start_line'):
+            lines = f":{c['start_line']}"
+            if c.get('end_line') and c['end_line'] != c['start_line']:
+                lines += f"-{c['end_line']}"
+        cit_lines.append(f"[{c['citation_id']}] {c['file_path']}{lines} — {c['reason']}")
+    citations_block = "\n".join(cit_lines) or "(контекст пуст)"
+
+    ctx_lines = []
+    used = 0
+    for c in allowed:
+        snippet = (c.get('snippet') or '').strip()
+        if not snippet:
+            continue
+        block = f"\n[{c['citation_id']}]\n{snippet}\n"
+        if used + len(block) > max_context_chars:
+            break
+        ctx_lines.append(block)
+        used += len(block)
+    context_block = "".join(ctx_lines) or "(контекст пуст)"
+
+    schema_block = (
+        "Верни JSON строго по схеме:\n"
+        "{\n"
+        '  "summary": "string — 1-3 предложения о файле",\n'
+        '  "issues": [\n'
+        '    {"id": "i1", "title": "...", "severity": "low|medium|high",\n'
+        '     "description": "...", "citation_ids": ["c1"]}\n'
+        '  ],\n'
+        '  "suggestions": [\n'
+        '    {"id": "s1", "title": "...", "priority": "low|medium|high",\n'
+        '     "impact": "low|medium|high", "description": "...",\n'
+        '     "citation_ids": ["c1"]}\n'
+        '  ],\n'
+        '  "quick_wins": ["string", "string"],\n'
+        '  "confidence": "low|medium|high"\n'
+        "}"
+    )
+
+    head = f"{system}\n\n=== РЕЖИМ ===\n{mode_text}\n"
+    if focus_text:
+        head += f"{focus_text}\n"
+    head += "\n"
+
+    return (
+        f"{head}"
+        f"=== ЦЕЛЕВОЙ ФАЙЛ ===\n{file_path}\n\n"
+        f"=== РАЗРЕШЁННЫЕ ЦИТАТЫ ===\n{citations_block}\n\n"
+        f"=== КОНТЕКСТ ===\n{context_block}\n\n"
+        f"=== ВЫВОД ===\n{schema_block}"
+    )
+
+
+def _validate_review_response(parsed: Optional[Dict[str, Any]],
+                              allowed_ids: List[str]) -> Tuple[bool, Optional[str], Dict[str, Any]]:
+    """Валидация структурированного review-ответа."""
+    if not parsed:
+        return False, 'invalid_model_json', {}
+    if not isinstance(parsed, dict):
+        return False, 'not_object', {}
+    summary = parsed.get('summary')
+    issues = parsed.get('issues')
+    suggestions = parsed.get('suggestions')
+    quick_wins = parsed.get('quick_wins')
+    confidence = parsed.get('confidence') or 'medium'
+
+    if not isinstance(summary, str) or not summary.strip():
+        return False, 'empty_summary', {}
+    if not isinstance(issues, list):
+        issues = []
+    if not isinstance(suggestions, list):
+        suggestions = []
+    if not isinstance(quick_wins, list):
+        quick_wins = []
+    if confidence not in ('low', 'medium', 'high'):
+        confidence = 'medium'
+
+    allowed_set = set(allowed_ids)
+
+    def _normalize_item(it: Any, kind: str) -> Optional[Dict[str, Any]]:
+        if not isinstance(it, dict):
+            return None
+        title = it.get('title')
+        desc = it.get('description')
+        cits = it.get('citation_ids')
+        if not isinstance(title, str) or not title.strip():
+            return None
+        if not isinstance(desc, str) or not desc.strip():
+            return None
+        if not isinstance(cits, list):
+            return None
+        valid_cits = [c for c in cits if isinstance(c, str) and c in allowed_set]
+        if not valid_cits:
+            return None
+        out = {
+            'id': str(it.get('id') or ''),
+            'title': title.strip()[:300],
+            'description': desc.strip()[:1500],
+            'citation_ids': valid_cits[:4],
+        }
+        if kind == 'issue':
+            sev = it.get('severity')
+            out['severity'] = sev if sev in ('low', 'medium', 'high') else 'medium'
+        else:
+            pr = it.get('priority')
+            im = it.get('impact')
+            out['priority'] = pr if pr in ('low', 'medium', 'high') else 'medium'
+            out['impact'] = im if im in ('low', 'medium', 'high') else 'medium'
+        return out
+
+    norm_issues = [x for x in (_normalize_item(i, 'issue') for i in issues[:8]) if x]
+    norm_suggs = [x for x in (_normalize_item(s, 'sugg') for s in suggestions[:8]) if x]
+    norm_quick = [str(q).strip()[:300] for q in quick_wins[:6]
+                  if isinstance(q, str) and q.strip()]
+
+    # Хотя бы один issue ИЛИ suggestion с валидными citations
+    if not norm_issues and not norm_suggs:
+        return False, 'no_grounded_items', {}
+
+    # auto-assign ids if missing
+    for idx, it in enumerate(norm_issues, 1):
+        if not it['id']:
+            it['id'] = f'i{idx}'
+    for idx, it in enumerate(norm_suggs, 1):
+        if not it['id']:
+            it['id'] = f's{idx}'
+
+    return True, None, {
+        'summary': summary.strip()[:3000],
+        'issues': norm_issues,
+        'suggestions': norm_suggs,
+        'quick_wins': norm_quick,
+        'confidence': confidence,
+    }
+
+
+def _build_review_fallback(allowed: List[Dict[str, Any]], reason: str,
+                           file_path: str) -> Dict[str, Any]:
+    """Grounded fallback для review.file."""
+    if not allowed:
+        return {
+            'summary': (
+                f"LLM недоступен ({reason}). Файл {file_path} не найден в индексе или "
+                "не содержит чанков. Проверь, что snapshot собран с реальным содержимым."
+            ),
+            'issues': [],
+            'suggestions': [],
+            'quick_wins': ['Проверить наличие файла в активном snapshot',
+                          'Запустить индексацию из GitHub'],
+            'confidence': 'low',
+        }
+    top = allowed[:3]
+    cits = [c['citation_id'] for c in top]
+    return {
+        'summary': (
+            f"LLM недоступен ({reason}). Показан grounded fallback по найденным "
+            f"участкам файла {file_path}. Открой citations для ручного ревью."
+        ),
+        'issues': [],
+        'suggestions': [{
+            'id': 's1',
+            'title': 'Проверить ключевые участки файла вручную',
+            'priority': 'medium',
+            'impact': 'medium',
+            'description': (
+                'Открой указанные цитаты — это основные чанки/символы файла. '
+                'Проверь их на разделение ответственности, типизацию и размер компонента.'
+            ),
+            'citation_ids': cits[:3],
+        }],
+        'quick_wins': [
+            'Открыть top citations',
+            'Проверить размер компонента',
+            'Проверить количество useState/useEffect',
+        ],
+        'confidence': 'low',
+    }
+
+
+def action_review_file(conn, env: str, actor_id: int, body: Dict[str, Any]) -> Dict[str, Any]:
+    """V1.7 — структурированный review/improve файла с цитатами."""
+    if not actor_id:
+        return {'error': 'auth_required'}
+    file_path = (body.get('file_path') or '').strip()
+    if not file_path:
+        return {'error': 'file_path_required'}
+    mode = body.get('mode') or 'review'
+    if mode not in ('review', 'improve'):
+        mode = 'review'
+    focus_raw = body.get('focus') or []
+    focus = [f for f in focus_raw if isinstance(f, str) and f in _REVIEW_FOCUS_TIPS][:5]
+    sess_id = body.get('session_id')
+    debug = bool(body.get('debug'))
+
+    cur = conn.cursor()
+    llm_enabled = _flag_enabled(cur, 'dev_agent.llm_enabled', env)
+    full_trace_enabled = _flag_enabled(cur, 'dev_agent.llm_debug_enabled', env)
+
+    cfg = action_config_get(conn, env)
+    max_chunks = int(body.get('max_chunks') or 10)
+    max_context_chars = int(cfg.get('max_context_chars') or 32000)
+    primary_model = cfg.get('primary_model') or 'yandexgpt'
+    model_uri = f"gpt://b1gaglg8i7v2i32nvism/{primary_model}/latest"
+
+    if not sess_id:
+        sr = action_session_create(conn, env, actor_id, {
+            'title': f"[{mode}] {file_path}"[:80], 'default_mode': 'explain',
+        })
+        sess_id = sr['id']
+
+    user_msg = f"{mode}: {file_path}"
+    if focus:
+        user_msg += f" (focus: {', '.join(focus)})"
+
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.dev_agent_messages "
+        f"(session_id, speaker, content_text) "
+        f"VALUES ({int(sess_id)}, 'asker', {esc(user_msg)}) RETURNING id"
+    )
+    q_id = cur.fetchone()[0]
+    conn.commit()
+
+    audit(conn, actor_id, 'dev_agent.review_file_requested', 'dev_agent_session',
+          int(sess_id), env, f"mode={mode} path={file_path}")
+
+    tool_calls = []
+    overall_t0 = time.time()
+
+    # 1. file-centric retrieval
+    t_r = time.time()
+    allowed, retrieval_summary = _build_review_citations(conn, env, file_path, max_chunks)
+    tool_calls.append({
+        'name': 'review.retrieve',
+        'input': {'file_path': file_path, 'max_chunks': max_chunks},
+        'output': {'allowed_count': len(allowed),
+                   'breakdown': retrieval_summary.get('breakdown'),
+                   'file_in_snapshot': retrieval_summary.get('reason') != 'file_not_in_snapshot'},
+        'latency_ms': int((time.time() - t_r) * 1000),
+        'status': 'ok' if allowed else 'empty',
+    })
+
+    # 2. prompt build
+    t_p = time.time()
+    prompt = _build_review_prompt(mode, file_path, focus, allowed, max_context_chars)
+    prompt_checksum = hashlib.sha256(prompt.encode('utf-8')).hexdigest()[:32]
+    tool_calls.append({
+        'name': 'review.context',
+        'input': {'mode': mode, 'focus': focus, 'allowed_count': len(allowed)},
+        'output': {'prompt_chars': len(prompt), 'prompt_checksum': prompt_checksum},
+        'latency_ms': int((time.time() - t_p) * 1000),
+        'status': 'ok',
+    })
+
+    # 3. LLM call
+    llm_result: Dict[str, Any] = {'status': 'skipped', 'error_code': 'llm_disabled',
+                                   'text': '', 'latency_ms': 0,
+                                   'input_tokens_approx': 0, 'raw': None}
+    fallback_used = False
+    fallback_reason: Optional[str] = None
+    validated: Dict[str, Any] = {}
+
+    if not llm_enabled:
+        fallback_used = True
+        fallback_reason = 'llm_disabled'
+        tool_calls.append({'name': 'review.llm', 'input': {'model': model_uri},
+                          'output': {'reason': 'llm_disabled'}, 'latency_ms': 0,
+                          'status': 'skipped'})
+    elif not allowed:
+        fallback_used = True
+        fallback_reason = retrieval_summary.get('reason') or 'empty_retrieval'
+        tool_calls.append({'name': 'review.llm', 'input': {'model': model_uri},
+                          'output': {'reason': fallback_reason}, 'latency_ms': 0,
+                          'status': 'skipped'})
+    else:
+        llm_result = _call_yandex_gpt_dev(prompt, user_msg, model_uri)
+        tool_calls.append({
+            'name': 'review.llm',
+            'input': {'model': model_uri, 'temperature': 0.2},
+            'output': {'status': llm_result['status'],
+                      'error_code': llm_result.get('error_code'),
+                      'output_chars': len(llm_result.get('text') or '')},
+            'latency_ms': llm_result['latency_ms'],
+            'status': 'ok' if llm_result['status'] == 'ok' else 'error',
+        })
+        if llm_result['status'] != 'ok':
+            fallback_used = True
+            fallback_reason = llm_result.get('error_code') or 'llm_error'
+        else:
+            t_v = time.time()
+            parsed = _parse_llm_json(llm_result['text'])
+            allowed_ids = [c['citation_id'] for c in allowed]
+            ok, err, norm = _validate_review_response(parsed, allowed_ids)
+            tool_calls.append({
+                'name': 'review.validate',
+                'input': {'allowed_count': len(allowed_ids)},
+                'output': {'ok': ok, 'error': err,
+                          'issues': len(norm.get('issues') or []),
+                          'suggestions': len(norm.get('suggestions') or [])},
+                'latency_ms': int((time.time() - t_v) * 1000),
+                'status': 'ok' if ok else 'error',
+            })
+            if not ok:
+                fallback_used = True
+                fallback_reason = err
+            else:
+                validated = norm
+
+    if fallback_used:
+        validated = _build_review_fallback(allowed, fallback_reason or 'unknown', file_path)
+
+    # citations enrichment
+    by_id = {c['citation_id']: c for c in allowed}
+    used_cit_ids: List[str] = []
+    for it in (validated.get('issues') or []) + (validated.get('suggestions') or []):
+        for cid in it.get('citation_ids') or []:
+            if cid not in used_cit_ids:
+                used_cit_ids.append(cid)
+    citations_out = []
+    for cid in used_cit_ids:
+        c = by_id.get(cid)
+        if c:
+            citations_out.append({
+                'citation_id': cid,
+                'file_path': c['file_path'],
+                'start_line': c.get('start_line'),
+                'end_line': c.get('end_line'),
+                'symbol_name': c.get('symbol_name'),
+                'reason': c.get('reason'),
+            })
+    affected_files = sorted({c['file_path'] for c in citations_out}) or [file_path]
+
+    overall_latency = int((time.time() - overall_t0) * 1000)
+    answer_text = (
+        f"[{mode}] {file_path}\n\n"
+        f"{validated.get('summary', '')}\n\n"
+        f"Issues: {len(validated.get('issues') or [])}, "
+        f"Suggestions: {len(validated.get('suggestions') or [])}"
+    )
+    output_tokens = len(answer_text) // 4
+    input_tokens = llm_result.get('input_tokens_approx') or (len(prompt) // 4)
+
+    cit_json = json.dumps(citations_out, ensure_ascii=False)
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.dev_agent_messages "
+        f"(session_id, speaker, content_text, citations_json) "
+        f"VALUES ({int(sess_id)}, 'assistant', {esc(answer_text)}, "
+        f"{esc(cit_json)}::jsonb) RETURNING id"
+    )
+    a_id = cur.fetchone()[0]
+    conn.commit()
+
+    snap_id = retrieval_summary.get('snapshot_id')
+
+    save_full = debug or full_trace_enabled or fallback_used or (llm_result.get('status') == 'error')
+    full_trace_key: Optional[str] = None
+    run_uuid_v = str(uuid.uuid4())
+    if save_full:
+        full_trace_key = _write_full_trace_s3(env, run_uuid_v, {
+            'mode': mode, 'environment': env, 'prompt': prompt,
+            'prompt_checksum': prompt_checksum,
+            'file_path': file_path, 'focus': focus,
+            'allowed_citations': allowed,
+            'llm_raw': llm_result.get('raw'),
+            'llm_text': llm_result.get('text'),
+            'validated': validated,
+            'fallback_used': fallback_used,
+            'fallback_reason': fallback_reason,
+            'action': 'review.file',
+        })
+
+    if fallback_used:
+        run_status = 'partial'
+    elif llm_result.get('status') == 'ok':
+        run_status = 'ok'
+    else:
+        run_status = 'partial'
+
+    review_mode_db = f"review_{mode}"  # review_review / review_improve
+    cur.execute(
+        f"INSERT INTO {SCHEMA}.dev_agent_runs "
+        f"(run_uuid, session_id, question_msg_id, answer_msg_id, environment, snapshot_id, "
+        f"mode, status, model, prompt_checksum, retrieval_summary, "
+        f"input_tokens, output_tokens, latency_ms, error_code, "
+        f"full_trace_available, full_trace_s3_key, created_by) "
+        f"VALUES ({esc(run_uuid_v)}, {int(sess_id)}, {q_id}, {a_id}, {esc(env)}, "
+        f"{snap_id if snap_id else 'NULL'}, {esc(review_mode_db)}, {esc(run_status)}, "
+        f"{esc(primary_model)}, {esc(prompt_checksum)}, "
+        f"{esc(json.dumps(retrieval_summary))}::jsonb, "
+        f"{input_tokens}, {output_tokens}, {overall_latency}, "
+        f"{esc(fallback_reason)}, "
+        f"{'TRUE' if full_trace_key else 'FALSE'}, "
+        f"{esc(full_trace_key) if full_trace_key else 'NULL'}, "
+        f"{actor_id}) RETURNING id"
+    )
+    run_id = cur.fetchone()[0]
+
+    for tc in tool_calls:
+        cur.execute(
+            f"INSERT INTO {SCHEMA}.dev_agent_tool_calls "
+            f"(run_id, tool_name, tool_input_json, tool_output_summary_json, latency_ms, status) "
+            f"VALUES ({run_id}, {esc(tc['name'])}, "
+            f"{esc(json.dumps(tc['input'], ensure_ascii=False))}::jsonb, "
+            f"{esc(json.dumps(tc['output'], ensure_ascii=False))}::jsonb, "
+            f"{int(tc['latency_ms'])}, {esc(tc['status'])})"
+        )
+    conn.commit()
+
+    return {
+        'success': True,
+        'ok': True,
+        'session_id': int(sess_id),
+        'run_id': run_id,
+        'file_path': file_path,
+        'mode': mode,
+        'focus': focus,
+        'summary': validated.get('summary') or '',
+        'issues': validated.get('issues') or [],
+        'suggestions': validated.get('suggestions') or [],
+        'quick_wins': validated.get('quick_wins') or [],
+        'confidence': validated.get('confidence') or 'low',
+        'citations': citations_out,
+        'affected_files': affected_files,
+        'context_preview': {
+            'files': [file_path],
+            'chunks_count': retrieval_summary.get('breakdown', {}).get('chunks', 0),
+            'allowed_count': len(allowed),
+        },
+        'run_meta': {
+            'model': primary_model,
+            'status': run_status,
+            'latency_ms': overall_latency,
+            'input_tokens': input_tokens,
+            'output_tokens': output_tokens,
+            'fallback_used': fallback_used,
+            'fallback_reason': fallback_reason,
+            'full_trace_available': bool(full_trace_key),
+        },
+    }
+
+
+# ============================================================
 # Handler
 # ============================================================
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
@@ -1409,6 +2017,11 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 if not actor_id:
                     return jr(401, {'error': 'auth_required'})
                 res = action_chat_send_llm(conn, env, actor_id, body)
+                return jr(200 if res.get('success') else 400, res)
+            if action == 'review.file':
+                if not actor_id:
+                    return jr(401, {'error': 'auth_required'})
+                res = action_review_file(conn, env, actor_id, body)
                 return jr(200 if res.get('success') else 400, res)
             if action == 'runs.list':
                 return jr(200, action_runs_list(conn, env))

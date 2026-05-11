@@ -141,6 +141,25 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "Review file without auth",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "review.file", "file_path": "src/App.tsx"},
+      "expectedStatus": 401,
+      "expectedBody": {"error": "auth_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Review file missing path",
+      "method": "POST",
+      "path": "/",
+      "headers": {"X-User-Id": "1"},
+      "body": {"action": "review.file"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "file_path_required"},
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Unknown action",
       "method": "POST",
       "path": "/",

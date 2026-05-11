@@ -350,4 +350,73 @@ export const devAgent = {
 
   indexActivate: (env: DAEnv, snapshotId: number) =>
     call<{ success: boolean }>(INDEXER_URL, 'index.activate_snapshot', env, {}, { snapshot_id: snapshotId }),
+
+  // V1.7 — review.file
+  reviewFile: (env: DAEnv, payload: {
+    file_path: string;
+    mode?: 'review' | 'improve';
+    focus?: DAReviewFocus[];
+    session_id?: number;
+    max_chunks?: number;
+    debug?: boolean;
+  }) => call<DAReviewResult>(ADMIN_URL, 'review.file', env, {}, payload),
 };
+
+export type DAReviewFocus =
+  | 'readability' | 'architecture' | 'performance' | 'state' | 'types'
+  | 'routing' | 'forms' | 'effects' | 'api' | 'testing';
+
+export interface DAReviewIssue {
+  id: string;
+  title: string;
+  severity: 'low' | 'medium' | 'high';
+  description: string;
+  citation_ids: string[];
+}
+
+export interface DAReviewSuggestion {
+  id: string;
+  title: string;
+  priority: 'low' | 'medium' | 'high';
+  impact: 'low' | 'medium' | 'high';
+  description: string;
+  citation_ids: string[];
+}
+
+export interface DAReviewCitation {
+  citation_id: string;
+  file_path: string;
+  start_line?: number | null;
+  end_line?: number | null;
+  symbol_name?: string | null;
+  reason?: string;
+}
+
+export interface DAReviewResult {
+  success: boolean;
+  ok?: boolean;
+  session_id?: number;
+  run_id?: number;
+  file_path: string;
+  mode: 'review' | 'improve';
+  focus: DAReviewFocus[];
+  summary: string;
+  issues: DAReviewIssue[];
+  suggestions: DAReviewSuggestion[];
+  quick_wins: string[];
+  confidence: 'low' | 'medium' | 'high';
+  citations: DAReviewCitation[];
+  affected_files: string[];
+  context_preview?: { files: string[]; chunks_count: number; allowed_count: number };
+  run_meta?: {
+    model: string;
+    status: string;
+    latency_ms: number;
+    input_tokens: number;
+    output_tokens: number;
+    fallback_used: boolean;
+    fallback_reason: string | null;
+    full_trace_available: boolean;
+  };
+  error?: string;
+}

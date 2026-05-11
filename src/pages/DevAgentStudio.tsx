@@ -78,7 +78,7 @@ export default function DevAgentStudio() {
           <TabsContent value="overview"><OverviewTab env={env} toast={toast} /></TabsContent>
           <TabsContent value="search"><SearchTab env={env} /></TabsContent>
           <TabsContent value="chat"><ChatTab env={env} toast={toast} /></TabsContent>
-          <TabsContent value="files"><FilesTab env={env} /></TabsContent>
+          <TabsContent value="files"><FilesTab env={env} toast={toast} /></TabsContent>
           <TabsContent value="routes"><RoutesApiTab env={env} /></TabsContent>
           <TabsContent value="db"><DbTab env={env} /></TabsContent>
           <TabsContent value="runs"><RunsTab env={env} toast={toast} /></TabsContent>
@@ -974,11 +974,13 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
 // ============================================================
 // Files
 // ============================================================
-function FilesTab({ env }: { env: DAEnv }) {
+function FilesTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [items, setItems] = useState<Array<{ id: number; path: string; language?: string; category?: string; line_count?: number; size_bytes: number }>>([]);
   const [filter, setFilter] = useState('');
   const [selected, setSelected] = useState<number | null>(null);
   const [file, setFile] = useState<Awaited<ReturnType<typeof devAgent.fileGet>> | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewMode, setReviewMode] = useState<'review' | 'improve'>('improve');
 
   useEffect(() => {
     devAgent.filesTree(env).then(r => setItems(r.items || []));
@@ -1014,7 +1016,28 @@ function FilesTab({ env }: { env: DAEnv }) {
       </Card>
 
       <Card className="flex flex-col">
-        <CardHeader><CardTitle className="text-sm">{file?.path || 'Выбери файл'}</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm font-mono truncate">{file?.path || 'Выбери файл'}</CardTitle>
+            {file && (
+              <div className="flex gap-1 shrink-0">
+                <select
+                  value={reviewMode}
+                  onChange={e => setReviewMode(e.target.value as 'review' | 'improve')}
+                  className="text-[10px] border rounded px-1 py-0.5 bg-white"
+                >
+                  <option value="improve">Improve</option>
+                  <option value="review">Review</option>
+                </select>
+                <Button size="sm" variant="default" className="h-7 text-[11px]"
+                  onClick={() => setReviewOpen(true)}>
+                  <Icon name="Sparkles" size={12} className="mr-1" />
+                  Что улучшить?
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardHeader>
         <CardContent className="overflow-y-auto flex-1">
           {!file && <Empty text="Выбери файл слева" />}
           {file && (
@@ -1059,7 +1082,252 @@ function FilesTab({ env }: { env: DAEnv }) {
           )}
         </CardContent>
       </Card>
+
+      <ReviewModal
+        env={env}
+        filePath={file?.path || ''}
+        mode={reviewMode}
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        toast={toast}
+      />
     </div>
+  );
+}
+
+// ============================================================
+// Review modal (V1.7)
+// ============================================================
+function ReviewModal({
+  env, filePath, mode, open, onOpenChange, toast,
+}: {
+  env: DAEnv;
+  filePath: string;
+  mode: 'review' | 'improve';
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  toast: ToastFn;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<Awaited<ReturnType<typeof devAgent.reviewFile>> | null>(null);
+  const [focus, setFocus] = useState<Array<'readability' | 'architecture' | 'performance' | 'state' | 'types' | 'routing' | 'forms' | 'effects' | 'api' | 'testing'>>([]);
+  const [traceOpen, setTraceOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open || !filePath) return;
+    setData(null);
+    setLoading(true);
+    devAgent.reviewFile(env, { file_path: filePath, mode, focus })
+      .then(r => {
+        setData(r);
+        if (!r.success && r.error) {
+          toast({ title: 'Ошибка review', description: r.error });
+        }
+      })
+      .catch(e => toast({ title: 'Ошибка', description: String(e) }))
+      .finally(() => setLoading(false));
+  }, [open]);
+
+  const rerun = async () => {
+    setLoading(true);
+    setData(null);
+    try {
+      const r = await devAgent.reviewFile(env, { file_path: filePath, mode, focus });
+      setData(r);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleFocus = (f: typeof focus[number]) => {
+    setFocus(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f]);
+  };
+
+  const focusOptions: Array<{ id: typeof focus[number]; label: string }> = [
+    { id: 'readability', label: 'Читаемость' },
+    { id: 'architecture', label: 'Архитектура' },
+    { id: 'performance', label: 'Performance' },
+    { id: 'state', label: 'State' },
+    { id: 'types', label: 'Типы' },
+    { id: 'routing', label: 'Routing' },
+    { id: 'forms', label: 'Формы' },
+    { id: 'effects', label: 'Effects' },
+    { id: 'api', label: 'API' },
+    { id: 'testing', label: 'Testing' },
+  ];
+
+  const sevColor = (s: string) =>
+    s === 'high' ? 'bg-rose-100 text-rose-700' :
+    s === 'medium' ? 'bg-amber-100 text-amber-700' :
+    'bg-slate-100 text-slate-700';
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-sm flex items-center gap-2">
+              <Icon name="Sparkles" size={16} className="text-violet-600" />
+              {mode === 'improve' ? 'План улучшений' : 'Технический review'}
+              <code className="text-[10px] text-slate-400 font-mono">{filePath}</code>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex flex-wrap gap-1 pb-2 border-b">
+            <span className="text-[10px] text-slate-500 mr-1 self-center">Focus:</span>
+            {focusOptions.map(o => (
+              <button
+                key={o.id}
+                onClick={() => toggleFocus(o.id)}
+                className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                  focus.includes(o.id)
+                    ? 'bg-violet-600 text-white border-violet-600'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+            <Button size="sm" variant="ghost" className="h-6 text-[10px] ml-auto"
+              onClick={rerun} disabled={loading}>
+              {loading
+                ? <Icon name="Loader2" size={11} className="animate-spin" />
+                : <><Icon name="RefreshCw" size={11} className="mr-1" /> Перезапустить</>}
+            </Button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-3 pt-2">
+            {loading && (
+              <div className="flex items-center gap-2 text-xs text-slate-500 py-8 justify-center">
+                <Icon name="Loader2" size={14} className="animate-spin" />
+                Анализируем файл…
+              </div>
+            )}
+
+            {!loading && data && data.success && (
+              <>
+                {data.run_meta?.fallback_used && (
+                  <div className="text-[11px] bg-amber-50 border border-amber-200 text-amber-800 rounded p-2">
+                    <Icon name="AlertTriangle" size={12} className="inline mr-1" />
+                    Fallback: {data.run_meta.fallback_reason}. Открой trace, чтобы понять причину.
+                  </div>
+                )}
+
+                <div className="text-xs">
+                  <div className="font-semibold text-slate-700 mb-1">Summary</div>
+                  <div className="text-slate-600 leading-relaxed bg-slate-50 border rounded p-2">
+                    {data.summary || '—'}
+                  </div>
+                </div>
+
+                {data.issues.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1.5">Проблемы ({data.issues.length})</div>
+                    <div className="space-y-1.5">
+                      {data.issues.map(i => (
+                        <div key={i.id} className="border rounded p-2 bg-white">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded ${sevColor(i.severity)}`}>{i.severity}</span>
+                            <div className="text-xs font-semibold flex-1">{i.title}</div>
+                            <div className="flex gap-0.5">
+                              {i.citation_ids.map(c => (
+                                <span key={c} className="text-[9px] font-mono px-1 py-0.5 bg-violet-50 text-violet-700 border border-violet-200 rounded">{c}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-[11px] text-slate-600 leading-relaxed">{i.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {data.suggestions.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1.5">Рекомендации ({data.suggestions.length})</div>
+                    <div className="space-y-1.5">
+                      {data.suggestions.map(s => (
+                        <div key={s.id} className="border-l-2 border-violet-400 bg-violet-50/40 rounded-r p-2">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded ${sevColor(s.priority)}`}>P:{s.priority}</span>
+                            <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded ${sevColor(s.impact)}`}>I:{s.impact}</span>
+                            <div className="text-xs font-semibold flex-1">{s.title}</div>
+                            <div className="flex gap-0.5">
+                              {s.citation_ids.map(c => (
+                                <span key={c} className="text-[9px] font-mono px-1 py-0.5 bg-violet-100 text-violet-800 border border-violet-300 rounded">{c}</span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="text-[11px] text-slate-700 leading-relaxed">{s.description}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {data.quick_wins.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1.5">Quick wins</div>
+                    <ul className="text-[11px] text-slate-700 space-y-0.5 pl-4 list-disc">
+                      {data.quick_wins.map((q, i) => <li key={i}>{q}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                {data.citations.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1.5">Citations ({data.citations.length})</div>
+                    <div className="space-y-1">
+                      {data.citations.map(c => (
+                        <div key={c.citation_id} className="text-[10px] font-mono flex items-center gap-2">
+                          <span className="px-1 py-0.5 bg-violet-50 text-violet-700 border border-violet-200 rounded">{c.citation_id}</span>
+                          <span className="text-slate-600">{c.file_path}</span>
+                          {c.start_line && (
+                            <span className="text-slate-400">L{c.start_line}{c.end_line && c.end_line !== c.start_line ? `–${c.end_line}` : ''}</span>
+                          )}
+                          {c.symbol_name && <span className="text-emerald-600">· {c.symbol_name}</span>}
+                          <span className="text-slate-400 ml-auto truncate">{c.reason}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {data.run_meta && (
+                  <div className="flex flex-wrap gap-2 text-[10px] text-slate-500 pt-2 border-t">
+                    <Badge variant="outline" className="text-[9px]">model: {data.run_meta.model}</Badge>
+                    <Badge variant="outline" className="text-[9px]">status: {data.run_meta.status}</Badge>
+                    <Badge variant="outline" className="text-[9px]">latency: {data.run_meta.latency_ms} мс</Badge>
+                    <Badge variant="outline" className="text-[9px]">tokens: {data.run_meta.input_tokens}/{data.run_meta.output_tokens}</Badge>
+                    <Badge variant="outline" className="text-[9px]">confidence: {data.confidence}</Badge>
+                    {data.run_meta.full_trace_available && (
+                      <Button size="sm" variant="ghost" className="h-5 text-[10px] ml-auto"
+                        onClick={() => setTraceOpen(true)}>
+                        <Icon name="FileSearch" size={10} className="mr-1" /> Открыть trace
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {!loading && data && !data.success && (
+              <div className="text-xs bg-rose-50 border border-rose-200 text-rose-800 rounded p-3">
+                Ошибка: {data.error || 'неизвестная ошибка'}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <TraceModal
+        env={env}
+        runId={data?.run_id || null}
+        open={traceOpen}
+        onOpenChange={setTraceOpen}
+        toast={toast}
+      />
+    </>
   );
 }
 
@@ -1400,6 +1668,10 @@ function HelpTab() {
           <HelpItem icon="FolderTree" title="Файлы">
             Дерево всех проиндексированных файлов с метаданными: язык, категория, размер, количество строк.
             Клик по файлу — превью содержимого + извлечённые символы.
+            В правой панели кнопка <b>«Что улучшить?»</b> (V1.7) — структурированный AI-ревью
+            с issues, suggestions, quick wins и цитатами. Режимы: <b>review</b> (проблемы)
+            и <b>improve</b> (план улучшений). Можно выбрать focus: readability, architecture,
+            performance, state, types, routing, forms, effects, api, testing.
           </HelpItem>
           <HelpItem icon="Route" title="Роуты/API">
             Все маршруты фронта (React Router) и backend-эндпоинты (Cloud Functions). Полезно, когда хочешь
