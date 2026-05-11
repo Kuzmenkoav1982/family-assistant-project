@@ -1237,14 +1237,16 @@ def action_runs_list(conn, env: str) -> Dict[str, Any]:
     cur = conn.cursor()
     cur.execute(
         f"SELECT r.id, r.run_uuid, r.session_id, r.mode, r.status, r.model, "
-        f"r.input_tokens, r.output_tokens, r.latency_ms, r.created_at, s.title "
+        f"r.input_tokens, r.output_tokens, r.latency_ms, r.created_at, s.title, "
+        f"r.full_trace_available, r.error_code "
         f"FROM {SCHEMA}.dev_agent_runs r "
         f"LEFT JOIN {SCHEMA}.dev_agent_sessions s ON s.id = r.session_id "
         f"WHERE r.environment = {esc(env)} "
         f"ORDER BY r.created_at DESC LIMIT 50"
     )
     cols = ['id', 'run_uuid', 'session_id', 'mode', 'status', 'model',
-            'input_tokens', 'output_tokens', 'latency_ms', 'created_at', 'session_title']
+            'input_tokens', 'output_tokens', 'latency_ms', 'created_at', 'session_title',
+            'full_trace_available', 'error_code']
     items = [dict(zip(cols, r)) for r in cur.fetchall()]
     return {'items': items}
 

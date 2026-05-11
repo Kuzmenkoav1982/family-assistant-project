@@ -236,6 +236,8 @@ export interface DARun {
   latency_ms?: number;
   created_at: string;
   session_title?: string;
+  full_trace_available?: boolean;
+  error_code?: string | null;
 }
 
 export const devAgent = {

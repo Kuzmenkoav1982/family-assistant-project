@@ -80,7 +80,7 @@ export default function DevAgentStudio() {
           <TabsContent value="files"><FilesTab env={env} /></TabsContent>
           <TabsContent value="routes"><RoutesApiTab env={env} /></TabsContent>
           <TabsContent value="db"><DbTab env={env} /></TabsContent>
-          <TabsContent value="runs"><RunsTab env={env} /></TabsContent>
+          <TabsContent value="runs"><RunsTab env={env} toast={toast} /></TabsContent>
         </Tabs>
       </div>
     </div>
@@ -330,6 +330,130 @@ function SearchHit({ item }: { item: DASearchItem }) {
 }
 
 // ============================================================
+// Trace Modal (V1.5 — reusable)
+// ============================================================
+function TraceModal({
+  env, runId, open, onOpenChange, toast,
+}: {
+  env: DAEnv;
+  runId: number | null;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  toast: ToastFn;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<Awaited<ReturnType<typeof devAgent.runTrace>> | null>(null);
+  const [tab, setTab] = useState<'prompt' | 'raw' | 'validated' | 'citations'>('prompt');
+
+  useEffect(() => {
+    if (!open || !runId) return;
+    setLoading(true);
+    setData(null);
+    setTab('prompt');
+    devAgent.runTrace(env, runId)
+      .then(r => {
+        setData(r);
+        if (r.error) toast({ title: 'Trace недоступен', description: r.reason || r.error });
+      })
+      .catch(e => toast({ title: 'Ошибка чтения trace', description: String(e) }))
+      .finally(() => setLoading(false));
+  }, [open, runId, env, toast]);
+
+  const copyCurrent = () => {
+    if (!data?.trace) return;
+    const content =
+      tab === 'prompt' ? data.trace.prompt :
+      tab === 'raw' ? (data.trace.llm_text || JSON.stringify(data.trace.llm_raw, null, 2)) :
+      tab === 'validated' ? JSON.stringify(data.trace.validated, null, 2) :
+      JSON.stringify(data.trace.allowed_citations, null, 2);
+    navigator.clipboard.writeText(content || '');
+    toast({ title: 'Скопировано в буфер' });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="text-sm flex items-center gap-2">
+            <Icon name="FileSearch" size={16} />
+            Полный trace YandexGPT
+            {data?.run_uuid && (
+              <code className="text-[10px] text-slate-400 font-mono">{data.run_uuid.slice(0, 8)}</code>
+            )}
+          </DialogTitle>
+        </DialogHeader>
+
+        {loading && (
+          <div className="flex items-center gap-2 text-xs text-slate-500 py-8 justify-center">
+            <Icon name="Loader2" size={14} className="animate-spin" />
+            Читаем trace из S3…
+          </div>
+        )}
+
+        {!loading && data?.error && (
+          <div className="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded p-3">
+            <div className="font-semibold mb-1">{data.error}</div>
+            <div className="text-amber-600">{data.reason}</div>
+          </div>
+        )}
+
+        {!loading && data?.trace && (
+          <>
+            <div className="flex flex-wrap gap-2 text-[10px] text-slate-500 pb-1">
+              <Badge variant="outline" className="text-[9px]">mode: {data.trace.mode}</Badge>
+              <Badge variant="outline" className="text-[9px]">env: {data.environment}</Badge>
+              <Badge variant="outline" className="text-[9px]">model: {data.model}</Badge>
+              <Badge variant="outline" className="text-[9px]">status: {data.status}</Badge>
+              {data.trace.fallback_used && (
+                <Badge className="bg-amber-100 text-amber-800 text-[9px]">
+                  fallback: {data.trace.fallback_reason}
+                </Badge>
+              )}
+              <span className="font-mono">checksum: {data.trace.prompt_checksum}</span>
+            </div>
+
+            <div className="flex gap-1 border-b">
+              {([
+                { id: 'prompt', label: 'Prompt', icon: 'FileText' },
+                { id: 'raw', label: 'Raw response', icon: 'Code2' },
+                { id: 'validated', label: 'Validated', icon: 'CheckCircle2' },
+                { id: 'citations', label: 'Allowed citations', icon: 'Quote' },
+              ] as const).map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`flex items-center gap-1 px-3 py-1.5 text-xs border-b-2 transition-colors ${
+                    tab === t.id ? 'border-violet-600 text-violet-700 font-semibold' : 'border-transparent text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon name={t.icon} size={12} />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto bg-slate-950 text-slate-100 rounded p-3 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-words">
+              {tab === 'prompt' && (data.trace.prompt || '(пусто)')}
+              {tab === 'raw' && (data.trace.llm_text || JSON.stringify(data.trace.llm_raw, null, 2) || '(нет ответа от модели)')}
+              {tab === 'validated' && JSON.stringify(data.trace.validated, null, 2)}
+              {tab === 'citations' && JSON.stringify(data.trace.allowed_citations, null, 2)}
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
+              <code className="truncate flex-1">s3://files/{data.s3_key}</code>
+              <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={copyCurrent}>
+                <Icon name="Copy" size={11} className="mr-1" /> Копировать
+              </Button>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+// ============================================================
 // Chat (V1.5 — Search + LLM)
 // ============================================================
 type ChatBackend = 'search' | 'llm';
@@ -346,26 +470,11 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [lastLLM, setLastLLM] = useState<Awaited<ReturnType<typeof devAgent.chatSendLLM>> | null>(null);
   const [lastSearchCitations, setLastSearchCitations] = useState<DASearchItem[] | null>(null);
   const [traceOpen, setTraceOpen] = useState(false);
-  const [traceLoading, setTraceLoading] = useState(false);
-  const [traceData, setTraceData] = useState<Awaited<ReturnType<typeof devAgent.runTrace>> | null>(null);
-  const [traceTab, setTraceTab] = useState<'prompt' | 'raw' | 'validated' | 'citations'>('prompt');
+  const [traceRunId, setTraceRunId] = useState<number | null>(null);
 
-  const openTrace = async (runId: number) => {
+  const openTrace = (runId: number) => {
+    setTraceRunId(runId);
     setTraceOpen(true);
-    setTraceLoading(true);
-    setTraceData(null);
-    setTraceTab('prompt');
-    try {
-      const r = await devAgent.runTrace(env, runId);
-      setTraceData(r);
-      if (r.error) {
-        toast({ title: 'Trace недоступен', description: r.reason || r.error });
-      }
-    } catch (e) {
-      toast({ title: 'Ошибка чтения trace', description: String(e) });
-    } finally {
-      setTraceLoading(false);
-    }
   };
 
   const loadSessions = async () => {
@@ -639,104 +748,7 @@ function ChatTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
         </CardContent>
       </Card>
 
-      {/* Full trace modal */}
-      <Dialog open={traceOpen} onOpenChange={setTraceOpen}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="text-sm flex items-center gap-2">
-              <Icon name="FileSearch" size={16} />
-              Полный trace YandexGPT
-              {traceData?.run_uuid && (
-                <code className="text-[10px] text-slate-400 font-mono">{traceData.run_uuid.slice(0, 8)}</code>
-              )}
-            </DialogTitle>
-          </DialogHeader>
-
-          {traceLoading && (
-            <div className="flex items-center gap-2 text-xs text-slate-500 py-8 justify-center">
-              <Icon name="Loader2" size={14} className="animate-spin" />
-              Читаем trace из S3…
-            </div>
-          )}
-
-          {!traceLoading && traceData?.error && (
-            <div className="text-xs bg-amber-50 border border-amber-200 text-amber-800 rounded p-3">
-              <div className="font-semibold mb-1">{traceData.error}</div>
-              <div className="text-amber-600">{traceData.reason}</div>
-            </div>
-          )}
-
-          {!traceLoading && traceData?.trace && (
-            <>
-              {/* Meta strip */}
-              <div className="flex flex-wrap gap-2 text-[10px] text-slate-500 pb-1">
-                <Badge variant="outline" className="text-[9px]">mode: {traceData.trace.mode}</Badge>
-                <Badge variant="outline" className="text-[9px]">env: {traceData.environment}</Badge>
-                <Badge variant="outline" className="text-[9px]">model: {traceData.model}</Badge>
-                <Badge variant="outline" className="text-[9px]">status: {traceData.status}</Badge>
-                {traceData.trace.fallback_used && (
-                  <Badge className="bg-amber-100 text-amber-800 text-[9px]">
-                    fallback: {traceData.trace.fallback_reason}
-                  </Badge>
-                )}
-                <span className="font-mono">checksum: {traceData.trace.prompt_checksum}</span>
-              </div>
-
-              {/* Tabs */}
-              <div className="flex gap-1 border-b">
-                {([
-                  { id: 'prompt', label: 'Prompt', icon: 'FileText' },
-                  { id: 'raw', label: 'Raw response', icon: 'Code2' },
-                  { id: 'validated', label: 'Validated', icon: 'CheckCircle2' },
-                  { id: 'citations', label: 'Allowed citations', icon: 'Quote' },
-                ] as const).map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => setTraceTab(t.id)}
-                    className={`flex items-center gap-1 px-3 py-1.5 text-xs border-b-2 transition-colors ${
-                      traceTab === t.id ? 'border-violet-600 text-violet-700 font-semibold' : 'border-transparent text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Icon name={t.icon} size={12} />
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto bg-slate-950 text-slate-100 rounded p-3 font-mono text-[10px] leading-relaxed whitespace-pre-wrap break-words">
-                {traceTab === 'prompt' && (traceData.trace.prompt || '(пусто)')}
-                {traceTab === 'raw' && (
-                  traceData.trace.llm_text
-                    ? traceData.trace.llm_text
-                    : JSON.stringify(traceData.trace.llm_raw, null, 2) || '(нет ответа от модели)'
-                )}
-                {traceTab === 'validated' && JSON.stringify(traceData.trace.validated, null, 2)}
-                {traceTab === 'citations' && JSON.stringify(traceData.trace.allowed_citations, null, 2)}
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-                <code className="truncate flex-1">s3://files/{traceData.s3_key}</code>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 text-[10px]"
-                  onClick={() => {
-                    const content = traceTab === 'prompt' ? traceData.trace!.prompt
-                      : traceTab === 'raw' ? (traceData.trace!.llm_text || JSON.stringify(traceData.trace!.llm_raw, null, 2))
-                      : traceTab === 'validated' ? JSON.stringify(traceData.trace!.validated, null, 2)
-                      : JSON.stringify(traceData.trace!.allowed_citations, null, 2);
-                    navigator.clipboard.writeText(content || '');
-                    toast({ title: 'Скопировано в буфер' });
-                  }}
-                >
-                  <Icon name="Copy" size={11} className="mr-1" /> Копировать
-                </Button>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <TraceModal env={env} runId={traceRunId} open={traceOpen} onOpenChange={setTraceOpen} toast={toast} />
     </div>
   );
 }
@@ -979,23 +991,36 @@ function DbTab({ env }: { env: DAEnv }) {
 // ============================================================
 // Runs
 // ============================================================
-function RunsTab({ env }: { env: DAEnv }) {
+function RunsTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [runs, setRuns] = useState<DARun[]>([]);
   const [selected, setSelected] = useState<Awaited<ReturnType<typeof devAgent.runGet>> | null>(null);
+  const [traceOpen, setTraceOpen] = useState(false);
+  const [traceRunId, setTraceRunId] = useState<number | null>(null);
 
-  useEffect(() => {
-    devAgent.runsList(env).then(r => setRuns(r.items || []));
-  }, [env]);
+  const reload = () => devAgent.runsList(env).then(r => setRuns(r.items || []));
+  useEffect(() => { reload();   }, [env]);
 
   const open = async (id: number) => {
     const r = await devAgent.runGet(env, id);
     setSelected(r);
   };
 
+  const openTrace = (id: number) => {
+    setTraceRunId(id);
+    setTraceOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader><CardTitle className="text-sm">Запуски ({runs.length})</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center justify-between">
+            Запуски ({runs.length})
+            <Button size="sm" variant="ghost" onClick={reload} className="h-7">
+              <Icon name="RefreshCw" size={12} className="mr-1" /> Обновить
+            </Button>
+          </CardTitle>
+        </CardHeader>
         <CardContent>
           {runs.length === 0 ? <Empty text="Запусков пока нет" /> : (
             <Table>
@@ -1004,18 +1029,37 @@ function RunsTab({ env }: { env: DAEnv }) {
                   <TableHead>Когда</TableHead>
                   <TableHead>Сессия</TableHead>
                   <TableHead className="w-20">Mode</TableHead>
+                  <TableHead className="w-20">Модель</TableHead>
                   <TableHead className="w-20">Статус</TableHead>
                   <TableHead className="w-20">Latency</TableHead>
+                  <TableHead className="w-24">Tokens</TableHead>
+                  <TableHead className="w-20 text-right">Trace</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {runs.map(r => (
-                  <TableRow key={r.id} className="cursor-pointer hover:bg-slate-50" onClick={() => open(r.id)}>
-                    <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
-                    <TableCell className="text-xs">{r.session_title || '—'}</TableCell>
-                    <TableCell className="text-xs">{r.mode}</TableCell>
-                    <TableCell><Badge variant={r.status === 'ok' ? 'default' : 'destructive'} className="text-[10px]">{r.status}</Badge></TableCell>
-                    <TableCell className="text-xs">{r.latency_ms || '—'} мс</TableCell>
+                  <TableRow key={r.id} className="hover:bg-slate-50">
+                    <TableCell className="text-xs cursor-pointer" onClick={() => open(r.id)}>{formatDate(r.created_at)}</TableCell>
+                    <TableCell className="text-xs cursor-pointer truncate max-w-[200px]" onClick={() => open(r.id)}>{r.session_title || '—'}</TableCell>
+                    <TableCell className="text-xs cursor-pointer" onClick={() => open(r.id)}>{r.mode}</TableCell>
+                    <TableCell className="text-xs font-mono cursor-pointer" onClick={() => open(r.id)}>{r.model}</TableCell>
+                    <TableCell className="cursor-pointer" onClick={() => open(r.id)}>
+                      <Badge variant={r.status === 'ok' ? 'default' : r.status === 'partial' ? 'secondary' : 'destructive'} className="text-[10px]">{r.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs cursor-pointer" onClick={() => open(r.id)}>{r.latency_ms || '—'} мс</TableCell>
+                    <TableCell className="text-xs cursor-pointer" onClick={() => open(r.id)}>{r.input_tokens || 0}/{r.output_tokens || 0}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant={r.full_trace_available ? 'outline' : 'ghost'}
+                        disabled={!r.full_trace_available}
+                        className="h-6 text-[10px] px-2"
+                        onClick={() => openTrace(r.id)}
+                        title={r.full_trace_available ? 'Открыть полный trace' : 'Trace не сохранён для этого запуска'}
+                      >
+                        <Icon name="FileSearch" size={11} />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -1023,6 +1067,8 @@ function RunsTab({ env }: { env: DAEnv }) {
           )}
         </CardContent>
       </Card>
+
+      <TraceModal env={env} runId={traceRunId} open={traceOpen} onOpenChange={setTraceOpen} toast={toast} />
 
       {selected && (
         <Card>
