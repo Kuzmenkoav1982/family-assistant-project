@@ -10,16 +10,43 @@ const INDEXER_URL = (func2url as Record<string, string>)['dev-agent-indexer'];
 export type DAEnv = 'stage' | 'prod';
 export type DAMode = 'explain' | 'locate' | 'plan' | 'patch';
 
+/**
+ * Resolve current user id for X-User-Id header.
+ * Tries (in order): explicit 'userId' / 'familyMemberId' keys → user_data/userData JSON
+ * (member_id → memberId → id). Returns '' if nothing usable found.
+ */
+function resolveUserId(): string {
+  const direct = localStorage.getItem('userId') || localStorage.getItem('familyMemberId');
+  if (direct) return String(direct);
+  for (const key of ['user_data', 'userData', 'user']) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
+    try {
+      const u = JSON.parse(raw);
+      const id = u?.member_id ?? u?.memberId ?? u?.id;
+      if (id !== undefined && id !== null && id !== '') return String(id);
+    } catch {
+      /* ignore parse errors, try next key */
+    }
+  }
+  return '';
+}
+
+function resolveAuthToken(): string {
+  return localStorage.getItem('auth_token') || localStorage.getItem('authToken') || '';
+}
+
 async function call<T>(url: string, action: string, env: DAEnv,
                        query: Record<string, string> = {}, body?: Record<string, unknown>): Promise<T> {
-  const userId = localStorage.getItem('userId') || '';
+  const userId = resolveUserId();
+  const authToken = resolveAuthToken();
   const qs = new URLSearchParams({ action, env, ...query }).toString();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userId) headers['X-User-Id'] = userId;
+  if (authToken) headers['X-Authorization'] = `Bearer ${authToken}`;
   const init: RequestInit = {
     method: body ? 'POST' : 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(userId ? { 'X-User-Id': userId } : {}),
-    },
+    headers,
   };
   if (body) init.body = JSON.stringify({ action, env, ...body });
   const resp = await fetch(`${url}?${qs}`, init);
