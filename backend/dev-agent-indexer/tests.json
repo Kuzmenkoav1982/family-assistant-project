@@ -1,7 +1,7 @@
 {
   "tests": [
     {
-      "name": "OPTIONS",
+      "name": "OPTIONS CORS",
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
@@ -15,16 +15,59 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Seed status",
+      "name": "Index status returns shape",
+      "method": "GET",
+      "path": "/?action=index.status",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Legacy seed.status alias",
       "method": "GET",
       "path": "/?action=seed.status",
       "expectedStatus": 200
     },
     {
-      "name": "Snapshot activate missing id",
+      "name": "from_github requires owner/repo",
       "method": "POST",
       "path": "/",
-      "body": {"action": "snapshots.activate"},
+      "body": {"action": "index.from_github"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "owner_repo_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "from_snapshot requires files",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "index.from_snapshot"},
+      "expectedStatus": 400,
+      "expectedBody": {"error": "files_required"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "from_snapshot ingest one file",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "index.from_snapshot",
+        "env": "stage",
+        "commit_sha": "test-v16",
+        "files": [
+          {
+            "path": "src/components/Hello.tsx",
+            "content": "import React from 'react';\nexport function Hello() {\n  return <div>Hi</div>;\n}\nexport const useGreeter = () => 'hi';\n"
+          }
+        ]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Activate snapshot missing id",
+      "method": "POST",
+      "path": "/",
+      "body": {"action": "index.activate_snapshot"},
       "expectedStatus": 400,
       "expectedBody": {"error": "snapshot_id_required"},
       "bodyMatcher": "partial"
@@ -33,7 +76,7 @@
       "name": "Unknown action",
       "method": "POST",
       "path": "/",
-      "body": {"action": "foo"},
+      "body": {"action": "foo.bar"},
       "expectedStatus": 400,
       "expectedBody": {"error": "unknown_action"},
       "bodyMatcher": "partial"

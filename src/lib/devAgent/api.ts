@@ -303,4 +303,51 @@ export const devAgent = {
   seedStatus: (env: DAEnv) => call<{ snapshot: DASnapshot | null }>(INDEXER_URL, 'seed.status', env),
   snapshotActivate: (env: DAEnv, snapshotId: number) =>
     call<{ success: boolean }>(INDEXER_URL, 'snapshots.activate', env, {}, { snapshot_id: snapshotId }),
+
+  // V1.6 — real ingestion
+  indexFromGithub: (env: DAEnv, payload: {
+    owner: string;
+    repo: string;
+    ref?: string;
+    whitelist?: string[];
+    extra_globs?: string[];
+    max_files?: number;
+  }) => call<{
+    success: boolean;
+    snapshot_id?: number;
+    commit_sha?: string;
+    commit_message?: string;
+    counts?: { files: number; chunks: number; symbols: number; routes: number; endpoints: number };
+    fetch_errors?: Array<{ path: string; error: unknown }>;
+    elapsed_sec?: number;
+    error?: string;
+    detail?: unknown;
+    message?: string;
+  }>(INDEXER_URL, 'index.from_github', env, {}, payload),
+
+  indexFromSnapshot: (env: DAEnv, payload: {
+    commit_sha?: string;
+    commit_message?: string;
+    branch_name?: string;
+    files: Array<{ path: string; content: string }>;
+  }) => call<{
+    success: boolean;
+    snapshot_id?: number;
+    commit_sha?: string;
+    counts?: { files: number; chunks: number; symbols: number; routes: number; endpoints: number };
+    error?: string;
+    message?: string;
+  }>(INDEXER_URL, 'index.from_snapshot', env, {}, payload),
+
+  indexStatus: (env: DAEnv) => call<{
+    snapshot: (DASnapshot & {
+      source_kind?: string;
+      source_repo?: string;
+      source_ref?: string;
+      err_text?: string | null;
+    }) | null
+  }>(INDEXER_URL, 'index.status', env),
+
+  indexActivate: (env: DAEnv, snapshotId: number) =>
+    call<{ success: boolean }>(INDEXER_URL, 'index.activate_snapshot', env, {}, { snapshot_id: snapshotId }),
 };

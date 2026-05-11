@@ -94,33 +94,32 @@ export default function DevAgentStudio() {
 // ============================================================
 function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [data, setData] = useState<DAOverview | null>(null);
-  const [reindexing, setReindexing] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+  const [ghOpen, setGhOpen] = useState(false);
+  const [snapOpen, setSnapOpen] = useState(false);
 
   const load = () => devAgent.overview(env).then(setData);
   useEffect(() => { load();   }, [env]);
 
-  const reindex = async () => {
-    setReindexing(true);
+  const seedFallback = async () => {
+    setSeeding(true);
     try {
       const res = await devAgent.seedCreate(env, {
         commit_sha: 'seed-' + Date.now(),
-        commit_message: 'Manual reindex from admin UI',
+        commit_message: 'Manual reindex from admin UI (legacy seed)',
         files: SEED_FILES,
         routes: SEED_ROUTES,
         endpoints: buildSeedEndpoints(),
         symbols: SEED_SYMBOLS,
       });
       if (res.success) {
-        toast({
-          title: 'Индекс обновлён',
-          description: `Файлов: ${res.files_count}, символов: ${res.symbols_count}, роутов: ${res.routes_count}, API: ${res.endpoints_count}`,
-        });
+        toast({ title: 'Seed-индекс обновлён (метаданные без содержимого)' });
         load();
       } else {
-        toast({ title: 'Не удалось переиндексировать', description: 'Проверь логи функции' });
+        toast({ title: 'Не удалось переиндексировать' });
       }
     } finally {
-      setReindexing(false);
+      setSeeding(false);
     }
   };
 
@@ -132,13 +131,21 @@ function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle className="text-sm">Активный snapshot</CardTitle>
-            <Button size="sm" onClick={reindex} disabled={reindexing}>
-              {reindexing
-                ? <><Icon name="Loader2" size={14} className="mr-1 animate-spin" /> Индексация…</>
-                : <><Icon name="RefreshCw" size={14} className="mr-1" /> Переиндексировать</>}
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => setGhOpen(true)}>
+                <Icon name="Github" size={14} className="mr-1" /> Из GitHub
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setSnapOpen(true)}>
+                <Icon name="Upload" size={14} className="mr-1" /> Загрузить snapshot
+              </Button>
+              <Button size="sm" variant="ghost" onClick={seedFallback} disabled={seeding} title="Только метаданные, без содержимого">
+                {seeding
+                  ? <Icon name="Loader2" size={14} className="animate-spin" />
+                  : <Icon name="Layers" size={14} />}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -208,16 +215,225 @@ function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
       <Card>
         <CardHeader><CardTitle className="text-sm">Что умеет агент сейчас</CardTitle></CardHeader>
         <CardContent className="text-sm space-y-1.5 text-slate-600">
-          <div>· Хранит индекс файлов, символов, роутов, API и схемы БД</div>
-          <div>· Ищет grounded-цитаты по индексу через вкладку «Поиск»</div>
-          <div>· Чат без LLM — пока работает как технический поисковик с цитатами</div>
-          <div>· Логирует все запуски в audit и tool_calls</div>
+          <div>· V1.6: реальная индексация TSX/PY-файлов из GitHub или ручного snapshot</div>
+          <div>· Symbol-aware chunking + line-window fallback, sha256 для дедупа</div>
+          <div>· Извлекает symbols, imports, routes, API-эндпоинты, схему БД</div>
+          <div>· Чат с YandexGPT + grounded citations, полный trace</div>
           <div className="text-xs text-slate-400 pt-2">
-            Patch generation и PR-интеграция — в Stage 2.
+            Patch generation, PR-интеграция, review.file — следующие спринты.
           </div>
         </CardContent>
       </Card>
+
+      <GithubIndexDialog open={ghOpen} onOpenChange={setGhOpen} env={env} toast={toast} onDone={load} />
+      <SnapshotUploadDialog open={snapOpen} onOpenChange={setSnapOpen} env={env} toast={toast} onDone={load} />
     </div>
+  );
+}
+
+// ============================================================
+// GitHub ingestion dialog (V1.6)
+// ============================================================
+function GithubIndexDialog({
+  open, onOpenChange, env, toast, onDone,
+}: { open: boolean; onOpenChange: (v: boolean) => void; env: DAEnv; toast: ToastFn; onDone: () => void }) {
+  const [owner, setOwner] = useState('');
+  const [repo, setRepo] = useState('');
+  const [ref, setRef] = useState('main');
+  const [maxFiles, setMaxFiles] = useState(40);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof devAgent.indexFromGithub>> | null>(null);
+
+  const run = async () => {
+    if (!owner.trim() || !repo.trim()) {
+      toast({ title: 'Заполни owner и repo' });
+      return;
+    }
+    setLoading(true);
+    setResult(null);
+    try {
+      const r = await devAgent.indexFromGithub(env, {
+        owner: owner.trim(), repo: repo.trim(), ref: ref.trim() || 'main', max_files: maxFiles,
+      });
+      setResult(r);
+      if (r.success) {
+        toast({
+          title: 'Индекс собран из GitHub',
+          description: `Файлов: ${r.counts?.files}, чанков: ${r.counts?.chunks}, символов: ${r.counts?.symbols}`,
+        });
+        onDone();
+      } else {
+        toast({ title: 'Ошибка индексации', description: r.error || r.message });
+      }
+    } catch (e) {
+      toast({ title: 'Ошибка', description: String(e) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-sm flex items-center gap-2">
+            <Icon name="Github" size={16} /> Индексация из GitHub
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-xs">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-slate-500">Owner</label>
+              <Input value={owner} onChange={e => setOwner(e.target.value)} placeholder="poehali-dev" />
+            </div>
+            <div>
+              <label className="text-slate-500">Repo</label>
+              <Input value={repo} onChange={e => setRepo(e.target.value)} placeholder="family-assistant-pro" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-slate-500">Ref (branch / tag / sha)</label>
+              <Input value={ref} onChange={e => setRef(e.target.value)} placeholder="main" />
+            </div>
+            <div>
+              <label className="text-slate-500">Max files</label>
+              <Input type="number" value={maxFiles} onChange={e => setMaxFiles(Number(e.target.value) || 40)} />
+            </div>
+          </div>
+          <div className="text-[11px] text-slate-500 bg-slate-50 border rounded p-2">
+            Индексируем priority-whitelist V1.6 (App, Sidebar, Studio, Admin*, Pricing, ProfileNew,
+            FamilyMembersGrid, TasksWidget и т.д.) + func2url.json.
+            Нужен секрет <code>GITHUB_TOKEN</code> с правом чтения репозитория.
+          </div>
+
+          {result && (
+            <div className={`text-[11px] rounded p-2 border ${result.success ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+              {result.success ? (
+                <>
+                  <div className="font-semibold text-emerald-800">Готово за {result.elapsed_sec}с</div>
+                  <div className="text-emerald-700">
+                    commit: <code>{result.commit_sha?.slice(0, 8)}</code> · {result.commit_message}
+                  </div>
+                  <div className="text-emerald-700">
+                    files: {result.counts?.files} · chunks: {result.counts?.chunks} ·
+                    symbols: {result.counts?.symbols} · routes: {result.counts?.routes} ·
+                    api: {result.counts?.endpoints}
+                  </div>
+                  {(result.fetch_errors?.length || 0) > 0 && (
+                    <div className="text-amber-700 mt-1">
+                      Не удалось загрузить: {result.fetch_errors!.length} файл(ов)
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="font-semibold text-rose-800">{result.error}</div>
+                  <pre className="text-[10px] mt-1 whitespace-pre-wrap text-rose-700">
+                    {JSON.stringify(result.detail || result.message, null, 2)}
+                  </pre>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Закрыть</Button>
+            <Button size="sm" onClick={run} disabled={loading}>
+              {loading
+                ? <><Icon name="Loader2" size={12} className="mr-1 animate-spin" /> Индексируем…</>
+                : <><Icon name="Download" size={12} className="mr-1" /> Запустить</>}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================
+// Manual snapshot upload (V1.6)
+// ============================================================
+function SnapshotUploadDialog({
+  open, onOpenChange, env, toast, onDone,
+}: { open: boolean; onOpenChange: (v: boolean) => void; env: DAEnv; toast: ToastFn; onDone: () => void }) {
+  const [json, setJson] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const run = async () => {
+    let parsed: { files?: Array<{ path: string; content: string }>; commit_sha?: string; commit_message?: string; branch_name?: string };
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      toast({ title: 'Невалидный JSON' });
+      return;
+    }
+    if (!parsed.files || !Array.isArray(parsed.files) || parsed.files.length === 0) {
+      toast({ title: 'В JSON должно быть поле files: [...]' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const r = await devAgent.indexFromSnapshot(env, {
+        files: parsed.files,
+        commit_sha: parsed.commit_sha,
+        commit_message: parsed.commit_message,
+        branch_name: parsed.branch_name,
+      });
+      if (r.success) {
+        toast({
+          title: 'Snapshot загружен',
+          description: `Файлов: ${r.counts?.files}, чанков: ${r.counts?.chunks}, символов: ${r.counts?.symbols}`,
+        });
+        onDone();
+        onOpenChange(false);
+        setJson('');
+      } else {
+        toast({ title: 'Ошибка', description: r.error || r.message });
+      }
+    } catch (e) {
+      toast({ title: 'Ошибка', description: String(e) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-sm flex items-center gap-2">
+            <Icon name="Upload" size={16} /> Ручной snapshot
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-xs">
+          <div className="text-slate-600">
+            Формат JSON:
+            <pre className="bg-slate-50 border rounded p-2 mt-1 text-[10px] overflow-x-auto">{`{
+  "commit_sha": "manual-2026-05-11",
+  "branch_name": "manual",
+  "files": [
+    { "path": "src/App.tsx", "content": "..." }
+  ]
+}`}</pre>
+          </div>
+          <Textarea
+            value={json}
+            onChange={e => setJson(e.target.value)}
+            placeholder='{"files": [{"path": "src/App.tsx", "content": "..."}]}'
+            className="font-mono text-[11px] min-h-[200px]"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Закрыть</Button>
+            <Button size="sm" onClick={run} disabled={loading || !json.trim()}>
+              {loading
+                ? <><Icon name="Loader2" size={12} className="mr-1 animate-spin" /> Загрузка…</>
+                : <><Icon name="Upload" size={12} className="mr-1" /> Загрузить</>}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
