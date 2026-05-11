@@ -32,18 +32,12 @@ function resolveUserId(): string {
   return '';
 }
 
-function resolveAuthToken(): string {
-  return localStorage.getItem('auth_token') || localStorage.getItem('authToken') || '';
-}
-
 async function call<T>(url: string, action: string, env: DAEnv,
                        query: Record<string, string> = {}, body?: Record<string, unknown>): Promise<T> {
   const userId = resolveUserId();
-  const authToken = resolveAuthToken();
   const qs = new URLSearchParams({ action, env, ...query }).toString();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (userId) headers['X-User-Id'] = userId;
-  if (authToken) headers['X-Authorization'] = `Bearer ${authToken}`;
   const init: RequestInit = {
     method: body ? 'POST' : 'GET',
     headers,
