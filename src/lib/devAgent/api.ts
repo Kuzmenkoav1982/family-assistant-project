@@ -325,6 +325,31 @@ export const devAgent = {
     message?: string;
   }>(INDEXER_URL, 'index.from_github', env, {}, payload),
 
+  indexFromLocalPaths: (env: DAEnv, payload: {
+    repo: string;
+    commit_sha: string;
+    target_paths: string[];
+    include_direct_imports?: boolean;
+    app_import_mode?: 'structural-only' | 'all';
+    activate_snapshot?: boolean;
+    branch?: string;
+  }) => call<{
+    success: boolean;
+    snapshot_id?: number;
+    commit_sha?: string;
+    commit_message?: string;
+    counts?: { files: number; chunks: number; symbols: number; routes: number; endpoints: number };
+    targets_loaded?: number;
+    neighbors_loaded?: number;
+    missing_paths?: Array<{ path: string; error?: unknown }>;
+    alias_sources?: { tsconfig?: boolean; vite?: boolean };
+    activated?: boolean;
+    elapsed_sec?: number;
+    error?: string;
+    detail?: unknown;
+    message?: string;
+  }>(INDEXER_URL, 'index.from_local_paths', env, {}, payload),
+
   indexFromSnapshot: (env: DAEnv, payload: {
     commit_sha?: string;
     commit_message?: string;

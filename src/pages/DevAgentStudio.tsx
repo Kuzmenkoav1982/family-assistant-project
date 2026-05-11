@@ -97,6 +97,7 @@ function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
   const [seeding, setSeeding] = useState(false);
   const [ghOpen, setGhOpen] = useState(false);
   const [snapOpen, setSnapOpen] = useState(false);
+  const [pathsOpen, setPathsOpen] = useState(false);
 
   const load = () => devAgent.overview(env).then(setData);
   useEffect(() => { load();   }, [env]);
@@ -136,6 +137,9 @@ function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
             <div className="flex gap-2">
               <Button size="sm" onClick={() => setGhOpen(true)}>
                 <Icon name="Github" size={14} className="mr-1" /> Из GitHub
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setPathsOpen(true)}>
+                <Icon name="FileCode" size={14} className="mr-1" /> Из путей
               </Button>
               <Button size="sm" variant="outline" onClick={() => setSnapOpen(true)}>
                 <Icon name="Upload" size={14} className="mr-1" /> Загрузить snapshot
@@ -226,6 +230,7 @@ function OverviewTab({ env, toast }: { env: DAEnv; toast: ToastFn }) {
       </Card>
 
       <GithubIndexDialog open={ghOpen} onOpenChange={setGhOpen} env={env} toast={toast} onDone={load} />
+      <LocalPathsIndexDialog open={pathsOpen} onOpenChange={setPathsOpen} env={env} toast={toast} onDone={load} />
       <SnapshotUploadDialog open={snapOpen} onOpenChange={setSnapOpen} env={env} toast={toast} onDone={load} />
     </div>
   );
@@ -323,6 +328,189 @@ function GithubIndexDialog({
                   {(result.fetch_errors?.length || 0) > 0 && (
                     <div className="text-amber-700 mt-1">
                       Не удалось загрузить: {result.fetch_errors!.length} файл(ов)
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="font-semibold text-rose-800">{result.error}</div>
+                  <pre className="text-[10px] mt-1 whitespace-pre-wrap text-rose-700">
+                    {JSON.stringify(result.detail || result.message, null, 2)}
+                  </pre>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Закрыть</Button>
+            <Button size="sm" onClick={run} disabled={loading}>
+              {loading
+                ? <><Icon name="Loader2" size={12} className="mr-1 animate-spin" /> Индексируем…</>
+                : <><Icon name="Download" size={12} className="mr-1" /> Запустить</>}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ============================================================
+// Local paths ingestion dialog (V1.7 — точечный smoke)
+// ============================================================
+const DEFAULT_TARGET_PATHS = [
+  'src/App.tsx',
+  'src/components/ProfileNew.tsx',
+  'src/components/FamilyMembersGrid.tsx',
+  'src/components/TasksWidget.tsx',
+  'src/pages/Pricing.tsx',
+  'src/pages/DevAgentStudio.tsx',
+].join('\n');
+
+function LocalPathsIndexDialog({
+  open, onOpenChange, env, toast, onDone,
+}: { open: boolean; onOpenChange: (v: boolean) => void; env: DAEnv; toast: ToastFn; onDone: () => void }) {
+  const [repo, setRepo] = useState('Kuzmenkoav1982/family-assistant-project');
+  const [commitSha, setCommitSha] = useState('2315f88');
+  const [pathsText, setPathsText] = useState(DEFAULT_TARGET_PATHS);
+  const [includeImports, setIncludeImports] = useState(true);
+  const [appMode, setAppMode] = useState<'structural-only' | 'all'>('structural-only');
+  const [activate, setActivate] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<Awaited<ReturnType<typeof devAgent.indexFromLocalPaths>> | null>(null);
+
+  const run = async () => {
+    const target_paths = pathsText.split('\n').map(s => s.trim()).filter(Boolean);
+    if (!repo.includes('/')) {
+      toast({ title: 'Repo должен быть в формате owner/repo' });
+      return;
+    }
+    if (!commitSha.trim()) {
+      toast({ title: 'Заполни commit_sha (SHA, ветка или тег)' });
+      return;
+    }
+    if (target_paths.length === 0) {
+      toast({ title: 'Нужен хотя бы один target_path' });
+      return;
+    }
+    setLoading(true);
+    setResult(null);
+    try {
+      const r = await devAgent.indexFromLocalPaths(env, {
+        repo: repo.trim(),
+        commit_sha: commitSha.trim(),
+        target_paths,
+        include_direct_imports: includeImports,
+        app_import_mode: appMode,
+        activate_snapshot: activate,
+      });
+      setResult(r);
+      if (r.success) {
+        toast({
+          title: 'Индекс собран по локальным путям',
+          description: `Файлов: ${r.counts?.files}, чанков: ${r.counts?.chunks}, символов: ${r.counts?.symbols}`,
+        });
+        onDone();
+      } else {
+        toast({ title: 'Ошибка индексации', description: r.error || r.message });
+      }
+    } catch (e) {
+      toast({ title: 'Ошибка', description: String(e) });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-sm flex items-center gap-2">
+            <Icon name="FileCode" size={16} /> Индексация из локальных путей
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-xs">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-slate-500">Repo (owner/repo)</label>
+              <Input value={repo} onChange={e => setRepo(e.target.value)} placeholder="owner/repo" />
+            </div>
+            <div>
+              <label className="text-slate-500">Commit SHA / branch / tag</label>
+              <Input value={commitSha} onChange={e => setCommitSha(e.target.value)} placeholder="2315f88" />
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-500">Target paths (по одному в строке)</label>
+            <Textarea
+              value={pathsText}
+              onChange={e => setPathsText(e.target.value)}
+              rows={7}
+              className="font-mono text-[11px]"
+              placeholder="src/App.tsx&#10;src/components/Foo.tsx"
+            />
+            <div className="text-[10px] text-slate-400 mt-1">
+              Лимит ~6 целей + до 20 прямых соседей-импортов. Всего не более 30 файлов.
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 items-end">
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeImports}
+                onChange={e => setIncludeImports(e.target.checked)}
+              />
+              <span>Подгружать прямые импорты</span>
+            </label>
+            <div>
+              <label className="text-slate-500 block">App.tsx import mode</label>
+              <select
+                value={appMode}
+                onChange={e => setAppMode(e.target.value as 'structural-only' | 'all')}
+                className="border rounded px-2 py-1.5 text-xs bg-white w-full"
+              >
+                <option value="structural-only">structural-only</option>
+                <option value="all">all</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={activate}
+                onChange={e => setActivate(e.target.checked)}
+              />
+              <span>Активировать snapshot</span>
+            </label>
+          </div>
+          <div className="text-[11px] text-slate-500 bg-slate-50 border rounded p-2">
+            Точечный smoke: тянем только указанные файлы + их прямые импорты (./, ../, @/ алиасы).
+            Для App.tsx режим <code>structural-only</code> отбрасывает /pages/* импорты, если их нет в target_paths.
+            Нужен секрет <code>GITHUB_TOKEN</code> с правом чтения репозитория.
+          </div>
+
+          {result && (
+            <div className={`text-[11px] rounded p-2 border ${result.success ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+              {result.success ? (
+                <>
+                  <div className="font-semibold text-emerald-800">
+                    Готово за {result.elapsed_sec}с · snapshot_id: {result.snapshot_id} · {result.activated ? 'активирован' : 'не активирован'}
+                  </div>
+                  <div className="text-emerald-700">
+                    commit: <code>{result.commit_sha?.slice(0, 8)}</code> · {result.commit_message}
+                  </div>
+                  <div className="text-emerald-700">
+                    files: {result.counts?.files} · chunks: {result.counts?.chunks} ·
+                    symbols: {result.counts?.symbols} · routes: {result.counts?.routes} ·
+                    api: {result.counts?.endpoints}
+                  </div>
+                  <div className="text-emerald-700">
+                    targets: {result.targets_loaded} · neighbors: {result.neighbors_loaded} ·
+                    alias: tsconfig={String(result.alias_sources?.tsconfig)}, vite={String(result.alias_sources?.vite)}
+                  </div>
+                  {(result.missing_paths?.length || 0) > 0 && (
+                    <div className="text-amber-700 mt-1">
+                      Не найдены: {result.missing_paths!.map(m => m.path).join(', ')}
                     </div>
                   )}
                 </>
