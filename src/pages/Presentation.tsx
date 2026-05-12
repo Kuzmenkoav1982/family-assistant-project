@@ -8,6 +8,10 @@ import { PresentationContentSections } from '@/components/presentation/Presentat
 import { PresentationFooter } from '@/components/presentation/PresentationFooter';
 import { SlideHubs } from '@/components/presentation/SlideHubs';
 import { SlideOsArchitecture } from '@/components/presentation/SlideOsArchitecture';
+import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
+import { SlideDevAgentStudio } from '@/components/presentation/SlideDevAgentStudio';
+import { SlideDomovoyAgent } from '@/components/presentation/SlideDomovoyAgent';
+import { SlidePlatformMetrics } from '@/components/presentation/SlidePlatformMetrics';
 import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 import { SlidePortfolio } from '@/components/presentation/SlidePortfolio';
 import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
@@ -228,6 +232,10 @@ export default function Presentation() {
         <PresentationContentSections />
         <SlideHubs />
         <SlideOsArchitecture />
+        <SlideArchitectureCards />
+        <SlideDevAgentStudio />
+        <SlideDomovoyAgent />
+        <SlidePlatformMetrics />
         <SlideLiveLoops />
         <SlidePortfolio />
         <SlideEcosystem />
