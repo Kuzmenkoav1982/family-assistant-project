@@ -53,28 +53,30 @@ export default function AdminAtlas() {
 
         {/* Вкладки */}
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
-            <TabsTrigger value="overview" className="text-xs gap-1.5">
-              <Icon name="LayoutDashboard" size={13} />
-              Обзор
-            </TabsTrigger>
-            <TabsTrigger value="sections" className="text-xs gap-1.5">
-              <Icon name="Layers" size={13} />
-              Разделы
-            </TabsTrigger>
-            <TabsTrigger value="entities" className="text-xs gap-1.5">
-              <Icon name="Boxes" size={13} />
-              Сущности
-            </TabsTrigger>
-            <TabsTrigger value="overlaps" className="text-xs gap-1.5">
-              <Icon name="Network" size={13} />
-              Пересечения
-            </TabsTrigger>
-            <TabsTrigger value="decisions" className="text-xs gap-1.5">
-              <Icon name="Gavel" size={13} />
-              Решения
-            </TabsTrigger>
-          </TabsList>
+          <div className="-mx-1 px-1 overflow-x-auto progress-map-scroll md:overflow-visible">
+            <TabsList className="inline-flex w-max gap-1 md:grid md:w-full md:grid-cols-5">
+              <TabsTrigger value="overview" className="text-xs gap-1.5 whitespace-nowrap shrink-0">
+                <Icon name="LayoutDashboard" size={13} />
+                Обзор
+              </TabsTrigger>
+              <TabsTrigger value="sections" className="text-xs gap-1.5 whitespace-nowrap shrink-0">
+                <Icon name="Layers" size={13} />
+                Разделы
+              </TabsTrigger>
+              <TabsTrigger value="entities" className="text-xs gap-1.5 whitespace-nowrap shrink-0">
+                <Icon name="Boxes" size={13} />
+                Сущности
+              </TabsTrigger>
+              <TabsTrigger value="overlaps" className="text-xs gap-1.5 whitespace-nowrap shrink-0">
+                <Icon name="Network" size={13} />
+                Пересечения
+              </TabsTrigger>
+              <TabsTrigger value="decisions" className="text-xs gap-1.5 whitespace-nowrap shrink-0">
+                <Icon name="Gavel" size={13} />
+                Решения
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="overview">
             <AtlasOverviewTab />
