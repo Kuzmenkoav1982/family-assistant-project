@@ -21,6 +21,14 @@ export interface SourceRegistryEntry {
   freshness_days: number;
   /** Приоритет показа в подсказках «что добавить» (выше = важнее) */
   priority: number;
+  /** Альтернативное название для портфолио взрослого */
+  label_adult?: string;
+  /** Альтернативное описание для портфолио взрослого */
+  hint_adult?: string;
+  /** Альтернативный CTA-текст для портфолио взрослого */
+  cta_text_adult?: string;
+  /** Если источник вообще не уместен для портфолио взрослого — скрываем */
+  hide_for_adult?: boolean;
 }
 
 /**
@@ -43,6 +51,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Обновить оценку',
     freshness_days: 60,
     priority: 10,
+    label_adult: 'Самооценка',
+    hint_adult: 'Ваши ответы и наблюдения о себе — самый точный личный взгляд.',
+    cta_text_adult: 'Обновить самооценку',
   },
   child_skills: {
     source_type: 'child_skills',
@@ -54,6 +65,10 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть раздел детей',
     freshness_days: 90,
     priority: 8,
+    label_adult: 'Личные навыки',
+    hint_adult: 'Список ваших умений и компетенций — что вы делаете самостоятельно и хорошо.',
+    cta_text_adult: 'Открыть профиль',
+    hide_for_adult: true,
   },
   children_activities: {
     source_type: 'children_activities',
@@ -65,6 +80,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть досуг',
     freshness_days: 30,
     priority: 7,
+    label_adult: 'Хобби и активности',
+    hint_adult: 'Регулярные занятия, спорт, хобби и увлечения.',
+    cta_text_adult: 'Открыть досуг',
   },
   children_vaccinations: {
     source_type: 'children_vaccinations',
@@ -76,6 +94,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть здоровье',
     freshness_days: 365,
     priority: 4,
+    hint_adult: 'Ваш календарь вакцинации и плановые прививки.',
   },
   children_doctor_visits: {
     source_type: 'children_doctor_visits',
@@ -87,6 +106,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть здоровье',
     freshness_days: 180,
     priority: 5,
+    hint_adult: 'Ваши плановые осмотры и медицинские записи.',
   },
   children_mood_entries: {
     source_type: 'children_mood_entries',
@@ -98,6 +118,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть здоровье',
     freshness_days: 14,
     priority: 9,
+    hint_adult: 'Регулярные записи о вашем настроении и самочувствии.',
   },
   child_development_assessments: {
     source_type: 'child_development_assessments',
@@ -109,6 +130,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Пройти диагностику',
     freshness_days: 90,
     priority: 10,
+    label_adult: 'Самодиагностика',
+    hint_adult: 'Развёрнутая самодиагностика по всем сферам жизни.',
+    cta_text_adult: 'Пройти самодиагностику',
   },
   family_traditions: {
     source_type: 'family_traditions',
@@ -142,6 +166,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть задачи',
     freshness_days: 14,
     priority: 7,
+    hint_adult: 'Ваши задачи и регулярные обязанности в семье.',
   },
   vital_records: {
     source_type: 'vital_records',
@@ -186,6 +211,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть календарь',
     freshness_days: 14,
     priority: 5,
+    hint_adult: 'Ваши события, занятия и встречи из календаря.',
   },
   habit_tracker: {
     source_type: 'habit_tracker',
@@ -197,6 +223,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     cta_text: 'Открыть привычки',
     freshness_days: 7,
     priority: 7,
+    hint_adult: 'Ваши регулярные привычки — спорт, режим, ритуалы.',
   },
 };
 
@@ -257,19 +284,31 @@ export function getSourcesForSphere(sphere: SphereKey): SourceRegistryEntry[] {
     .sort((a, b) => b.priority - a.priority);
 }
 
-/** Источники, специфичные только для портфолио ребёнка — не показываем взрослым */
-const CHILD_ONLY_SOURCES = new Set<string>([
-  'child_skills',
-  'children_activities',
-  'parent_input',
-]);
+/**
+ * Возвращает запись с подставленными «взрослыми» формулировками,
+ * если они заданы и audience = 'adult'. Иначе возвращает исходную запись.
+ */
+export function resolveSourceForAudience(
+  entry: SourceRegistryEntry,
+  audience: 'child' | 'adult' = 'child',
+): SourceRegistryEntry {
+  if (audience !== 'adult') return entry;
+  if (!entry.label_adult && !entry.hint_adult && !entry.cta_text_adult) return entry;
+  return {
+    ...entry,
+    label: entry.label_adult ?? entry.label,
+    hint: entry.hint_adult ?? entry.hint,
+    cta_text: entry.cta_text_adult ?? entry.cta_text,
+  };
+}
 
 /**
  * Возвращает топ-N источников с подтверждённым маршрутом для сферы.
  * Используется в блоке «Что добавить, чтобы оценка стала точнее».
  * Источники с route=null отфильтровываются — не показываем CTA, ведущий в никуда.
  *
- * audience: 'child' (по умолчанию) — все источники; 'adult' — без «детских».
+ * audience: 'child' (по умолчанию) — все источники; 'adult' — со взрослыми текстами,
+ * без источников, помеченных hide_for_adult.
  */
 export function getActionableSourcesForSphere(
   sphere: SphereKey,
@@ -280,9 +319,10 @@ export function getActionableSourcesForSphere(
     .filter((s) => {
       if (!s.spheres.includes(sphere)) return false;
       if (s.route === null) return false;
-      if (audience === 'adult' && CHILD_ONLY_SOURCES.has(s.source_type)) return false;
+      if (audience === 'adult' && s.hide_for_adult) return false;
       return true;
     })
     .sort((a, b) => b.priority - a.priority)
-    .slice(0, limit);
+    .slice(0, limit)
+    .map((s) => resolveSourceForAudience(s, audience));
 }
