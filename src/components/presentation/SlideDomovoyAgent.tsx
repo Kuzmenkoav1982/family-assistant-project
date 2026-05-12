@@ -32,7 +32,7 @@ const HOW_IT_MONETIZES = [
   },
   {
     icon: 'Sparkles',
-    text: 'платные усиления и дополнительные сценарии',
+    text: 'pay-per-use AI-сервисы через семейный кошелёк',
   },
   {
     icon: 'Heart',

@@ -147,7 +147,7 @@ export function SlideBusinessModel() {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-3 text-center border border-purple-100">
           <p className="text-lg font-bold text-purple-600">0 ₽</p>
-          <p className="text-[10px] text-gray-500">стоимость входа для пользователя</p>
+          <p className="text-[10px] text-gray-500">бесплатный вход — оплата только за использованные AI-сервисы</p>
         </div>
         <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-3 text-center border border-emerald-100">
           <p className="text-lg font-bold text-emerald-600">Win-Win</p>
