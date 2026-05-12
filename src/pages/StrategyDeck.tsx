@@ -12,6 +12,7 @@ import { MatryoshkaPrintCards } from '@/components/presentation/MatryoshkaPrintC
 import { SlideAudienceMatrix } from '@/components/presentation/SlideAudienceMatrix';
 import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatformBeforeAfter';
 import { SlideOsArchitecture } from '@/components/presentation/SlideOsArchitecture';
+import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
 import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 
 async function captureSlides(
@@ -264,6 +265,7 @@ export default function StrategyDeck() {
         <SlideAudienceMatrix />
         <SlidePlatformBeforeAfter />
         <SlideOsArchitecture />
+        <SlideArchitectureCards />
         <SlideLiveLoops />
         <StrategyFooter />
       </div>

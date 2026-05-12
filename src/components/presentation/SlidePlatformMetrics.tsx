@@ -28,18 +28,23 @@ function formatNumber(n: number | null | undefined): string {
 
 export const SlidePlatformMetrics = () => {
   const [overview, setOverview] = useState<DAOverview | null>(null);
+  const [dbTablesCount, setDbTablesCount] = useState<number | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    devAgent
-      .overview('prod')
-      .then((data) => {
+    Promise.allSettled([
+      devAgent.overview('prod'),
+      devAgent.dbTablesList('prod'),
+    ])
+      .then(([overviewRes, dbRes]) => {
         if (cancelled) return;
-        setOverview(data);
-      })
-      .catch(() => {
-        // тихо игнорируем — покажем прочерки
+        if (overviewRes.status === 'fulfilled') {
+          setOverview(overviewRes.value);
+        }
+        if (dbRes.status === 'fulfilled' && Array.isArray(dbRes.value?.items)) {
+          setDbTablesCount(dbRes.value.items.length);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoaded(true);
@@ -74,9 +79,9 @@ export const SlidePlatformMetrics = () => {
     },
     {
       icon: 'Database',
-      label: 'файлов и сущностей кода',
-      value: formatNumber(snap?.files_count),
-      hint: 'индексировано в проекте',
+      label: 'таблиц и сущностей данных',
+      value: formatNumber(dbTablesCount),
+      hint: 'структура хранения семейных данных',
       color: 'from-emerald-50 to-teal-50',
       border: 'border-emerald-200',
       accent: 'text-emerald-700',
