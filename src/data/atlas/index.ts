@@ -1,4 +1,17 @@
-export * from './types';
+export type {
+  RoleType,
+  EvidenceLevel,
+  SectionStatus,
+  ConnectionType,
+  DecisionType,
+  PlatformConnection,
+  InventorySection,
+  InventoryHub,
+  SemanticSection,
+  PlatformEntity,
+  OverlapCase,
+  PlatformPrinciple,
+} from './types';
 export * from './platformInventory';
 export * from './platformSemantics';
 export * from './platformEntities';
