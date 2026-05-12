@@ -403,13 +403,31 @@ def _wallet_spend(family_id, user_id, amount, reason, description):
             % (amount, wallet_id)
         )
         safe_desc = description.replace("'", "''")
+        # user_id из X-User-Id это id из family_members. wallet_transactions.user_id ссылается на users(id).
+        # Берём реальный users.id через JOIN, иначе пишем NULL чтобы избежать FK violation.
+        real_user_sql = "NULL"
+        if user_id:
+            safe_uid = str(user_id).replace("'", "''")
+            c.execute(
+                "SELECT u.id FROM family_members fm "
+                "LEFT JOIN users u ON u.id = fm.user_id "
+                "WHERE fm.id = '%s' AND u.id IS NOT NULL "
+                "UNION ALL SELECT id FROM users WHERE id = '%s' LIMIT 1"
+                % (safe_uid, safe_uid)
+            )
+            ru = c.fetchone()
+            if ru and ru[0]:
+                real_user_sql = "'%s'" % str(ru[0]).replace("'", "''")
         c.execute(
             "INSERT INTO wallet_transactions (wallet_id, type, amount_rub, reason, description, user_id) "
-            "VALUES (%d, 'spend', %s, '%s', '%s', '%s')"
-            % (wallet_id, amount, reason, safe_desc, str(user_id))
+            "VALUES (%d, 'spend', %s, '%s', '%s', %s)"
+            % (wallet_id, amount, reason, safe_desc, real_user_sql)
         )
         conn.commit()
         return {'success': True, 'new_balance': round(balance - amount, 2)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': 'db_error', 'details': str(e)}
     finally:
         conn.close()
 
@@ -427,7 +445,11 @@ def _handle_coach(method, cur, family_id, user_id, event):
             'required': COACH_PRICE,
         })
     if spend_result.get('error') and spend_result.get('error') != 'no_family':
-        return _resp(500, {'error': 'wallet_error', 'details': spend_result.get('error')})
+        return _resp(500, {
+            'error': 'wallet_error',
+            'message': 'Не удалось списать монеты за совет Домового. Попробуйте позже.',
+            'details': spend_result.get('error'),
+        })
 
     body = json.loads(event.get('body') or '{}')
     mode = (body.get('mode') or 'general').lower()
