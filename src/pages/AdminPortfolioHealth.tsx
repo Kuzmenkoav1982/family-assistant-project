@@ -48,17 +48,19 @@ export default function AdminPortfolioHealth() {
   const [range, setRange] = useState<'24h' | '7d'>('24h');
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
+    const token = localStorage.getItem('authToken') || '';
+    const isAdmin = localStorage.getItem('adminToken') === 'admin_authenticated';
+    if (!token && !isAdmin) {
       setForbidden(true);
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
-    fetch(`${HEALTH_API}?range=${range}`, {
-      headers: { 'X-Auth-Token': token },
-    })
+    const headers: Record<string, string> = {};
+    if (token) headers['X-Auth-Token'] = token;
+    if (isAdmin) headers['X-Admin-Bypass'] = '1';
+    fetch(`${HEALTH_API}?range=${range}`, { headers })
       .then(async (res) => {
         if (res.status === 403) {
           setForbidden(true);
