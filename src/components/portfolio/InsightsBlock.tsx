@@ -4,11 +4,37 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { portfolioApi } from '@/services/portfolioApi';
-import type { Insight } from '@/types/portfolio.types';
+import type { Insight, PortfolioMember, SphereKey } from '@/types/portfolio.types';
+import { isAdultMember } from '@/utils/familyRole';
 
 interface InsightsBlockProps {
   memberId: string;
   aiEnabled?: boolean;
+  member?: PortfolioMember;
+  sphereLabelsAdult?: Record<SphereKey, string>;
+  sphereLabelsChild?: Record<SphereKey, string>;
+}
+
+/**
+ * Бэкенд возвращает sphere_label в «детском» виде («Ум и знания», «Чувства» и т.п.).
+ * Для портфолио взрослого подменяем на «взрослые» формулировки
+ * («Интеллект», «Эмоциональная сфера»…) — иначе картина выглядит как для ребёнка.
+ */
+function adaptInsightForAudience(
+  ins: Insight,
+  audience: 'child' | 'adult',
+  childLabels?: Record<SphereKey, string>,
+  adultLabels?: Record<SphereKey, string>,
+): Insight {
+  if (audience !== 'adult' || !ins.sphere || !childLabels || !adultLabels) return ins;
+  const childLabel = childLabels[ins.sphere];
+  const adultLabel = adultLabels[ins.sphere];
+  if (!childLabel || !adultLabel || childLabel === adultLabel) return ins;
+  return {
+    ...ins,
+    sphere_label: adultLabel,
+    title: ins.title.split(childLabel).join(adultLabel),
+  };
 }
 
 interface SeverityMeta {
@@ -51,7 +77,16 @@ function pluralInsights(n: number): string {
   return 'наблюдений';
 }
 
-export default function InsightsBlock({ memberId, aiEnabled = true }: InsightsBlockProps) {
+export default function InsightsBlock({
+  memberId,
+  aiEnabled = true,
+  member,
+  sphereLabelsAdult,
+  sphereLabelsChild,
+}: InsightsBlockProps) {
+  const audience: 'child' | 'adult' = isAdultMember(member) ? 'adult' : 'child';
+  const adapt = (ins: Insight) =>
+    adaptInsightForAudience(ins, audience, sphereLabelsChild, sphereLabelsAdult);
   const [insights, setInsights] = useState<Insight[]>([]);
   const [aiInsights, setAiInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,10 +149,13 @@ export default function InsightsBlock({ memberId, aiEnabled = true }: InsightsBl
 
   if (insights.length === 0 && aiInsights.length === 0 && !aiError) return null;
 
-  const sorted = [...insights].sort((a, b) => {
-    const order: Record<Insight['severity'], number> = { warning: 0, info: 1, success: 2 };
-    return order[a.severity] - order[b.severity];
-  });
+  const sorted = [...insights]
+    .map(adapt)
+    .sort((a, b) => {
+      const order: Record<Insight['severity'], number> = { warning: 0, info: 1, success: 2 };
+      return order[a.severity] - order[b.severity];
+    });
+  const aiInsightsAdapted = aiInsights.map(adapt);
 
   const renderInsight = (ins: Insight, i: number, isAi = false) => {
     const meta = SEVERITY_META[ins.severity];
@@ -185,7 +223,7 @@ export default function InsightsBlock({ memberId, aiEnabled = true }: InsightsBl
           <p className="text-xs text-amber-600 mb-3">ИИ временно недоступен: {aiError}</p>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {aiInsights.map((ins, i) => renderInsight(ins, i, true))}
+          {aiInsightsAdapted.map((ins, i) => renderInsight(ins, i, true))}
           {sorted.map((ins, i) => renderInsight(ins, i, false))}
         </div>
       </CardContent>

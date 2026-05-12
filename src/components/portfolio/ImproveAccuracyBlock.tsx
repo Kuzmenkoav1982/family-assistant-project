@@ -9,6 +9,7 @@ import {
   getActionableSourcesForSphere,
   type SourceRegistryEntry,
 } from '@/data/portfolioSourcesRegistry';
+import { isAdultMember } from '@/utils/familyRole';
 import { track } from '@/lib/analytics';
 
 interface ImproveAccuracyBlockProps {
@@ -24,16 +25,17 @@ interface SphereSuggestion {
   sources: SourceRegistryEntry[];
 }
 
-function buildSuggestions(data: PortfolioData): SphereSuggestion[] {
+function buildSuggestions(data: PortfolioData, audience: 'child' | 'adult'): SphereSuggestion[] {
   const items: SphereSuggestion[] = [];
+  const labels = audience === 'adult' ? data.sphere_labels_adult : data.sphere_labels_child;
   for (const sphere of SPHERE_ORDER) {
     const conf = data.confidence[sphere] ?? 0;
     if (conf >= 70) continue;
-    const sources = getActionableSourcesForSphere(sphere, 3);
+    const sources = getActionableSourcesForSphere(sphere, 3, audience);
     if (sources.length === 0) continue;
     items.push({
       sphere,
-      label: data.sphere_labels_child[sphere],
+      label: labels?.[sphere] ?? data.sphere_labels_child[sphere],
       icon: data.sphere_icons[sphere],
       confidence: conf,
       level: conf < 40 ? 'low' : 'medium',
@@ -46,7 +48,8 @@ function buildSuggestions(data: PortfolioData): SphereSuggestion[] {
 }
 
 export default function ImproveAccuracyBlock({ data }: ImproveAccuracyBlockProps) {
-  const suggestions = buildSuggestions(data);
+  const audience: 'child' | 'adult' = isAdultMember(data.member) ? 'adult' : 'child';
+  const suggestions = buildSuggestions(data, audience);
   const [expandedSphere, setExpandedSphere] = useState<SphereKey | null>(
     suggestions[0]?.sphere ?? null,
   );

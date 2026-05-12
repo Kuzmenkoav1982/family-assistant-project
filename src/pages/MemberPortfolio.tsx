@@ -173,7 +173,15 @@ export default function MemberPortfolio() {
 
         <ImproveAccuracyBlock data={data} />
 
-        {memberId && <InsightsBlock memberId={memberId} aiEnabled={aiEnabled} />}
+        {memberId && (
+          <InsightsBlock
+            memberId={memberId}
+            aiEnabled={aiEnabled}
+            member={data.member}
+            sphereLabelsAdult={data.sphere_labels_adult}
+            sphereLabelsChild={data.sphere_labels_child}
+          />
+        )}
 
         {memberId && <HistoryChart memberId={memberId} />}
 

@@ -257,17 +257,32 @@ export function getSourcesForSphere(sphere: SphereKey): SourceRegistryEntry[] {
     .sort((a, b) => b.priority - a.priority);
 }
 
+/** Источники, специфичные только для портфолио ребёнка — не показываем взрослым */
+const CHILD_ONLY_SOURCES = new Set<string>([
+  'child_skills',
+  'children_activities',
+  'parent_input',
+]);
+
 /**
  * Возвращает топ-N источников с подтверждённым маршрутом для сферы.
  * Используется в блоке «Что добавить, чтобы оценка стала точнее».
  * Источники с route=null отфильтровываются — не показываем CTA, ведущий в никуда.
+ *
+ * audience: 'child' (по умолчанию) — все источники; 'adult' — без «детских».
  */
 export function getActionableSourcesForSphere(
   sphere: SphereKey,
   limit = 3,
+  audience: 'child' | 'adult' = 'child',
 ): SourceRegistryEntry[] {
   return Object.values(SOURCES_REGISTRY)
-    .filter((s) => s.spheres.includes(sphere) && s.route !== null)
+    .filter((s) => {
+      if (!s.spheres.includes(sphere)) return false;
+      if (s.route === null) return false;
+      if (audience === 'adult' && CHILD_ONLY_SOURCES.has(s.source_type)) return false;
+      return true;
+    })
     .sort((a, b) => b.priority - a.priority)
     .slice(0, limit);
 }
