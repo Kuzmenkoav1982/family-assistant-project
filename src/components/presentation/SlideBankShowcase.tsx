@@ -179,14 +179,14 @@ export function SlideBankShowcase() {
         </div>
         <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-4 border border-purple-100 text-center">
           <p className="text-2xl font-bold text-purple-600">0 ₽</p>
-          <p className="text-xs text-gray-500">на привлечение — уже лояльная аудитория</p>
+          <p className="text-xs text-gray-500">на привлечение — встроенный канал внутри платформы</p>
         </div>
       </div>
 
       <div className="mt-4 bg-gradient-to-r from-emerald-600 to-blue-600 rounded-2xl p-5 text-white text-center">
         <p className="font-bold text-base mb-1">Для банка-партнёра: встроенный канал продаж без CAC</p>
         <p className="text-sm text-white/80">
-          Аудитория уже доверяет платформе и делится финансовыми данными — конверсия в банковские продукты в 3–5× выше стандартных каналов
+          Контекстные предложения внутри семейных сценариев — потенциал конверсии в банковские продукты выше стандартных каналов привлечения
         </p>
       </div>
     </section>
