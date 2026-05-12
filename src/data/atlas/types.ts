@@ -67,6 +67,8 @@ export interface InventoryHub {
   title: string;
   icon: string;
   hubPath?: string;
+  /** Служебный хаб (контент/корзина) — не считается продуктовым направлением. */
+  isService?: boolean;
 }
 
 /** Ручной слой: смысл, замысел, классификация */

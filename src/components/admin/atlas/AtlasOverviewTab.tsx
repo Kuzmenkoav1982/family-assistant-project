@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import {
   HUBS,
+  PRODUCT_HUBS,
   SECTIONS,
   countSectionsByHub,
   getHypotheses,
@@ -18,13 +19,27 @@ export default function AtlasOverviewTab() {
   const accepted = getAcceptedPrinciples();
   const semanticsCount = Object.keys(SEMANTICS).length;
   const openCases = OVERLAP_CASES.filter((c) => c.status === 'open').length;
+  const productHubIds = new Set(PRODUCT_HUBS.map((h) => h.id));
+  const productSections = SECTIONS.filter((s) => productHubIds.has(s.hubId));
 
   return (
     <div className="space-y-6">
       {/* Сводка цифрами */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <SummaryCard icon="LayoutGrid" label="Хабов" value={String(HUBS.length)} color="blue" />
-        <SummaryCard icon="Layers" label="Разделов" value={String(SECTIONS.length)} color="emerald" />
+        <SummaryCard
+          icon="LayoutGrid"
+          label="Хабов"
+          value={String(PRODUCT_HUBS.length)}
+          color="blue"
+          hint={`+${HUBS.length - PRODUCT_HUBS.length} служебных`}
+        />
+        <SummaryCard
+          icon="Layers"
+          label="Разделов"
+          value={String(productSections.length)}
+          color="emerald"
+          hint={`всего ${SECTIONS.length} с учётом служебных`}
+        />
         <SummaryCard
           icon="Sparkles"
           label="Сущностей"

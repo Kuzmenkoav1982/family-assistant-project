@@ -90,7 +90,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'LayoutGrid',
       label: 'хабов платформы',
-      value: '14',
+      value: '12',
       hint: 'продуктовые направления',
       color: 'from-pink-50 to-rose-50',
       border: 'border-pink-200',
@@ -100,7 +100,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Boxes',
       label: 'разделов в хабах',
-      value: '73',
+      value: '72',
       hint: 'из паспорта платформы',
       color: 'from-amber-50 to-orange-50',
       border: 'border-amber-200',

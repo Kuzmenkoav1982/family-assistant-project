@@ -17,9 +17,12 @@ export const HUBS: InventoryHub[] = [
   { id: 'family-matrix', title: 'Семейный код', icon: 'Sparkles', hubPath: '/family-matrix' },
   { id: 'pets', title: 'Питомцы', icon: 'PawPrint', hubPath: '/pets' },
   { id: 'family-state', title: 'Госуслуги', icon: 'Landmark', hubPath: '/state-hub' },
-  { id: 'articles', title: 'Полезные статьи', icon: 'BookOpen' },
-  { id: 'in-dev', title: 'В разработке', icon: 'Wrench' },
+  { id: 'articles', title: 'Полезные статьи', icon: 'BookOpen', isService: true },
+  { id: 'in-dev', title: 'В разработке', icon: 'Wrench', isService: true },
 ];
+
+/** Только продуктовые хабы (без служебных «Полезные статьи», «В разработке»). */
+export const PRODUCT_HUBS: InventoryHub[] = HUBS.filter((h) => !h.isService);
 
 export const SECTIONS: InventorySection[] = [
   // ── Семья ─────────────────────────────────────────
