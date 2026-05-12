@@ -1,5 +1,13 @@
 import func2url from '../../../backend/func2url.json';
-import type { BalanceSnapshot, LifeEvent, LifeGoal } from './types';
+import type {
+  BalanceSnapshot,
+  GoalActionLink,
+  GoalCheckin,
+  GoalKeyResult,
+  GoalMilestone,
+  LifeEvent,
+  LifeGoal,
+} from './types';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
 
@@ -60,6 +68,40 @@ export const lifeApi = {
   listBalance: () => call<BalanceSnapshot[]>('GET', '?resource=balance'),
   saveBalance: (scores: Record<string, number>, notes?: string) =>
     call<BalanceSnapshot>('POST', '?resource=balance', { scores, notes }),
+
+  // Milestones (вехи цели — для SMART и др.)
+  listMilestones: (goalId: string) =>
+    call<GoalMilestone[]>('GET', `?resource=milestones&goalId=${goalId}`),
+  createMilestone: (m: Partial<GoalMilestone> & { goalId: string }) =>
+    call<GoalMilestone>('POST', '?resource=milestones', m),
+  updateMilestone: (id: string, m: Partial<GoalMilestone>) =>
+    call<GoalMilestone>('PUT', `?resource=milestones&id=${id}`, m),
+  deleteMilestone: (id: string) =>
+    call<{ success: boolean }>('DELETE', `?resource=milestones&id=${id}`),
+
+  // Key Results (для OKR)
+  listKeyResults: (goalId: string) =>
+    call<GoalKeyResult[]>('GET', `?resource=keyresults&goalId=${goalId}`),
+  createKeyResult: (k: Partial<GoalKeyResult> & { goalId: string }) =>
+    call<GoalKeyResult>('POST', '?resource=keyresults', k),
+  updateKeyResult: (id: string, k: Partial<GoalKeyResult>) =>
+    call<GoalKeyResult>('PUT', `?resource=keyresults&id=${id}`, k),
+  deleteKeyResult: (id: string) =>
+    call<{ success: boolean }>('DELETE', `?resource=keyresults&id=${id}`),
+
+  // Check-ins (еженедельные сверки)
+  listCheckins: (goalId: string) =>
+    call<GoalCheckin[]>('GET', `?resource=checkins&goalId=${goalId}`),
+  createCheckin: (c: Partial<GoalCheckin> & { goalId: string }) =>
+    call<GoalCheckin>('POST', '?resource=checkins', c),
+
+  // Action links (связь цели с задачами/привычками/событиями)
+  listLinks: (goalId: string) =>
+    call<GoalActionLink[]>('GET', `?resource=links&goalId=${goalId}`),
+  createLink: (l: Partial<GoalActionLink> & { goalId: string; entityType: string; entityId: string }) =>
+    call<GoalActionLink>('POST', '?resource=links', l),
+  deleteLink: (id: string) =>
+    call<{ success: boolean }>('DELETE', `?resource=links&id=${id}`),
 
   // Coach
   coach: (payload: {

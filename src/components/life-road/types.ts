@@ -1,3 +1,11 @@
+// === Canonical Goal triada v1 ===
+// Длинная цель — одна сущность, дом которой Мастерская жизни.
+// Имеет три проекции: Портфолио (зеркало) / Мастерская (компас) / Планирование (двигатель).
+export type FrameworkType = 'generic' | 'smart' | 'okr' | 'wheel';
+export type GoalScope = 'personal' | 'family';
+export type GoalHorizon = 'quarter' | 'season' | 'year' | 'long';
+export type GoalCreatedFrom = 'workshop' | 'portfolio' | 'development' | 'external';
+
 export interface LifeGoal {
   id: string;
   familyId?: string;
@@ -5,6 +13,7 @@ export interface LifeGoal {
   title: string;
   description?: string | null;
   sphere: string;
+  /** legacy строковое поле (smart/okr/wheel/ikigai/covey) — оставляем для обратной совместимости. */
   framework?: string | null;
   deadline?: string | null;
   status: 'active' | 'done' | 'paused' | 'archived';
@@ -13,6 +22,80 @@ export interface LifeGoal {
   aiInsights?: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
+
+  // === Canonical поля триады ===
+  /** Канонический тип методики. Источник истины — он, а не legacy `framework`. */
+  frameworkType: FrameworkType;
+  /** Структурное состояние методики (грани SMART, конфиг OKR, замеры Колеса). */
+  frameworkState: Record<string, unknown>;
+  /** personal — личная цель (ownerId), family — семейная. */
+  scope: GoalScope;
+  horizon?: GoalHorizon | null;
+  season?: string | null;
+  whyText?: string | null;
+  linkedSphereIds: string[];
+  createdFrom?: GoalCreatedFrom | null;
+  sourceContext?: Record<string, unknown> | null;
+  /** Кэш вычисляемого прогресса исполнения. Источник истины — milestones/KR/tasks. */
+  executionProgress?: number | null;
+  outcomeSignal?: Record<string, unknown> | null;
+}
+
+export interface GoalMilestone {
+  id: string;
+  goalId: string;
+  title: string;
+  description?: string | null;
+  dueDate?: string | null;
+  weight: number;
+  status: 'pending' | 'in_progress' | 'done' | 'skipped';
+  order: number;
+  completedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GoalKeyResult {
+  id: string;
+  goalId: string;
+  title: string;
+  metricType: 'number' | 'percent' | 'currency' | 'boolean';
+  unit?: string | null;
+  startValue: number;
+  currentValue: number;
+  targetValue: number;
+  dueDate?: string | null;
+  weight: number;
+  status: 'active' | 'done' | 'paused';
+  order: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface GoalCheckin {
+  id: string;
+  goalId: string;
+  authorId?: string | null;
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  summary?: string | null;
+  blockers?: string | null;
+  nextStep?: string | null;
+  /** 0..10 — самооценка прогресса за период. */
+  selfAssessment?: number | null;
+  data?: Record<string, unknown> | null;
+  createdAt?: string;
+}
+
+export interface GoalActionLink {
+  id: string;
+  goalId: string;
+  entityType: 'task' | 'habit' | 'ritual' | 'event';
+  entityId: string;
+  milestoneId?: string | null;
+  keyResultId?: string | null;
+  meta?: Record<string, unknown> | null;
+  createdAt?: string;
 }
 
 export interface BalanceSnapshot {

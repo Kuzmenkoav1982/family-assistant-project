@@ -110,6 +110,8 @@ const Purchases = lazy(() => import("./pages/Purchases"));
 const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const Development = lazy(() => import("./pages/Development"));
 const LifeRoad = lazy(() => import("./pages/LifeRoad"));
+const Workshop = lazy(() => import("./pages/Workshop"));
+const WorkshopGoal = lazy(() => import("./pages/WorkshopGoal"));
 const FamilyManagement = lazy(() => import("./pages/FamilyManagement"));
 const InDevelopmentList = lazy(() => import("./pages/InDevelopmentList"));
 const FamilyInvite = lazy(() => import("./pages/FamilyInvite"));
@@ -500,6 +502,8 @@ const App = () => {
                       <Route path="/ai-assistant" element={<AIAssistant />} />
                       <Route path="/development" element={<Development />} />
                       <Route path="/life-road" element={<LifeRoad />} />
+                      <Route path="/workshop" element={<Workshop />} />
+                      <Route path="/workshop/goal/:id" element={<WorkshopGoal />} />
                       <Route path="/in-development" element={<InDevelopmentList />} />
                       <Route path="/family-management" element={<FamilyManagement />} />
                       <Route path="/launch-plan" element={<LaunchPlan />} />

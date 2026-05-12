@@ -12,8 +12,15 @@ export const PRINCIPLES: PlatformPrinciple[] = [
       'Портфолио развития (interpretation) показывает «где сейчас» и «следующий шаг». ' +
       'Мастерская жизни (reflection) формирует смыслы, сезоны, длинные векторы. ' +
       'Планирование (action) превращает смыслы в задачи и календарь. ' +
-      'Каждый из трёх разделов отвечает за свой уровень и не дублирует другие.',
-    status: 'hypothesis',
+      'Каждый из трёх разделов отвечает за свой уровень и не дублирует другие. ' +
+      ' ' +
+      'Реализация v1 (Этап 1, 13 мая 2026): добавлены canonical-поля в life_goals ' +
+      '(framework_type, framework_state, scope, horizon, why_text, linked_sphere_ids, ' +
+      'created_from, source_context). Созданы таблицы goal_milestones, goal_key_results, ' +
+      'goal_checkins, goal_action_links. Введён frameworkRegistry с handler-ами для ' +
+      'generic/smart/okr/wheel. Появился раздел /workshop с базовой страницей цели и ' +
+      'placeholder FrameworkPanel — методика теперь сохраняется после создания.',
+    status: 'accepted',
     appliesTo: ['portfolio', 'life-road', 'goals', 'tasks', 'calendar', 'development'],
   },
   {
@@ -22,8 +29,13 @@ export const PRINCIPLES: PlatformPrinciple[] = [
     body:
       'Цели, планы, наблюдения, достижения и т.п. имеют ровно один раздел-владелец, ' +
       'где они создаются и редактируются. В остальных местах — только summary, ' +
-      'deep-link или витрина. Это правило проверяется в карте сущностей (Шаг 5).',
-    status: 'hypothesis',
+      'deep-link или витрина. Это правило проверяется в карте сущностей (Шаг 5). ' +
+      ' ' +
+      'Принято в v1 (Этап 1, 13 мая 2026) вместе с триадой. Конкретные дома: ' +
+      'длинная цель — Мастерская жизни; sphere score / observation / test — Портфолио; ' +
+      'task / habit / ritual — Планирование; achievement — Портфолио; life-event — Календарь. ' +
+      'В других разделах допустимы только витрины и CTA-кнопки входа с префиллом.',
+    status: 'accepted',
     appliesTo: ['all'],
   },
   {

@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgress, onAdd }: Props) {
+  const navigate = useNavigate();
   if (goals.length === 0) {
     return (
       <div className="text-center py-12 bg-white/60 rounded-2xl border-2 border-dashed border-purple-200">
@@ -48,7 +50,12 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
                   <Icon name={sphere.icon} size={18} />
                 </div>
               )}
-              <div className="flex-1 min-w-0">
+              <button
+                type="button"
+                className="flex-1 min-w-0 text-left"
+                onClick={() => navigate(`/workshop/goal/${g.id}`)}
+                title="Открыть страницу цели"
+              >
                 <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                   {sphere && <Badge variant="secondary" className="text-[10px]">{sphere.label}</Badge>}
                   {fw && (
@@ -60,11 +67,14 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
                     <Badge className="text-[10px] bg-emerald-100 text-emerald-700">Достигнуто</Badge>
                   )}
                 </div>
-                <h4 className="font-bold text-gray-900 leading-snug break-words">{g.title}</h4>
+                <h4 className="font-bold text-gray-900 leading-snug break-words hover:text-purple-700 transition-colors">{g.title}</h4>
                 {g.description && <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{g.description}</p>}
-              </div>
+              </button>
 
               <div className="flex flex-col gap-1 opacity-70 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => navigate(`/workshop/goal/${g.id}`)} title="Открыть">
+                  <Icon name="ArrowUpRight" size={13} />
+                </Button>
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onEdit(g)} title="Редактировать">
                   <Icon name="Pencil" size={13} />
                 </Button>
