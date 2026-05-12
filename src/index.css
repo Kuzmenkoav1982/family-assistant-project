@@ -133,6 +133,28 @@
     display: none;
   }
 
+  .progress-map-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(196 181 253) transparent;
+  }
+
+  .progress-map-scroll::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .progress-map-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .progress-map-scroll::-webkit-scrollbar-thumb {
+    background-color: rgb(196 181 253);
+    border-radius: 9999px;
+  }
+
+  .progress-map-scroll::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(167 139 250);
+  }
+
   .long-press-hint {
     animation: pulse-border 0.5s ease-in-out;
   }

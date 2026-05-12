@@ -91,33 +91,52 @@ export default function ProgressMap({
         </div>
       )}
 
-      {/* Карта шагов */}
+      {/* Карта шагов — горизонтальный скролл при большом числе шагов */}
       <div className="relative">
-        {/* Базовая линия (фон) */}
-        <div
-          className="absolute left-0 right-0 h-0.5 bg-slate-200"
-          style={{ top: compact ? 14 : 18 }}
-        />
-        {/* Линия прогресса (поверх базовой) */}
-        <div
-          className={cn('absolute left-0 h-0.5 transition-all duration-500', a.line)}
-          style={{
-            top: compact ? 14 : 18,
-            width: `${(doneCount / Math.max(totalCount - 1, 1)) * 100}%`,
-            maxWidth: '100%',
-          }}
-        />
+        {/* Мягкие fade-края, чтобы было видно, что есть скролл */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white to-transparent z-10" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white to-transparent z-10" />
 
-        <div className="relative grid gap-1" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
-          {steps.map((step) => (
-            <ProgressStepNode
-              key={step.id}
-              step={step}
-              accent={accent}
-              compact={compact}
-              onClick={onStepClick}
+        <div
+          className="overflow-x-auto overflow-y-hidden -mx-1 px-1 progress-map-scroll"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <div
+            className="relative"
+            style={{
+              minWidth: `${steps.length * (compact ? 72 : 92)}px`,
+            }}
+          >
+            {/* Базовая линия (фон) */}
+            <div
+              className="absolute left-0 right-0 h-0.5 bg-slate-200"
+              style={{ top: compact ? 14 : 18 }}
             />
-          ))}
+            {/* Линия прогресса (поверх базовой) */}
+            <div
+              className={cn('absolute left-0 h-0.5 transition-all duration-500', a.line)}
+              style={{
+                top: compact ? 14 : 18,
+                width: `${(doneCount / Math.max(totalCount - 1, 1)) * 100}%`,
+                maxWidth: '100%',
+              }}
+            />
+
+            <div
+              className="relative grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+            >
+              {steps.map((step) => (
+                <ProgressStepNode
+                  key={step.id}
+                  step={step}
+                  accent={accent}
+                  compact={compact}
+                  onClick={onStepClick}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
