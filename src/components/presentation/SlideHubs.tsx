@@ -179,10 +179,10 @@ export function SlideHubs() {
           </div>
           <div>
             <h2 className="text-3xl md:text-4xl font-black leading-tight">
-              12 хабов — единая семейная экосистема
+              {hubs.length} хабов — единая семейная экосистема
             </h2>
             <p className="text-base md:text-lg text-white/90 mt-2">
-              {totalSections}+ разделов, связанных в единую логику жизни семьи
+              {totalSections} разделов, связанных в единую логику жизни семьи
             </p>
           </div>
         </div>

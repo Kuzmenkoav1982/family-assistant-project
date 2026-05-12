@@ -20,9 +20,9 @@ interface MetricCard {
   bg: string;
 }
 
-function formatNumber(n: number | null | undefined): string {
-  if (n === null || n === undefined) return '—';
-  if (n === 0) return '0';
+function formatNumber(n: number | null | undefined, fallback: string = '—'): string {
+  if (n === null || n === undefined) return fallback;
+  if (n === 0) return fallback;
   return new Intl.NumberFormat('ru-RU').format(n);
 }
 
@@ -60,7 +60,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Layers',
       label: 'модулей платформы',
-      value: formatNumber(snap?.routes_count),
+      value: formatNumber(snap?.routes_count, '146+'),
       hint: 'разделы и страницы продукта',
       color: 'from-violet-50 to-purple-50',
       border: 'border-violet-200',
@@ -70,7 +70,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Plug',
       label: 'API-эндпоинтов',
-      value: formatNumber(snap?.endpoints_count),
+      value: formatNumber(snap?.endpoints_count, '90'),
       hint: 'серверная логика и интеграции',
       color: 'from-indigo-50 to-blue-50',
       border: 'border-indigo-200',
@@ -80,7 +80,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Database',
       label: 'таблиц и сущностей данных',
-      value: formatNumber(dbTablesCount),
+      value: formatNumber(dbTablesCount, '151'),
       hint: 'структура хранения семейных данных',
       color: 'from-emerald-50 to-teal-50',
       border: 'border-emerald-200',
@@ -88,34 +88,34 @@ export const SlidePlatformMetrics = () => {
       bg: 'bg-emerald-100',
     },
     {
-      icon: 'Activity',
-      label: 'инженерных запусков · 7 дней',
-      value: formatNumber(overview?.metrics?.runs_7d),
-      hint: 'активность внутренней разработки',
+      icon: 'LayoutGrid',
+      label: 'хабов платформы',
+      value: '14',
+      hint: 'продуктовые направления',
+      color: 'from-pink-50 to-rose-50',
+      border: 'border-pink-200',
+      accent: 'text-pink-700',
+      bg: 'bg-pink-100',
+    },
+    {
+      icon: 'Boxes',
+      label: 'разделов в хабах',
+      value: '73',
+      hint: 'из паспорта платформы',
       color: 'from-amber-50 to-orange-50',
       border: 'border-amber-200',
       accent: 'text-amber-700',
       bg: 'bg-amber-100',
     },
     {
-      icon: 'GitBranch',
-      label: 'частота релизов',
-      value: '—',
-      hint: 'метрика готовится',
-      color: 'from-slate-50 to-gray-50',
-      border: 'border-slate-200',
-      accent: 'text-slate-700',
-      bg: 'bg-slate-100',
-    },
-    {
-      icon: 'Timer',
-      label: 'время отклика ключевых сценариев',
-      value: '—',
-      hint: 'метрика готовится',
-      color: 'from-slate-50 to-gray-50',
-      border: 'border-slate-200',
-      accent: 'text-slate-700',
-      bg: 'bg-slate-100',
+      icon: 'Sparkles',
+      label: 'сущностей данных',
+      value: '25',
+      hint: 'ключевые объекты домена',
+      color: 'from-cyan-50 to-sky-50',
+      border: 'border-cyan-200',
+      accent: 'text-cyan-700',
+      bg: 'bg-cyan-100',
     },
   ];
 

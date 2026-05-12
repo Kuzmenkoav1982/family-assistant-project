@@ -9,6 +9,7 @@ interface CardItem {
   fullDesc: string;
   tech?: string;
   note?: string;
+  statusLabel?: string;
 }
 
 const FOUNDATION: CardItem[] = [
@@ -64,20 +65,22 @@ const FOUNDATION: CardItem[] = [
   {
     name: '152-ФЗ соответствие',
     icon: 'ShieldCheck',
-    status: 'dev',
+    status: 'live',
     shortDesc: 'Персональные данные',
     fullDesc:
-      'Согласия, журнал доступа к данным, право на удаление. Подготовка к включению в РОИВ-периметр.',
-    note: 'Уведомление в Роскомнадзор подано',
+      'Согласия, журнал доступа к данным, право на удаление. Оператор ПДн зарегистрирован в реестре Роскомнадзора.',
+    note: 'Соответствует требованиям',
+    statusLabel: 'Соответствует',
   },
   {
     name: 'Реестр отеч. ПО',
     icon: 'BadgeCheck',
-    status: 'planned',
+    status: 'dev',
     shortDesc: 'Минцифры',
     fullDesc:
       'Включение «Нашей Семьи» в Единый реестр российских программ для ЭВМ — обязательно для B2G-контрактов.',
-    note: 'Подача в IV квартале 2026',
+    note: 'Документы поданы, ожидаем решение',
+    statusLabel: 'Документы поданы',
   },
   {
     name: 'Аналитика',
@@ -231,7 +234,7 @@ function CardSection({ title, subtitle, accentColor, accentBg, iconName, items }
                       className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold ${badge.text} bg-white border ${badge.border}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
-                      {badge.label}
+                      {m.statusLabel ?? badge.label}
                     </span>
                   </div>
                   <p className="text-[10px] text-gray-600 mt-0.5">{m.shortDesc}</p>

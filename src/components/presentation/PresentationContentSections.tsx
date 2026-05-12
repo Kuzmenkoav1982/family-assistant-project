@@ -254,10 +254,14 @@ export function PresentationContentSections() {
           <StatCard value="146+" label="Экранов" icon="Monitor" />
           <StatCard value="90" label="API-функций" icon="Server" />
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
           <StatCard value="151" label="Таблиц БД" icon="Database" />
           <StatCard value="30K+" label="Аналитических событий" icon="Activity" />
-          <StatCard value="12" label="Хабов" icon="LayoutGrid" />
+          <StatCard value="25" label="Сущностей" icon="Boxes" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <StatCard value="14" label="Хабов" icon="LayoutGrid" />
+          <StatCard value="73" label="Раздела" icon="Layers" />
         </div>
         <div className="mt-5 bg-emerald-50 rounded-xl p-4 text-center">
           <p className="text-sm font-semibold text-emerald-800">
