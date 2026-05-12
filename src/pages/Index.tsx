@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTasks } from '@/hooks/useTasks';
@@ -67,6 +69,7 @@ export default function Index({ onLogout }: IndexProps) {
 
   const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];
+  const [familyMembersOpen, setFamilyMembersOpen] = useState(false);
 
   useBirthdayReminders();
   useCalendarReminders();
@@ -236,12 +239,50 @@ export default function Index({ onLogout }: IndexProps) {
 
                 <TabsContent value="family">
                   {handlers.isWidgetEnabled('family-members') && (
-                    <FamilyMembersGrid
-                      members={familyMembers}
-                      onMemberClick={(member) => navigate(`/member/${member.id}`)}
-                      tasks={tasks}
-                      events={calendarEvents}
-                    />
+                    <Collapsible open={familyMembersOpen} onOpenChange={setFamilyMembersOpen}>
+                      <Card>
+                        <CollapsibleTrigger className="w-full">
+                          <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+                                <Icon name="Users" className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div className="text-left">
+                                <div className="font-semibold text-sm">Члены семьи</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {familyMembers.length > 0
+                                    ? `${familyMembers.length} ${familyMembers.length === 1 ? 'человек' : 'участников'} · подробности в Семья`
+                                    : 'Никого не добавлено'}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); navigate('/family-hub'); }}
+                                className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                              >
+                                Открыть в Семья →
+                              </button>
+                              <Icon
+                                name={familyMembersOpen ? 'ChevronUp' : 'ChevronDown'}
+                                className="h-4 w-4 text-muted-foreground"
+                              />
+                            </div>
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="px-4 pb-4">
+                            <FamilyMembersGrid
+                              members={familyMembers}
+                              onMemberClick={(member) => navigate(`/member/${member.id}`)}
+                              tasks={tasks}
+                              events={calendarEvents}
+                            />
+                          </div>
+                        </CollapsibleContent>
+                      </Card>
+                    </Collapsible>
                   )}
                 </TabsContent>
 

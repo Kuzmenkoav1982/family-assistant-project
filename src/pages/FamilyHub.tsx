@@ -8,6 +8,9 @@ import type { Modality } from '@/components/hub/ModalityBadge';
 import { signals } from '@/lib/cardStatus';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useFamilyTree } from '@/hooks/useFamilyTree';
+import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
+import { useTasks } from '@/hooks/useTasks';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 
 interface SubSection {
   id: string;
@@ -31,6 +34,9 @@ export default function FamilyHub() {
   // Реальные данные семьи из backend (не localStorage)
   const { members, loading: membersLoading } = useFamilyMembersContext();
   const { members: treeMembers } = useFamilyTree();
+  const { tasks: tasksRaw } = useTasks();
+  const { events: calendarEvents } = useCalendarEvents();
+  const tasks = tasksRaw || [];
 
   // Дети — фильтр по ролям и access_role (как в Children.tsx)
   const childrenList = useMemo(() => {
@@ -250,28 +256,47 @@ export default function FamilyHub() {
           { label: 'Семейный код', icon: 'Sparkles', path: '/family-matrix' },
         ]}
       >
-        <div>
-          <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
-            Сервисы
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between mb-2 px-2">
+              <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                Члены семьи
+              </div>
+              <div className="text-[11px] text-gray-400 dark:text-gray-500">
+                {familyCount > 0 ? `${familyCount} участников` : 'Никого не добавлено'}
+              </div>
+            </div>
+            <FamilyMembersGrid
+              members={Array.isArray(members) ? members : []}
+              onMemberClick={(member) => navigate(`/member/${member.id}`)}
+              tasks={tasks}
+              events={calendarEvents}
+            />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {subSections.map(s => (
-              <HubCardV2
-                key={s.id}
-                icon={s.icon}
-                iconColor={s.iconColor}
-                iconBg={s.iconBg}
-                title={s.title}
-                description={s.description}
-                context={s.context}
-                modality={s.modality}
-                status={s.status}
-                statusLabel={s.statusLabel}
-                isNew={s.isNew}
-                cta={s.cta}
-                onClick={() => navigate(s.path)}
-              />
-            ))}
+
+          <div>
+            <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
+              Сервисы
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {subSections.map(s => (
+                <HubCardV2
+                  key={s.id}
+                  icon={s.icon}
+                  iconColor={s.iconColor}
+                  iconBg={s.iconBg}
+                  title={s.title}
+                  description={s.description}
+                  context={s.context}
+                  modality={s.modality}
+                  status={s.status}
+                  statusLabel={s.statusLabel}
+                  isNew={s.isNew}
+                  cta={s.cta}
+                  onClick={() => navigate(s.path)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </HubLayoutV2>
