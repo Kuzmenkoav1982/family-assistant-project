@@ -3,8 +3,8 @@
 ## Purpose / Status
 
 - **Stage:** `stage-4-contract-convergence`
-- **Sub-stage:** 4.5 — manual smoke checklist (done в части документации; реальный прогон — на стороне пользователя)
-- **Status:** 4.1 / 4.2 / 4.3 / 4.4 / 4.5 — done. Осталось 4.6 (cleanup).
+- **Sub-stage:** 4.6 — cleanup. 4.6.1 part A (helper) done, part B (callsite migration) deferred. 4.6.2 done. 4.6.3 done с safe verdict для orphan.
+- **Status:** 4.1 / 4.2 / 4.3 / 4.4 / 4.5 — done. 4.6 — done по коду, единственный остаток — миграция 10 write-callsite-ов на `saveAuthSession()` (scope не выбран).
 - **Owner:** Юра / личный разработчик
 - **Goal:** убрать системную причину класса багов `user_id` vs `member_id` vs `family_member.id` — зафиксировать единый контракт идентичности между frontend / backend / storage.
 - **Living doc:** обновлять по мере 4.2 (adapter-layer), 4.3 (rename), 4.6 (cleanup).
@@ -484,3 +484,120 @@ user_data = {
 - **Q1.** ~~Health backend ожидает users.id или family_members.id?~~ **CLOSED in 4.2:** ответ — `family_members.id`. SQL-проверка на `t_p5815085_family_assistant_pro.health_profiles` показала: 7 из 8 рядов `user_id` матчатся в `family_members`, 0 — в `users`. Это **KE-health**, эквивалентна KE-life-road. Health surface обязан слать `X-User-Id = readActorMemberId()`. Зафиксировано в `src/services/healthApi.ts` (комментарий-шапка).
 - **Q2.** Должны ли мы менять имя HTTP-заголовка `X-User-Id` → `X-Actor-Member-Id` в life-road? Сейчас предлагается не менять (риск ломки сторонних интеграций), но фиксируем как открытый вопрос.
 - **Q3.** Demo-mode (`isDemoMode`) пересекается с health surface — нужно ли в 4.2 явно ветвить identity helper по demo-mode, или пусть demo живёт отдельной веткой через `DEMO_*` константы (как сейчас)?
+
+---
+
+## Stage 4.6 — Cleanup (final)
+
+Задача sub-stage 4.6 — закрыть три остаточных хвоста stage-3/4:
+- **4.6.1** — унификация auth write-path (writes/removes размазаны по 10+ файлам).
+- **4.6.2** — разбор raw `localStorage.getItem('userId')` по семантике.
+- **4.6.3** — mini-discovery `useUploadMedicalFile.ts` (orphan endpoint + children-data).
+
+### 4.6.1 — Auth write-path unification
+
+**Discovery (Explore-агент, 22 callsite-а):**
+
+| Категория | Файлов | Callsite-ов | Note |
+|---|---|---|---|
+| SET pairs `(token, user)` | 10 | 14 | 5 разных shape user-объекта, 3 варианта ключей |
+| REMOVE pairs | 7 | 8 | Несимметричные logout-ы: чистят только часть ключей |
+
+**Конфликт shape user-объекта (5 вариантов):**
+
+1. OAuth/Login: `{ id, email, name, family_id, member_id, access_role }`
+2. ActivateCallback: `{ id, email, family_id, member_id }`
+3. TestSelector: `{ id, member_id, family_id, name, role, avatar, permissions }`
+4. Settings (patch): `{ ...existing, family_name, logo_url, banner_url }`
+5. JoinFamily (patch): `{ ...existing, family_id, family_name, member_id }`
+
+**Helper создан (`src/lib/authStorage.ts`):**
+
+| Function | Назначение |
+|---|---|
+| `saveAuthSession({ token, user })` | Full write. Canonical `authToken`+`userData` + legacy mirror в `auth_token`/`user_data`/`user`. |
+| `updateAuthUser(patch)` | Partial merge для JoinFamily/Settings. Token не трогает. |
+| `clearAuthSession()` | Full clear всех вариантов ключей. |
+| `hasAuthSession()` | Sanity-check без валидации token. |
+
+**Парный READ:** `src/lib/identity.ts` (4.2). Семантика не дублируется — это противоположная сторона.
+
+**Status:** helper создан и протестирован линтером. Миграция 10 callsite-ов **отложена** (scope не выбран — рекомендованный "все 14 за раз" ждёт твоего ОК). Это **единственный остаток** 4.6, который не закрыт по коду.
+
+### 4.6.2 — Raw `localStorage.getItem('userId')` cleanup
+
+Discovery + classification:
+
+| File:Line | Goes To | Backend | Semantic | Verdict | Status |
+|---|---|---|---|---|---|
+| `pages/PermissionsManagement.tsx:19` | локальная переменная для UI | — (нигде не отправляется) | actorUserId-like comparison | safe as-is — UI-only | left as-is |
+| `components/pets/PetsAI.tsx:108` | JSON body `payload.userId` | `ai-assistant` (c0645bee-...) | actorUserId | replace with `readActorUserId()` | **DONE** |
+| `lib/devAgent/api.ts:31` | header `X-User-Id` (fallback) | dev-agent-admin / dev-agent-indexer | actorUserId (комментарий в коде явно говорит "users.id, NOT family_members.member_id") | replace with `readActorUserId()` | **DONE** |
+| `hooks/useUploadMedicalFile.ts:73` | header `X-User-Id` | **orphan** `2db47477-...` (backend в репо НЕ найден) | unknown — контракт не подтверждён | **leave as-is (orphan)** | left as-is per safe verdict |
+
+**После cleanup:**
+
+```
+grep "localStorage.getItem.{0,3}userId" src/**
+→ 2 совпадения:
+   - useUploadMedicalFile.ts:73  (orphan, осознанное исключение)
+   - PermissionsManagement.tsx:19 (UI-only, не actor)
+```
+
+Оба остатка — задокументированы и обоснованы.
+
+### 4.6.3 — useUploadMedicalFile.ts discovery matrix
+
+| Step | Endpoint | Auth mechanism | Actor semantic | Resource fields | Verified from repo | Verdict |
+|---|---|---|---|---|---|---|
+| 1 | `2db47477-9dfd-49f9-8f51-7ff388753d82` (orphan upload) | `X-Auth-Token`, `X-User-Id` headers | **unknown** | `file`, `filename`, `fileType`, `documentType`, `childId`, `relatedId`, `relatedType`, `title`, `description` (JSON body) | **no** (orphan — функция отсутствует в `backend/`) | request shape **frozen**: do not change without backend confirmation. Изменён ТОЛЬКО источник токена (raw → `readAuthToken()`). `X-User-Id` оставлен на raw `localStorage.getItem('userId')` как было. |
+| 2 | `d6f787e2-2e12-4c83-959c-8220442c6203` (children-data save) | `X-Auth-Token` header only (X-User-Id не используется на backend для authz) | none enforced by backend | `family_id`, `uploaded_by` пишутся as-is в payload | **yes** (backend подтверждён: payload as-is) | **provisional frontend mapping**: `family_id ← readActorFamilyId()` (families.id), `uploaded_by ← readActorUserId()` (users.id). Это допущение, не подтверждённый backend-контракт. |
+
+**Source-of-truth для helper-ов:** `src/lib/identity.ts` (read) + `src/lib/authStorage.ts` (write, после миграции callsite-ов).
+
+### 4.6 grep verification (final state, post-cleanup)
+
+Все grep-проверки выполнены против актуального `src/`:
+
+```
+# Raw actor reads
+grep "localStorage.getItem.{0,3}userId"           → 2 hits, обе задокументированы
+grep "localStorage.getItem.{0,3}familyMemberId"   → 0 hits ✓
+grep "getItem('userId')"                          → covered above
+
+# Auth writes (legacy direct localStorage.setItem)
+grep "setItem.{0,3}(authToken|auth_token|userData|user_data)" → 10 файлов (callsite-ы для миграции)
+
+# Auth removes (legacy direct localStorage.removeItem)
+grep "removeItem.{0,3}(authToken|auth_token|userData|user_data)" → 7 файлов (callsite-ы для миграции)
+```
+
+**Файлы с auth writes (ожидают миграции на `saveAuthSession`/`updateAuthUser`):**
+- `pages/Login.tsx`, `pages/Register.tsx`, `pages/ActivateCallback.tsx`, `pages/JoinFamily.tsx`, `pages/Settings.tsx`
+- `components/auth/AuthPage.tsx`, `components/AuthForm.tsx`
+- `hooks/usePermissions.ts`
+- `pages/DebugAuth.tsx`, `components/TestAccountSelector.tsx` (dev/test — оставить как есть по safe verdict)
+
+**Файлы с auth removes (ожидают миграции на `clearAuthSession`):**
+- `App.tsx`, `components/AuthGuard.tsx`, `components/GlobalTopBar.tsx`
+- `components/settings/AccountSettings.tsx`, `components/settings/useSettingsActions.ts`
+- `hooks/useIndexHandlers.ts`
+- `pages/OAuthDebug.tsx` (dev — оставить как есть)
+
+### 4.6 acceptance status
+
+| Acceptance criterion (из плана) | Status |
+|---|---|
+| Все auth writes идут через одну helper-точку | **partial** — helper готов, callsite migration deferred |
+| Дубликаты write-path не размазаны | **partial** — структурно решено через helper, физическая миграция callsite-ов отложена |
+| Остаточные raw `userId` reads разобраны по семантике | **done** (4 файла классифицированы) |
+| Безопасные места переведены на adapter | **done** (PetsAI, devAgent) |
+| `useUploadMedicalFile.ts` прошёл mini-discovery | **done** (matrix зафиксирована, orphen safe-as-is, children-data — provisional mapping) |
+| Docs обновлены | **done** (этот раздел) |
+| Regression-runner актуален | **pending** — фактический прогон на стороне пользователя |
+
+### 4.6 final blockers для sign-off stage 4
+
+1. **node `scripts/test-actor-user-id.mjs`** — фактический прогон + вывод консоли.
+2. **Browser smoke S1–S10** (из 4.5) — хотя бы первые 5 закрывают A1/A2/A3.
+3. **(Optional)** Миграция 10 auth-write callsite-ов на `saveAuthSession`/`updateAuthUser` — это уже не блокер identity-контракта (helper готов, identity adapter покрывает все legacy ключи на read-side), но желательно для гигиены.

@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
 import type { Pet } from '@/hooks/usePets';
+import { readActorUserId, readActorFamilyId } from '@/lib/identity';
 
 interface Props {
   pet?: Pet | null;
@@ -94,21 +95,12 @@ export default function PetsAI({ pet }: Props) {
     setLoading(true);
     setAnswer('');
     try {
-      let userId: string | undefined;
-      try {
-        const raw = localStorage.getItem('userData');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed?.id) userId = String(parsed.id);
-        }
-      } catch {
-        userId = undefined;
-      }
-      if (!userId) {
-        const legacy = localStorage.getItem('userId');
-        if (legacy) userId = legacy;
-      }
-      const familyId = localStorage.getItem('familyId') || undefined;
+      // Stage 4.6.2 — actorUserId (users.id) для ai-assistant payload.
+      // Раньше тут был трёх-уровневый fallback: userData.id, затем raw legacy
+      // ключ, затем undefined. Identity adapter уже покрывает все варианты
+      // (userData / user_data / user), поэтому достаточно одного источника.
+      const userId = readActorUserId() ?? undefined;
+      const familyId = readActorFamilyId() ?? undefined;
 
       const payload: Record<string, unknown> = {
         messages: [{ role: 'user', content: contextLine ? `${contextLine}\n\nВопрос: ${q}` : q }],

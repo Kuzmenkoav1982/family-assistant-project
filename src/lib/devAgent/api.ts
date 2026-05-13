@@ -3,6 +3,7 @@
  * Action-based эндпоинт, две функции: dev-agent-admin (read+chat) и dev-agent-indexer (seed).
  */
 import func2url from '../../../backend/func2url.json';
+import { readActorUserId } from '@/lib/identity';
 
 const ADMIN_URL = (func2url as Record<string, string>)['dev-agent-admin'];
 const INDEXER_URL = (func2url as Record<string, string>)['dev-agent-indexer'];
@@ -11,26 +12,13 @@ export type DAEnv = 'stage' | 'prod';
 export type DAMode = 'explain' | 'locate' | 'plan' | 'patch';
 
 /**
- * Resolve current user UUID for X-User-Id header.
+ * Stage 4.6.2 — resolve current actor user UUID for X-User-Id header.
  * DevAgent backend expects users.id (uuid), NOT family_members.member_id.
- * Priority: userData.id → user_data.id → fallback to explicit 'userId' key.
- * Returns '' if nothing usable found.
+ * Делегируем identity adapter, который покрывает userData/user_data/user
+ * варианты. Никакого raw fallback на 'userId'.
  */
 function resolveUserId(): string {
-  for (const key of ['userData', 'user_data', 'user']) {
-    const raw = localStorage.getItem(key);
-    if (!raw) continue;
-    try {
-      const u = JSON.parse(raw);
-      const id = u?.id;
-      if (id !== undefined && id !== null && id !== '') return String(id);
-    } catch {
-      /* ignore parse errors, try next key */
-    }
-  }
-  const direct = localStorage.getItem('userId');
-  if (direct) return String(direct);
-  return '';
+  return readActorUserId() ?? '';
 }
 
 async function call<T>(url: string, action: string, env: DAEnv,

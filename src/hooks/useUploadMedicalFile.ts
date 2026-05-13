@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { readAuthToken, readActorUserId, readActorFamilyId } from '@/lib/identity';
 
 export interface MedicalDocument {
   id: string;
@@ -57,11 +58,18 @@ export function useUploadMedicalFile() {
       
       setProgress(60);
 
+      // Stage 4.6.3 — orphan upload endpoint.
+      // Backend этой функции НЕ найден в репо. Контракт actor-семантики не
+      // подтверждён. Поэтому форму запроса не меняем: оставляем X-User-Id
+      // ровно так, как было исторически (raw localStorage.getItem('userId')),
+      // и НЕ заменяем его ни на actorUserId, ни на actorMemberId.
+      // Меняем ТОЛЬКО источник токена: identity adapter знает оба ключа
+      // (authToken / auth_token), это не меняет семантику запроса.
       const response = await fetch('https://functions.poehali.dev/2db47477-9dfd-49f9-8f51-7ff388753d82', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Auth-Token': localStorage.getItem('authToken') || '',
+          'X-Auth-Token': readAuthToken() || '',
           'X-User-Id': localStorage.getItem('userId') || '',
         },
         body: JSON.stringify({
@@ -102,11 +110,23 @@ export function useUploadMedicalFile() {
         uploadedAt: result.uploadedAt || new Date().toISOString(),
       };
 
+      // Stage 4.6.3 — children-data endpoint (медицинская карта ребёнка).
+      // Backend в репо подтверждён: payload пишется as-is, X-User-Id не
+      // используется на стороне backend для authorization (X-Auth-Token only).
+      //
+      // Provisional frontend mapping (backend contract for these fields
+      // NOT verified from repo):
+      //   family_id   ← readActorFamilyId()   (families.id, resource scope)
+      //   uploaded_by ← readActorUserId()      (users.id, actor user)
+      //
+      // Без fallback '1' и без raw localStorage reads.
+      const actorUserId = readActorUserId();
+      const actorFamilyId = readActorFamilyId();
       const saveResponse = await fetch('https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Auth-Token': localStorage.getItem('authToken') || '',
+          'X-Auth-Token': readAuthToken() || '',
         },
         body: JSON.stringify({
           action: 'add',
@@ -114,7 +134,7 @@ export function useUploadMedicalFile() {
           type: 'medical_document',
           data: {
             id: result.documentId,
-            family_id: localStorage.getItem('familyId') || '',
+            family_id: actorFamilyId ?? '',
             document_type: documentType,
             file_url: result.url,
             file_type: file.type,
@@ -124,7 +144,7 @@ export function useUploadMedicalFile() {
             related_type: relatedType,
             title,
             description,
-            uploaded_by: localStorage.getItem('userId') || '',
+            uploaded_by: actorUserId ?? '',
             uploaded_at: result.uploadedAt || new Date().toISOString(),
           },
         }),
