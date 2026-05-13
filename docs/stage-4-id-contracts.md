@@ -3,11 +3,23 @@
 ## Purpose / Status
 
 - **Stage:** `stage-4-contract-convergence`
-- **Sub-stage:** 4.1 — contract inventory (this document)
-- **Status:** initial pass — read-only audit; no behaviour changes yet
+- **Sub-stage:** 4.2 — adapter-layer + portfolio/health migration (in progress)
+- **Status:** 4.1 done; 4.2 — `src/lib/identity.ts` создан, portfolio + health переведены.
 - **Owner:** Юра / личный разработчик
 - **Goal:** убрать системную причину класса багов `user_id` vs `member_id` vs `family_member.id` — зафиксировать единый контракт идентичности между frontend / backend / storage.
 - **Living doc:** обновлять по мере 4.2 (adapter-layer), 4.3 (rename), 4.6 (cleanup).
+
+### Stage 4.2 changelog
+
+- ✅ `src/lib/identity.ts` — единая точка identity (`readActorUserId`, `readActorMemberId`, `readActorFamilyId`, `readAuthToken`, `readNormalizedIdentity`). Поддерживает legacy-ключи `userData`/`user_data`/`user` и `authToken`/`auth_token`.
+- ✅ `src/services/portfolioApi.ts` переведён на `readActorUserId()`. `pickActorUserIdFromStorage` оставлен как тонкий re-export для regression-runner — теперь делегирует identity adapter.
+- ✅ **Q1 closed:** `health_profiles.user_id` физически хранит `family_members.id` (7 из 8 проверенных строк в БД ссылаются на `family_members`, 0 — на `users`). Health surface — это **KE-health**, такая же legacy-семантика как life-road.
+- ✅ `src/services/healthApi.ts` — тонкий wrapper по образу portfolioApi. X-User-Id берётся из `readActorMemberId()`. Никаких fallback на `'1'`.
+- ✅ `src/hooks/useHealthAPI.ts` переписан через healthApi wrapper. Локальный `getUserId()` с fallback `'1'` удалён → закрывает **A1, A5**.
+- ✅ `src/hooks/useHealthNew.ts`: `handleDeleteMedication` и `handleDeleteRecord` переведены на `healthApi.delete()`. Старый паттерн `X-User-Id: selectedProfile.id` (health_profiles.id вместо actor) удалён → закрывает **A2**.
+- ✅ Ручная сборка fetch+headers в health-хуках устранена → закрывает **A6**.
+- 🟡 **Life-road** — не трогаем в 4.2 (KE известная, рефакторинг чтения storage пойдёт в 4.3 через `readActorMemberId()`).
+- 🟡 **A3, A4** (`localStorage.userId`, дубликаты storage-ключей) — остаются в очереди 4.3 / 4.6.
 
 ---
 
@@ -231,6 +243,6 @@ user_data = {
 
 ## Open questions
 
-- **Q1.** Health backend ожидает users.id или family_members.id? Нужно сверить с `backend/health-profiles/index.py` — это решающее «куда направляем remediation в 4.2». Гипотеза: users.id (по полю `health_profiles.user_id`), но это надо подтвердить отдельным проходом перед началом 4.2.
+- **Q1.** ~~Health backend ожидает users.id или family_members.id?~~ **CLOSED in 4.2:** ответ — `family_members.id`. SQL-проверка на `t_p5815085_family_assistant_pro.health_profiles` показала: 7 из 8 рядов `user_id` матчатся в `family_members`, 0 — в `users`. Это **KE-health**, эквивалентна KE-life-road. Health surface обязан слать `X-User-Id = readActorMemberId()`. Зафиксировано в `src/services/healthApi.ts` (комментарий-шапка).
 - **Q2.** Должны ли мы менять имя HTTP-заголовка `X-User-Id` → `X-Actor-Member-Id` в life-road? Сейчас предлагается не менять (риск ломки сторонних интеграций), но фиксируем как открытый вопрос.
 - **Q3.** Demo-mode (`isDemoMode`) пересекается с health surface — нужно ли в 4.2 явно ветвить identity helper по demo-mode, или пусть demo живёт отдельной веткой через `DEMO_*` константы (как сейчас)?

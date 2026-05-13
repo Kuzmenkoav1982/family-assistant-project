@@ -4,35 +4,25 @@ import type {
   Insight,
   Achievement,
 } from '@/types/portfolio.types';
+import {
+  readActorUserId,
+  readNormalizedIdentityFromStorage,
+} from '@/lib/identity';
 
 const PORTFOLIO_URL = 'https://functions.poehali.dev/3f5999bc-b4e5-41bd-b39f-c64e45c53d5a';
 
-/** Stage-3 hardening: для X-User-Id берём ТОЛЬКО каноничный user_id (users.id),
- *  никогда не member_id (family_members.id).
- *  Источник истины — userData.id из login/register response (backend/auth/index.py:364).
- *  Если user_id недоступен — возвращаем null. Лучше получить честный 401, чем тихо
- *  слать чужой идентификатор и наблюдать ложные 403.
+/**
+ * Stage-3 hardening (закреплён в stage-4):
+ *   X-User-Id = users.id (каноничный аккаунт). НИКОГДА не family_members.id.
+ *   Источник истины — src/lib/identity.ts (readActorUserId).
  *
- *  Экспортируется как pure-функция от storage-гетера для unit-тестов.
+ * Stage-4 (4.2): локальный pickActorUserIdFromStorage оставлен как public re-export
+ * для regression-runner scripts/test-actor-user-id.mjs — он держит инвариант
+ * actor-id selection. Реализация делегирует identity adapter, чтобы была ОДНА
+ * точка истины.
  */
 export function pickActorUserIdFromStorage(read: (key: string) => string | null): string | null {
-  for (const key of ['userData', 'user_data', 'user']) {
-    const raw = read(key);
-    if (!raw) continue;
-    try {
-      const u = JSON.parse(raw);
-      // user.id == users.id (см. backend/auth/index.py). НЕ member_id, НЕ memberId.
-      const id = u?.id || u?.user_id;
-      if (id) return String(id);
-    } catch {
-      /* ignore */
-    }
-  }
-  return null;
-}
-
-function getActorUserId(): string | null {
-  return pickActorUserIdFromStorage((key) => localStorage.getItem(key));
+  return readNormalizedIdentityFromStorage(read).actorUserId;
 }
 
 /**
@@ -41,7 +31,7 @@ function getActorUserId(): string | null {
  */
 function buildHeaders(extra?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = { ...(extra || {}) };
-  const uid = getActorUserId();
+  const uid = readActorUserId();
   if (uid) headers['X-User-Id'] = uid;
   return headers;
 }

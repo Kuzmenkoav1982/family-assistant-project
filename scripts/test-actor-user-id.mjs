@@ -1,15 +1,23 @@
 /**
- * Регрессионный тест на actor-user-id логику для Portfolio.
+ * Регрессионный тест на actor-id selection логику.
  * Запуск: node scripts/test-actor-user-id.mjs
  *
- * ВАЖНО: self-contained — СПЕЦИАЛЬНО НЕ импортирует TS-исходники из src/.
- * Plain Node не умеет .ts напрямую, тащить ts-node/tsx на freeze-неделе не хочется.
- * Поэтому функции pickActorUserIdFromStorage и buildHeadersImpl продублированы
- * здесь как страховка. Контракт обязан совпадать с src/services/portfolioApi.ts.
- * Если меняешь helper в проде — меняй и здесь. Расхождение поймают смежные кейсы.
+ * Stage 4 (4.2.8): после введения единого identity adapter точкой истины
+ * стал src/lib/identity.ts (readNormalizedIdentityFromStorage и обёртки
+ * readActorUserId / readActorMemberId / readActorFamilyId / readAuthToken).
  *
- * Класс бага под защитой: чтобы X-User-Id всегда содержал users.id, а не
- * member_id / familyMemberId.
+ * src/services/portfolioApi.ts → pickActorUserIdFromStorage теперь делегирует
+ * туда. Если меняешь identity adapter в проде — синхронизируй и блок 3 здесь.
+ *
+ * ВАЖНО: self-contained — СПЕЦИАЛЬНО НЕ импортирует TS-исходники из src/.
+ * Plain Node не умеет .ts напрямую, тащить ts-node/tsx не хочется. Поэтому
+ * pickActorUserIdFromStorage, buildHeadersImpl и readNormalizedIdentity
+ * продублированы здесь как страховка от расхождения контракта.
+ *
+ * Классы багов под защитой:
+ *  - portfolio: X-User-Id всегда users.id, а не member_id / familyMemberId.
+ *  - identity adapter: actorUserId / actorMemberId / actorFamilyId различают
+ *    разные сущности и никогда не подменяют одно другим.
  */
 
 // === Реализации под тестом — должны совпадать с src/services/portfolioApi.ts ===
@@ -212,6 +220,179 @@ assertDeep(
   'extra={}, getActor=U → { X-User-Id: U }',
   buildHeadersImpl({}, () => USER_ID),
   { 'X-User-Id': USER_ID },
+);
+
+// === Блок 3: identity adapter (src/lib/identity.ts) ===
+//
+// Локальная копия readNormalizedIdentityFromStorage. Контракт обязан совпадать
+// с src/lib/identity.ts. Если меняешь там — синхронизируй здесь.
+
+const USER_KEYS = ['userData', 'user_data', 'user'];
+const TOKEN_KEYS = ['authToken', 'auth_token'];
+
+function safeParse(raw) {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw);
+    return v && typeof v === 'object' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+function pickString(obj, ...candidates) {
+  if (!obj) return null;
+  for (const c of candidates) {
+    const v = obj[c];
+    if (v !== undefined && v !== null && v !== '') return String(v);
+  }
+  return null;
+}
+
+function readNormalizedIdentityFromStorage(read) {
+  let userObj = null;
+  let userSourceKey = null;
+  for (const key of USER_KEYS) {
+    const parsed = safeParse(read(key));
+    if (parsed) {
+      userObj = parsed;
+      userSourceKey = key;
+      break;
+    }
+  }
+  let authToken = null;
+  let tokenSourceKey = null;
+  for (const key of TOKEN_KEYS) {
+    const v = read(key);
+    if (v) {
+      authToken = v;
+      tokenSourceKey = key;
+      break;
+    }
+  }
+  return {
+    actorUserId: pickString(userObj, 'id', 'user_id'),
+    actorMemberId: pickString(userObj, 'member_id', 'memberId'),
+    actorFamilyId: pickString(userObj, 'family_id', 'familyId'),
+    authToken,
+    userSourceKey,
+    tokenSourceKey,
+  };
+}
+
+console.log('\n=== identity adapter (readNormalizedIdentityFromStorage) ===\n');
+
+const FAMILY_ID = '99999999-aaaa-bbbb-cccc-dddddddddddd';
+const TOKEN = 'jwt-token-abc';
+
+// 15) полный shape: id + member_id + family_id + token
+assertDeep(
+  'полный userData + authToken → все поля',
+  readNormalizedIdentityFromStorage(
+    makeStorage({
+      userData: JSON.stringify({ id: USER_ID, member_id: MEMBER_ID, family_id: FAMILY_ID }),
+      authToken: TOKEN,
+    }),
+  ),
+  {
+    actorUserId: USER_ID,
+    actorMemberId: MEMBER_ID,
+    actorFamilyId: FAMILY_ID,
+    authToken: TOKEN,
+    userSourceKey: 'userData',
+    tokenSourceKey: 'authToken',
+  },
+);
+
+// 16) member_id и user_id живут отдельно: дать только member_id — user_id остаётся null
+assertEq(
+  'только member_id → actorUserId == null',
+  readNormalizedIdentityFromStorage(
+    makeStorage({ userData: JSON.stringify({ member_id: MEMBER_ID }) }),
+  ).actorUserId,
+  null,
+);
+
+// 17) и наоборот: только id → actorMemberId == null
+assertEq(
+  'только id → actorMemberId == null',
+  readNormalizedIdentityFromStorage(
+    makeStorage({ userData: JSON.stringify({ id: USER_ID }) }),
+  ).actorMemberId,
+  null,
+);
+
+// 18) legacy ключ user_data + auth_token подхватываются
+assertDeep(
+  'user_data + auth_token (legacy keys)',
+  readNormalizedIdentityFromStorage(
+    makeStorage({
+      user_data: JSON.stringify({ id: USER_ID, memberId: MEMBER_ID, familyId: FAMILY_ID }),
+      auth_token: TOKEN,
+    }),
+  ),
+  {
+    actorUserId: USER_ID,
+    actorMemberId: MEMBER_ID,
+    actorFamilyId: FAMILY_ID,
+    authToken: TOKEN,
+    userSourceKey: 'user_data',
+    tokenSourceKey: 'auth_token',
+  },
+);
+
+// 19) пустой storage → все поля null
+assertDeep(
+  'пустой storage → всё null',
+  readNormalizedIdentityFromStorage(makeStorage({})),
+  {
+    actorUserId: null,
+    actorMemberId: null,
+    actorFamilyId: null,
+    authToken: null,
+    userSourceKey: null,
+    tokenSourceKey: null,
+  },
+);
+
+// 20) приоритет authToken > auth_token: если есть оба, берём authToken
+assertEq(
+  'authToken приоритетнее auth_token',
+  readNormalizedIdentityFromStorage(
+    makeStorage({ authToken: 'A', auth_token: 'B' }),
+  ).authToken,
+  'A',
+);
+
+// 21) приоритет userData > user_data > user
+assertEq(
+  'userData приоритетнее user_data',
+  readNormalizedIdentityFromStorage(
+    makeStorage({
+      userData: JSON.stringify({ id: 'fromUserData' }),
+      user_data: JSON.stringify({ id: 'fromUserDataAlt' }),
+    }),
+  ).actorUserId,
+  'fromUserData',
+);
+
+// 22) КРИТИЧНЫЙ inv: не должно быть автоматического fallback member_id → user_id
+//     (защита от старого бага в useHealthAPI: userData.member_id || '1')
+assertEq(
+  'inv: member_id никогда не подменяет user_id',
+  readNormalizedIdentityFromStorage(
+    makeStorage({ userData: JSON.stringify({ member_id: MEMBER_ID }) }),
+  ).actorUserId,
+  null,
+);
+
+// 23) КРИТИЧНЫЙ inv: нет hardcoded fallback вроде '1'
+assertEq(
+  'inv: empty userData без id → actorUserId === null, не "1"',
+  readNormalizedIdentityFromStorage(
+    makeStorage({ userData: JSON.stringify({ email: 'x@y.z' }) }),
+  ).actorUserId,
+  null,
 );
 
 // === Итог ===

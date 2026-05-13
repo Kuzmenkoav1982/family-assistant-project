@@ -1,362 +1,127 @@
 import { useState, useEffect } from 'react';
-import func2url from '../../backend/func2url.json';
+import { healthApi } from '@/services/healthApi';
 
-const API_URLS = {
-  profiles: func2url['health-profiles'],
-  records: func2url['health-records'],
-  vaccinations: func2url['health-vaccinations'],
-  medications: func2url['health-medications'],
-  vitals: func2url['health-vitals'],
-  doctors: func2url['health-doctors'],
-  insurance: func2url['health-insurance'],
-  telemedicine: func2url['health-telemedicine'],
-};
+/**
+ * Stage 4 (4.2.5): хуки используют healthApi wrapper.
+ *
+ * Изменения по сравнению с pre-stage-4:
+ *   - убран локальный getUserId() с fallback '1';
+ *   - X-User-Id берётся в healthApi из readActorMemberId() (см. KE-health);
+ *   - вся ручная сборка fetch + headers выкинута.
+ *
+ * Подробности контракта — docs/stage-4-id-contracts.md и комментарий в src/services/healthApi.ts.
+ */
 
-function getUserId(): string | null {
-  const userDataStr = localStorage.getItem('userData');
-  if (userDataStr) {
-    try {
-      const userData = JSON.parse(userDataStr);
-      return userData.member_id || '1';
-    } catch (e) {
-      console.error('[getUserId] Failed to parse userData:', e);
-    }
-  }
-  return '1';
-}
-
-export function useHealthProfiles() {
-  const [profiles, setProfiles] = useState<any[]>([]);
+function useHealthResource<T>(
+  fetcher: () => Promise<T[]>,
+  deps: ReadonlyArray<unknown>,
+  fieldName: string,
+) {
+  const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   useEffect(() => {
-    const fetchProfiles = async () => {
+    let cancelled = false;
+    const run = async () => {
       try {
         setLoading(true);
-        const userId = getUserId();
-        const authToken = localStorage.getItem('authToken');
-        
-        console.log('[useHealthProfiles] Starting fetch, userId:', userId, 'token:', !!authToken, 'API URL:', API_URLS.profiles);
-        
-        const response = await fetch(API_URLS.profiles, {
-          credentials: 'include',
-          headers: {
-            'X-User-Id': userId!,
-            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-          },
-        });
-
-        console.log('[useHealthProfiles] Response status:', response.status);
-
-        if (!response.ok) {
-          console.error('[useHealthProfiles] Failed to fetch:', response.status, response.statusText);
-          throw new Error('Failed to fetch profiles');
-        }
-
-        const data = await response.json();
-        console.log('[useHealthProfiles] Received profiles:', data);
-        setProfiles(data);
+        const data = await fetcher();
+        if (!cancelled) setItems(data);
       } catch (err) {
-        console.error('[useHealthProfiles] Error:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        if (!cancelled) {
+          console.error(`[${fieldName}] fetch error:`, err);
+          setError(err instanceof Error ? err.message : 'Unknown error');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
+    run();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [...deps, refetchTrigger]);
 
-    fetchProfiles();
-  }, [refetchTrigger]);
+  const refetch = () => setRefetchTrigger((p) => p + 1);
+  return { items, loading, error, refetch };
+}
 
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
+/* Public hook surface: возвращаем any[] для backwards-compat с useHealthNew,
+ * который массово обращается к динамическим полям записей. */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-  return { profiles, loading, error, refetch };
+export function useHealthProfiles() {
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('profiles'),
+    [],
+    'useHealthProfiles',
+  );
+  return { profiles: items, loading, error, refetch };
 }
 
 export function useHealthRecords(profileId?: string) {
-  const [records, setRecords] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchRecords = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const url = profileId
-          ? `${API_URLS.records}?profileId=${profileId}`
-          : API_URLS.records;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch records');
-        }
-
-        const data = await response.json();
-        setRecords(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecords();
-  }, [profileId, refetchTrigger]);
-
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
-
-  return { records, loading, error, refetch };
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('records', { profileId }),
+    [profileId],
+    'useHealthRecords',
+  );
+  return { records: items, loading, error, refetch };
 }
 
 export function useVaccinations(profileId?: string) {
-  const [vaccinations, setVaccinations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchVaccinations = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const url = profileId
-          ? `${API_URLS.vaccinations}?profileId=${profileId}`
-          : API_URLS.vaccinations;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch vaccinations');
-        }
-
-        const data = await response.json();
-        setVaccinations(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVaccinations();
-  }, [profileId, refetchTrigger]);
-
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
-
-  return { vaccinations, loading, error, refetch };
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('vaccinations', { profileId }),
+    [profileId],
+    'useVaccinations',
+  );
+  return { vaccinations: items, loading, error, refetch };
 }
 
 export function useMedications(profileId?: string) {
-  const [medications, setMedications] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchMedications = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const url = profileId
-          ? `${API_URLS.medications}?profileId=${profileId}`
-          : API_URLS.medications;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch medications');
-        }
-
-        const data = await response.json();
-        setMedications(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMedications();
-  }, [profileId, refetchTrigger]);
-
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
-
-  return { medications, loading, error, refetch };
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('medications', { profileId }),
+    [profileId],
+    'useMedications',
+  );
+  return { medications: items, loading, error, refetch };
 }
 
 export function useVitalRecords(profileId?: string) {
-  const [vitals, setVitals] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchVitals = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const url = profileId
-          ? `${API_URLS.vitals}?profileId=${profileId}`
-          : API_URLS.vitals;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch vitals');
-        }
-
-        const data = await response.json();
-        setVitals(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchVitals();
-  }, [profileId, refetchTrigger]);
-
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
-
-  return { vitals, loading, error, refetch };
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('vitals', { profileId }),
+    [profileId],
+    'useVitalRecords',
+  );
+  return { vitals: items, loading, error, refetch };
 }
 
 export function useDoctors() {
-  const [doctors, setDoctors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const response = await fetch(API_URLS.doctors, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch doctors');
-        }
-
-        const data = await response.json();
-        setDoctors(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDoctors();
-  }, [refetchTrigger]);
-
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
-
-  return { doctors, loading, error, refetch };
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('doctors'),
+    [],
+    'useDoctors',
+  );
+  return { doctors: items, loading, error, refetch };
 }
 
 export function useInsurance(profileId?: string) {
-  const [insurance, setInsurance] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-
-  useEffect(() => {
-    const fetchInsurance = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const url = profileId
-          ? `${API_URLS.insurance}?profileId=${profileId}`
-          : API_URLS.insurance;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch insurance');
-        }
-
-        const data = await response.json();
-        setInsurance(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInsurance();
-  }, [profileId, refetchTrigger]);
-
-  const refetch = () => setRefetchTrigger(prev => prev + 1);
-
-  return { insurance, loading, error, refetch };
+  const { items, loading, error, refetch } = useHealthResource<any>(
+    () => healthApi.get<any[]>('insurance', { profileId }),
+    [profileId],
+    'useInsurance',
+  );
+  return { insurance: items, loading, error, refetch };
 }
 
 export function useTelemedicine(profileId?: string) {
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        setLoading(true);
-        const userId = getUserId();
-        const url = profileId
-          ? `${API_URLS.telemedicine}?profileId=${profileId}`
-          : API_URLS.telemedicine;
-
-        const response = await fetch(url, {
-          headers: {
-            'X-User-Id': userId!,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch telemedicine sessions');
-        }
-
-        const data = await response.json();
-        setSessions(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSessions();
-  }, [profileId]);
-
-  return { sessions, loading, error };
+  const { items, loading, error } = useHealthResource<any>(
+    () => healthApi.get<any[]>('telemedicine', { profileId }),
+    [profileId],
+    'useTelemedicine',
+  );
+  return { sessions: items, loading, error };
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

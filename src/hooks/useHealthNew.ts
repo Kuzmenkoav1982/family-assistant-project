@@ -10,7 +10,7 @@ import {
 } from '@/hooks/useHealthAPI';
 import type { HealthProfile } from '@/types/health';
 import { useToast } from '@/hooks/use-toast';
-import func2url from '../../backend/func2url.json';
+import { healthApi } from '@/services/healthApi';
 
 const MEMBER_PHOTO_MAP: Record<string, string> = {
   'Анастасия': 'https://cdn.poehali.dev/files/3a7d0304-7fd5-4cd7-ac79-f4c235eb7484.png',
@@ -23,8 +23,8 @@ const MEMBER_PHOTO_MAP: Record<string, string> = {
 export default function useHealthNew() {
   const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
   const authToken = localStorage.getItem('authToken');
-  const [editingMedication, setEditingMedication] = useState<any>(null);
-  const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [editingMedication, setEditingMedication] = useState<Record<string, unknown> | null>(null);
+  const [editingRecord, setEditingRecord] = useState<Record<string, unknown> | null>(null);
   const { toast } = useToast();
 
   const [selectedProfile, setSelectedProfile] = useState<HealthProfile | null>(() => {
@@ -101,24 +101,15 @@ export default function useHealthNew() {
     return MEMBER_PHOTO_MAP[profile.userName] || null;
   };
 
+  /* Stage-4 (4.2.6): убран ручной fetch + ручная сборка X-User-Id.
+   * Старая реализация шла как `X-User-Id: selectedProfile.id` — это
+   * health_profiles.id, не actor identity. Backend ожидает family_members.id
+   * (см. KE-health в docs/stage-4-id-contracts.md). Закрываем A2 (P0). */
   const handleDeleteMedication = async (id: string) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(func2url['health-medications'], {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': selectedProfile!.id,
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({ id })
-      });
-      if (response.ok) {
-        toast({ title: 'Лекарство удалено', description: 'Лекарство успешно удалено из списка' });
-        refetchMedications();
-      } else {
-        throw new Error('Ошибка при удалении');
-      }
+      await healthApi.delete('medications', { id });
+      toast({ title: 'Лекарство удалено', description: 'Лекарство успешно удалено из списка' });
+      refetchMedications();
     } catch {
       toast({ title: 'Ошибка', description: 'Не удалось удалить лекарство', variant: 'destructive' });
     }
@@ -126,22 +117,9 @@ export default function useHealthNew() {
 
   const handleDeleteRecord = async (id: string) => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(func2url['health-records'], {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': selectedProfile!.id,
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({ id })
-      });
-      if (response.ok) {
-        toast({ title: 'Запись удалена' });
-        refetchRecords();
-      } else {
-        throw new Error('Ошибка при удалении');
-      }
+      await healthApi.delete('records', { id });
+      toast({ title: 'Запись удалена' });
+      refetchRecords();
     } catch {
       toast({ title: 'Ошибка', description: 'Не удалось удалить запись', variant: 'destructive' });
     }
