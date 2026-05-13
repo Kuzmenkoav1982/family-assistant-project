@@ -96,6 +96,14 @@ export interface GoalActionLink {
   keyResultId?: string | null;
   meta?: Record<string, unknown> | null;
   createdAt?: string;
+  // Origin-extras: возвращаются при поиске по entityId (Этап 3.2.1).
+  // Если goal/milestone/KR удалены — соответствующее поле null,
+  // UI должен корректно обработать «битые» ссылки.
+  goalTitle?: string | null;
+  goalStatus?: string | null;
+  goalFrameworkType?: string | null;
+  milestoneTitle?: string | null;
+  keyResultTitle?: string | null;
 }
 
 export interface BalanceSnapshot {

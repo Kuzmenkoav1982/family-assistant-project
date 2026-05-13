@@ -982,6 +982,46 @@ def _handle_links(method, cur, conn, family_id, user_id, item_id, event):
     qp = event.get('queryStringParameters') or {}
     body = json.loads(event.get('body') or '{}')
     goal_id = qp.get('goalId') or body.get('goalId')
+    # Этап 3.2.1: обратный поиск origin links по сущности.
+    # GET /links?entityType=task&entityId=<id> — для Planning UI.
+    entity_type = qp.get('entityType')
+    entity_id = qp.get('entityId')
+
+    if method == 'GET' and entity_type and entity_id:
+        if entity_type not in {'task', 'habit', 'ritual', 'event'}:
+            return _resp(400, {'error': 'invalid entityType'})
+        # Только связи в рамках семьи: JOIN на life_goals + проверка family_id
+        cur.execute(
+            '''
+            SELECT l.id, l.goal_id, l.entity_type, l.entity_id, l.milestone_id, l.key_result_id, l.meta, l.created_at,
+                   g.title AS goal_title, g.status AS goal_status, g.framework_type AS goal_framework_type
+            FROM goal_action_links l
+            JOIN life_goals g ON g.id = l.goal_id
+            WHERE l.entity_type = %s AND l.entity_id = %s AND g.family_id = %s
+            ORDER BY l.created_at DESC
+            ''',
+            (entity_type, str(entity_id), family_id),
+        )
+        rows = cur.fetchall()
+        # Подтягиваем заголовки milestone/KR, если есть, чтобы UI не дёргал ещё ручки
+        result = []
+        for r in rows:
+            base = _link_to_dict(r)
+            base['goalTitle'] = r[8]
+            base['goalStatus'] = r[9]
+            base['goalFrameworkType'] = r[10] or 'generic'
+            base['milestoneTitle'] = None
+            base['keyResultTitle'] = None
+            if r[4]:
+                cur.execute('SELECT title FROM goal_milestones WHERE id = %s', (r[4],))
+                row_m = cur.fetchone()
+                base['milestoneTitle'] = row_m[0] if row_m else None
+            if r[5]:
+                cur.execute('SELECT title FROM goal_key_results WHERE id = %s', (r[5],))
+                row_k = cur.fetchone()
+                base['keyResultTitle'] = row_k[0] if row_k else None
+            result.append(base)
+        return _resp(200, result)
 
     if method == 'GET':
         if not goal_id or not _assert_goal_owned(cur, goal_id, family_id):
@@ -1003,6 +1043,10 @@ def _handle_links(method, cur, conn, family_id, user_id, item_id, event):
         # Этап 3.1.1: семантика связи. Допустимые типы фиксированы.
         if et not in {'task', 'habit', 'ritual', 'event'}:
             return _resp(400, {'error': 'invalid entityType', 'allowed': ['task', 'habit', 'ritual', 'event']})
+        # КОНТРАКТ Этапа 3.1: UNIQUE (goal_id, entity_type, entity_id).
+        # Внутри одной цели у одной задачи может быть только ОДИН origin-слой
+        # (или goal, или milestone, или KR — не одновременно).
+        # Между разными целями одна и та же задача может иметь несколько связей.
         cur.execute('''
             INSERT INTO goal_action_links (goal_id, entity_type, entity_id, milestone_id, key_result_id, meta)
             VALUES (%s, %s, %s, %s, %s, %s::jsonb)

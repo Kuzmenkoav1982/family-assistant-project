@@ -98,6 +98,12 @@ export const lifeApi = {
   // Action links (связь цели с задачами/привычками/событиями)
   listLinks: (goalId: string) =>
     call<GoalActionLink[]>('GET', `?resource=links&goalId=${goalId}`),
+  /** Этап 3.2.1: обратный поиск origin-links по сущности (для Planning UI). */
+  listLinksByEntity: (entityType: string, entityId: string) =>
+    call<GoalActionLink[]>(
+      'GET',
+      `?resource=links&entityType=${encodeURIComponent(entityType)}&entityId=${encodeURIComponent(entityId)}`,
+    ),
   createLink: (l: Partial<GoalActionLink> & { goalId: string; entityType: string; entityId: string }) =>
     call<GoalActionLink>('POST', '?resource=links', l),
   deleteLink: (id: string) =>

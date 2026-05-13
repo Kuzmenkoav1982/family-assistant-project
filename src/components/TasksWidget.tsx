@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Icon from '@/components/ui/icon';
+import TaskWorkshopOrigin from '@/components/goals/TaskWorkshopOrigin';
 import { useTasks } from '@/hooks/useTasks';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useState } from 'react';
@@ -528,6 +529,8 @@ export function TasksWidget() {
                         </div>
                       )}
                     </div>
+                    {/* Этап 3.2.1: origin-блок из Мастерской (справочный, не меняет progress). */}
+                    <TaskWorkshopOrigin taskId={String(task.id)} compact />
                   </div>
                   <button
                     onClick={() => handleEditTask(task)}
