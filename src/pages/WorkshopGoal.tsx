@@ -20,40 +20,45 @@ export default function WorkshopGoalPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadGoal = async (gid: string) => {
+    const [allGoals, ms, krs] = await Promise.all([
+      lifeApi.listGoals(),
+      lifeApi.listMilestones(gid).catch(() => []),
+      lifeApi.listKeyResults(gid).catch(() => []),
+    ]);
+    const raw = allGoals.find((g) => g.id === gid);
+    if (!raw) throw new Error('Цель не найдена. Возможно, она была удалена.');
+    setGoal(normalizeLegacyGoal(raw));
+    setMilestones(ms as GoalMilestone[]);
+    setKeyResults(krs as GoalKeyResult[]);
+  };
+
+  const reloadCollections = async () => {
+    if (!id) return;
+    const [ms, krs] = await Promise.all([
+      lifeApi.listMilestones(id).catch(() => []),
+      lifeApi.listKeyResults(id).catch(() => []),
+    ]);
+    setMilestones(ms as GoalMilestone[]);
+    setKeyResults(krs as GoalKeyResult[]);
+  };
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-
-    Promise.all([
-      lifeApi.listGoals(),
-      lifeApi.listMilestones(id).catch(() => []),
-      lifeApi.listKeyResults(id).catch(() => []),
-    ])
-      .then(([allGoals, ms, krs]) => {
-        if (cancelled) return;
-        const raw = allGoals.find((g) => g.id === id);
-        if (!raw) {
-          setError('Цель не найдена. Возможно, она была удалена.');
-          setGoal(null);
-        } else {
-          setGoal(normalizeLegacyGoal(raw));
-          setMilestones(ms as GoalMilestone[]);
-          setKeyResults(krs as GoalKeyResult[]);
-        }
-      })
+    loadGoal(id)
       .catch((e: Error) => {
-        if (cancelled) return;
-        setError(e.message || 'Не удалось загрузить цель');
+        if (!cancelled) setError(e.message || 'Не удалось загрузить цель');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-
     return () => {
       cancelled = true;
     };
+     
   }, [id]);
 
   const isLegacy = useMemo(
@@ -129,9 +134,15 @@ export default function WorkshopGoalPage() {
         {/* Block 1 — Смысл */}
         <GoalWhyCard goal={goal} />
 
-        {/* Block 2 — Методика */}
+        {/* Block 2 — Методика (живая, редактируемая) */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 shadow-sm">
-          <GoalFrameworkPanel goal={goal} milestones={milestones} keyResults={keyResults} />
+          <GoalFrameworkPanel
+            goal={goal}
+            milestones={milestones}
+            keyResults={keyResults}
+            onGoalChanged={(next) => setGoal(normalizeLegacyGoal(next))}
+            onCollectionsChanged={reloadCollections}
+          />
         </div>
 
         {/* Block 3 — Исполнение */}

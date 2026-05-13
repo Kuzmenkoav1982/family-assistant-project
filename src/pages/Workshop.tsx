@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoals } from '@/lib/goals/goalMappers';
 import { getFramework } from '@/lib/goals/frameworkRegistry';
+import { computeProgress } from '@/lib/goals/progress';
 import type { LifeGoal } from '@/components/life-road/types';
 
 // Хаб Мастерской жизни — раздел триады «Куда и зачем я иду».
@@ -156,6 +157,9 @@ export default function WorkshopPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {activeGoals.slice(0, 6).map((g) => {
                 const fw = getFramework(g.frameworkType);
+                // На листинге используем вычисляемый прогресс без KR/milestones (быстрый список).
+                // Точное значение виден на странице цели — там подгружаются все коллекции.
+                const pct = computeProgress(g, [], []).execution;
                 return (
                   <button
                     key={g.id}
@@ -167,7 +171,7 @@ export default function WorkshopPage() {
                         <Icon name={fw.icon} size={12} />
                       </div>
                       <Badge variant="outline" className="text-[9px]">{fw.title}</Badge>
-                      <span className="ml-auto text-[10px] text-gray-400">{g.progress}%</span>
+                      <span className="ml-auto text-[10px] text-gray-400">{pct}%</span>
                     </div>
                     <div className="text-sm font-semibold text-gray-900 line-clamp-2">{g.title}</div>
                     {g.deadline && (

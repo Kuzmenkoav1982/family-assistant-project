@@ -104,19 +104,27 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
               </div>
             )}
 
-            <div className="mt-3 flex items-center gap-2">
-              <input
-                type="range"
-                min={0}
-                max={100}
-                step={5}
-                value={g.progress}
-                onChange={(e) => onUpdateProgress(g, Number(e.target.value))}
-                className="flex-1 accent-purple-600 h-1"
-                title="Прогресс"
-              />
-              <span className="text-xs font-bold text-purple-700 w-10 text-right">{g.progress}%</span>
-            </div>
+            {/* Ручной ползунок прогресса оставлен только для generic-целей без структуры. */}
+            {g.frameworkType === 'generic' && (
+              <div className="mt-3 flex items-center gap-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={5}
+                  value={g.progress}
+                  onChange={(e) => onUpdateProgress(g, Number(e.target.value))}
+                  className="flex-1 accent-purple-600 h-1"
+                  title="Прогресс"
+                />
+                <span className="text-xs font-bold text-purple-700 w-10 text-right">{g.progress}%</span>
+              </div>
+            )}
+            {g.frameworkType !== 'generic' && (
+              <div className="mt-2 text-[10px] text-gray-400 italic">
+                Прогресс считается из методики. Открой цель для редактирования.
+              </div>
+            )}
           </div>
         );
       })}
