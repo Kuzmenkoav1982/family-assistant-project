@@ -11,10 +11,13 @@ const PORTFOLIO_URL = 'https://functions.poehali.dev/3f5999bc-b4e5-41bd-b39f-c64
  *  никогда не member_id (family_members.id).
  *  Источник истины — userData.id из login/register response (backend/auth/index.py:364).
  *  Если user_id недоступен — возвращаем null. Лучше получить честный 401, чем тихо
- *  слать чужой идентификатор и наблюдать ложные 403. */
-function getActorUserId(): string | null {
+ *  слать чужой идентификатор и наблюдать ложные 403.
+ *
+ *  Экспортируется как pure-функция от storage-гетера для unit-тестов.
+ */
+export function pickActorUserIdFromStorage(read: (key: string) => string | null): string | null {
   for (const key of ['userData', 'user_data', 'user']) {
-    const raw = localStorage.getItem(key);
+    const raw = read(key);
     if (!raw) continue;
     try {
       const u = JSON.parse(raw);
@@ -26,6 +29,10 @@ function getActorUserId(): string | null {
     }
   }
   return null;
+}
+
+function getActorUserId(): string | null {
+  return pickActorUserIdFromStorage((key) => localStorage.getItem(key));
 }
 
 /**
