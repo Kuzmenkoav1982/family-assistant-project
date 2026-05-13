@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import GoalFrameworkPanel from '@/components/goals/GoalFrameworkPanel';
 import GoalProgressCard from '@/components/goals/GoalProgressCard';
 import GoalWhyCard from '@/components/goals/GoalWhyCard';
+import SmartProgressDisplay from '@/components/goals/SmartProgressDisplay';
+import SmartCheckin from '@/components/goals/SmartCheckin';
 import GoalExecutionCard from '@/components/goals/GoalExecutionCard';
 import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
 import GoalLinkedTasksCard from '@/components/goals/GoalLinkedTasksCard';
@@ -212,6 +214,18 @@ export default function WorkshopGoalPage() {
 
         {/* Block 1 — Смысл */}
         <GoalWhyCard goal={goal} />
+
+        {/* Smart vertical slice: панель прогресса + быстрый замер.
+            Видны сразу под смыслом, до редактирования методики. */}
+        {goal.frameworkType === 'smart' && (
+          <>
+            <SmartProgressDisplay goal={goal} variant="full" />
+            <SmartCheckin
+              goal={goal}
+              onSaved={(next) => setGoal(normalizeLegacyGoal(next))}
+            />
+          </>
+        )}
 
         {/* Block 2 — Методика (живая, редактируемая) */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 shadow-sm">

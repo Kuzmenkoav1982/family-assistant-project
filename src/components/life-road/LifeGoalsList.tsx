@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { FRAMEWORKS, GOAL_SPHERES } from './frameworks';
 import type { LifeGoal } from './types';
+import SmartProgressDisplay from '@/components/goals/SmartProgressDisplay';
 
 interface Props {
   goals: LifeGoal[];
@@ -84,38 +85,53 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
               </div>
             </div>
 
-            {/* Этап 2.4: прогресс — серверный кэш с локальным fallback */}
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                {stepsTotal > 0 ? (
-                  <span>Шаги: {stepsDone} / {stepsTotal}</span>
-                ) : (
-                  <span className="text-gray-400">прогресс</span>
-                )}
+            {/* SMART — живая панель прогресса по метрике прямо на карточке */}
+            {g.frameworkType === 'smart' && (
+              <div className="mt-3">
+                <SmartProgressDisplay goal={g} variant="compact" />
                 {g.deadline && (
-                  <span className="flex items-center gap-1">
+                  <div className="flex items-center justify-end gap-1 text-[11px] text-gray-500 mt-1">
                     <Icon name="Calendar" size={11} />
                     {new Date(g.deadline).toLocaleDateString('ru-RU')}
-                  </span>
+                  </div>
                 )}
               </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                  style={{
-                    width: `${
-                      typeof g.executionProgress === 'number'
-                        ? g.executionProgress
-                        : stepsTotal
-                          ? (stepsDone / stepsTotal) * 100
-                          : g.progress
-                    }%`,
-                  }}
-                />
-              </div>
-            </div>
+            )}
 
-            {/* Ручной ползунок прогресса оставлен только для generic-целей без структуры. */}
+            {/* Не-SMART: общий бар (сервер-кэш с локальным fallback) */}
+            {g.frameworkType !== 'smart' && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+                  {stepsTotal > 0 ? (
+                    <span>Шаги: {stepsDone} / {stepsTotal}</span>
+                  ) : (
+                    <span className="text-gray-400">прогресс</span>
+                  )}
+                  {g.deadline && (
+                    <span className="flex items-center gap-1">
+                      <Icon name="Calendar" size={11} />
+                      {new Date(g.deadline).toLocaleDateString('ru-RU')}
+                    </span>
+                  )}
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+                    style={{
+                      width: `${
+                        typeof g.executionProgress === 'number'
+                          ? g.executionProgress
+                          : stepsTotal
+                            ? (stepsDone / stepsTotal) * 100
+                            : g.progress
+                      }%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Ручной ползунок — только для generic-целей без структуры. */}
             {g.frameworkType === 'generic' && (
               <div className="mt-3 flex items-center gap-2">
                 <input
@@ -131,7 +147,7 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
                 <span className="text-xs font-bold text-purple-700 w-10 text-right">{g.progress}%</span>
               </div>
             )}
-            {g.frameworkType !== 'generic' && (
+            {g.frameworkType !== 'generic' && g.frameworkType !== 'smart' && (
               <div className="mt-2 text-[10px] text-gray-400 italic">
                 Прогресс считается из методики. Открой цель для редактирования.
               </div>
