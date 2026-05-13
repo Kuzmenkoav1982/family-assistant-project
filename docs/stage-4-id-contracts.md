@@ -3,8 +3,8 @@
 ## Purpose / Status
 
 - **Stage:** `stage-4-contract-convergence`
-- **Sub-stage:** 4.6 — cleanup. 4.6.1 part A (helper) done, part B (callsite migration) deferred. 4.6.2 done. 4.6.3 done с safe verdict для orphan.
-- **Status:** 4.1 / 4.2 / 4.3 / 4.4 / 4.5 — done. 4.6 — done по коду, единственный остаток — миграция 10 write-callsite-ов на `saveAuthSession()` (scope не выбран).
+- **Sub-stage:** 4.6 — cleanup (done). 4.6.1 part A (helper) + part B (callsite migration) done. 4.6.2 done. 4.6.3 done с safe verdict для orphan.
+- **Status:** 4.1 / 4.2 / 4.3 / 4.4 / 4.5 / 4.6 — done по коду. Финальные блокеры sign-off — runtime: `node scripts/test-actor-user-id.mjs` + browser smoke S1–S10.
 - **Owner:** Юра / личный разработчик
 - **Goal:** убрать системную причину класса багов `user_id` vs `member_id` vs `family_member.id` — зафиксировать единый контракт идентичности между frontend / backend / storage.
 - **Living doc:** обновлять по мере 4.2 (adapter-layer), 4.3 (rename), 4.6 (cleanup).
@@ -522,7 +522,28 @@ user_data = {
 
 **Парный READ:** `src/lib/identity.ts` (4.2). Семантика не дублируется — это противоположная сторона.
 
-**Status:** helper создан и протестирован линтером. Миграция 10 callsite-ов **отложена** (scope не выбран — рекомендованный "все 14 за раз" ждёт твоего ОК). Это **единственный остаток** 4.6, который не закрыт по коду.
+**Status (post-migration):** helper создан + миграция 10 prod-callsite-ов выполнена за один проход. Debug/Test/OAuthDebug — намеренно не тронуты.
+
+**Мигрированные prod-файлы (10/10):**
+
+| # | Файл | Helper-вызовы |
+|---|---|---|
+| 1 | `src/pages/Login.tsx` | 2× `saveAuthSession` (OAuth callback + email/password) |
+| 2 | `src/pages/Register.tsx` | 1× `saveAuthSession` |
+| 3 | `src/components/AuthForm.tsx` | 2× `saveAuthSession` (login + register branches) |
+| 4 | `src/pages/ActivateCallback.tsx` | 1× `saveAuthSession` (с merge `family_id`/`member_id`) |
+| 5 | `src/components/auth/AuthPage.tsx` | 1× `saveAuthSession` (snake_case raw writes сняты — helper зеркалит сам) |
+| 6 | `src/pages/JoinFamily.tsx` | 1× `updateAuthUser({ family_id, family_name, member_id })` |
+| 7 | `src/hooks/usePermissions.ts` | 1× `updateAuthUser({ access_role })` |
+| 8 | `src/pages/Settings.tsx` | 1× `updateAuthUser(userPatch)` |
+| 9 | `src/components/AuthGuard.tsx` | 1× `updateAuthUser` (success) + 3× `clearAuthSession` (fail/reset/logout) |
+| 10 | `src/App.tsx` | 1× `clearAuthSession` (handleLogout) |
+
+**Итого: 15 helper-вызовов в 10 prod-файлах.**
+
+**Допустимые остатки прямого `localStorage.setItem(<auth-key>, ...)` после миграции:**
+- `src/lib/authStorage.ts` — сам helper (canonical + legacy mirror).
+- `src/pages/DebugAuth.tsx`, `src/components/TestAccountSelector.tsx`, `src/pages/OAuthDebug.tsx` — debug/test, не тронуты по acceptance.
 
 ### 4.6.2 — Raw `localStorage.getItem('userId')` cleanup
 
@@ -561,43 +582,36 @@ grep "localStorage.getItem.{0,3}userId" src/**
 
 ```
 # Raw actor reads
-grep "localStorage.getItem.{0,3}userId"           → 2 hits, обе задокументированы
-grep "localStorage.getItem.{0,3}familyMemberId"   → 0 hits ✓
-grep "getItem('userId')"                          → covered above
+grep -RInE "localStorage\.getItem\(['\"]userId['\"]\)" src
+  → 1 hit:
+    src/hooks/useUploadMedicalFile.ts:73   (orphan endpoint, осознанно frozen)
 
-# Auth writes (legacy direct localStorage.setItem)
-grep "setItem.{0,3}(authToken|auth_token|userData|user_data)" → 10 файлов (callsite-ы для миграции)
+grep "(localStorage|storage)\.(setItem|removeItem)\(['\"](authToken|auth_token|userData|user_data|user)['\"]" src
+  → допустимые остатки:
+    src/lib/authStorage.ts                 (helper, canonical + legacy mirror)
+    src/pages/DebugAuth.tsx                (debug)
+    src/components/TestAccountSelector.tsx (test)
+    src/pages/OAuthDebug.tsx               (debug)
+  → prod-нарушители: 0 ✓
 
-# Auth removes (legacy direct localStorage.removeItem)
-grep "removeItem.{0,3}(authToken|auth_token|userData|user_data)" → 7 файлов (callsite-ы для миграции)
+grep -RInE "saveAuthSession|updateAuthUser|clearAuthSession" src
+  → 15 helper-вызовов в 10 prod-файлах + сам helper.
 ```
 
-**Файлы с auth writes (ожидают миграции на `saveAuthSession`/`updateAuthUser`):**
-- `pages/Login.tsx`, `pages/Register.tsx`, `pages/ActivateCallback.tsx`, `pages/JoinFamily.tsx`, `pages/Settings.tsx`
-- `components/auth/AuthPage.tsx`, `components/AuthForm.tsx`
-- `hooks/usePermissions.ts`
-- `pages/DebugAuth.tsx`, `components/TestAccountSelector.tsx` (dev/test — оставить как есть по safe verdict)
-
-**Файлы с auth removes (ожидают миграции на `clearAuthSession`):**
-- `App.tsx`, `components/AuthGuard.tsx`, `components/GlobalTopBar.tsx`
-- `components/settings/AccountSettings.tsx`, `components/settings/useSettingsActions.ts`
-- `hooks/useIndexHandlers.ts`
-- `pages/OAuthDebug.tsx` (dev — оставить как есть)
-
-### 4.6 acceptance status
+### 4.6 acceptance status (post-migration)
 
 | Acceptance criterion (из плана) | Status |
 |---|---|
-| Все auth writes идут через одну helper-точку | **partial** — helper готов, callsite migration deferred |
-| Дубликаты write-path не размазаны | **partial** — структурно решено через helper, физическая миграция callsite-ов отложена |
-| Остаточные raw `userId` reads разобраны по семантике | **done** (4 файла классифицированы) |
-| Безопасные места переведены на adapter | **done** (PetsAI, devAgent) |
-| `useUploadMedicalFile.ts` прошёл mini-discovery | **done** (matrix зафиксирована, orphen safe-as-is, children-data — provisional mapping) |
-| Docs обновлены | **done** (этот раздел) |
+| Все auth writes идут через одну helper-точку | **done** (10 prod-файлов, 15 вызовов) |
+| Дубликаты write-path не размазаны | **done** (`saveAuthSession`/`updateAuthUser`/`clearAuthSession` — единственные prod-write-points) |
+| Остаточные raw `userId` reads разобраны по семантике | **done** (4 файла классифицированы; 1 hit оставлен — orphan) |
+| Безопасные места переведены на adapter | **done** (PetsAI → `readActorUserId`, devAgent → `readActorUserId`, PermissionsManagement → `readActorMemberId`) |
+| `useUploadMedicalFile.ts` прошёл mini-discovery | **done** (matrix зафиксирована, orphan frozen, children-data — provisional mapping) |
+| Docs обновлены | **done** |
 | Regression-runner актуален | **pending** — фактический прогон на стороне пользователя |
 
 ### 4.6 final blockers для sign-off stage 4
 
 1. **node `scripts/test-actor-user-id.mjs`** — фактический прогон + вывод консоли.
 2. **Browser smoke S1–S10** (из 4.5) — хотя бы первые 5 закрывают A1/A2/A3.
-3. **(Optional)** Миграция 10 auth-write callsite-ов на `saveAuthSession`/`updateAuthUser` — это уже не блокер identity-контракта (helper готов, identity adapter покрывает все legacy ключи на read-side), но желательно для гигиены.
+3. **(Optional)** `npm run lint` + `npm run build` — желательно зелёные.
