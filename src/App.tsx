@@ -27,15 +27,88 @@ import { storage } from "@/lib/storage";
 import { clearAuthSession } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
-
-installFetchInterceptor();
 import { medicationNotificationService } from "@/services/medicationNotifications";
 import CookieConsent from "@/components/CookieConsent";
 
+// Side-effect: глобальный fetch-перехватчик (auth header proxy и т.п.).
+// Должен инициализироваться до первого fetch в приложении, поэтому стоит
+// сразу после импортов на module level.
+installFetchInterceptor();
+
+// ─── Core / Index ──────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const HomeModule = lazy(() => import("./pages/HomeModule"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Instructions = lazy(() => import("./pages/Instructions"));
-const Garage = lazy(() => import("./pages/Garage"));
+const Documentation = lazy(() => import("./pages/Documentation"));
+const InstallationGuide = lazy(() => import("./pages/InstallationGuide"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Referral = lazy(() => import("./pages/Referral"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+
+// ─── Auth ──────────────────────────────────────────────────────────────────
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const ResetPasswordConfirm = lazy(() => import("./pages/ResetPasswordConfirm"));
+const JoinFamily = lazy(() => import("./pages/JoinFamily"));
+const ActivateChild = lazy(() => import("./pages/ActivateChild"));
+const ActivateCallback = lazy(() => import("./pages/ActivateCallback"));
+const OAuthDebug = lazy(() => import("./pages/OAuthDebug"));
+const DemoMode = lazy(() => import("./pages/DemoMode"));
+const DebugAuth = lazy(() => import("./pages/DebugAuth"));
+
+// ─── Family ────────────────────────────────────────────────────────────────
+const FamilyHub = lazy(() => import("./pages/FamilyHub"));
+const FamilyChat = lazy(() => import("./pages/FamilyChat"));
+const FamilyManagement = lazy(() => import("./pages/FamilyManagement"));
+const FamilyInvite = lazy(() => import("./pages/FamilyInvite"));
+const FamilyTracker = lazy(() => import("./pages/FamilyTracker"));
+const FamilyPsychologist = lazy(() => import("./pages/FamilyPsychologist"));
+const FamilyRules = lazy(() => import("./pages/FamilyRules"));
+const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
+const FamilyNews = lazy(() => import("./pages/FamilyNews"));
+const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
+const Tree = lazy(() => import("./pages/Tree"));
+const Children = lazy(() => import("./pages/Children"));
+const AssessmentReport = lazy(() => import("./pages/AssessmentReport"));
+const MemberProfile = lazy(() => import("./pages/MemberProfile"));
+const PermissionsManagement = lazy(() => import("./pages/PermissionsManagement"));
+const Community = lazy(() => import("./pages/Community"));
+const LocationHistory = lazy(() => import("./pages/LocationHistory"));
+
+// ─── Family Code / Matrix ──────────────────────────────────────────────────
+const FamilyCode = lazy(() => import("./pages/FamilyCode"));
+const FamilyCodeHub = lazy(() => import("./pages/FamilyCodeHub"));
+const FamilyMatrixPersonal = lazy(() => import("./pages/FamilyMatrixPersonal"));
+const FamilyMatrixCouple = lazy(() => import("./pages/FamilyMatrixCouple"));
+const FamilyMatrixFamily = lazy(() => import("./pages/FamilyMatrixFamily"));
+const FamilyMatrixRituals = lazy(() => import("./pages/FamilyMatrixRituals"));
+const FamilyMatrixChild = lazy(() => import("./pages/FamilyMatrixChild"));
+const FamilyMatrixName = lazy(() => import("./pages/FamilyMatrixName"));
+const FamilyMatrixAstrology = lazy(() => import("./pages/FamilyMatrixAstrology"));
+
+// ─── Portfolio / Development ───────────────────────────────────────────────
+const MemberPortfolio = lazy(() => import("./pages/MemberPortfolio"));
+const FamilyPortfolio = lazy(() => import("./pages/FamilyPortfolio"));
+const PortfolioCompare = lazy(() => import("./pages/PortfolioCompare"));
+const PortfolioAbout = lazy(() => import("./pages/PortfolioAbout"));
+const Development = lazy(() => import("./pages/Development"));
+const DevelopmentHub = lazy(() => import("./pages/DevelopmentHub"));
+const Workshop = lazy(() => import("./pages/Workshop"));
+const WorkshopGoal = lazy(() => import("./pages/WorkshopGoal"));
+const LifeRoad = lazy(() => import("./pages/LifeRoad"));
+const Goals = lazy(() => import("./pages/Goals"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const InDevelopmentList = lazy(() => import("./pages/InDevelopmentList"));
+
+// ─── Health ────────────────────────────────────────────────────────────────
 const Health = lazy(() => import("./pages/HealthNew"));
+const HealthHub = lazy(() => import("./pages/HealthHub"));
+
+// ─── Finance ───────────────────────────────────────────────────────────────
 const FinanceHub = lazy(() => import("./pages/FinanceHub"));
 const FinanceBudget = lazy(() => import("./pages/FinanceBudget"));
 const FinanceDebts = lazy(() => import("./pages/FinanceDebts"));
@@ -45,154 +118,125 @@ const FinanceLiteracy = lazy(() => import("./pages/FinanceLiteracy"));
 const FinanceRecurring = lazy(() => import("./pages/FinanceRecurring"));
 const FinanceAssets = lazy(() => import("./pages/FinanceAssets"));
 const FinanceLoyalty = lazy(() => import("./pages/FinanceLoyalty"));
-const AntiScam = lazy(() => import("./pages/AntiScam"));
 const FinanceAnalytics = lazy(() => import("./pages/FinanceAnalytics"));
 const FinanceStrategy = lazy(() => import("./pages/FinanceStrategy"));
 const FinanceCashflow = lazy(() => import("./pages/FinanceCashflow"));
-const Education = lazy(() => import("./pages/Education"));
+const FamilyWallet = lazy(() => import("./pages/FamilyWallet"));
+const AntiScam = lazy(() => import("./pages/AntiScam"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+
+// ─── Nutrition / Meals ─────────────────────────────────────────────────────
+const Nutrition = lazy(() => import("./pages/Nutrition"));
+const NutritionHub = lazy(() => import("./pages/NutritionHub"));
+const DietQuiz = lazy(() => import("./pages/DietQuiz"));
+const DietMiniQuiz = lazy(() => import("./pages/DietMiniQuiz"));
+const DietProgramCatalog = lazy(() => import("./pages/DietProgramCatalog"));
+const DietProgress = lazy(() => import("./pages/DietProgress"));
+const RecipeFromProducts = lazy(() => import("./pages/RecipeFromProducts"));
+const Recipes = lazy(() => import("./pages/Recipes"));
+const Meals = lazy(() => import("./pages/Meals"));
+const Shopping = lazy(() => import("./pages/Shopping"));
+const Purchases = lazy(() => import("./pages/Purchases"));
+
+// ─── Events / Calendar ─────────────────────────────────────────────────────
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const CreateEventPage = lazy(() => import("./pages/CreateEventPage"));
 const EditEventPage = lazy(() => import("./pages/EditEventPage"));
 const EventDetailsPage = lazy(() => import("./pages/EventDetailsPage"));
 const SharedEventPage = lazy(() => import("./pages/SharedEventPage"));
-const Pets = lazy(() => import("./pages/Pets"));
-const Faith = lazy(() => import("./pages/Faith"));
-const Tree = lazy(() => import("./pages/Tree"));
-const Shopping = lazy(() => import("./pages/Shopping"));
-const Meals = lazy(() => import("./pages/Meals"));
 const Calendar = lazy(() => import("./pages/Calendar"));
-const PermissionsManagement = lazy(() => import("./pages/PermissionsManagement"));
-const Community = lazy(() => import("./pages/Community"));
-const MemberProfile = lazy(() => import("./pages/MemberProfile"));
-const MemberPortfolio = lazy(() => import("./pages/MemberPortfolio"));
-const FamilyPortfolio = lazy(() => import("./pages/FamilyPortfolio"));
-const PortfolioCompare = lazy(() => import("./pages/PortfolioCompare"));
-const PortfolioAbout = lazy(() => import("./pages/PortfolioAbout"));
-const FamilyCode = lazy(() => import("./pages/FamilyCode"));
-const FamilyChat = lazy(() => import("./pages/FamilyChat"));
-const Presentation = lazy(() => import("./pages/Presentation"));
-const StrategyDeck = lazy(() => import("./pages/StrategyDeck"));
-const MatryoshkaDeck = lazy(() => import("./pages/MatryoshkaDeck"));
-const AwardCard = lazy(() => import("./pages/AwardCard"));
-const FamilyPsychologist = lazy(() => import("./pages/FamilyPsychologist"));
-const FamilyRules = lazy(() => import("./pages/FamilyRules"));
-const LaunchPlan = lazy(() => import("./pages/LaunchPlan"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService"));
-const Offer = lazy(() => import("./pages/Offer"));
-const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
-const Documentation = lazy(() => import("./pages/Documentation"));
-const InstallationGuide = lazy(() => import("./pages/InstallationGuide"));
-const Login = lazy(() => import("./pages/Login"));
-const Register = lazy(() => import("./pages/Register"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const ResetPasswordConfirm = lazy(() => import("./pages/ResetPasswordConfirm"));
-const OAuthDebug = lazy(() => import("./pages/OAuthDebug"));
-const DemoMode = lazy(() => import("./pages/DemoMode"));
-const VotingPage = lazy(() => import("./pages/VotingPage"));
-const JoinFamily = lazy(() => import("./pages/JoinFamily"));
-const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
-const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
-const SupportPage = lazy(() => import("./pages/SupportPage"));
-const AdminSupport = lazy(() => import("./pages/AdminSupport"));
-const AdminLogin = lazy(() => import("./pages/AdminLogin"));
-const NationalitiesPage = lazy(() => import("./pages/NationalitiesPage"));
-const NationalityDetailPage = lazy(() => import("./pages/NationalityDetailPage"));
-const Children = lazy(() => import("./pages/Children"));
-const AssessmentReport = lazy(() => import("./pages/AssessmentReport"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Referral = lazy(() => import("./pages/Referral"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const AdminTraffic = lazy(() => import("./pages/AdminTraffic"));
-const Recipes = lazy(() => import("./pages/Recipes"));
-const Purchases = lazy(() => import("./pages/Purchases"));
-const AIAssistant = lazy(() => import("./pages/AIAssistant"));
-const Development = lazy(() => import("./pages/Development"));
-const LifeRoad = lazy(() => import("./pages/LifeRoad"));
-const Workshop = lazy(() => import("./pages/Workshop"));
-const WorkshopGoal = lazy(() => import("./pages/WorkshopGoal"));
-const FamilyManagement = lazy(() => import("./pages/FamilyManagement"));
-const InDevelopmentList = lazy(() => import("./pages/InDevelopmentList"));
-const FamilyInvite = lazy(() => import("./pages/FamilyInvite"));
-const Nutrition = lazy(() => import("./pages/Nutrition"));
-const NutritionHub = lazy(() => import("./pages/NutritionHub"));
-const DietQuiz = lazy(() => import("./pages/DietQuiz"));
-const DietProgramCatalog = lazy(() => import("./pages/DietProgramCatalog"));
-const DietMiniQuiz = lazy(() => import("./pages/DietMiniQuiz"));
-const RecipeFromProducts = lazy(() => import("./pages/RecipeFromProducts"));
-const DietProgress = lazy(() => import("./pages/DietProgress"));
-const FamilyWallet = lazy(() => import("./pages/FamilyWallet"));
+
+// ─── Travel / Leisure ──────────────────────────────────────────────────────
 const Trips = lazy(() => import("./pages/Trips"));
 const TripDetails = lazy(() => import("./pages/TripDetails"));
 const TripWishlist = lazy(() => import("./pages/TripWishlist"));
 const Leisure = lazy(() => import("./pages/Leisure"));
-const TelegramServices = lazy(() => import("./pages/TelegramServices"));
-const StateSupport = lazy(() => import("./pages/StateSupport"));
-const SupportNavigator = lazy(() => import("./pages/SupportNavigator"));
-const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
-const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
-const FamilyNews = lazy(() => import("./pages/FamilyNews"));
-const FamilyCodeHub = lazy(() => import("./pages/FamilyCodeHub"));
-const FamilyMatrixPersonal = lazy(() => import("./pages/FamilyMatrixPersonal"));
-const FamilyMatrixCouple = lazy(() => import("./pages/FamilyMatrixCouple"));
-const FamilyMatrixFamily = lazy(() => import("./pages/FamilyMatrixFamily"));
-const FamilyMatrixRituals = lazy(() => import("./pages/FamilyMatrixRituals"));
-const FamilyMatrixChild = lazy(() => import("./pages/FamilyMatrixChild"));
-const FamilyMatrixName = lazy(() => import("./pages/FamilyMatrixName"));
-const FamilyMatrixAstrology = lazy(() => import("./pages/FamilyMatrixAstrology"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
-const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
-const Videos = lazy(() => import("./pages/Videos"));
-const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
-const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
-const Notifications = lazy(() => import("./pages/Notifications"));
-const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
-const DomovoyStudio = lazy(() => import("./pages/DomovoyStudio"));
-const DevAgentStudio = lazy(() => import("./pages/DevAgentStudio"));
-const DomovoyPage = lazy(() => import("./pages/DomovoyPage"));
-const AliceIntegration = lazy(() => import("./pages/AliceIntegration"));
-const AdminAlice = lazy(() => import("./pages/AdminAlice"));
-const AdminMAX = lazy(() => import("./pages/AdminMAX"));
-const AdminUsers = lazy(() => import("./pages/AdminUsers"));
-const AdminWelcomeAnalytics = lazy(() => import("./pages/AdminWelcomeAnalytics"));
-const AdminValuation = lazy(() => import("./pages/AdminValuation"));
-const AdminPanel = lazy(() => import("./pages/AdminPanel"));
-const ActivateChild = lazy(() => import("./pages/ActivateChild"));
-const ActivateCallback = lazy(() => import("./pages/ActivateCallback"));
-const FamilyTracker = lazy(() => import("./pages/FamilyTracker"));
-const LocationHistory = lazy(() => import("./pages/LocationHistory"));
-const DebugAuth = lazy(() => import("./pages/DebugAuth"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const FamilyHub = lazy(() => import("./pages/FamilyHub"));
-const ValuesHub = lazy(() => import("./pages/ValuesHub"));
-const PlanningHub = lazy(() => import("./pages/PlanningHub"));
-const HouseholdHub = lazy(() => import("./pages/HouseholdHub"));
-const HomeModule = lazy(() => import("./pages/HomeModule"));
-const DevelopmentHub = lazy(() => import("./pages/DevelopmentHub"));
-const PariTest = lazy(() => import("./pages/PariTest"));
-const PariResults = lazy(() => import("./pages/PariResults"));
-const StateHub = lazy(() => import("./pages/StateHub"));
-const HealthHub = lazy(() => import("./pages/HealthHub"));
 const LeisureHub = lazy(() => import("./pages/LeisureHub"));
+
+// ─── Household / Pets / Garage ─────────────────────────────────────────────
+const HouseholdHub = lazy(() => import("./pages/HouseholdHub"));
+const PlanningHub = lazy(() => import("./pages/PlanningHub"));
+const Pets = lazy(() => import("./pages/Pets"));
+const Garage = lazy(() => import("./pages/Garage"));
+
+// ─── Culture / Values / Faith ──────────────────────────────────────────────
 const Values = lazy(() => import("./pages/Values"));
+const ValuesHub = lazy(() => import("./pages/ValuesHub"));
 const Culture = lazy(() => import("./pages/Culture"));
 const Wisdom = lazy(() => import("./pages/Wisdom"));
-const Tasks = lazy(() => import("./pages/Tasks"));
-const Goals = lazy(() => import("./pages/Goals"));
+const Faith = lazy(() => import("./pages/Faith"));
+const Education = lazy(() => import("./pages/Education"));
+const NationalitiesPage = lazy(() => import("./pages/NationalitiesPage"));
+const NationalityDetailPage = lazy(() => import("./pages/NationalityDetailPage"));
+
+// ─── State / Support / Telegram ────────────────────────────────────────────
+const StateHub = lazy(() => import("./pages/StateHub"));
+const StateSupport = lazy(() => import("./pages/StateSupport"));
+const SupportNavigator = lazy(() => import("./pages/SupportNavigator"));
+const TelegramServices = lazy(() => import("./pages/TelegramServices"));
+
+// ─── Tests / Quizzes ───────────────────────────────────────────────────────
+const PariTest = lazy(() => import("./pages/PariTest"));
+const PariResults = lazy(() => import("./pages/PariResults"));
+
+// ─── AI / Assistants ───────────────────────────────────────────────────────
+const AIAssistant = lazy(() => import("./pages/AIAssistant"));
+const DomovoyPage = lazy(() => import("./pages/DomovoyPage"));
+const DomovoyStudio = lazy(() => import("./pages/DomovoyStudio"));
+const DevAgentStudio = lazy(() => import("./pages/DevAgentStudio"));
+const AliceIntegration = lazy(() => import("./pages/AliceIntegration"));
+
+// ─── Voting / Ideas ────────────────────────────────────────────────────────
+const VotingPage = lazy(() => import("./pages/VotingPage"));
+const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
+
+// ─── Feedback / Support tickets ────────────────────────────────────────────
+const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
+const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
+
+// ─── Marketing / Articles / Blog ───────────────────────────────────────────
 const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
 const MarketingSale = lazy(() => import("./pages/MarketingSale"));
 const Articles = lazy(() => import("./pages/Articles"));
 const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
-const AdminBlog = lazy(() => import("./pages/AdminBlog"));
-const AdminMaxInstructions = lazy(() => import("./pages/AdminMaxInstructions"));
+const Videos = lazy(() => import("./pages/Videos"));
+
+// ─── Decks / Presentations ─────────────────────────────────────────────────
+const Presentation = lazy(() => import("./pages/Presentation"));
+const StrategyDeck = lazy(() => import("./pages/StrategyDeck"));
+const MatryoshkaDeck = lazy(() => import("./pages/MatryoshkaDeck"));
+const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
+const AwardCard = lazy(() => import("./pages/AwardCard"));
+const LaunchPlan = lazy(() => import("./pages/LaunchPlan"));
+
+// ─── Legal ─────────────────────────────────────────────────────────────────
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const Offer = lazy(() => import("./pages/Offer"));
+const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+
+// ─── Admin ─────────────────────────────────────────────────────────────────
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers"));
+const AdminTraffic = lazy(() => import("./pages/AdminTraffic"));
+const AdminSupport = lazy(() => import("./pages/AdminSupport"));
+const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
+const AdminWelcomeAnalytics = lazy(() => import("./pages/AdminWelcomeAnalytics"));
+const AdminValuation = lazy(() => import("./pages/AdminValuation"));
 const AdminPortfolioHealth = lazy(() => import("./pages/AdminPortfolioHealth"));
 const AdminAtlas = lazy(() => import("./pages/AdminAtlas"));
 const AdminProjectV2 = lazy(() => import("./pages/AdminProjectV2"));
+const AdminBlog = lazy(() => import("./pages/AdminBlog"));
+const AdminAlice = lazy(() => import("./pages/AdminAlice"));
+const AdminMAX = lazy(() => import("./pages/AdminMAX"));
+const AdminMaxInstructions = lazy(() => import("./pages/AdminMaxInstructions"));
+const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center">
@@ -211,7 +255,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
         setIsAuthenticated(!!token || isDemoMode);
       } catch (error) {
-        console.error('[ProtectedRoute] Error checking auth:', error);
+        // Storage недоступен (private mode / disabled cookies). Считаем юзера
+        // неавторизованным и показываем Welcome — это безопаснее, чем кидать.
+        console.warn('[ProtectedRoute] storage unavailable, treating as logged out:', error);
         setIsAuthenticated(false);
       } finally {
         setIsChecking(false);
@@ -252,7 +298,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
         const adminToken = localStorage.getItem('adminToken');
         setIsAdmin(adminToken === 'admin_authenticated');
       } catch (error) {
-        console.error('[AdminRoute] Error checking admin:', error);
+        // Аналогично ProtectedRoute: при недоступном storage — нет admin-доступа.
+        console.warn('[AdminRoute] storage unavailable, denying admin:', error);
         setIsAdmin(false);
       } finally {
         setIsChecking(false);
