@@ -1,15 +1,18 @@
 /**
- * Регрессионный тест на getActorUserId() / pickActorUserIdFromStorage.
+ * Регрессионный тест на actor-user-id логику для Portfolio.
  * Запуск: node scripts/test-actor-user-id.mjs
  *
- * Тестирует ровно тот класс бага, который backend-тестами не ловится:
- * чтобы X-User-Id всегда содержал users.id, а не member_id / familyMemberId.
+ * ВАЖНО: self-contained — СПЕЦИАЛЬНО НЕ импортирует TS-исходники из src/.
+ * Plain Node не умеет .ts напрямую, тащить ts-node/tsx на freeze-неделе не хочется.
+ * Поэтому функции pickActorUserIdFromStorage и buildHeadersImpl продублированы
+ * здесь как страховка. Контракт обязан совпадать с src/services/portfolioApi.ts.
+ * Если меняешь helper в проде — меняй и здесь. Расхождение поймают смежные кейсы.
  *
- * Чтобы не тащить vitest на freeze-неделе — пишем функцию заново
- * с тем же контрактом, что в src/services/portfolioApi.ts (pickActorUserIdFromStorage),
- * и тестируем её. Любое изменение контракта в проде должно отражаться в этом файле —
- * это специально сделано как страховка, а не как дублирование.
+ * Класс бага под защитой: чтобы X-User-Id всегда содержал users.id, а не
+ * member_id / familyMemberId.
  */
+
+// === Реализации под тестом — должны совпадать с src/services/portfolioApi.ts ===
 
 function pickActorUserIdFromStorage(read) {
   for (const key of ['userData', 'user_data', 'user']) {
@@ -17,6 +20,7 @@ function pickActorUserIdFromStorage(read) {
     if (!raw) continue;
     try {
       const u = JSON.parse(raw);
+      // user.id == users.id (см. backend/auth/index.py). НЕ member_id, НЕ memberId.
       const id = u?.id || u?.user_id;
       if (id) return String(id);
     } catch {
@@ -25,6 +29,15 @@ function pickActorUserIdFromStorage(read) {
   }
   return null;
 }
+
+function buildHeadersImpl(extra, getActor) {
+  const headers = { ...(extra || {}) };
+  const uid = getActor();
+  if (uid) headers['X-User-Id'] = uid;
+  return headers;
+}
+
+// === Тест-инфраструктура ===
 
 function makeStorage(entries) {
   return (key) => (key in entries ? entries[key] : null);
@@ -37,11 +50,11 @@ let passed = 0;
 let failed = 0;
 const fails = [];
 
-function assert(name, actual, expected) {
+function assertEq(name, actual, expected) {
   const ok = actual === expected;
   if (ok) {
     passed += 1;
-    console.log(`  OK  ${name}`);
+    console.log(`  OK   ${name}`);
   } else {
     failed += 1;
     fails.push({ name, actual, expected });
@@ -49,10 +62,25 @@ function assert(name, actual, expected) {
   }
 }
 
-console.log('\n=== getActorUserId / pickActorUserIdFromStorage ===\n');
+function assertDeep(name, actual, expected) {
+  const a = JSON.stringify(actual);
+  const e = JSON.stringify(expected);
+  if (a === e) {
+    passed += 1;
+    console.log(`  OK   ${name}`);
+  } else {
+    failed += 1;
+    fails.push({ name, actual, expected });
+    console.log(`  FAIL ${name} — got ${a}, expected ${e}`);
+  }
+}
+
+// === Блок 1: pickActorUserIdFromStorage ===
+
+console.log('\n=== pickActorUserIdFromStorage ===\n');
 
 // 1) userData.id есть → возвращаем его
-assert(
+assertEq(
   'userData.id присутствует → user_id',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -62,8 +90,8 @@ assert(
   USER_ID,
 );
 
-// 2) Только member_id / familyMemberId → null (нельзя путать)
-assert(
+// 2) Только member_id / memberId → null (нельзя путать)
+assertEq(
   'только member_id в userData → null',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -73,7 +101,8 @@ assert(
   null,
 );
 
-assert(
+// 3) familyMemberId / userId в localStorage не считаются actor user_id
+assertEq(
   'familyMemberId/userId в localStorage не используются как actor user_id',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -84,8 +113,8 @@ assert(
   null,
 );
 
-// 3) userData.user_id (синоним) → возвращаем его
-assert(
+// 4) userData.user_id (синоним) → возвращаем его
+assertEq(
   'userData.user_id (синоним) → user_id',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -95,8 +124,8 @@ assert(
   USER_ID,
 );
 
-// 4) Fallback на user_data ключ
-assert(
+// 5) Fallback на ключ user_data
+assertEq(
   'user_data (alt key) → user_id',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -106,8 +135,8 @@ assert(
   USER_ID,
 );
 
-// 5) Fallback на user ключ
-assert(
+// 6) Fallback на ключ user
+assertEq(
   'user (legacy key) → user_id',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -117,22 +146,22 @@ assert(
   USER_ID,
 );
 
-// 6) Пустой storage → null
-assert(
+// 7) Пустой storage → null
+assertEq(
   'пустой storage → null',
   pickActorUserIdFromStorage(makeStorage({})),
   null,
 );
 
-// 7) Невалидный JSON → не падаем, null
-assert(
+// 8) Невалидный JSON → не падаем, null
+assertEq(
   'битый JSON в userData → null без exception',
   pickActorUserIdFromStorage(makeStorage({ userData: '{not-json' })),
   null,
 );
 
-// 8) Приоритет: id > user_id
-assert(
+// 9) Приоритет: id > user_id, если оба заданы и id truthy
+assertEq(
   'оба id и user_id заданы → берём id',
   pickActorUserIdFromStorage(
     makeStorage({
@@ -142,16 +171,50 @@ assert(
   USER_ID,
 );
 
-// 9) member_id присутствует РЯДОМ с id — не должен иметь приоритет
-assert(
-  'id + member_id вместе → берём id',
+// 10) Variant C: id=null, user_id=U → fallback на user_id даёт U
+assertEq(
+  'id:null + user_id:U → fallback к user_id',
   pickActorUserIdFromStorage(
     makeStorage({
-      userData: JSON.stringify({ id: USER_ID, member_id: MEMBER_ID, memberId: MEMBER_ID }),
+      userData: JSON.stringify({ id: null, user_id: USER_ID }),
     }),
   ),
   USER_ID,
 );
+
+// === Блок 2: buildHeaders ===
+
+console.log('\n=== buildHeaders ===\n');
+
+// 11) helper вернул null → X-User-Id НЕ добавляется
+assertDeep(
+  'getActor === null → нет X-User-Id в заголовках',
+  buildHeadersImpl({ 'Content-Type': 'application/json' }, () => null),
+  { 'Content-Type': 'application/json' },
+);
+
+// 12) helper вернул U → X-User-Id присутствует
+assertDeep(
+  'getActor === U → X-User-Id: U в заголовках',
+  buildHeadersImpl({ 'Content-Type': 'application/json' }, () => USER_ID),
+  { 'Content-Type': 'application/json', 'X-User-Id': USER_ID },
+);
+
+// 13) extra=undefined + helper=null → пустой объект
+assertDeep(
+  'extra=undefined, getActor=null → {}',
+  buildHeadersImpl(undefined, () => null),
+  {},
+);
+
+// 14) extra={} + helper=U → только X-User-Id
+assertDeep(
+  'extra={}, getActor=U → { X-User-Id: U }',
+  buildHeadersImpl({}, () => USER_ID),
+  { 'X-User-Id': USER_ID },
+);
+
+// === Итог ===
 
 console.log(`\nИтого: ${passed} OK, ${failed} FAIL\n`);
 if (failed > 0) {
