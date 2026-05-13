@@ -1,44 +1,27 @@
+// ─── React / Router ────────────────────────────────────────────────────────
 import { useState } from 'react';
-import SEOHead from "@/components/SEOHead";
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import Icon from '@/components/ui/icon';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTasks } from '@/hooks/useTasks';
-import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
-import { useFamilyData } from '@/hooks/useFamilyData';
-import { ChildEducation } from '@/components/ChildEducation';
-import { ClickChamomile } from '@/components/ClickChamomile';
-import Footer from '@/components/Footer';
-import WidgetSettings from '@/components/WidgetSettings';
-import type { FamilyMember, FamilyGoal } from '@/types/family.types';
-import { getThemeClasses } from '@/config/themes';
-import { initialComplaints } from '@/data/mockData';
-import { FamilyTabsContent } from '@/components/FamilyTabsContent';
-import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
-import { GoalsSection } from '@/components/GoalsSection';
-import { languageOptions, type LanguageCode } from '@/translations';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { WelcomeScreen } from '@/components/index-page/WelcomeScreen';
+
+// ─── UI primitives ─────────────────────────────────────────────────────────
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import Icon from '@/components/ui/icon';
+
+// ─── SEO ───────────────────────────────────────────────────────────────────
+import SEOHead from '@/components/SEOHead';
+
+// ─── Index page layout / shell ─────────────────────────────────────────────
 import { IndexLayout } from '@/components/index-page/IndexLayout';
 import { IndexDialogs } from '@/components/index-page/IndexDialogs';
+import { WelcomeScreen } from '@/components/index-page/WelcomeScreen';
 import HomeHero from '@/components/index-page/HomeHero';
-import { ComplaintBook } from '@/components/ComplaintBook';
-import AIAssistantDialog from '@/components/AIAssistantDialog';
-import { useAIAssistant } from '@/contexts/AIAssistantContext';
-import { FirstLoginWelcome } from '@/components/FirstLoginWelcome';
-import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
-import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
-import { useCalendarReminders } from '@/hooks/useCalendarReminders';
-import { useDietReminders } from '@/hooks/useDietReminders';
-import { useCalendarEvents } from '@/hooks/useCalendarEvents';
-import PanelSettings from '@/components/PanelSettings';
-import useIndexState from '@/hooks/useIndexState';
-import useIndexEffects from '@/hooks/useIndexEffects';
-import useIndexHandlers from '@/hooks/useIndexHandlers';
+import WidgetsSidebar from '@/components/index-page/WidgetsSidebar';
 import DevSectionDialog from '@/components/index-page/DevSectionDialog';
+import IndexLoadingScreen from '@/components/index-page/IndexLoadingScreen';
+import GoalsInfoCard from '@/components/index-page/GoalsInfoCard';
+import FamilyMembersCollapsible from '@/components/index-page/FamilyMembersCollapsible';
+
+// ─── Index page tab contents ───────────────────────────────────────────────
 import TodayTabContent from '@/components/index-page/TodayTabContent';
 import CohesionTabContent from '@/components/index-page/CohesionTabContent';
 import TasksTabContent from '@/components/index-page/TasksTabContent';
@@ -50,16 +33,57 @@ import ShoppingTabContent from '@/components/index-page/ShoppingTabContent';
 import ChatTabContent from '@/components/index-page/ChatTabContent';
 import RulesTabContent from '@/components/index-page/RulesTabContent';
 import AboutTabContent from '@/components/index-page/AboutTabContent';
-import WidgetsSidebar from '@/components/index-page/WidgetsSidebar';
+
+// ─── Domain components ─────────────────────────────────────────────────────
+import { FamilyTabsContent } from '@/components/FamilyTabsContent';
+import { GoalsSection } from '@/components/GoalsSection';
+import { ChildEducation } from '@/components/ChildEducation';
+import { ComplaintBook } from '@/components/ComplaintBook';
+import { FirstLoginWelcome } from '@/components/FirstLoginWelcome';
+import AIAssistantDialog from '@/components/AIAssistantDialog';
+import PanelSettings from '@/components/PanelSettings';
+import WidgetSettings from '@/components/WidgetSettings';
+import { ClickChamomile } from '@/components/ClickChamomile';
+import Footer from '@/components/Footer';
+
+// ─── Hooks: data ───────────────────────────────────────────────────────────
+import { useTasks } from '@/hooks/useTasks';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useFamilyData } from '@/hooks/useFamilyData';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useDevSectionVotes } from '@/hooks/useDevSectionVotes';
+
+// ─── Hooks: reminders (side-effect schedulers) ─────────────────────────────
+import { useBirthdayReminders } from '@/hooks/useBirthdayReminders';
+import { useCalendarReminders } from '@/hooks/useCalendarReminders';
+import { useDietReminders } from '@/hooks/useDietReminders';
+
+// ─── Hooks: Index-page state / effects / handlers (бизнес-логика страницы) ─
+import useIndexState from '@/hooks/useIndexState';
+import useIndexEffects from '@/hooks/useIndexEffects';
+import useIndexHandlers from '@/hooks/useIndexHandlers';
+
+// ─── Contexts ──────────────────────────────────────────────────────────────
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useAIAssistant } from '@/contexts/AIAssistantContext';
+
+// ─── Types / config / data / translations ──────────────────────────────────
+import type { FamilyMember, FamilyGoal } from '@/types/family.types';
+import { getThemeClasses } from '@/config/themes';
+import { initialComplaints } from '@/data/mockData';
 import { availableSections, availableTopPanelSections } from '@/data/indexSectionsData';
+import { languageOptions, type LanguageCode } from '@/translations';
 
 interface IndexProps {
   onLogout?: () => void;
 }
 
 export default function Index({ onLogout }: IndexProps) {
+  // ─── Router ──────────────────────────────────────────────────────────────
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // ─── Data hooks (members, tasks, calendar, dev votes, family sync) ───────
   const { members: familyMembersRaw, loading: membersLoading, addMember, updateMember, deleteMember } = useFamilyMembersContext();
   const { tasks: tasksRaw, loading: tasksLoading, createTask, updateTask, deleteTask, toggleTask: toggleTaskDB } = useTasks();
   const { syncing } = useFamilyData();
@@ -69,12 +93,18 @@ export default function Index({ onLogout }: IndexProps) {
 
   const familyMembers = familyMembersRaw || [];
   const tasks = tasksRaw || [];
+
+  // ─── Local UI state ──────────────────────────────────────────────────────
+  // Намеренно остаётся в Index.tsx, чтобы FamilyMembersCollapsible жил как
+  // controlled-компонент (см. Stage refactor Index B3).
   const [familyMembersOpen, setFamilyMembersOpen] = useState(false);
 
+  // ─── Side-effect hooks (reminders schedulers) ────────────────────────────
   useBirthdayReminders();
   useCalendarReminders();
   useDietReminders();
 
+  // ─── Page-level state / effects / handlers (логика страницы вынесена) ────
   const state = useIndexState();
   const { setLanguage: setGlobalLanguage } = useLanguage();
 
@@ -85,6 +115,9 @@ export default function Index({ onLogout }: IndexProps) {
     searchParams,
   });
 
+  // ─── Current user resolution (identity-зона, см. Stage 4) ────────────────
+  // Прямой read из localStorage оставлен как был; перевод на identity adapter —
+  // отдельная задача (не входит в косметический рефакторинг).
   const authUser = localStorage.getItem('userData');
   const authUserData = authUser ? JSON.parse(authUser) : null;
   const currentUser = authUserData?.member_id
@@ -106,15 +139,18 @@ export default function Index({ onLogout }: IndexProps) {
     devSectionVotes,
   });
 
+  // ─── Deprecated stubs ────────────────────────────────────────────────────
+  // Сохранены для совместимости с legacy-вызовами из дочерних компонентов.
+  // При вызове логируют warning, но не падают.
   const calendarEvents = calendarEventsAPI || [];
   const setCalendarEvents = () => {
     console.warn('[Index] setCalendarEvents is deprecated, use useCalendarEvents hook instead');
   };
-
   const setFamilyMembers = (value: FamilyMember[] | ((prev: FamilyMember[]) => FamilyMember[])) => {
     console.warn('setFamilyMembers deprecated, use updateMember instead');
   };
 
+  // ─── Computed values ─────────────────────────────────────────────────────
   const menuSections = availableSections.map(s => ({ ...s, ready: true }));
 
   const getSectionTitle = (sectionId: string) => {
@@ -131,14 +167,7 @@ export default function Index({ onLogout }: IndexProps) {
   const totalTasks = (tasks || []).length;
 
   if (membersLoading || tasksLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 via-white to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-sm text-muted-foreground">Загрузка данных семьи...</p>
-        </div>
-      </div>
-    );
+    return <IndexLoadingScreen />;
   }
 
   return (
@@ -239,50 +268,15 @@ export default function Index({ onLogout }: IndexProps) {
 
                 <TabsContent value="family">
                   {handlers.isWidgetEnabled('family-members') && (
-                    <Collapsible open={familyMembersOpen} onOpenChange={setFamilyMembersOpen}>
-                      <Card>
-                        <CollapsibleTrigger className="w-full">
-                          <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
-                                <Icon name="Users" className="h-5 w-5 text-blue-600" />
-                              </div>
-                              <div className="text-left">
-                                <div className="font-semibold text-sm">Члены семьи</div>
-                                <div className="text-xs text-muted-foreground">
-                                  {familyMembers.length > 0
-                                    ? `${familyMembers.length} ${familyMembers.length === 1 ? 'человек' : 'участников'} · подробности в Семья`
-                                    : 'Никого не добавлено'}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); navigate('/family-hub'); }}
-                                className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
-                              >
-                                Открыть в Семья →
-                              </button>
-                              <Icon
-                                name={familyMembersOpen ? 'ChevronUp' : 'ChevronDown'}
-                                className="h-4 w-4 text-muted-foreground"
-                              />
-                            </div>
-                          </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <div className="px-4 pb-4">
-                            <FamilyMembersGrid
-                              members={familyMembers}
-                              onMemberClick={(member) => navigate(`/member/${member.id}`)}
-                              tasks={tasks}
-                              events={calendarEvents}
-                            />
-                          </div>
-                        </CollapsibleContent>
-                      </Card>
-                    </Collapsible>
+                    <FamilyMembersCollapsible
+                      open={familyMembersOpen}
+                      onOpenChange={setFamilyMembersOpen}
+                      familyMembers={familyMembers}
+                      tasks={tasks}
+                      calendarEvents={calendarEvents}
+                      onOpenHub={() => navigate('/family-hub')}
+                      onMemberClick={(member) => navigate(`/member/${member.id}`)}
+                    />
                   )}
                 </TabsContent>
 
@@ -318,23 +312,7 @@ export default function Index({ onLogout }: IndexProps) {
                 <TabsContent value="goals">
                   {handlers.isWidgetEnabled('goals') && (
                     <>
-                      <Card className="border-2 border-purple-200 bg-purple-50/50 mb-4">
-                        <CardContent className="pt-6">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                              <Icon name="Target" size={24} className="text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-bold text-lg mb-2">Как работают цели?</h3>
-                              <div className="space-y-2 text-sm text-muted-foreground">
-                                <p><strong>Ставьте долгосрочные цели</strong> — накопить на квартиру, поехать в отпуск, сделать ремонт.</p>
-                                <p><strong>Добавляйте контрольные точки</strong> для отслеживания прогресса на диаграмме Ганта.</p>
-                                <p><strong>Получайте подсказки от ИИ</strong> для достижения целей быстрее.</p>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
+                      <GoalsInfoCard />
                       <GoalsSection
                         goals={state.familyGoals}
                         familyMembers={familyMembers}
