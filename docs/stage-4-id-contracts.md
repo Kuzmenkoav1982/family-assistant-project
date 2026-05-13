@@ -3,8 +3,8 @@
 ## Purpose / Status
 
 - **Stage:** `stage-4-contract-convergence`
-- **Sub-stage:** 4.3 — rename + life-road migration (done)
-- **Status:** 4.1 / 4.2 / 4.3 — done. Осталось 4.4 (regression net), 4.5 (golden paths smoke), 4.6 (cleanup).
+- **Sub-stage:** 4.4 — regression net (done)
+- **Status:** 4.1 / 4.2 / 4.3 / 4.4 — done. Осталось 4.5 (golden paths smoke), 4.6 (cleanup).
 - **Owner:** Юра / личный разработчик
 - **Goal:** убрать системную причину класса багов `user_id` vs `member_id` vs `family_member.id` — зафиксировать единый контракт идентичности между frontend / backend / storage.
 - **Living doc:** обновлять по мере 4.2 (adapter-layer), 4.3 (rename), 4.6 (cleanup).
@@ -47,12 +47,48 @@
 - `useUploadMedicalFile`: специально оставлен на 4.6 — там перемешаны три identity (X-User-Id для upload endpoint, family_id как resource в body, uploaded_by как actor в children-data). Нужен отдельный mini-discovery: какой endpoint что ждёт. Не критичный baseline риск, потому что upload отдельной кнопкой не вызывается без явного контекста.
 - Прямое чтение `localStorage.authToken` / `userData` в auth-context.tsx, AuthGuard.tsx — оставлено: контекст-провайдер сам формирует state из storage; identity helpers свою задачу делают параллельно.
 
-### Open follow-up для 4.4
+### Stage 4.4 changelog
 
-`scripts/test-actor-user-id.mjs` уже покрывает identity adapter (Блок 3, 9 кейсов). Дополнительно стоит добавить:
-  - кейс "member_id присутствует, но id отсутствует → `readActorUserId() === null`" (уже есть как inv).
-  - кейс "authToken и auth_token оба пустые → null" (уже есть).
-  - возможно, проверить взаимодействие life-road helper-а с identity (через ту же локальную реализацию).
+- ✅ `scripts/test-actor-user-id.mjs` расширен с 23 до 47 кейсов:
+  - Блок 3 добавлено 7 кейсов (битый JSON, fallback на user_data, legacy `user` key, alias `familyId`/`memberId`/`user_id`, пустая строка для `id`).
+  - **Блок 4 (новый)** — identity helpers (`readActorUserId / readActorMemberId / readActorFamilyId / readAuthToken`): 4 happy-path кейса + 2 критических инварианта (member_id не подменяет user_id и наоборот).
+  - **Блок 5 (новый)** — portfolio transport contract: X-User-Id строго == users.id, нет fallback на member_id, пустой storage → нет fake header.
+  - **Блок 6 (новый)** — health transport contract (KE-health): X-User-Id == family_members.id; нет fallback на users.id / `'1'`; token идёт через `Authorization: Bearer`.
+  - **Блок 7 (новый)** — life-road actor contract (KE-life-road): при отсутствии member_id explicit `throw`, не silent fall-back; битый JSON тоже даёт throw.
+- ✅ Шапка runner-а перепиcана: список блоков, пример ожидаемого вывода, ссылки на source-of-truth файлы в проде.
+- ✅ Все блоки self-contained, без внешних зависимостей. Запуск — обычный `node`, без ts-node / vitest / jest.
+
+### How to run regression checks
+
+```bash
+node scripts/test-actor-user-id.mjs
+```
+
+Exit code 0 — всё OK, 1 — найден FAIL (тогда ниже в выводе будет блок `Провалы:` с диффом ожидание/факт).
+
+**Что подтверждает прогон (47 кейсов в 7 блоках):**
+
+| Зона | Блоки | Кол-во | Что закреплено |
+|---|---|---|---|
+| Identity adapter | 3, 4 | 22 | `readActorUserId`/`MemberId`/`FamilyId`/`AuthToken` различают разные сущности; нет fallback `'1'`; legacy ключи `user_data`/`user`/`auth_token` работают; битый JSON безопасен. |
+| Portfolio | 1, 2, 5 | 17 | X-User-Id всегда == `users.id`. Нет подмены `member_id` на `users.id` ни при каких комбинациях storage. |
+| Health | 6 | 4 | X-User-Id всегда == `family_members.id` (KE-health). Нет fallback `'1'`. Token идёт отдельно через `Authorization: Bearer`. |
+| Life-road | 7 | 4 | X-User-Id всегда == `family_members.id` (KE-life-road). При отсутствии member_id — explicit throw. |
+
+**Что НЕ подтверждает прогон (blind spots):**
+
+- Не симулирует реальный HTTP — backend контракт проверяется отдельно (backend regression `backend/portfolio/tests.json`, 20/20).
+- Не симулирует браузер — DOM-эффекты `useEffect`, sessionStorage, `useState` не покрываются (это smoke-зона 4.5).
+- Не проверяет `useUploadMedicalFile` (отложено на 4.6 — там mini-discovery, 3 семантики ID перемешаны).
+- Не проверяет auth write-path (`saveAuth`, `localStorage.setItem` дубликаты в `AuthPage.tsx` / `AuthForm.tsx` — это A4, отложено на 4.6).
+- Не проверяет полную типизацию (TS compile — это работа линтера/vite, не runner-а).
+
+**Когда обновлять runner:**
+
+- Поменялся `src/lib/identity.ts` → синхронизируй Блок 3 (локальная копия adapter-а).
+- Поменялся `src/services/portfolioApi.ts` → синхронизируй Блок 5.
+- Поменялся `src/services/healthApi.ts` → синхронизируй Блок 6.
+- Поменялся life-road actor selection → синхронизируй Блок 7.
 
 ---
 
