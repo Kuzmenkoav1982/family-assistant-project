@@ -157,9 +157,12 @@ export default function WorkshopPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {activeGoals.slice(0, 6).map((g) => {
                 const fw = getFramework(g.frameworkType);
-                // На листинге используем вычисляемый прогресс без KR/milestones (быстрый список).
-                // Точное значение виден на странице цели — там подгружаются все коллекции.
-                const pct = computeProgress(g, [], []).execution;
+                // Этап 2.4: предпочитаем серверный кэш executionProgress.
+                // Fallback на локальный compute, если кэш null (legacy/новые цели).
+                const pct =
+                  typeof g.executionProgress === 'number'
+                    ? g.executionProgress
+                    : computeProgress(g, [], []).execution;
                 return (
                   <button
                     key={g.id}

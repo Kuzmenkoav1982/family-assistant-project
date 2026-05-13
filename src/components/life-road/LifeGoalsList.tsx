@@ -84,25 +84,36 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
               </div>
             </div>
 
-            {stepsTotal > 0 && (
-              <div className="mt-3">
-                <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+            {/* Этап 2.4: прогресс — серверный кэш с локальным fallback */}
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
+                {stepsTotal > 0 ? (
                   <span>Шаги: {stepsDone} / {stepsTotal}</span>
-                  {g.deadline && (
-                    <span className="flex items-center gap-1">
-                      <Icon name="Calendar" size={11} />
-                      {new Date(g.deadline).toLocaleDateString('ru-RU')}
-                    </span>
-                  )}
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
-                    style={{ width: `${stepsTotal ? (stepsDone / stepsTotal) * 100 : g.progress}%` }}
-                  />
-                </div>
+                ) : (
+                  <span className="text-gray-400">прогресс</span>
+                )}
+                {g.deadline && (
+                  <span className="flex items-center gap-1">
+                    <Icon name="Calendar" size={11} />
+                    {new Date(g.deadline).toLocaleDateString('ru-RU')}
+                  </span>
+                )}
               </div>
-            )}
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all"
+                  style={{
+                    width: `${
+                      typeof g.executionProgress === 'number'
+                        ? g.executionProgress
+                        : stepsTotal
+                          ? (stepsDone / stepsTotal) * 100
+                          : g.progress
+                    }%`,
+                  }}
+                />
+              </div>
+            </div>
 
             {/* Ручной ползунок прогресса оставлен только для generic-целей без структуры. */}
             {g.frameworkType === 'generic' && (

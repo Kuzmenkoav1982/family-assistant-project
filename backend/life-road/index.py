@@ -70,6 +70,8 @@ def handler(event: dict, context) -> dict:
             return _handle_checkins(method, cur, conn, family_id, user_id, item_id, event)
         if resource == 'links':
             return _handle_links(method, cur, conn, family_id, user_id, item_id, event)
+        if resource == 'cache-backfill':
+            return _handle_cache_backfill(method, cur, conn, family_id)
         if resource == 'balance':
             return _handle_balance(method, cur, conn, family_id, user_id, event)
         if resource == 'photo':
@@ -93,6 +95,238 @@ def _resp(status: int, payload) -> dict:
         'body': json.dumps(payload, ensure_ascii=False, default=str),
         'isBase64Encoded': False,
     }
+
+
+# ============================================================
+# Goal execution cache (Этап 2.4)
+# ------------------------------------------------------------
+# ИНВАРИАНТЫ (паритет с src/lib/goals/progress.ts):
+#  • execution_progress в БД — только CACHE, не источник истины.
+#  • SMART  → ТОЛЬКО frameworkState (start/current/target).
+#  • OKR    → ТОЛЬКО goal_key_results (веса нормализуем).
+#  • Wheel  → ТОЛЬКО frameworkState (currentScores vs targetScores).
+#  • Generic→ goal_milestones (если есть) → steps → 0.
+#  • Check-ins НЕ влияют на cache. Links НЕ влияют на cache.
+#  • При insufficient data → NULL (а не фиктивный 0).
+#  • clamp 0..100 для UI-значения. Overshoot не кэшируем.
+#  • При ошибке пересчёта основная запись НЕ откатывается:
+#    выставляем NULL и логируем — лучше null, чем устаревший кэш.
+# Фикстуры в src/lib/goals/__fixtures__/progress.fixtures.json
+# используются для parity-проверки.
+# ============================================================
+
+def _num_or_none(v):
+    if v is None or v == '':
+        return None
+    try:
+        n = float(v)
+        if n != n:  # NaN
+            return None
+        return n
+    except (TypeError, ValueError):
+        return None
+
+
+def _clamp_pct(v):
+    if v is None:
+        return None
+    try:
+        n = float(v)
+    except (TypeError, ValueError):
+        return None
+    if n != n:  # NaN
+        return None
+    return max(0, min(100, int(round(n))))
+
+
+def _compute_smart(framework_state):
+    """SMART: только метрика. Возвращает (value|None, insufficient: bool)."""
+    fs = framework_state or {}
+    start = _num_or_none(fs.get('startValue'))
+    current = _num_or_none(fs.get('currentValue'))
+    target = _num_or_none(fs.get('targetValue'))
+    if target is None:
+        return None, True
+    start_safe = 0.0 if start is None else start
+    if start_safe == target:
+        return None, True
+    base = start_safe if current is None else current
+    span = target - start_safe
+    ratio = (base - start_safe) / span
+    return ratio * 100.0, False
+
+
+def _compute_okr(cur, goal_id):
+    """OKR: считаем из goal_key_results. Веса нормализуем (0/null→1)."""
+    cur.execute(
+        '''
+        SELECT start_value, current_value, target_value, weight, status, metric_type
+        FROM goal_key_results WHERE goal_id = %s
+        ''',
+        (goal_id,),
+    )
+    rows = cur.fetchall()
+    if not rows:
+        return None, True
+    weights = []
+    for r in rows:
+        w = r[3]
+        weights.append(w if (w is not None and float(w) > 0) else 1.0)
+    total_w = sum(weights)
+    if total_w == 0:
+        return None, True
+    acc = 0.0
+    for i, r in enumerate(rows):
+        start_v = float(r[0]) if r[0] is not None else 0.0
+        current_v = float(r[1]) if r[1] is not None else 0.0
+        target_v = float(r[2]) if r[2] is not None else 0.0
+        status = r[4]
+        span = target_v - start_v
+        if span == 0:
+            kr_ratio = 1.0 if status == 'done' else 0.0
+        else:
+            kr_ratio = (current_v - start_v) / span
+        clamped = max(0.0, min(1.0, kr_ratio))
+        w_norm = float(weights[i]) / float(total_w)
+        acc += w_norm * clamped
+    return acc * 100.0, False
+
+
+def _compute_wheel(framework_state, linked_sphere_ids):
+    """Wheel: только scores. Пропускаем сферы без baseline/target и span<=0."""
+    fs = framework_state or {}
+    linked = linked_sphere_ids or []
+    if not linked:
+        return None, True
+    baseline = fs.get('baselineScores') or {}
+    target = fs.get('targetScores') or {}
+    current = fs.get('currentScores') or {}
+    total_delta = 0.0
+    achieved = 0.0
+    measured = 0
+    for sid in linked:
+        b = _num_or_none(baseline.get(sid))
+        t = _num_or_none(target.get(sid))
+        c = _num_or_none(current.get(sid))
+        if b is None or t is None:
+            continue
+        measured += 1
+        span = t - b
+        if span <= 0:
+            continue
+        cur_v = b if c is None else c
+        delta = cur_v - b
+        total_delta += span
+        achieved += max(0.0, delta)
+    if measured == 0 or total_delta == 0:
+        return None, True
+    return (achieved / total_delta) * 100.0, False
+
+
+def _compute_generic(cur, goal_id, steps_json):
+    """Generic: milestones → steps → None."""
+    cur.execute(
+        'SELECT weight, status FROM goal_milestones WHERE goal_id = %s',
+        (goal_id,),
+    )
+    rows = cur.fetchall()
+    if rows:
+        weights = []
+        done_w = 0.0
+        for w, status in rows:
+            wv = float(w) if (w is not None and float(w) > 0) else 1.0
+            weights.append(wv)
+            if status == 'done':
+                done_w += wv
+        total = sum(weights)
+        if total == 0:
+            return None, True
+        return (done_w / total) * 100.0, False
+    # Steps fallback
+    steps = steps_json or []
+    if isinstance(steps, list) and steps:
+        done = sum(1 for s in steps if isinstance(s, dict) and s.get('done'))
+        return (done / len(steps)) * 100.0, False
+    return None, True
+
+
+def recompute_goal_execution_cache(cur, conn, goal_id) -> dict:
+    """
+    Пересчитывает и сохраняет life_goals.execution_progress.
+    Возвращает {goalId, executionProgress, source, error|None}.
+    При insufficient data → ставит NULL.
+    При ошибке — НЕ откатывает основную операцию, возвращает error.
+    """
+    try:
+        cur.execute(
+            '''
+            SELECT framework_type, framework_state, linked_sphere_ids, steps
+            FROM life_goals WHERE id = %s
+            ''',
+            (goal_id,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return {'goalId': str(goal_id), 'executionProgress': None, 'source': None, 'error': 'goal_not_found'}
+        framework_type = (row[0] or 'generic')
+        framework_state = row[1] or {}
+        linked = row[2] or []
+        steps_json = row[3] or []
+
+        raw_value = None
+        insufficient = False
+        source = 'manual'
+
+        if framework_type == 'smart':
+            raw_value, insufficient = _compute_smart(framework_state)
+            source = 'smart'
+        elif framework_type == 'okr':
+            raw_value, insufficient = _compute_okr(cur, goal_id)
+            source = 'keyResults'
+        elif framework_type == 'wheel':
+            raw_value, insufficient = _compute_wheel(framework_state, linked)
+            source = 'wheel'
+        else:
+            raw_value, insufficient = _compute_generic(cur, goal_id, steps_json)
+            source = 'milestones' if raw_value is not None else 'manual'
+
+        # При insufficient data → NULL (правило 5.5 ТЗ)
+        final = None if insufficient else _clamp_pct(raw_value)
+
+        cur.execute(
+            'UPDATE life_goals SET execution_progress = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s',
+            (final, goal_id),
+        )
+        conn.commit()
+        return {
+            'goalId': str(goal_id),
+            'executionProgress': final,
+            'source': source,
+            'error': None,
+        }
+    except Exception as e:
+        # НЕ ломаем основную запись: пытаемся выставить NULL, логируем.
+        try:
+            cur.execute(
+                'UPDATE life_goals SET execution_progress = NULL WHERE id = %s',
+                (goal_id,),
+            )
+            conn.commit()
+        except Exception:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+        print(f'[life-road] recompute_goal_execution_cache failed for {goal_id}: {e}')
+        return {'goalId': str(goal_id), 'executionProgress': None, 'source': None, 'error': str(e)}
+
+
+def _safe_recompute(cur, conn, goal_id):
+    """Тихий вариант для write-paths: вызвать, ошибку проглотить — не ломать ответ клиенту."""
+    try:
+        recompute_goal_execution_cache(cur, conn, goal_id)
+    except Exception as e:
+        print(f'[life-road] safe recompute failed for {goal_id}: {e}')
 
 
 def _event_to_dict(r) -> dict:
@@ -317,7 +551,12 @@ def _handle_goals(method, cur, conn, family_id, user_id, item_id, event):
         ))
         new_row = cur.fetchone()
         conn.commit()
-        return _resp(201, _goal_to_dict(new_row))
+        # Этап 2.4: пересчёт кэша после создания (frameworkState/linkedSphereIds могут влиять)
+        _safe_recompute(cur, conn, new_row[0])
+        # Перечитываем goal, чтобы вернуть актуальный execution_progress
+        cur.execute(GOAL_SELECT + ' FROM life_goals WHERE id = %s', (new_row[0],))
+        refreshed = cur.fetchone() or new_row
+        return _resp(201, _goal_to_dict(refreshed))
 
     if method == 'PUT':
         gid = item_id or body.get('id')
@@ -381,7 +620,11 @@ def _handle_goals(method, cur, conn, family_id, user_id, item_id, event):
         conn.commit()
         if not upd:
             return _resp(404, {'error': 'Goal not found'})
-        return _resp(200, _goal_to_dict(upd))
+        # Этап 2.4: пересчёт кэша после изменения goal
+        _safe_recompute(cur, conn, upd[0])
+        cur.execute(GOAL_SELECT + ' FROM life_goals WHERE id = %s', (upd[0],))
+        refreshed = cur.fetchone() or upd
+        return _resp(200, _goal_to_dict(refreshed))
 
     if method == 'DELETE':
         gid = item_id or body.get('id')
@@ -454,7 +697,10 @@ def _handle_milestones(method, cur, conn, family_id, user_id, item_id, event):
             int(body.get('order', 0)),
         ))
         conn.commit()
-        return _resp(201, _milestone_to_dict(cur.fetchone()))
+        created = cur.fetchone()
+        # Этап 2.4: для generic — пересчёт кэша; для smart/okr/wheel — milestones не влияют, но helper это знает
+        _safe_recompute(cur, conn, gid)
+        return _resp(201, _milestone_to_dict(created))
 
     if method == 'PUT':
         mid = item_id or body.get('id')
@@ -494,17 +740,30 @@ def _handle_milestones(method, cur, conn, family_id, user_id, item_id, event):
         conn.commit()
         if not upd:
             return _resp(404, {'error': 'Milestone not found'})
+        # Этап 2.4: пересчёт после обновления milestone
+        _safe_recompute(cur, conn, upd[1])
         return _resp(200, _milestone_to_dict(upd))
 
     if method == 'DELETE':
         mid = item_id or body.get('id')
         if not mid:
             return _resp(400, {'error': 'id required'})
+        # Сначала вытащим goal_id, потом удалим — чтобы пересчитать кэш
+        cur.execute(
+            '''
+            SELECT m.goal_id FROM goal_milestones m JOIN life_goals g ON g.id = m.goal_id
+            WHERE m.id = %s AND g.family_id = %s
+            ''',
+            (mid, family_id),
+        )
+        owner = cur.fetchone()
         cur.execute('''
             DELETE FROM goal_milestones m USING life_goals g
             WHERE m.id = %s AND m.goal_id = g.id AND g.family_id = %s
         ''', (mid, family_id))
         conn.commit()
+        if owner:
+            _safe_recompute(cur, conn, owner[0])
         return _resp(200, {'success': True})
 
     return _resp(405, {'error': 'Method not allowed'})
@@ -572,7 +831,10 @@ def _handle_keyresults(method, cur, conn, family_id, user_id, item_id, event):
             int(body.get('order', 0)),
         ))
         conn.commit()
-        return _resp(201, _kr_to_dict(cur.fetchone()))
+        created = cur.fetchone()
+        # Этап 2.4: пересчёт кэша после создания KR
+        _safe_recompute(cur, conn, gid)
+        return _resp(201, _kr_to_dict(created))
 
     if method == 'PUT':
         kid = item_id or body.get('id')
@@ -612,17 +874,29 @@ def _handle_keyresults(method, cur, conn, family_id, user_id, item_id, event):
         conn.commit()
         if not upd:
             return _resp(404, {'error': 'KeyResult not found'})
+        # Этап 2.4: пересчёт после обновления KR
+        _safe_recompute(cur, conn, upd[1])
         return _resp(200, _kr_to_dict(upd))
 
     if method == 'DELETE':
         kid = item_id or body.get('id')
         if not kid:
             return _resp(400, {'error': 'id required'})
+        cur.execute(
+            '''
+            SELECT k.goal_id FROM goal_key_results k JOIN life_goals g ON g.id = k.goal_id
+            WHERE k.id = %s AND g.family_id = %s
+            ''',
+            (kid, family_id),
+        )
+        owner = cur.fetchone()
         cur.execute('''
             DELETE FROM goal_key_results k USING life_goals g
             WHERE k.id = %s AND k.goal_id = g.id AND g.family_id = %s
         ''', (kid, family_id))
         conn.commit()
+        if owner:
+            _safe_recompute(cur, conn, owner[0])
         return _resp(200, {'success': True})
 
     return _resp(405, {'error': 'Method not allowed'})
@@ -750,6 +1024,28 @@ def _handle_links(method, cur, conn, family_id, user_id, item_id, event):
         return _resp(200, {'success': True})
 
     return _resp(405, {'error': 'Method not allowed'})
+
+
+def _handle_cache_backfill(method, cur, conn, family_id):
+    """Этап 2.4.5: однократный backfill execution_progress для всех целей семьи.
+    POST /?resource=cache-backfill — пересчитать кэш для каждой цели семьи.
+    Возвращает summary с количествами и списком ошибок.
+    """
+    if method != 'POST':
+        return _resp(405, {'error': 'Method not allowed'})
+    cur.execute('SELECT id FROM life_goals WHERE family_id = %s', (family_id,))
+    ids = [r[0] for r in cur.fetchall()]
+    results = {'total': len(ids), 'updated': 0, 'nulled': 0, 'failed': 0, 'errors': []}
+    for gid in ids:
+        r = recompute_goal_execution_cache(cur, conn, gid)
+        if r.get('error'):
+            results['failed'] += 1
+            results['errors'].append({'goalId': r.get('goalId'), 'error': r['error']})
+        elif r.get('executionProgress') is None:
+            results['nulled'] += 1
+        else:
+            results['updated'] += 1
+    return _resp(200, results)
 
 
 def _handle_photo(method, family_id, event):

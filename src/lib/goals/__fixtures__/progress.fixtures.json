@@ -1,0 +1,176 @@
+{
+  "_doc": "Parity fixtures для расчёта execution progress. ОДНА правда для frontend (TS) и backend (Python). При изменении формул синхронизируй обе стороны и пересчитай ожидаемые значения.",
+  "_invariants": [
+    "clamp 0..100",
+    "защита от деления на ноль → insufficientData",
+    "OKR веса нормализуем (0/null → 1, далее /total)",
+    "boolean KR: span=0, done=1, иначе 0",
+    "Wheel: пропускаем сферы без baseline/target",
+    "Wheel: span<=0 → пропускаем (защита)",
+    "Generic: milestones → steps → 0"
+  ],
+  "cases": [
+    {
+      "id": "smart_normal",
+      "description": "SMART: 1.2 из 5 km, старт 0 → 24%",
+      "goal": {
+        "frameworkType": "smart",
+        "frameworkState": {
+          "startValue": 0,
+          "currentValue": 1.2,
+          "targetValue": 5
+        }
+      },
+      "milestones": [],
+      "keyResults": [],
+      "expected": {
+        "execution": 24,
+        "overshoot": false,
+        "insufficientData": null,
+        "source": "smart"
+      }
+    },
+    {
+      "id": "smart_start_equals_target",
+      "description": "SMART: start == target → 0% и insufficientData",
+      "goal": {
+        "frameworkType": "smart",
+        "frameworkState": {
+          "startValue": 5,
+          "currentValue": 5,
+          "targetValue": 5
+        }
+      },
+      "milestones": [],
+      "keyResults": [],
+      "expected": {
+        "execution": 0,
+        "overshoot": false,
+        "insufficientDataNotNull": true,
+        "source": "smart"
+      }
+    },
+    {
+      "id": "smart_overshoot",
+      "description": "SMART: current > target → clamp 100% и overshoot=true",
+      "goal": {
+        "frameworkType": "smart",
+        "frameworkState": {
+          "startValue": 0,
+          "currentValue": 7,
+          "targetValue": 5
+        }
+      },
+      "milestones": [],
+      "keyResults": [],
+      "expected": {
+        "execution": 100,
+        "overshoot": true,
+        "insufficientData": null,
+        "source": "smart"
+      }
+    },
+    {
+      "id": "okr_empty_weights",
+      "description": "OKR: веса null/0 нормализуются равномерно; 50% + 0% + 100% → 50%",
+      "goal": {
+        "frameworkType": "okr",
+        "frameworkState": { "objective": "test" }
+      },
+      "milestones": [],
+      "keyResults": [
+        { "id": "k1", "goalId": "g", "title": "k1", "metricType": "number", "startValue": 0, "currentValue": 5, "targetValue": 10, "unit": "", "weight": 0, "status": "active", "order": 0 },
+        { "id": "k2", "goalId": "g", "title": "k2", "metricType": "number", "startValue": 0, "currentValue": 0, "targetValue": 10, "unit": "", "weight": null, "status": "active", "order": 1 },
+        { "id": "k3", "goalId": "g", "title": "k3", "metricType": "number", "startValue": 0, "currentValue": 10, "targetValue": 10, "unit": "", "weight": null, "status": "active", "order": 2 }
+      ],
+      "expected": {
+        "execution": 50,
+        "overshoot": false,
+        "insufficientData": null,
+        "source": "keyResults"
+      }
+    },
+    {
+      "id": "okr_boolean_kr",
+      "description": "OKR: 1 boolean done + 1 boolean active, веса 1+1 → 50%",
+      "goal": {
+        "frameworkType": "okr",
+        "frameworkState": { "objective": "test" }
+      },
+      "milestones": [],
+      "keyResults": [
+        { "id": "b1", "goalId": "g", "title": "b1", "metricType": "boolean", "startValue": 0, "currentValue": 0, "targetValue": 0, "unit": "", "weight": 1, "status": "done", "order": 0 },
+        { "id": "b2", "goalId": "g", "title": "b2", "metricType": "boolean", "startValue": 0, "currentValue": 0, "targetValue": 0, "unit": "", "weight": 1, "status": "active", "order": 1 }
+      ],
+      "expected": {
+        "execution": 50,
+        "overshoot": false,
+        "insufficientData": null,
+        "source": "keyResults"
+      }
+    },
+    {
+      "id": "wheel_normal",
+      "description": "Wheel: health 4→7 cur 5; growth 5→8 cur 5. Δ=1+0=1, span=3+3=6 → 17%",
+      "goal": {
+        "frameworkType": "wheel",
+        "frameworkState": {
+          "baselineScores": { "health": 4, "growth": 5 },
+          "currentScores": { "health": 5, "growth": 5 },
+          "targetScores": { "health": 7, "growth": 8 }
+        },
+        "linkedSphereIds": ["health", "growth"]
+      },
+      "milestones": [],
+      "keyResults": [],
+      "expected": {
+        "execution": 17,
+        "overshoot": false,
+        "insufficientData": null,
+        "source": "wheel"
+      }
+    },
+    {
+      "id": "wheel_baseline_equals_target",
+      "description": "Wheel: baseline == target по всем сферам → 0% и insufficientData",
+      "goal": {
+        "frameworkType": "wheel",
+        "frameworkState": {
+          "baselineScores": { "health": 5 },
+          "currentScores": { "health": 5 },
+          "targetScores": { "health": 5 }
+        },
+        "linkedSphereIds": ["health"]
+      },
+      "milestones": [],
+      "keyResults": [],
+      "expected": {
+        "execution": 0,
+        "overshoot": false,
+        "insufficientDataNotNull": true,
+        "source": "wheel"
+      }
+    },
+    {
+      "id": "generic_milestones",
+      "description": "Generic: 2 из 4 вех done (равные веса) → 50%",
+      "goal": {
+        "frameworkType": "generic",
+        "frameworkState": {}
+      },
+      "milestones": [
+        { "id": "m1", "goalId": "g", "title": "m1", "weight": 1, "status": "done", "order": 0 },
+        { "id": "m2", "goalId": "g", "title": "m2", "weight": 1, "status": "done", "order": 1 },
+        { "id": "m3", "goalId": "g", "title": "m3", "weight": 1, "status": "pending", "order": 2 },
+        { "id": "m4", "goalId": "g", "title": "m4", "weight": 1, "status": "pending", "order": 3 }
+      ],
+      "keyResults": [],
+      "expected": {
+        "execution": 50,
+        "overshoot": false,
+        "insufficientData": null,
+        "source": "milestones"
+      }
+    }
+  ]
+}
