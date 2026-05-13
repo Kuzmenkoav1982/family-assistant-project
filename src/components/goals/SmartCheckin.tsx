@@ -20,9 +20,10 @@ import type { SmartFrameworkState } from '@/components/goals/forms/SmartForm';
 interface Props {
   goal: LifeGoal;
   onSaved?: (next: LifeGoal) => void;
+  onCheckinSaved?: () => void;
 }
 
-export default function SmartCheckin({ goal, onSaved }: Props) {
+export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
   const fs = (goal.frameworkState ?? {}) as Partial<SmartFrameworkState>;
   const currentInState = fs.currentValue ?? null;
 
@@ -75,7 +76,11 @@ export default function SmartCheckin({ goal, onSaved }: Props) {
         frameworkState: nextState as unknown as Record<string, unknown>,
       });
 
-      // Параллельно — snapshot в историю (best-effort, не блокируем UX при ошибке).
+      // Прогресс показываем сразу — UX не ждёт записи истории.
+      onSaved?.(updated);
+
+      // Snapshot в историю — best-effort. Только при успешном POST
+      // дёргаем onCheckinSaved, чтобы лента check-ins перечитала список.
       lifeApi
         .createCheckin({
           goalId: goal.id,
@@ -90,11 +95,13 @@ export default function SmartCheckin({ goal, onSaved }: Props) {
             targetValue: fs.targetValue ?? null,
           },
         })
+        .then(() => {
+          onCheckinSaved?.();
+        })
         .catch(() => {
           // История замеров — best-effort. Прогресс уже обновлён через updateGoal.
         });
 
-      onSaved?.(updated);
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1500);
     } catch (e) {

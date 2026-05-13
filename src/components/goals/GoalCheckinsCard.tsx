@@ -10,12 +10,13 @@ import GoalCheckinDialog from './GoalCheckinDialog';
 interface Props {
   goal: LifeGoal;
   keyResults: GoalKeyResult[];
+  refreshKey?: number;
 }
 
 // Лента последних 5 check-in. История не перерисовывается задним числом —
 // данные snapshot хранятся в data jsonb на момент записи.
 
-export default function GoalCheckinsCard({ goal, keyResults }: Props) {
+export default function GoalCheckinsCard({ goal, keyResults, refreshKey }: Props) {
   const [checkins, setCheckins] = useState<GoalCheckin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export default function GoalCheckinsCard({ goal, keyResults }: Props) {
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goal.id]);
+  }, [goal.id, refreshKey]);
 
   const recent = checkins.slice(0, 5);
 

@@ -39,6 +39,8 @@ export default function WorkshopGoalPage() {
   // Этап 3.4.1: manual handoff в Portfolio.
   const [achievementDialogOpen, setAchievementDialogOpen] = useState(false);
   const [portfolioLinksRefresh, setPortfolioLinksRefresh] = useState(0);
+  // Счётчик-триггер для перечитывания истории check-ins после быстрого замера.
+  const [checkinsRefreshKey, setCheckinsRefreshKey] = useState(0);
 
   const loadGoal = async (gid: string) => {
     const [allGoals, ms, krs] = await Promise.all([
@@ -223,13 +225,11 @@ export default function WorkshopGoalPage() {
             goal.frameworkType !== 'okr' &&
             goal.frameworkType !== 'wheel')) && (
           <>
-            <div className="text-[10px] text-emerald-600 font-mono px-1">
-              [SMART live · {goal.frameworkType}/{goal.framework ?? '–'}]
-            </div>
             <SmartProgressDisplay goal={goal} variant="full" />
             <SmartCheckin
               goal={goal}
               onSaved={(next) => setGoal(normalizeLegacyGoal(next))}
+              onCheckinSaved={() => setCheckinsRefreshKey((n) => n + 1)}
             />
           </>
         )}
@@ -269,7 +269,7 @@ export default function WorkshopGoalPage() {
         <GoalPortfolioLinksCard goal={goal} refreshKey={portfolioLinksRefresh} />
 
         {/* Block 7 — Check-ins (reflection, не source) */}
-        <GoalCheckinsCard goal={goal} keyResults={keyResults} />
+        <GoalCheckinsCard goal={goal} keyResults={keyResults} refreshKey={checkinsRefreshKey} />
       </div>
 
       <CreateTaskFromGoalDialog
