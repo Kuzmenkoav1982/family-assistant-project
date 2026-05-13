@@ -40,6 +40,22 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
         const sphere = GOAL_SPHERES.find((s) => s.id === g.sphere);
         const stepsDone = g.steps.filter((s) => s.done).length;
         const stepsTotal = g.steps.length;
+        // SMART-обнаружение с учётом legacy-целей (framework как строка вместо frameworkType).
+        const isSmart =
+          g.frameworkType === 'smart' ||
+          (g.framework === 'smart' && g.frameworkType !== 'okr' && g.frameworkType !== 'wheel');
+        // Debug: помогает понять, почему карточка идёт в ту или иную ветку.
+        if (typeof window !== 'undefined') {
+           
+          console.log('[LifeGoalsList]', {
+            id: g.id,
+            title: g.title,
+            frameworkType: g.frameworkType,
+            framework: g.framework,
+            isSmart,
+            hasFrameworkState: !!g.frameworkState && Object.keys(g.frameworkState).length > 0,
+          });
+        }
         return (
           <div key={g.id} className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-white/60 shadow-sm hover:shadow-md transition-all group">
             <div className="flex items-start gap-3">
@@ -86,8 +102,11 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
             </div>
 
             {/* SMART — живая панель прогресса по метрике прямо на карточке */}
-            {g.frameworkType === 'smart' && (
+            {isSmart && (
               <div className="mt-3">
+                <div className="text-[9px] text-emerald-600 mb-1 font-mono">
+                  [SMART live · {g.frameworkType}/{g.framework ?? '–'}]
+                </div>
                 <SmartProgressDisplay goal={g} variant="compact" />
                 {g.deadline && (
                   <div className="flex items-center justify-end gap-1 text-[11px] text-gray-500 mt-1">
@@ -99,7 +118,7 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
             )}
 
             {/* Не-SMART: общий бар (сервер-кэш с локальным fallback) */}
-            {g.frameworkType !== 'smart' && (
+            {!isSmart && (
               <div className="mt-3">
                 <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
                   {stepsTotal > 0 ? (
@@ -147,7 +166,7 @@ export default function LifeGoalsList({ goals, onEdit, onDelete, onUpdateProgres
                 <span className="text-xs font-bold text-purple-700 w-10 text-right">{g.progress}%</span>
               </div>
             )}
-            {g.frameworkType !== 'generic' && g.frameworkType !== 'smart' && (
+            {g.frameworkType !== 'generic' && !isSmart && (
               <div className="mt-2 text-[10px] text-gray-400 italic">
                 Прогресс считается из методики. Открой цель для редактирования.
               </div>

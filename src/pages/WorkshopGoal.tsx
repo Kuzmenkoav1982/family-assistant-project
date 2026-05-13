@@ -216,9 +216,16 @@ export default function WorkshopGoalPage() {
         <GoalWhyCard goal={goal} />
 
         {/* Smart vertical slice: панель прогресса + быстрый замер.
-            Видны сразу под смыслом, до редактирования методики. */}
-        {goal.frameworkType === 'smart' && (
+            Видны сразу под смыслом, до редактирования методики.
+            Поддерживаем и legacy-цели, где SMART записан в framework строкой. */}
+        {(goal.frameworkType === 'smart' ||
+          (goal.framework === 'smart' &&
+            goal.frameworkType !== 'okr' &&
+            goal.frameworkType !== 'wheel')) && (
           <>
+            <div className="text-[10px] text-emerald-600 font-mono px-1">
+              [SMART live · {goal.frameworkType}/{goal.framework ?? '–'}]
+            </div>
             <SmartProgressDisplay goal={goal} variant="full" />
             <SmartCheckin
               goal={goal}
