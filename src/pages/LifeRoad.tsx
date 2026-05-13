@@ -310,10 +310,10 @@ export default function LifeRoad() {
             open={goalDialogOpen}
             onOpenChange={setGoalDialogOpen}
             initial={editingGoal}
-            defaultFramework={defaultFramework}
+            defaultFramework={defaultFramework as never}
             onSave={async (data, id) => {
-              if (id) await updateGoal(id, data);
-              else await createGoal(data);
+              if (id) return await updateGoal(id, data);
+              return await createGoal(data);
             }}
           />
 
