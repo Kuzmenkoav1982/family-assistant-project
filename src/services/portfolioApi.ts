@@ -7,16 +7,19 @@ import type {
 
 const PORTFOLIO_URL = 'https://functions.poehali.dev/3f5999bc-b4e5-41bd-b39f-c64e45c53d5a';
 
-/** Stage-3 hardening: при write-операциях (manual achievement create) шлём X-User-Id,
- *  чтобы backend смог сверить семью пользователя с семьёй member_id. */
+/** Stage-3 hardening: для X-User-Id берём ТОЛЬКО каноничный user_id (users.id),
+ *  никогда не member_id (family_members.id).
+ *  Источник истины — userData.id из login/register response (backend/auth/index.py:364).
+ *  Если user_id недоступен — возвращаем null. Лучше получить честный 401, чем тихо
+ *  слать чужой идентификатор и наблюдать ложные 403. */
 function getActorUserId(): string | null {
-  const direct = localStorage.getItem('familyMemberId') || localStorage.getItem('userId');
-  if (direct) return direct;
-  const raw = localStorage.getItem('userData') || localStorage.getItem('user');
-  if (raw) {
+  for (const key of ['userData', 'user_data', 'user']) {
+    const raw = localStorage.getItem(key);
+    if (!raw) continue;
     try {
       const u = JSON.parse(raw);
-      const id = u?.member_id || u?.memberId || u?.id;
+      // user.id == users.id (см. backend/auth/index.py). НЕ member_id, НЕ memberId.
+      const id = u?.id || u?.user_id;
       if (id) return String(id);
     } catch {
       /* ignore */

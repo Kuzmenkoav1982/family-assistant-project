@@ -80,9 +80,19 @@ def esc(value: Any) -> str:
 
 
 # ============= Auth-context helpers (Portfolio hardening) =============
-# Принцип: actor_user_id берётся ТОЛЬКО из заголовков (X-User-Id). family_id actor-а
-# вычисляется на сервере. Любой member_id/family_id/plan_id из клиента
-# проверяется на принадлежность семье actor-а. Никакого "trust client".
+# Принцип: actor_user_id берётся ТОЛЬКО из заголовков (X-User-Id), это users.id.
+# family_id actor-а вычисляется на сервере через family_members.user_id.
+# Любой member_id/family_id/plan_id из клиента проверяется на принадлежность
+# семье actor-а. Никакого "trust client".
+#
+# Контракт по http-статусам (зафиксировано):
+#   401  — нет X-User-Id вообще.
+#   403  — actor есть, но:
+#            • у actor нет семьи (action имеет смысл только для семейного контекста),
+#            • family_id в URL указан и не совпадает с семьёй actor (cross-family explicit).
+#   404  — id-сущность (member_id, plan_id):
+#            • не существует, ИЛИ существует но в чужой семье.
+#          Намеренно одна и та же ошибка — не раскрываем существование чужих сущностей.
 
 
 class AuthError(Exception):
