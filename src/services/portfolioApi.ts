@@ -25,40 +25,45 @@ function getActorUserId(): string | null {
   return null;
 }
 
+/**
+ * Stage-3 hardening: ВСЕ portfolio вызовы (read и write) шлют X-User-Id.
+ * Системные action (cron_snapshot) уходят отдельным путём (secret), а не через эти helpers.
+ */
+function buildHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...(extra || {}) };
+  const uid = getActorUserId();
+  if (uid) headers['X-User-Id'] = uid;
+  return headers;
+}
+
+async function parseError(res: Response, fallback: string): Promise<string> {
+  try {
+    const j = await res.json();
+    if (j?.error) return `${j.error} (${res.status})`;
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
 async function call<T>(params: Record<string, string>): Promise<T> {
   const qs = new URLSearchParams(params).toString();
-  const res = await fetch(`${PORTFOLIO_URL}?${qs}`);
+  const res = await fetch(`${PORTFOLIO_URL}?${qs}`, { headers: buildHeaders() });
   if (!res.ok) {
-    throw new Error(`Portfolio API error ${res.status}`);
+    throw new Error(await parseError(res, `Portfolio API error ${res.status}`));
   }
   return res.json();
 }
 
-async function callPost<T>(
-  params: Record<string, string>,
-  body: unknown,
-  opts?: { auth?: boolean },
-): Promise<T> {
+async function callPost<T>(params: Record<string, string>, body: unknown): Promise<T> {
   const qs = new URLSearchParams(params).toString();
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (opts?.auth) {
-    const uid = getActorUserId();
-    if (uid) headers['X-User-Id'] = uid;
-  }
   const res = await fetch(`${PORTFOLIO_URL}?${qs}`, {
     method: 'POST',
-    headers,
+    headers: buildHeaders({ 'Content-Type': 'application/json' }),
     body: JSON.stringify(body || {}),
   });
   if (!res.ok) {
-    let msg = `Portfolio API error ${res.status}`;
-    try {
-      const j = await res.json();
-      if (j?.error) msg = `${j.error} (${res.status})`;
-    } catch {
-      /* ignore */
-    }
-    throw new Error(msg);
+    throw new Error(await parseError(res, `Portfolio API error ${res.status}`));
   }
   return res.json();
 }
@@ -126,12 +131,11 @@ export const portfolioApi = {
       member_id: memberId,
     }),
 
-  /** Этап 3.4.1 + hardening: ручное создание достижения. Требует X-User-Id (auth). */
+  /** Этап 3.4.1 + hardening: ручное создание достижения. Auth — общий buildHeaders. */
   achievementCreate: (memberId: string, body: AchievementCreateInput) =>
     callPost<AchievementCreated>(
       { action: 'achievement_create', member_id: memberId },
       body,
-      { auth: true },
     ),
 
   compare: (familyId: string) =>

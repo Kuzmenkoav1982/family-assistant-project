@@ -79,6 +79,105 @@ def esc(value: Any) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
+# ============= Auth-context helpers (Portfolio hardening) =============
+# Принцип: actor_user_id берётся ТОЛЬКО из заголовков (X-User-Id). family_id actor-а
+# вычисляется на сервере. Любой member_id/family_id/plan_id из клиента
+# проверяется на принадлежность семье actor-а. Никакого "trust client".
+
+
+class AuthError(Exception):
+    """Доменные ошибки auth — мапятся на HTTP 401/403/404 в handler."""
+    def __init__(self, status: int, message: str):
+        super().__init__(message)
+        self.status = status
+        self.message = message
+
+
+def get_actor_user_id(event: Dict[str, Any]) -> str:
+    """Достаёт X-User-Id из заголовков. Иначе 401."""
+    headers = event.get('headers') or {}
+    headers_lower = {k.lower(): v for k, v in headers.items()}
+    uid = headers_lower.get('x-user-id') or headers_lower.get('x-authorization')
+    if not uid:
+        raise AuthError(401, 'unauthorized: X-User-Id required')
+    return str(uid).strip()
+
+
+def resolve_actor_family_id(actor_user_id: str) -> str:
+    """user_id → family_id. Если у actor нет семьи — 403."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT family_id FROM {SCHEMA}.family_members
+            WHERE user_id = {esc(actor_user_id)}::uuid LIMIT 1
+        """)
+        row = cur.fetchone()
+        if not row or not row.get('family_id'):
+            raise AuthError(403, 'forbidden: actor has no family')
+        return str(row['family_id'])
+    finally:
+        cur.close()
+        conn.close()
+
+
+def get_member_family_id(member_id: str) -> Optional[str]:
+    """Семья члена. None если member не существует."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT family_id FROM {SCHEMA}.family_members
+            WHERE id = {esc(member_id)}::uuid LIMIT 1
+        """)
+        row = cur.fetchone()
+        return str(row['family_id']) if row and row.get('family_id') else None
+    finally:
+        cur.close()
+        conn.close()
+
+
+def assert_member_in_actor_family(member_id: str, actor_family_id: str) -> None:
+    """member должен принадлежать семье actor. Иначе 404 (не раскрываем, что чужой существует)."""
+    mf = get_member_family_id(member_id)
+    if mf is None:
+        raise AuthError(404, 'member not found')
+    if mf != actor_family_id:
+        raise AuthError(404, 'member not found')  # умышленно как 404
+
+
+def assert_family_match(family_id: str, actor_family_id: str) -> None:
+    """family_id из клиента должен совпасть с семьёй actor. Иначе 403."""
+    if family_id != actor_family_id:
+        raise AuthError(403, 'forbidden: family scope mismatch')
+
+
+def get_plan_family_id(plan_id: str) -> Optional[str]:
+    """Семья владельца плана (через member). None если план не существует."""
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT fm.family_id
+            FROM {SCHEMA}.member_development_plans p
+            JOIN {SCHEMA}.family_members fm ON fm.id = p.member_id
+            WHERE p.id = {esc(plan_id)}::uuid LIMIT 1
+        """)
+        row = cur.fetchone()
+        return str(row['family_id']) if row and row.get('family_id') else None
+    finally:
+        cur.close()
+        conn.close()
+
+
+def assert_plan_in_actor_family(plan_id: str, actor_family_id: str) -> None:
+    pf = get_plan_family_id(plan_id)
+    if pf is None:
+        raise AuthError(404, 'plan not found')
+    if pf != actor_family_id:
+        raise AuthError(404, 'plan not found')
+
+
 def age_to_group(age: Optional[int]) -> str:
     if age is None:
         return '18+'
@@ -1520,15 +1619,38 @@ def cron_snapshot_all() -> Dict[str, Any]:
     return {'created': created, 'total_candidates': len(member_ids), 'errors': errors}
 
 
+def _err(status: int, message: str) -> Dict[str, Any]:
+    return {
+        'statusCode': status,
+        'headers': cors_headers(),
+        'body': json.dumps({'error': message}, ensure_ascii=False),
+    }
+
+
+# Какие actions требуют actor auth + family scope.
+# Cron — единственный системный, защищён CRON_SECRET.
+# Все остальные требуют X-User-Id и проверку семьи.
+ACTOR_PROTECTED_ACTIONS = {
+    'list', 'aggregate', 'get', 'snapshot', 'insights', 'achievements',
+    'history', 'plan_create', 'plan_update', 'plan_delete',
+    'auto_badges', 'ai_insights', 'compare', 'achievement_create',
+}
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Главный обработчик. Действия:
-    - aggregate: пересчитать портфолио (POST/GET, member_id)
-    - get: получить текущее портфолио (GET, member_id)
-    - list: список портфолио всей семьи (GET, family_id)
-    - snapshot: создать исторический snapshot (POST, member_id)
-    - insights: rule-based инсайты (GET, member_id)
-    - achievements: стена достижений (GET, member_id)
+    - aggregate, get, snapshot, insights, achievements, history,
+      ai_insights, auto_badges, achievement_create — по member (member_id);
+    - list, compare — по семье (family_id);
+    - plan_create — по member; plan_update/plan_delete — по plan_id;
+    - cron_snapshot — системный (CRON_SECRET).
+
+    Stage-3 hardening: для всех ACTOR_PROTECTED_ACTIONS обязательно:
+      1) X-User-Id (401 если нет);
+      2) у actor есть семья (403);
+      3) member_id/plan_id принадлежит семье actor (404 если нет);
+      4) family_id (если передан) совпадает с семьёй actor (403).
     """
     method = event.get('httpMethod', 'GET')
 
@@ -1539,107 +1661,86 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     action = params.get('action', 'get')
     member_id = params.get('member_id')
     family_id = params.get('family_id')
+    plan_id = params.get('plan_id')
 
     try:
-        if action == 'list':
-            if not family_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'family_id required'})}
-            data = list_family_portfolios(family_id)
-        elif action == 'aggregate':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            data = aggregate(member_id)
-        elif action == 'get':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            data = get_portfolio(member_id)
-        elif action == 'snapshot':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            trigger = params.get('trigger', 'manual')
-            data = create_snapshot(member_id, trigger)
-        elif action == 'insights':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            data = gen_insights(member_id)
-        elif action == 'achievements':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            data = list_achievements(member_id)
-        elif action == 'history':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            limit = int(params.get('limit', '12'))
-            data = get_history(member_id, limit)
-        elif action == 'cron_snapshot':
+        # ===== Системный action: cron =====
+        if action == 'cron_snapshot':
             secret = params.get('secret') or event.get('headers', {}).get('X-Cron-Secret')
             expected = os.environ.get('CRON_SECRET')
             if expected and secret != expected:
-                return {'statusCode': 403, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'forbidden'})}
+                return _err(403, 'forbidden')
             data = cron_snapshot_all()
-        elif action == 'plan_create':
+            return {'statusCode': 200, 'headers': cors_headers(),
+                    'body': json.dumps(data, ensure_ascii=False, default=str)}
+
+        # ===== Все остальные actions — actor-protected =====
+        if action not in ACTOR_PROTECTED_ACTIONS:
+            return _err(400, f'Unknown action: {action}')
+
+        # 1) auth + actor family — обязательно для всех
+        actor_user_id = get_actor_user_id(event)
+        actor_family_id = resolve_actor_family_id(actor_user_id)
+
+        # 2) Валидация обязательных query-параметров + family-scope checks
+        if action in ('list', 'compare'):
+            if not family_id:
+                return _err(400, 'family_id required')
+            assert_family_match(family_id, actor_family_id)
+        elif action in ('plan_update', 'plan_delete'):
+            if not plan_id:
+                return _err(400, 'plan_id required')
+            assert_plan_in_actor_family(plan_id, actor_family_id)
+        else:
+            # member_id-based actions
             if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
+                return _err(400, 'member_id required')
+            assert_member_in_actor_family(member_id, actor_family_id)
+
+        # 3) Диспетчер бизнес-логики
+        if action == 'list':
+            data = list_family_portfolios(family_id)
+        elif action == 'aggregate':
+            data = aggregate(member_id)
+        elif action == 'get':
+            data = get_portfolio(member_id)
+        elif action == 'snapshot':
+            trigger = params.get('trigger', 'manual')
+            data = create_snapshot(member_id, trigger)
+        elif action == 'insights':
+            data = gen_insights(member_id)
+        elif action == 'achievements':
+            data = list_achievements(member_id)
+        elif action == 'history':
+            limit = int(params.get('limit', '12'))
+            data = get_history(member_id, limit)
+        elif action == 'plan_create':
             body_str = event.get('body') or '{}'
             body = json.loads(body_str) if body_str else {}
             data = plan_create(member_id, body)
         elif action == 'plan_update':
-            plan_id = params.get('plan_id')
-            if not plan_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'plan_id required'})}
             body_str = event.get('body') or '{}'
             body = json.loads(body_str) if body_str else {}
             data = plan_update(plan_id, body)
         elif action == 'plan_delete':
-            plan_id = params.get('plan_id')
-            if not plan_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'plan_id required'})}
             data = plan_delete(plan_id)
         elif action == 'auto_badges':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
             data = auto_generate_badges(member_id)
         elif action == 'ai_insights':
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
             data = gen_ai_insights(member_id)
         elif action == 'compare':
-            if not family_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'family_id required'})}
             data = compare_members(family_id)
         elif action == 'achievement_create':
-            # Этап 3.4.1 + hardening: ручное создание достижения. POST body.
-            # Security-invariant: проверяем actor_user_id (X-User-Id) и совпадение family.
-            if not member_id:
-                return {'statusCode': 400, 'headers': cors_headers(),
-                        'body': json.dumps({'error': 'member_id required'})}
-            headers_lower = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
-            actor_user_id = headers_lower.get('x-user-id') or headers_lower.get('x-authorization')
             body_str = event.get('body') or '{}'
             body = json.loads(body_str) if body_str else {}
+            # Передаём проверенный actor_user_id — внутри функции тоже не доверяем.
             data = achievement_create(member_id, body, actor_user_id=actor_user_id)
-            # Маппинг http-status из data
             if isinstance(data, dict) and data.get('__http_status'):
                 status_code = int(data.pop('__http_status'))
                 return {'statusCode': status_code, 'headers': cors_headers(),
                         'body': json.dumps(data, ensure_ascii=False, default=str)}
         else:
-            return {'statusCode': 400, 'headers': cors_headers(),
-                    'body': json.dumps({'error': f'Unknown action: {action}'})}
+            return _err(400, f'Unknown action: {action}')
 
         if isinstance(data, dict) and data.get('error'):
             return {'statusCode': 404, 'headers': cors_headers(),
@@ -1650,6 +1751,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'headers': cors_headers(),
             'body': json.dumps(data, ensure_ascii=False, default=str),
         }
+    except AuthError as ae:
+        return _err(ae.status, ae.message)
     except Exception as e:
         return {
             'statusCode': 500,

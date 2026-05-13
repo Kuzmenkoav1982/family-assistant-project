@@ -7,34 +7,106 @@
       "expectedStatus": 200
     },
     {
-      "name": "Aggregate Ilya 200",
-      "method": "GET",
-      "path": "/?action=aggregate&member_id=000000d1-0000-0000-0000-000000000001",
-      "expectedStatus": 200
-    },
-    {
-      "name": "Get Ilya portfolio 200",
+      "name": "GET get без auth = 401",
       "method": "GET",
       "path": "/?action=get&member_id=000000d1-0000-0000-0000-000000000001",
-      "expectedStatus": 200
+      "expectedStatus": 401
     },
     {
-      "name": "Insights for Ilya 200",
-      "method": "GET",
-      "path": "/?action=insights&member_id=000000d1-0000-0000-0000-000000000001",
-      "expectedStatus": 200
-    },
-    {
-      "name": "Achievements wall 200",
-      "method": "GET",
-      "path": "/?action=achievements&member_id=000000d1-0000-0000-0000-000000000001",
-      "expectedStatus": 200
-    },
-    {
-      "name": "List family portfolios 200",
+      "name": "GET list без auth = 401",
       "method": "GET",
       "path": "/?action=list&family_id=00000000-0000-0000-0000-000000000001",
-      "expectedStatus": 200
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET achievements без auth = 401",
+      "method": "GET",
+      "path": "/?action=achievements&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET insights без auth = 401",
+      "method": "GET",
+      "path": "/?action=insights&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET history без auth = 401",
+      "method": "GET",
+      "path": "/?action=history&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET compare без auth = 401",
+      "method": "GET",
+      "path": "/?action=compare&family_id=00000000-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST snapshot без auth = 401",
+      "method": "POST",
+      "path": "/?action=snapshot&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST plan_create без auth = 401",
+      "method": "POST",
+      "path": "/?action=plan_create&member_id=000000d1-0000-0000-0000-000000000001",
+      "body": {"sphere_key": "intellect", "title": "Test"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST plan_update без auth = 401",
+      "method": "POST",
+      "path": "/?action=plan_update&plan_id=00000000-0000-0000-0000-000000000abc",
+      "body": {"title": "x"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET plan_delete без auth = 401",
+      "method": "GET",
+      "path": "/?action=plan_delete&plan_id=00000000-0000-0000-0000-000000000abc",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET auto_badges без auth = 401",
+      "method": "GET",
+      "path": "/?action=auto_badges&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET ai_insights без auth = 401",
+      "method": "GET",
+      "path": "/?action=ai_insights&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET aggregate без auth = 401",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST achievement_create без auth = 401",
+      "method": "POST",
+      "path": "/?action=achievement_create&member_id=000000d1-0000-0000-0000-000000000001",
+      "body": {"title": "Test"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Actor без семьи (synthetic user) = 403",
+      "method": "GET",
+      "path": "/?action=get&member_id=000000d1-0000-0000-0000-000000000001",
+      "headers": {"X-User-Id": "ffffffff-ffff-ffff-ffff-fffffffffff0"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "Achievement create чужая семья = 403",
+      "method": "POST",
+      "path": "/?action=achievement_create&member_id=000000d1-0000-0000-0000-000000000001",
+      "headers": {"X-User-Id": "ffffffff-ffff-ffff-ffff-fffffffffff0"},
+      "body": {"title": "Test"},
+      "expectedStatus": 403
     },
     {
       "name": "Bad action 400",
@@ -43,24 +115,15 @@
       "expectedStatus": 400
     },
     {
-      "name": "Get without member_id 400",
+      "name": "Get без member_id (но без auth) = 401",
       "method": "GET",
       "path": "/?action=get",
-      "expectedStatus": 400
-    },
-    {
-      "name": "Achievement create без auth = 401",
-      "method": "POST",
-      "path": "/?action=achievement_create&member_id=000000d1-0000-0000-0000-000000000001",
-      "body": {"title": "Test"},
       "expectedStatus": 401
     },
     {
-      "name": "Achievement create чужая семья = 403",
-      "method": "POST",
-      "path": "/?action=achievement_create&member_id=000000d1-0000-0000-0000-000000000001",
-      "headers": {"X-User-Id": "00000000-0000-0000-0000-000000000999"},
-      "body": {"title": "Test"},
+      "name": "Cron без secret = 403",
+      "method": "GET",
+      "path": "/?action=cron_snapshot",
       "expectedStatus": 403
     }
   ]
