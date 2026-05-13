@@ -76,6 +76,40 @@ const LEGACY_TOKEN_KEYS = ['auth_token'] as const;
 const LEGACY_USER_KEYS = ['user_data', 'user'] as const;
 
 /**
+ * Имя кастомного DOM-события, которое helper диспатчит после любой
+ * мутации auth-state (save / update / clear).
+ *
+ * Зачем: нативный 'storage' event срабатывает ТОЛЬКО в других вкладках/окнах,
+ * не в той же вкладке, где произошла запись. Это важно для guard-компонентов
+ * (ProtectedRoute, AdminRoute), которым нужно реагировать на login/logout
+ * прямо в текущей вкладке без polling-а.
+ *
+ * Подписчики: см. src/components/RouteGuards.tsx и любые будущие auth-aware
+ * компоненты. Стандартное использование:
+ *
+ *   useEffect(() => {
+ *     const sync = () => { ... };
+ *     window.addEventListener(AUTH_SESSION_EVENT, sync);
+ *     window.addEventListener('storage', sync);
+ *     return () => {
+ *       window.removeEventListener(AUTH_SESSION_EVENT, sync);
+ *       window.removeEventListener('storage', sync);
+ *     };
+ *   }, []);
+ */
+export const AUTH_SESSION_EVENT = 'auth-session-changed';
+
+function emitAuthSessionChanged(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new CustomEvent(AUTH_SESSION_EVENT));
+  } catch {
+    // CustomEvent не поддерживается (очень старый browser / SSR).
+    // Не критично — кросс-табный fallback через 'storage' event остаётся.
+  }
+}
+
+/**
  * Записывает полную auth-сессию. Идемпотентно: повторный вызов с тем же
  * объектом не ломает state.
  *
@@ -98,6 +132,8 @@ export function saveAuthSession(session: AuthSession): void {
 
   for (const k of LEGACY_TOKEN_KEYS) storage.setItem(k, session.token);
   for (const k of LEGACY_USER_KEYS) storage.setItem(k, userJson);
+
+  emitAuthSessionChanged();
 }
 
 /**
@@ -125,6 +161,8 @@ export function updateAuthUser(patch: Partial<AuthUser>): void {
 
   storage.setItem(CANONICAL_USER_KEY, merged_json);
   for (const k of LEGACY_USER_KEYS) storage.setItem(k, merged_json);
+
+  emitAuthSessionChanged();
 }
 
 /**
@@ -143,6 +181,8 @@ export function clearAuthSession(): void {
   storage.removeItem(CANONICAL_USER_KEY);
   for (const k of LEGACY_TOKEN_KEYS) storage.removeItem(k);
   for (const k of LEGACY_USER_KEYS) storage.removeItem(k);
+
+  emitAuthSessionChanged();
 }
 
 /**

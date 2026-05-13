@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState, lazy, Suspense } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Welcome from "./pages/Welcome";
 import NotFound404 from "./pages/NotFound404";
@@ -23,12 +23,13 @@ import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BlogCoverJobProvider } from "@/contexts/BlogCoverJobContext";
 import BlogCoverJobIndicator from "@/components/admin/blog/BlogCoverJobIndicator";
-import { storage } from "@/lib/storage";
 import { clearAuthSession } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
 import { medicationNotificationService } from "@/services/medicationNotifications";
 import CookieConsent from "@/components/CookieConsent";
+import PageLoader from "@/components/PageLoader";
+import { ProtectedRoute, AdminRoute } from "@/components/RouteGuards";
 
 // Side-effect: глобальный fetch-перехватчик (auth header proxy и т.п.).
 // Должен инициализироваться до первого fetch в приложении, поэтому стоит
@@ -237,98 +238,6 @@ const AdminAlice = lazy(() => import("./pages/AdminAlice"));
 const AdminMAX = lazy(() => import("./pages/AdminMAX"));
 const AdminMaxInstructions = lazy(() => import("./pages/AdminMaxInstructions"));
 const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
-
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center">
-    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600"></div>
-  </div>
-);
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const token = storage.getItem('authToken');
-        const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
-        setIsAuthenticated(!!token || isDemoMode);
-      } catch (error) {
-        // Storage недоступен (private mode / disabled cookies). Считаем юзера
-        // неавторизованным и показываем Welcome — это безопаснее, чем кидать.
-        console.warn('[ProtectedRoute] storage unavailable, treating as logged out:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-    
-    checkAuth();
-
-    const interval = setInterval(checkAuth, 300);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Проверка авторизации...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Welcome />;
-  }
-
-  return <>{children}</>;
-};
-
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdmin = () => {
-      try {
-        const adminToken = localStorage.getItem('adminToken');
-        setIsAdmin(adminToken === 'admin_authenticated');
-      } catch (error) {
-        // Аналогично ProtectedRoute: при недоступном storage — нет admin-доступа.
-        console.warn('[AdminRoute] storage unavailable, denying admin:', error);
-        setIsAdmin(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkAdmin();
-
-    const interval = setInterval(checkAdmin, 500);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-violet-50/40 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-violet-600 mx-auto mb-3"></div>
-          <p className="text-sm text-gray-600">Проверка админ-доступа…</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return <Navigate to="/admin/login" replace />;
-  }
-
-  return <>{children}</>;
-};
 
 const App = () => {
   const handleLogout = () => {
