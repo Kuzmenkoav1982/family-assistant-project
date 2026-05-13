@@ -1209,16 +1209,27 @@ def auto_generate_badges(member_id: str) -> Dict[str, Any]:
 ALLOWED_CATEGORIES = {'milestone', 'path', 'rhythm'}
 
 
-def achievement_create(member_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+def achievement_create(
+    member_id: str,
+    body: Dict[str, Any],
+    actor_user_id: Optional[str] = None,
+) -> Dict[str, Any]:
     """Этап 3.4.1: ручное создание достижения (manual handoff из цели).
-    Family-safe: member_id должен принадлежать той же семье, что и текущий пользователь.
-    Family_id берём из самого member_id — это надёжнее, чем доверять клиенту.
+
+    Security-invariant (Stage 3 hardening):
+      1) actor_user_id обязателен — иначе 401.
+      2) Семья текущего пользователя (по user_id из family_members) ДОЛЖНА совпадать
+         с семьёй member_id, для которого создаётся достижение. Иначе 403.
+      Только после этого мы доверяем member_id и пишем в БД.
 
     Поля body:
       title (req), description, icon (def Award), sphere_key, category (def milestone),
       earned_at (ISO date, def CURRENT_TIMESTAMP),
       badge_key (если не задан — генерируем уникальный manual_<ts>).
     """
+    if not actor_user_id:
+        return {'error': 'unauthorized', '__http_status': 401}
+
     title = (body.get('title') or '').strip()
     if not title:
         return {'error': 'title required'}
@@ -1237,6 +1248,17 @@ def achievement_create(member_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
+        # 1) Семья текущего пользователя (actor) — источник истины.
+        cur.execute(f"""
+            SELECT family_id FROM {SCHEMA}.family_members
+            WHERE user_id = {esc(actor_user_id)}::uuid LIMIT 1
+        """)
+        actor_row = cur.fetchone()
+        if not actor_row or not actor_row.get('family_id'):
+            return {'error': 'actor has no family', '__http_status': 403}
+        actor_family_id = str(actor_row['family_id'])
+
+        # 2) Семья члена-получателя.
         cur.execute(f"""
             SELECT family_id FROM {SCHEMA}.family_members
             WHERE id = {esc(member_id)}::uuid LIMIT 1
@@ -1244,7 +1266,13 @@ def achievement_create(member_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
         row = cur.fetchone()
         if not row:
             return {'error': 'member not found'}
-        family_id = str(row['family_id'])
+        member_family_id = str(row['family_id'])
+
+        # 3) Жёсткое сравнение — никакого «trust client family_id».
+        if member_family_id != actor_family_id:
+            return {'error': 'forbidden: member belongs to another family', '__http_status': 403}
+
+        family_id = member_family_id
 
         earned_sql = (
             f"{esc(earned_at)}::timestamp" if earned_at else 'CURRENT_TIMESTAMP'
@@ -1594,13 +1622,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'error': 'family_id required'})}
             data = compare_members(family_id)
         elif action == 'achievement_create':
-            # Этап 3.4.1: ручное создание достижения. POST body.
+            # Этап 3.4.1 + hardening: ручное создание достижения. POST body.
+            # Security-invariant: проверяем actor_user_id (X-User-Id) и совпадение family.
             if not member_id:
                 return {'statusCode': 400, 'headers': cors_headers(),
                         'body': json.dumps({'error': 'member_id required'})}
+            headers_lower = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
+            actor_user_id = headers_lower.get('x-user-id') or headers_lower.get('x-authorization')
             body_str = event.get('body') or '{}'
             body = json.loads(body_str) if body_str else {}
-            data = achievement_create(member_id, body)
+            data = achievement_create(member_id, body, actor_user_id=actor_user_id)
+            # Маппинг http-status из data
+            if isinstance(data, dict) and data.get('__http_status'):
+                status_code = int(data.pop('__http_status'))
+                return {'statusCode': status_code, 'headers': cors_headers(),
+                        'body': json.dumps(data, ensure_ascii=False, default=str)}
         else:
             return {'statusCode': 400, 'headers': cors_headers(),
                     'body': json.dumps({'error': f'Unknown action: {action}'})}

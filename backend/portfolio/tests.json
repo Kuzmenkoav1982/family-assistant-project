@@ -47,6 +47,21 @@
       "method": "GET",
       "path": "/?action=get",
       "expectedStatus": 400
+    },
+    {
+      "name": "Achievement create без auth = 401",
+      "method": "POST",
+      "path": "/?action=achievement_create&member_id=000000d1-0000-0000-0000-000000000001",
+      "body": {"title": "Test"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Achievement create чужая семья = 403",
+      "method": "POST",
+      "path": "/?action=achievement_create&member_id=000000d1-0000-0000-0000-000000000001",
+      "headers": {"X-User-Id": "00000000-0000-0000-0000-000000000999"},
+      "body": {"title": "Test"},
+      "expectedStatus": 403
     }
   ]
 }

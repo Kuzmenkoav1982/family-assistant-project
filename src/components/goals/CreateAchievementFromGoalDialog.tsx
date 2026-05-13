@@ -147,8 +147,10 @@ export default function CreateAchievementFromGoalDialog({ open, onOpenChange, go
         itemId: createdAchId,
         meta: {
           source: 'goal_handoff',
+          sourceGoalId: goal.id,
           sourceTitle: title.trim(),
           createdFromUI: 'workshop',
+          createdAt: new Date().toISOString(),
         },
       });
       onCreated?.();

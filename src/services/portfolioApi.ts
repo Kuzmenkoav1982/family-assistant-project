@@ -7,6 +7,24 @@ import type {
 
 const PORTFOLIO_URL = 'https://functions.poehali.dev/3f5999bc-b4e5-41bd-b39f-c64e45c53d5a';
 
+/** Stage-3 hardening: при write-операциях (manual achievement create) шлём X-User-Id,
+ *  чтобы backend смог сверить семью пользователя с семьёй member_id. */
+function getActorUserId(): string | null {
+  const direct = localStorage.getItem('familyMemberId') || localStorage.getItem('userId');
+  if (direct) return direct;
+  const raw = localStorage.getItem('userData') || localStorage.getItem('user');
+  if (raw) {
+    try {
+      const u = JSON.parse(raw);
+      const id = u?.member_id || u?.memberId || u?.id;
+      if (id) return String(id);
+    } catch {
+      /* ignore */
+    }
+  }
+  return null;
+}
+
 async function call<T>(params: Record<string, string>): Promise<T> {
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(`${PORTFOLIO_URL}?${qs}`);
@@ -16,15 +34,31 @@ async function call<T>(params: Record<string, string>): Promise<T> {
   return res.json();
 }
 
-async function callPost<T>(params: Record<string, string>, body: unknown): Promise<T> {
+async function callPost<T>(
+  params: Record<string, string>,
+  body: unknown,
+  opts?: { auth?: boolean },
+): Promise<T> {
   const qs = new URLSearchParams(params).toString();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (opts?.auth) {
+    const uid = getActorUserId();
+    if (uid) headers['X-User-Id'] = uid;
+  }
   const res = await fetch(`${PORTFOLIO_URL}?${qs}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body || {}),
   });
   if (!res.ok) {
-    throw new Error(`Portfolio API error ${res.status}`);
+    let msg = `Portfolio API error ${res.status}`;
+    try {
+      const j = await res.json();
+      if (j?.error) msg = `${j.error} (${res.status})`;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(msg);
   }
   return res.json();
 }
@@ -92,11 +126,12 @@ export const portfolioApi = {
       member_id: memberId,
     }),
 
-  /** Этап 3.4.1: ручное создание достижения с prefill (manual handoff из цели). */
+  /** Этап 3.4.1 + hardening: ручное создание достижения. Требует X-User-Id (auth). */
   achievementCreate: (memberId: string, body: AchievementCreateInput) =>
     callPost<AchievementCreated>(
       { action: 'achievement_create', member_id: memberId },
       body,
+      { auth: true },
     ),
 
   compare: (familyId: string) =>
