@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { PermissionsManager } from '@/components/PermissionsManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { readActorMemberId } from '@/lib/identity';
 
 export default function PermissionsManagement() {
   const navigate = useNavigate();
@@ -16,7 +17,9 @@ export default function PermissionsManagement() {
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   const selectedMember = members.find(m => m.id === selectedMemberId);
-  const currentUserId = localStorage.getItem('userId') || '';
+  // Stage 4.6.2 — сравнение `member.id !== currentMemberId` использует
+  // family_members.id (members[].id), поэтому источник — actorMemberId, не actorUserId.
+  const currentMemberId = readActorMemberId() ?? '';
 
   const handleDeleteClick = (memberId: string) => {
     setDeletingMemberId(memberId);
@@ -85,7 +88,7 @@ export default function PermissionsManagement() {
                       <div className="text-xs opacity-70">{member.role}</div>
                     </div>
                   </Button>
-                  {deleteMember && member.id !== currentUserId && (
+                  {deleteMember && member.id !== currentMemberId && (
                     <Button
                       variant="outline"
                       size="icon"
