@@ -98,10 +98,41 @@ export default function GoalCheckinsCard({ goal, keyResults, refreshKey }: Props
   );
 }
 
+// Безопасно достаёт краткую сводку для SMART-замера.
+// Возвращает null, если это не SMART-замер или данных недостаточно.
+function getSmartMetricSummary(
+  checkin: GoalCheckin,
+): { label: string; prev: number | null; next: number; unit: string } | null {
+  const data = checkin.data as
+    | {
+        kind?: string;
+        metric?: string | null;
+        unit?: string | null;
+        previousValue?: number | null;
+        currentValue?: number | null;
+      }
+    | null
+    | undefined;
+  if (!data || data.kind !== 'smart-metric-checkin') return null;
+  const next =
+    typeof data.currentValue === 'number' && !Number.isNaN(data.currentValue)
+      ? data.currentValue
+      : null;
+  if (next === null) return null;
+  const prev =
+    typeof data.previousValue === 'number' && !Number.isNaN(data.previousValue)
+      ? data.previousValue
+      : null;
+  const label = (data.metric ?? '').trim() || 'метрика';
+  const unit = (data.unit ?? '').trim();
+  return { label, prev, next, unit };
+}
+
 function CheckinRow({ checkin }: { checkin: GoalCheckin }) {
   const [expanded, setExpanded] = useState(false);
   const snapshot = (checkin.data as { snapshot?: Record<string, unknown> })?.snapshot;
   const created = checkin.createdAt ? new Date(checkin.createdAt) : null;
+  const smart = getSmartMetricSummary(checkin);
 
   return (
     <div className="rounded-xl bg-white border border-gray-100 p-2.5">
@@ -109,6 +140,11 @@ function CheckinRow({ checkin }: { checkin: GoalCheckin }) {
         <Icon name="MessageCircle" size={12} className="text-amber-600" />
         {created && (
           <span className="text-[10px] text-gray-500">{created.toLocaleDateString('ru-RU')}</span>
+        )}
+        {smart && (
+          <Badge variant="outline" className="text-[9px] border-blue-300 text-blue-700">
+            замер метрики
+          </Badge>
         )}
         {typeof checkin.selfAssessment === 'number' && (
           <Badge variant="outline" className="text-[9px] border-amber-300 text-amber-700">
@@ -123,10 +159,25 @@ function CheckinRow({ checkin }: { checkin: GoalCheckin }) {
         </button>
       </div>
 
-      {checkin.summary && (
+      {smart ? (
         <div className="text-xs text-gray-800 mb-1">
-          <b className="text-emerald-700">+</b> {checkin.summary}
+          <Icon name="Gauge" size={11} className="inline-block text-blue-700 mr-1 -mt-0.5" />
+          <span className="font-semibold">{smart.label}:</span>{' '}
+          {smart.prev !== null ? (
+            <>
+              {smart.prev} <span className="text-gray-400">→</span> {smart.next}
+            </>
+          ) : (
+            <>{smart.next}</>
+          )}
+          {smart.unit ? ` ${smart.unit}` : ''}
         </div>
+      ) : (
+        checkin.summary && (
+          <div className="text-xs text-gray-800 mb-1">
+            <b className="text-emerald-700">+</b> {checkin.summary}
+          </div>
+        )
       )}
       {checkin.blockers && (
         <div className="text-xs text-gray-700 mb-1">
