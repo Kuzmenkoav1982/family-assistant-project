@@ -1,8 +1,12 @@
 /**
- * Сервис уведомлений о приёме лекарств
+ * Сервис уведомлений о приёме лекарств.
+ *
+ * Stage 4.3: загрузка списка лекарств переведена на healthApi wrapper.
+ * Прямое чтение localStorage.userData + fallback `member_id || '1'` удалён
+ * (см. A1 в docs/stage-4-id-contracts.md).
  */
 
-import func2url from '../../backend/func2url.json';
+import { healthApi } from '@/services/healthApi';
 
 interface MedicationReminder {
   id: string;
@@ -131,40 +135,9 @@ class MedicationNotificationService {
 
   private async loadMedications(): Promise<Medication[]> {
     try {
-      const authToken = localStorage.getItem('authToken');
-      const userDataStr = localStorage.getItem('userData');
-      
-      if (!userDataStr) {
-        console.log('[MedicationNotifications] No user data found');
-        return [];
-      }
-
-      let userId = '1';
-      try {
-        const userData = JSON.parse(userDataStr);
-        userId = userData.member_id || '1';
-      } catch (e) {
-        console.error('[MedicationNotifications] Failed to parse userData:', e);
-      }
-
-      const response = await fetch(func2url['health-medications'], {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': userId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        }
-      });
-
-      if (!response.ok) {
-        console.error('[MedicationNotifications] Failed to load medications:', response.status);
-        return [];
-      }
-
-      const medications: Medication[] = await response.json();
+      const medications = await healthApi.get<Medication[]>('medications');
       // Фильтруем только активные
-      return medications.filter(m => m.active);
-      
+      return medications.filter((m) => m.active);
     } catch (error) {
       console.error('[MedicationNotifications] Error loading medications:', error);
       return [];

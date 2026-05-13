@@ -1,33 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
 import func2url from '../../../backend/func2url.json';
+import { readActorMemberId } from '@/lib/identity';
 import type { LifeEvent } from './types';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
 
-function getUserId(): string | null {
-  const direct = localStorage.getItem('familyMemberId') || localStorage.getItem('userId');
-  if (direct) return direct;
-  const raw = localStorage.getItem('userData') || localStorage.getItem('user');
-  if (raw) {
-    try {
-      const u = JSON.parse(raw);
-      const id = u?.member_id || u?.memberId || u?.id;
-      if (id) return String(id);
-    } catch {
-      /* ignore */
-    }
-  }
-  return null;
-}
-
+/**
+ * KE-life-road: X-User-Id = family_members.id (см. docs/stage-4-id-contracts.md).
+ * Stage 4.3: ушли с прямого чтения localStorage на identity adapter.
+ */
 async function call(method: string, path = '', body?: unknown): Promise<unknown> {
-  const userId = getUserId();
-  if (!userId) throw new Error('Не найден ID пользователя');
+  const actorMemberId = readActorMemberId();
+  if (!actorMemberId) throw new Error('Не найден member_id. Войдите в аккаунт заново.');
   const res = await fetch(`${API_URL}${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'X-User-Id': userId,
+      'X-User-Id': actorMemberId,
     },
     body: body ? JSON.stringify(body) : undefined,
   });

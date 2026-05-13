@@ -3,8 +3,8 @@
 ## Purpose / Status
 
 - **Stage:** `stage-4-contract-convergence`
-- **Sub-stage:** 4.2 — adapter-layer + portfolio/health migration (in progress)
-- **Status:** 4.1 done; 4.2 — `src/lib/identity.ts` создан, portfolio + health переведены.
+- **Sub-stage:** 4.3 — rename + life-road migration (done)
+- **Status:** 4.1 / 4.2 / 4.3 — done. Осталось 4.4 (regression net), 4.5 (golden paths smoke), 4.6 (cleanup).
 - **Owner:** Юра / личный разработчик
 - **Goal:** убрать системную причину класса багов `user_id` vs `member_id` vs `family_member.id` — зафиксировать единый контракт идентичности между frontend / backend / storage.
 - **Living doc:** обновлять по мере 4.2 (adapter-layer), 4.3 (rename), 4.6 (cleanup).
@@ -18,8 +18,41 @@
 - ✅ `src/hooks/useHealthAPI.ts` переписан через healthApi wrapper. Локальный `getUserId()` с fallback `'1'` удалён → закрывает **A1, A5**.
 - ✅ `src/hooks/useHealthNew.ts`: `handleDeleteMedication` и `handleDeleteRecord` переведены на `healthApi.delete()`. Старый паттерн `X-User-Id: selectedProfile.id` (health_profiles.id вместо actor) удалён → закрывает **A2**.
 - ✅ Ручная сборка fetch+headers в health-хуках устранена → закрывает **A6**.
-- 🟡 **Life-road** — не трогаем в 4.2 (KE известная, рефакторинг чтения storage пойдёт в 4.3 через `readActorMemberId()`).
-- 🟡 **A3, A4** (`localStorage.userId`, дубликаты storage-ключей) — остаются в очереди 4.3 / 4.6.
+
+### Stage 4.3 changelog
+
+- ✅ `src/components/life-road/api.ts` — старый `getUserId()` (`localStorage.familyMemberId || localStorage.userId || JSON.parse(userData).member_id || .id`) удалён. Введён `getActorMemberId()` поверх `readActorMemberId()`. Никаких fallback на `users.id` — если member_id нет, бросаем явную ошибку. Закрывает **A3**.
+- ✅ `src/components/life-road/useLifeEvents.ts` — аналогично переведён на `readActorMemberId()`. Локальный `getUserId()` удалён.
+- ✅ `src/components/life-road/LifeEventDialog.tsx` — `handleFile` photo upload теперь читает actor через identity adapter (`readActorMemberId()`), а не через `localStorage.familyMemberId || localStorage.userId`. Закрывает последний raw localStorage read в life-road зоне.
+- ✅ `src/lib/goals/tasksBridge.ts` — auth token читается через `readAuthToken()` вместо ручной `localStorage.getItem('auth_token') || localStorage.getItem('authToken')`. Bridge-код использует только доменные имена ресурсов (`goalId`, `taskId`, `milestoneId`, `keyResultId`).
+- ✅ `src/services/medicationNotifications.ts` — `loadMedications()` переведён на `healthApi.get('medications')`. Удалён старый паттерн `userData.member_id || '1'` и ручная сборка fetch + headers. Это **второй очаг A1**, найденный в 4.3 и закрытый.
+- ✅ **KE-life-road не сломан:** backend-контракт не менялся, `X-User-Id` по-прежнему = `family_members.id`, имя HTTP-заголовка осталось прежним. Изменилось только то, ОТКУДА на frontend этот id берётся.
+
+### Rename map (4.3)
+
+| Old (ambiguous) | New (domain-explicit) | Where |
+|---|---|---|
+| `getUserId()` (life-road) | `getActorMemberId()` → `readActorMemberId()` | `src/components/life-road/api.ts` |
+| `getUserId()` (life-events hook) | inline `readActorMemberId()` | `src/components/life-road/useLifeEvents.ts` |
+| `userId` (life-road dialog photo upload) | `actorMemberId` | `src/components/life-road/LifeEventDialog.tsx` |
+| `getAuthToken()` (tasksBridge) | `readAuthToken()` | `src/lib/goals/tasksBridge.ts` |
+| `userId` в `medicationNotifications` | удалён (заменён `healthApi`) | `src/services/medicationNotifications.ts` |
+
+Имена `memberId`, `familyId`, `planId`, `profileId`, `goalId`, `taskId`, `milestoneId`, `keyResultId`, `linkId`, `itemId`, `entityId` уже доменные и в правильных местах — на 4.3 их не трогаем.
+
+### Что осталось на 4.6 (cleanup)
+
+- **A4** Дубликаты storage-ключей: `authToken` vs `auth_token`, `userData` vs `user_data` vs `user` — записи всё ещё идут в оба ключа в `AuthPage.tsx` / `AuthForm.tsx`. identity adapter их прозрачно читает, но **запись** надо унифицировать.
+- `localStorage.getItem('userId')` / `'familyMemberId'` всё ещё встречается ВНЕ life-road / health: `pages/PermissionsManagement.tsx`, `hooks/useUploadMedicalFile.ts`, `components/pets/PetsAI.tsx`, `lib/devAgent/api.ts`. Эти места не в scope 4.3 (это не life-road / health surfaces), но они кандидаты на rename через identity adapter в 4.6.
+- `useUploadMedicalFile`: специально оставлен на 4.6 — там перемешаны три identity (X-User-Id для upload endpoint, family_id как resource в body, uploaded_by как actor в children-data). Нужен отдельный mini-discovery: какой endpoint что ждёт. Не критичный baseline риск, потому что upload отдельной кнопкой не вызывается без явного контекста.
+- Прямое чтение `localStorage.authToken` / `userData` в auth-context.tsx, AuthGuard.tsx — оставлено: контекст-провайдер сам формирует state из storage; identity helpers свою задачу делают параллельно.
+
+### Open follow-up для 4.4
+
+`scripts/test-actor-user-id.mjs` уже покрывает identity adapter (Блок 3, 9 кейсов). Дополнительно стоит добавить:
+  - кейс "member_id присутствует, но id отсутствует → `readActorUserId() === null`" (уже есть как inv).
+  - кейс "authToken и auth_token оба пустые → null" (уже есть).
+  - возможно, проверить взаимодействие life-road helper-а с identity (через ту же локальную реализацию).
 
 ---
 

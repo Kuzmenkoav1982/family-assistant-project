@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { readActorMemberId } from '@/lib/identity';
 import { CATEGORY_CONFIG, IMPORTANCE_CONFIG, type LifeEvent, type LifeEventCategory, type LifeEventImportance } from './types';
 import func2url from '../../../backend/func2url.json';
 
@@ -62,10 +63,12 @@ export default function LifeEventDialog({ open, onOpenChange, initialEvent, onSa
         reader.readAsDataURL(file);
       });
       const base64 = dataUrl.split(',')[1];
-      const userId = localStorage.getItem('familyMemberId') || localStorage.getItem('userId') || '';
+      // KE-life-road: X-User-Id = family_members.id (см. docs/stage-4-id-contracts.md).
+      const actorMemberId = readActorMemberId();
+      if (!actorMemberId) throw new Error('Не найден member_id. Войдите в аккаунт заново.');
       const res = await fetch(`${API_URL}?resource=photo`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': actorMemberId },
         body: JSON.stringify({ photo: base64, filename: file.name, contentType: file.type }),
       });
       const data = (await res.json()) as { url?: string; error?: string };

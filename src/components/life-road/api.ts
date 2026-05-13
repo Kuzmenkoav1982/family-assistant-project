@@ -1,4 +1,5 @@
 import func2url from '../../../backend/func2url.json';
+import { readActorMemberId } from '@/lib/identity';
 import type {
   BalanceSnapshot,
   GoalActionLink,
@@ -14,22 +15,23 @@ import type {
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
 
-function getUserId(): string {
-  const direct = localStorage.getItem('familyMemberId') || localStorage.getItem('userId');
-  if (direct) return direct;
-
-  const raw = localStorage.getItem('userData') || localStorage.getItem('user');
-  if (raw) {
-    try {
-      const u = JSON.parse(raw);
-      const id = u?.member_id || u?.memberId || u?.id;
-      if (id) return String(id);
-    } catch {
-      /* ignore */
-    }
+/**
+ * KE-life-road (см. docs/stage-4-id-contracts.md):
+ *   backend/life-road/index.py трактует X-User-Id как family_members.id
+ *   (делает SELECT family_id FROM family_members WHERE id = X-User-Id).
+ *   Поэтому actor для life-road = readActorMemberId(), а не readActorUserId().
+ *
+ * Stage 4.3: убран старый getUserId() с прямым чтением
+ *   localStorage.familyMemberId / localStorage.userId / member_id || id —
+ *   неоднозначный fallback мог подменять member_id на users.id и наоборот.
+ *   Теперь единственная точка истины — src/lib/identity.ts.
+ */
+function getActorMemberId(): string {
+  const id = readActorMemberId();
+  if (!id) {
+    throw new Error('Не найден member_id. Войдите в аккаунт заново.');
   }
-
-  throw new Error('Не найден ID пользователя. Войдите в аккаунт заново.');
+  return id;
 }
 
 export class ApiError extends Error {
@@ -47,7 +49,7 @@ export class ApiError extends Error {
 async function call<T>(method: string, query: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_URL}${query}`, {
     method,
-    headers: { 'Content-Type': 'application/json', 'X-User-Id': getUserId() },
+    headers: { 'Content-Type': 'application/json', 'X-User-Id': getActorMemberId() },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {

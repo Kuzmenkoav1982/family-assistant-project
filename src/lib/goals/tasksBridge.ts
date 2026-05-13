@@ -1,9 +1,12 @@
 import func2url from '../../../backend/func2url.json';
 import { lifeApi } from '@/components/life-road/api';
+import { readAuthToken } from '@/lib/identity';
 
 // Мост Workshop → Planning (Этап 3.1).
 // Создание task с prefill из goal/milestone/KR + регистрация связи в goal_action_links.
 // Связь: entityType='task', meta={source, sourceTitle}, milestoneId/keyResultId опционально.
+//
+// Stage 4.3: auth_token / authToken теперь читаются через identity adapter.
 
 const TASKS_URL = (func2url as Record<string, string>)['tasks'];
 
@@ -24,16 +27,8 @@ export interface CreateTaskFromGoalInput {
   priority?: 'low' | 'medium' | 'high' | 'critical';
 }
 
-function getAuthToken(): string {
-  return (
-    localStorage.getItem('auth_token') ||
-    localStorage.getItem('authToken') ||
-    ''
-  );
-}
-
 async function createTask(input: CreateTaskFromGoalInput): Promise<{ id: string }> {
-  const token = getAuthToken();
+  const token = readAuthToken() ?? '';
   const res = await fetch(TASKS_URL, {
     method: 'POST',
     headers: {
