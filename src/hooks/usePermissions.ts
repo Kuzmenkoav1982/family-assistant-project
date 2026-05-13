@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { hasPermission, type Role } from '@/utils/permissions';
+import { updateAuthUser } from '@/lib/authStorage';
 
 interface UsePermissionsOptions {
   familyId?: string;
@@ -47,7 +48,7 @@ export function usePermissions(options: UsePermissionsOptions = {}): Permissions
                 if (currentMember?.access_role) {
                   userRole = currentMember.access_role;
                   user.access_role = userRole;
-                  localStorage.setItem('userData', JSON.stringify(user));
+                  updateAuthUser({ access_role: userRole });
                 }
               }
             }

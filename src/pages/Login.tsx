@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { storage } from '@/lib/storage';
+import { saveAuthSession } from '@/lib/authStorage';
 import SEOHead from '@/components/SEOHead';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
@@ -63,8 +64,7 @@ export default function Login() {
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
-        storage.setItem('authToken', token);
-        storage.setItem('userData', JSON.stringify(user));
+        saveAuthSession({ token, user });
         
         // Небольшая задержка, чтобы storage точно успел записаться
         setTimeout(() => {
@@ -153,8 +153,7 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success && data.token) {
-        storage.setItem('authToken', data.token);
-        storage.setItem('userData', JSON.stringify(data.user));
+        saveAuthSession({ token: data.token, user: data.user });
         
         toast({
           title: 'Добро пожаловать! 👋',

@@ -5,6 +5,7 @@ import ForgotPassword from './ForgotPassword';
 import AuthFormHeader from './auth/AuthFormHeader';
 import LoginForm from './auth/LoginForm';
 import RegisterForm from './auth/RegisterForm';
+import { saveAuthSession } from '@/lib/authStorage';
 
 interface AuthFormProps {
   onAuthSuccess: (token: string, user: any) => void;
@@ -105,8 +106,7 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
         if (data.error) {
           setError(data.error);
         } else {
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
+          saveAuthSession({ token: data.token, user: data.user });
           localStorage.setItem('needsProfileSetup', 'true');
           // Очищаем флаги демо-режима при успешной регистрации
           localStorage.removeItem('isDemoMode');
@@ -153,8 +153,7 @@ export default function AuthForm({ onAuthSuccess }: AuthFormProps) {
         if (data.error) {
           setError(data.error);
         } else {
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
+          saveAuthSession({ token: data.token, user: data.user });
           // Очищаем флаги демо-режима при успешном логине
           localStorage.removeItem('isDemoMode');
           localStorage.removeItem('demoStartTime');

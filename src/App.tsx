@@ -24,6 +24,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BlogCoverJobProvider } from "@/contexts/BlogCoverJobContext";
 import BlogCoverJobIndicator from "@/components/admin/blog/BlogCoverJobIndicator";
 import { storage } from "@/lib/storage";
+import { clearAuthSession } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
 
@@ -284,8 +285,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => {
   const handleLogout = () => {
-    storage.removeItem('authToken');
-    storage.removeItem('userData');
+    clearAuthSession();
     window.location.href = '/login';
   };
 

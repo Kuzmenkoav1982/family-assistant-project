@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../backend/func2url.json';
+import { saveAuthSession } from '@/lib/authStorage';
 
 export default function ActivateCallback() {
   const [searchParams] = useSearchParams();
@@ -63,12 +64,14 @@ export default function ActivateCallback() {
       }
 
       // 3. Сохраняем токен и данные пользователя
-      localStorage.setItem('authToken', authData.token);
-      localStorage.setItem('userData', JSON.stringify({
-        ...authData.user,
-        family_id: activateData.family_id,
-        member_id: activateData.member_id
-      }));
+      saveAuthSession({
+        token: authData.token,
+        user: {
+          ...authData.user,
+          family_id: activateData.family_id,
+          member_id: activateData.member_id,
+        },
+      });
       localStorage.removeItem('pending_invite_token');
       // Очищаем флаги демо-режима при активации
       localStorage.removeItem('isDemoMode');

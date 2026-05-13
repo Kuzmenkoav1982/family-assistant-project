@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { updateAuthUser } from '@/lib/authStorage';
 
 const INVITE_API = 'https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d';
 
@@ -170,14 +171,11 @@ export default function JoinFamily() {
           description: `Вы присоединились к семье: ${data.family.name}`
         });
 
-        const userData = localStorage.getItem('userData');
-        if (userData) {
-          const user = JSON.parse(userData);
-          user.family_id = data.family.id;
-          user.family_name = data.family.name;
-          user.member_id = data.family.member_id;
-          localStorage.setItem('userData', JSON.stringify(user));
-        }
+        updateAuthUser({
+          family_id: data.family.id,
+          family_name: data.family.name,
+          member_id: data.family.member_id,
+        });
         
         localStorage.setItem('onboarding_completed', 'true');
         localStorage.setItem('hasSeenFirstLoginWelcome', 'true');

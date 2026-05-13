@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
+import { saveAuthSession } from '@/lib/authStorage';
 import SEOHead from '@/components/SEOHead';
 
 const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
@@ -141,8 +142,7 @@ export default function Register() {
       const data = await response.json();
 
       if (data.success && data.token) {
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
+        saveAuthSession({ token: data.token, user: data.user });
         
         // Отправка события в Яндекс.Метрику
         sendMetrikaGoal(METRIKA_GOALS.REGISTRATION, {

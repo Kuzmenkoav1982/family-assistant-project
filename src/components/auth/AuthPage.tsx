@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import ForgotPasswordModal from './ForgotPasswordModal';
+import { saveAuthSession } from '@/lib/authStorage';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 
@@ -67,8 +68,7 @@ export default function AuthPage({ onSuccess }: AuthPageProps) {
         return;
       }
 
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('user_data', JSON.stringify(data.user));
+      saveAuthSession({ token: data.token, user: data.user });
 
       toast({
         title: 'Успешно!',

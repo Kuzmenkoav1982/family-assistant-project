@@ -13,6 +13,7 @@ import ExportSettings from '@/components/settings/ExportSettings';
 import AccountSettings from '@/components/settings/AccountSettings';
 import AssistantSettings from '@/components/settings/AssistantSettings';
 import { CalendarExport } from '@/components/CalendarExport';
+import { updateAuthUser } from '@/lib/authStorage';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useTasks } from '@/hooks/useTasks';
 import { ImageCropDialog } from '@/components/ImageCropDialog';
@@ -144,22 +145,10 @@ export default function Settings() {
         }
         
         // Обновляем userData для других компонентов
-        const userData = localStorage.getItem('userData');
-        if (userData) {
-          try {
-            const user = JSON.parse(userData);
-            user.family_name = familyName;
-            if (data.family?.logo_url) {
-              user.logo_url = data.family.logo_url;
-            }
-            if (data.family?.banner_url) {
-              user.banner_url = data.family.banner_url;
-            }
-            localStorage.setItem('userData', JSON.stringify(user));
-          } catch (e) {
-            console.error('Error updating userData:', e);
-          }
-        }
+        const userPatch: Record<string, unknown> = { family_name: familyName };
+        if (data.family?.logo_url) userPatch.logo_url = data.family.logo_url;
+        if (data.family?.banner_url) userPatch.banner_url = data.family.banner_url;
+        updateAuthUser(userPatch);
         
         // Dispatch события для обновления главной страницы
         window.dispatchEvent(new Event('familySettingsUpdated'));

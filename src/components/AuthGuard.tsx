@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { updateAuthUser, clearAuthSession } from '@/lib/authStorage';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
 
@@ -35,15 +36,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
       if (data.success && data.user) {
         setIsAuthenticated(true);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        updateAuthUser(data.user);
       } else {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
+        clearAuthSession();
       }
     } catch (error) {
       console.error('Auth check error:', error);
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
+      clearAuthSession();
     } finally {
       setIsChecking(false);
     }
@@ -78,8 +77,7 @@ export function useAuth() {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+    clearAuthSession();
     window.location.href = '/welcome';
   };
 
