@@ -12,9 +12,10 @@ import type { GoalPortfolioLink, LifeGoal } from '@/components/life-road/types';
 
 interface Props {
   goal: LifeGoal;
+  refreshKey?: number;
 }
 
-export default function GoalPortfolioLinksCard({ goal }: Props) {
+export default function GoalPortfolioLinksCard({ goal, refreshKey }: Props) {
   const navigate = useNavigate();
   const [links, setLinks] = useState<GoalPortfolioLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +39,7 @@ export default function GoalPortfolioLinksCard({ goal }: Props) {
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goal.id]);
+  }, [goal.id, refreshKey]);
 
   const handleDetach = async (linkId: string) => {
     setDetachingId(linkId);

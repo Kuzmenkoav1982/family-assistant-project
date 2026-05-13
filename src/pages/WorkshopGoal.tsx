@@ -11,6 +11,7 @@ import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
 import GoalLinkedTasksCard from '@/components/goals/GoalLinkedTasksCard';
 import GoalPortfolioLinksCard from '@/components/goals/GoalPortfolioLinksCard';
 import CreateTaskFromGoalDialog from '@/components/goals/CreateTaskFromGoalDialog';
+import CreateAchievementFromGoalDialog from '@/components/goals/CreateAchievementFromGoalDialog';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoal } from '@/lib/goals/goalMappers';
 import {
@@ -33,6 +34,9 @@ export default function WorkshopGoalPage() {
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [taskPrefill, setTaskPrefill] = useState<CreateTaskFromGoalInput | null>(null);
   const [linkedTasksRefresh, setLinkedTasksRefresh] = useState(0);
+  // Этап 3.4.1: manual handoff в Portfolio.
+  const [achievementDialogOpen, setAchievementDialogOpen] = useState(false);
+  const [portfolioLinksRefresh, setPortfolioLinksRefresh] = useState(0);
 
   const loadGoal = async (gid: string) => {
     const [allGoals, ms, krs] = await Promise.all([
@@ -167,6 +171,16 @@ export default function WorkshopGoalPage() {
           >
             <Icon name="Plus" size={12} className="mr-1" /> Задача из цели
           </Button>
+          {goal.status === 'done' && (
+            <Button
+              size="sm"
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+              onClick={() => setAchievementDialogOpen(true)}
+              title="Создать достижение в Портфолио"
+            >
+              <Icon name="Trophy" size={12} className="mr-1" /> Достижение
+            </Button>
+          )}
           <div className="flex items-center gap-1.5">
             {goal.status === 'done' && (
               <Badge className="bg-emerald-100 text-emerald-700">Достигнуто</Badge>
@@ -231,7 +245,7 @@ export default function WorkshopGoalPage() {
         />
 
         {/* Block 6 — Связанные материалы из Портфолио (Этап 3.3.1) */}
-        <GoalPortfolioLinksCard goal={goal} />
+        <GoalPortfolioLinksCard goal={goal} refreshKey={portfolioLinksRefresh} />
 
         {/* Block 7 — Check-ins (reflection, не source) */}
         <GoalCheckinsCard goal={goal} keyResults={keyResults} />
@@ -242,6 +256,13 @@ export default function WorkshopGoalPage() {
         onOpenChange={setTaskDialogOpen}
         prefill={taskPrefill}
         onCreated={() => setLinkedTasksRefresh((n) => n + 1)}
+      />
+
+      <CreateAchievementFromGoalDialog
+        open={achievementDialogOpen}
+        onOpenChange={setAchievementDialogOpen}
+        goal={goal}
+        onCreated={() => setPortfolioLinksRefresh((n) => n + 1)}
       />
     </div>
   );

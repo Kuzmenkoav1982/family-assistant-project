@@ -92,6 +92,13 @@ export const portfolioApi = {
       member_id: memberId,
     }),
 
+  /** Этап 3.4.1: ручное создание достижения с prefill (manual handoff из цели). */
+  achievementCreate: (memberId: string, body: AchievementCreateInput) =>
+    callPost<AchievementCreated>(
+      { action: 'achievement_create', member_id: memberId },
+      body,
+    ),
+
   compare: (familyId: string) =>
     call<CompareResponse>({
       action: 'compare',
@@ -104,6 +111,31 @@ export const portfolioApi = {
       member_id: memberId,
     }),
 };
+
+export interface AchievementCreateInput {
+  title: string;
+  description?: string | null;
+  icon?: string;
+  sphere_key?: string | null;
+  category?: 'milestone' | 'path' | 'rhythm';
+  earned_at?: string | null;
+  badge_key?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface AchievementCreated {
+  id: string;
+  memberId: string;
+  familyId: string;
+  badgeKey: string;
+  title: string;
+  description?: string | null;
+  icon: string;
+  sphereKey?: string | null;
+  category: string;
+  earnedAt?: string | null;
+  error?: string;
+}
 
 export interface PlanInput {
   sphere_key: string;

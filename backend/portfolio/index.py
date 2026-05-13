@@ -1,6 +1,6 @@
 """
 Business: Модуль Портфолио — агрегатор развития, snapshot, инсайты, достижения.
-Действия (action в query): aggregate | get | snapshot | insights | achievements | list
+Действия (action в query): aggregate | get | snapshot | insights | achievements | list | achievement_create
 Args: event с httpMethod, queryStringParameters (action, member_id, family_id)
 Returns: JSON с данными портфолио или ошибкой
 """
@@ -1206,6 +1206,89 @@ def auto_generate_badges(member_id: str) -> Dict[str, Any]:
         conn.close()
 
 
+ALLOWED_CATEGORIES = {'milestone', 'path', 'rhythm'}
+
+
+def achievement_create(member_id: str, body: Dict[str, Any]) -> Dict[str, Any]:
+    """Этап 3.4.1: ручное создание достижения (manual handoff из цели).
+    Family-safe: member_id должен принадлежать той же семье, что и текущий пользователь.
+    Family_id берём из самого member_id — это надёжнее, чем доверять клиенту.
+
+    Поля body:
+      title (req), description, icon (def Award), sphere_key, category (def milestone),
+      earned_at (ISO date, def CURRENT_TIMESTAMP),
+      badge_key (если не задан — генерируем уникальный manual_<ts>).
+    """
+    title = (body.get('title') or '').strip()
+    if not title:
+        return {'error': 'title required'}
+    category = body.get('category') or 'milestone'
+    if category not in ALLOWED_CATEGORIES:
+        return {'error': f'invalid category. Allowed: {sorted(ALLOWED_CATEGORIES)}'}
+    sphere = body.get('sphere_key') or None
+    if sphere is not None and sphere not in SPHERE_KEYS:
+        return {'error': f'invalid sphere_key. Allowed: {SPHERE_KEYS}'}
+    icon = body.get('icon') or 'Award'
+    description = body.get('description') or None
+    earned_at = body.get('earned_at') or None  # ISO 'YYYY-MM-DD' or 'YYYY-MM-DDTHH:MM:SS'
+    # badge_key: если клиент не дал — собираем уникальный.
+    badge_key = body.get('badge_key') or f'manual_{int(datetime.now(timezone.utc).timestamp() * 1000)}'
+
+    conn = get_conn()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT family_id FROM {SCHEMA}.family_members
+            WHERE id = {esc(member_id)}::uuid LIMIT 1
+        """)
+        row = cur.fetchone()
+        if not row:
+            return {'error': 'member not found'}
+        family_id = str(row['family_id'])
+
+        earned_sql = (
+            f"{esc(earned_at)}::timestamp" if earned_at else 'CURRENT_TIMESTAMP'
+        )
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.member_achievements
+                (member_id, family_id, badge_key, title, description, icon, sphere_key, category, earned_at, source_type, metadata)
+            VALUES (
+                {esc(member_id)}::uuid,
+                {esc(family_id)}::uuid,
+                {esc(badge_key)},
+                {esc(title)},
+                {esc(description) if description else 'NULL'},
+                {esc(icon)},
+                {esc(sphere) if sphere else 'NULL'},
+                {esc(category)},
+                {earned_sql},
+                'manual',
+                {esc(json.dumps(body.get('metadata') or {}))}::jsonb
+            )
+            ON CONFLICT (member_id, badge_key) DO NOTHING
+            RETURNING id, member_id, family_id, badge_key, title, description, icon, sphere_key, category, earned_at
+        """)
+        new_row = cur.fetchone()
+        if not new_row:
+            # ON CONFLICT не вернул RETURNING — значит badge_key уже занят.
+            return {'error': 'badge_key already exists for this member'}
+        return {
+            'id': str(new_row['id']),
+            'memberId': str(new_row['member_id']),
+            'familyId': str(new_row['family_id']),
+            'badgeKey': new_row['badge_key'],
+            'title': new_row['title'],
+            'description': new_row.get('description'),
+            'icon': new_row['icon'],
+            'sphereKey': new_row.get('sphere_key'),
+            'category': new_row['category'],
+            'earnedAt': str(new_row['earned_at']) if new_row.get('earned_at') else None,
+        }
+    finally:
+        cur.close()
+        conn.close()
+
+
 def compare_members(family_id: str) -> Dict[str, Any]:
     """Сравнение всех членов семьи: scores по сферам в одном объекте."""
     conn = get_conn()
@@ -1510,6 +1593,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return {'statusCode': 400, 'headers': cors_headers(),
                         'body': json.dumps({'error': 'family_id required'})}
             data = compare_members(family_id)
+        elif action == 'achievement_create':
+            # Этап 3.4.1: ручное создание достижения. POST body.
+            if not member_id:
+                return {'statusCode': 400, 'headers': cors_headers(),
+                        'body': json.dumps({'error': 'member_id required'})}
+            body_str = event.get('body') or '{}'
+            body = json.loads(body_str) if body_str else {}
+            data = achievement_create(member_id, body)
         else:
             return {'statusCode': 400, 'headers': cors_headers(),
                     'body': json.dumps({'error': f'Unknown action: {action}'})}
