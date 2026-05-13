@@ -4,7 +4,7 @@
 
 - **Stage:** `stage-4-contract-convergence`
 - **Sub-stage:** 4.6 — cleanup (done). 4.6.1 part A (helper) + part B (callsite migration) done. 4.6.2 done. 4.6.3 done с safe verdict для orphan.
-- **Status:** 4.1 / 4.2 / 4.3 / 4.4 / 4.5 / 4.6 — done по коду. Финальные блокеры sign-off — runtime: `node scripts/test-actor-user-id.mjs` + browser smoke S1–S10.
+- **Status:** code changes — accepted; runtime verification — deferred to owner; final sign-off — pending manual production usage / smoke.
 - **Owner:** Юра / личный разработчик
 - **Goal:** убрать системную причину класса багов `user_id` vs `member_id` vs `family_member.id` — зафиксировать единый контракт идентичности между frontend / backend / storage.
 - **Living doc:** обновлять по мере 4.2 (adapter-layer), 4.3 (rename), 4.6 (cleanup).
@@ -719,28 +719,27 @@ npm run lint
 
 ## 4.8 Final sign-off
 
+### Stage 4 status
+- **code changes:** accepted
+- **runtime verification:** deferred to owner
+- **final sign-off:** pending manual production usage / smoke
+
 ### Code-level status
 - 4.6.1 auth write/remove unification: **DONE**
 - 4.6.2 raw `userId` cleanup: **DONE**
 - 4.6.3 useUploadMedicalFile mini-discovery: **DONE** (orphan frozen, children-data provisional)
 
 ### Runtime status
-- actor-user-id runner: **PENDING**
-- build: **PENDING**
-- lint: **PENDING**
-- smoke S1–S10: **PENDING**
+- actor-user-id runner: **DEFERRED**
+- build: косвенно зелёный (последний коммит собрался), но `npm run build` локально — **DEFERRED**
+- lint: **DEFERRED**
+- smoke S1–S10: **DEFERRED**
 
-### Final verdict
-- Stage 4: **BLOCKED on runtime evidence**
-- Blocking issues:
-  - awaiting external runtime execution (см. 4.7)
+### Triggers для возврата к runtime-проверке
 
-### Runtime pending
-
-Awaiting external execution of:
-- `node scripts/test-actor-user-id.mjs`
-- `npm run build`
-- `npm run lint`
-- browser smoke S1–S10
-
-No final runtime sign-off without attached outputs.
+Если в обычном использовании появится любой из этих сигналов — нужен Finding F-XX (см. шаблон в 4.7):
+- после логина сразу выбрасывает на /login
+- пустые данные там, где раньше были (портфолио / здоровье / life-road)
+- 401/403/500 при открытии портфолио или здоровья
+- ломается logout → login cycle
+- расхождения значений `X-User-Id` в Network между сервисами одного пользователя
