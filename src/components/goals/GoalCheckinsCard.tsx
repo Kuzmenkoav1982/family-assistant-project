@@ -11,16 +11,28 @@ interface Props {
   goal: LifeGoal;
   keyResults: GoalKeyResult[];
   refreshKey?: number;
+  /** ID только что созданного check-in — подсвечиваем его строку, когда она реально появится в списке. */
+  highlightCheckinId?: string;
+  /** Колбэк родителю: «подсветку отыграли, можно сбросить pending id». */
+  onHighlightConsumed?: () => void;
 }
 
 // Лента последних 5 check-in. История не перерисовывается задним числом —
 // данные snapshot хранятся в data jsonb на момент записи.
 
-export default function GoalCheckinsCard({ goal, keyResults, refreshKey }: Props) {
+export default function GoalCheckinsCard({
+  goal,
+  keyResults,
+  refreshKey,
+  highlightCheckinId,
+  onHighlightConsumed,
+}: Props) {
   const [checkins, setCheckins] = useState<GoalCheckin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Реально подсвечиваемый id — ставится только когда строка появилась в данных.
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const reload = async () => {
     if (!goal.id) return;
@@ -40,6 +52,19 @@ export default function GoalCheckinsCard({ goal, keyResults, refreshKey }: Props
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goal.id, refreshKey]);
+
+  // Подсвечиваем строку только когда она реально пришла в данных.
+  // Не зависим от индекса/сортировки — только от совпадения id.
+  useEffect(() => {
+    if (!highlightCheckinId) return;
+    const found = checkins.some((c) => c.id === highlightCheckinId);
+    if (!found) return;
+    setHighlightedId(highlightCheckinId);
+    onHighlightConsumed?.();
+    const t = setTimeout(() => setHighlightedId(null), 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightCheckinId, checkins]);
 
   const recent = checkins.slice(0, 5);
 
@@ -77,7 +102,7 @@ export default function GoalCheckinsCard({ goal, keyResults, refreshKey }: Props
       {recent.length > 0 && (
         <div className="space-y-2">
           {recent.map((c) => (
-            <CheckinRow key={c.id} checkin={c} />
+            <CheckinRow key={c.id} checkin={c} highlighted={c.id === highlightedId} />
           ))}
           {checkins.length > 5 && (
             <div className="text-[10px] text-gray-400 italic text-center">
@@ -128,14 +153,21 @@ function getSmartMetricSummary(
   return { label, prev, next, unit };
 }
 
-function CheckinRow({ checkin }: { checkin: GoalCheckin }) {
+function CheckinRow({ checkin, highlighted }: { checkin: GoalCheckin; highlighted?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const snapshot = (checkin.data as { snapshot?: Record<string, unknown> })?.snapshot;
   const created = checkin.createdAt ? new Date(checkin.createdAt) : null;
   const smart = getSmartMetricSummary(checkin);
 
   return (
-    <div className="rounded-xl bg-white border border-gray-100 p-2.5">
+    <div
+      className={
+        'rounded-xl border p-2.5 transition-colors duration-700 ' +
+        (highlighted
+          ? 'bg-emerald-50 border-emerald-200'
+          : 'bg-white border-gray-100')
+      }
+    >
       <div className="flex items-center gap-2 mb-1.5">
         <Icon name="MessageCircle" size={12} className="text-amber-600" />
         {created && (

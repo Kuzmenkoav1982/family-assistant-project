@@ -41,6 +41,9 @@ export default function WorkshopGoalPage() {
   const [portfolioLinksRefresh, setPortfolioLinksRefresh] = useState(0);
   // Счётчик-триггер для перечитывания истории check-ins после быстрого замера.
   const [checkinsRefreshKey, setCheckinsRefreshKey] = useState(0);
+  // ID только что созданного check-in — нужен, чтобы подсветить именно эту строку,
+  // а не первую по порядку. После того как UI подсветил запись, сбрасывается в null.
+  const [pendingHighlightCheckinId, setPendingHighlightCheckinId] = useState<string | null>(null);
 
   const loadGoal = async (gid: string) => {
     const [allGoals, ms, krs] = await Promise.all([
@@ -229,7 +232,10 @@ export default function WorkshopGoalPage() {
             <SmartCheckin
               goal={goal}
               onSaved={(next) => setGoal(normalizeLegacyGoal(next))}
-              onCheckinSaved={() => setCheckinsRefreshKey((n) => n + 1)}
+              onCheckinSaved={(checkinId) => {
+                setCheckinsRefreshKey((n) => n + 1);
+                if (checkinId) setPendingHighlightCheckinId(checkinId);
+              }}
             />
           </>
         )}
@@ -269,7 +275,13 @@ export default function WorkshopGoalPage() {
         <GoalPortfolioLinksCard goal={goal} refreshKey={portfolioLinksRefresh} />
 
         {/* Block 7 — Check-ins (reflection, не source) */}
-        <GoalCheckinsCard goal={goal} keyResults={keyResults} refreshKey={checkinsRefreshKey} />
+        <GoalCheckinsCard
+          goal={goal}
+          keyResults={keyResults}
+          refreshKey={checkinsRefreshKey}
+          highlightCheckinId={pendingHighlightCheckinId ?? undefined}
+          onHighlightConsumed={() => setPendingHighlightCheckinId(null)}
+        />
       </div>
 
       <CreateTaskFromGoalDialog

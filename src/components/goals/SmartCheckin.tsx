@@ -20,7 +20,7 @@ import type { SmartFrameworkState } from '@/components/goals/forms/SmartForm';
 interface Props {
   goal: LifeGoal;
   onSaved?: (next: LifeGoal) => void;
-  onCheckinSaved?: () => void;
+  onCheckinSaved?: (checkinId?: string) => void;
 }
 
 export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
@@ -95,8 +95,8 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
             targetValue: fs.targetValue ?? null,
           },
         })
-        .then(() => {
-          onCheckinSaved?.();
+        .then((created) => {
+          onCheckinSaved?.(created?.id);
         })
         .catch(() => {
           // История замеров — best-effort. Прогресс уже обновлён через updateGoal.
