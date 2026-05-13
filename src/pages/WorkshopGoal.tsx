@@ -7,6 +7,7 @@ import GoalFrameworkPanel from '@/components/goals/GoalFrameworkPanel';
 import GoalProgressCard from '@/components/goals/GoalProgressCard';
 import GoalWhyCard from '@/components/goals/GoalWhyCard';
 import GoalExecutionCard from '@/components/goals/GoalExecutionCard';
+import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoal } from '@/lib/goals/goalMappers';
 import type { GoalKeyResult, GoalMilestone, LifeGoal } from '@/components/life-road/types';
@@ -146,10 +147,18 @@ export default function WorkshopGoalPage() {
         </div>
 
         {/* Block 3 — Исполнение */}
-        <GoalExecutionCard goal={goal} milestones={milestones} keyResults={keyResults} />
+        <GoalExecutionCard
+          goal={goal}
+          milestones={milestones}
+          keyResults={keyResults}
+          onChanged={reloadCollections}
+        />
 
         {/* Block 4 — Прогресс */}
         <GoalProgressCard goal={goal} milestones={milestones} keyResults={keyResults} />
+
+        {/* Block 5 — Check-ins (reflection, не source) */}
+        <GoalCheckinsCard goal={goal} keyResults={keyResults} />
       </div>
     </div>
   );

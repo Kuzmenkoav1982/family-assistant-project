@@ -11,6 +11,15 @@ import { getFramework } from './frameworkRegistry';
 //  4. OKR веса нормализуем при расчёте (0/null → 1, далее /total).
 //  5. Wheel baseline — точка отсчёта, не меняется случайно (правило для UI).
 //  6. Generic — fallback на registry, без зашитой математики.
+//
+// Этап 2.3 — инвариант изоляции (НЕ НАРУШАТЬ):
+//  • SMART progress = ТОЛЬКО метрика (start/current/target). Milestones не учитываются.
+//  • OKR  progress  = ТОЛЬКО keyResults. Milestones не учитываются.
+//  • Wheel progress = ТОЛЬКО currentScores/targetScores. Milestones не учитываются.
+//  • Generic         = milestones (если есть) → steps → registry.
+//  • Check-in НЕ ВЛИЯЕТ на progress напрямую. Это reflection, а не source.
+//  • selfAssessment — субъективная оценка, не суммируется с execution/outcome.
+// Любая попытка двойного учёта = баг.
 
 export type DeadlineStatus = 'none' | 'on_track' | 'due_soon' | 'overdue';
 
