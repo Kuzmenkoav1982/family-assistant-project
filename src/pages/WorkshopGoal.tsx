@@ -9,6 +9,7 @@ import GoalWhyCard from '@/components/goals/GoalWhyCard';
 import GoalExecutionCard from '@/components/goals/GoalExecutionCard';
 import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
 import GoalLinkedTasksCard from '@/components/goals/GoalLinkedTasksCard';
+import GoalPortfolioLinksCard from '@/components/goals/GoalPortfolioLinksCard';
 import CreateTaskFromGoalDialog from '@/components/goals/CreateTaskFromGoalDialog';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoal } from '@/lib/goals/goalMappers';
@@ -229,7 +230,10 @@ export default function WorkshopGoalPage() {
           refreshKey={linkedTasksRefresh}
         />
 
-        {/* Block 6 — Check-ins (reflection, не source) */}
+        {/* Block 6 — Связанные материалы из Портфолио (Этап 3.3.1) */}
+        <GoalPortfolioLinksCard goal={goal} />
+
+        {/* Block 7 — Check-ins (reflection, не source) */}
         <GoalCheckinsCard goal={goal} keyResults={keyResults} />
       </div>
 

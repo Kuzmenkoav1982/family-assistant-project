@@ -87,6 +87,41 @@ export interface GoalCheckin {
   createdAt?: string;
 }
 
+// Этап 3.3.1: связь Workshop goal <-> Portfolio item (manual attach).
+export type PortfolioItemType = 'achievement' | 'development_plan';
+
+export interface GoalPortfolioLink {
+  id: string;
+  goalId: string;
+  itemType: PortfolioItemType;
+  itemId: string;
+  meta?: Record<string, unknown> | null;
+  linkedBy?: string | null;
+  linkedAt?: string | null;
+  // Origin-extras (приходят из JOIN). null если item удалён — UI показывает broken-state.
+  itemTitle?: string | null;
+  itemSphere?: string | null;
+  itemIcon?: string | null;
+  itemMemberId?: string | null;
+  itemEarnedAt?: string | null;
+}
+
+export interface PortfolioPickerItem {
+  id: string;
+  itemType: PortfolioItemType;
+  title: string;
+  description?: string | null;
+  sphereKey?: string | null;
+  icon?: string | null;
+  category?: string | null;
+  memberId?: string | null;
+  earnedAt?: string | null;
+  badgeKey?: string | null;
+  status?: string | null;
+  progress?: number | null;
+  targetDate?: string | null;
+}
+
 export interface GoalActionLink {
   id: string;
   goalId: string;

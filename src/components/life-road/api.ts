@@ -5,8 +5,11 @@ import type {
   GoalCheckin,
   GoalKeyResult,
   GoalMilestone,
+  GoalPortfolioLink,
   LifeEvent,
   LifeGoal,
+  PortfolioItemType,
+  PortfolioPickerItem,
 } from './types';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
@@ -108,6 +111,22 @@ export const lifeApi = {
     call<GoalActionLink>('POST', '?resource=links', l),
   deleteLink: (id: string) =>
     call<{ success: boolean }>('DELETE', `?resource=links&id=${id}`),
+
+  // Portfolio links (Этап 3.3.1)
+  listPortfolioLinks: (goalId: string) =>
+    call<GoalPortfolioLink[]>('GET', `?resource=portfolio-links&goalId=${goalId}`),
+  attachPortfolioItem: (input: { goalId: string; itemType: PortfolioItemType; itemId: string; meta?: Record<string, unknown> }) =>
+    call<GoalPortfolioLink>('POST', '?resource=portfolio-links', input),
+  detachPortfolioItem: (linkId: string) =>
+    call<{ success: boolean }>('DELETE', `?resource=portfolio-links&id=${linkId}`),
+  portfolioPicker: (params: { itemType?: PortfolioItemType; q?: string; excludeGoalId?: string; limit?: number }) => {
+    const qs = new URLSearchParams();
+    qs.set('itemType', params.itemType || 'achievement');
+    if (params.q) qs.set('q', params.q);
+    if (params.excludeGoalId) qs.set('excludeGoalId', params.excludeGoalId);
+    qs.set('limit', String(params.limit ?? 50));
+    return call<PortfolioPickerItem[]>('GET', `?resource=portfolio-picker&${qs.toString()}`);
+  },
 
   // Coach
   coach: (payload: {

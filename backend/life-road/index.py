@@ -70,6 +70,10 @@ def handler(event: dict, context) -> dict:
             return _handle_checkins(method, cur, conn, family_id, user_id, item_id, event)
         if resource == 'links':
             return _handle_links(method, cur, conn, family_id, user_id, item_id, event)
+        if resource == 'portfolio-links':
+            return _handle_portfolio_links(method, cur, conn, family_id, user_id, item_id, event)
+        if resource == 'portfolio-picker':
+            return _handle_portfolio_picker(method, cur, conn, family_id, event)
         if resource == 'cache-backfill':
             # Защита: backfill — служебная операция, требует X-Admin-Token.
             admin_token = headers.get('X-Admin-Token') or headers.get('x-admin-token')
@@ -1098,6 +1102,225 @@ def _handle_cache_backfill(method, cur, conn, family_id):
         else:
             results['updated'] += 1
     return _resp(200, results)
+
+
+def _portfolio_link_row_to_dict(r):
+    """Mapper для goal_portfolio_links row.
+    Поля r[0..7]: id, goal_id, item_type, item_id, meta, linked_by, linked_at,
+    + опционально r[8]=item_title, r[9]=item_sphere, r[10]=item_icon, r[11]=item_member_id.
+    """
+    base = {
+        'id': str(r[0]),
+        'goalId': str(r[1]),
+        'itemType': r[2],
+        'itemId': str(r[3]),
+        'meta': r[4] or {},
+        'linkedBy': str(r[5]) if r[5] else None,
+        'linkedAt': r[6].isoformat() if r[6] else None,
+    }
+    if len(r) > 7:
+        # Расширенные поля для UI (могут быть None если item удалён — broken state).
+        base['itemTitle'] = r[7] if len(r) > 7 else None
+        base['itemSphere'] = r[8] if len(r) > 8 else None
+        base['itemIcon'] = r[9] if len(r) > 9 else None
+        base['itemMemberId'] = str(r[10]) if len(r) > 10 and r[10] else None
+        base['itemEarnedAt'] = r[11].isoformat() if len(r) > 11 and r[11] else None
+    return base
+
+
+def _assert_goal_owned_simple(cur, goal_id, family_id):
+    """Локальный helper если основной _assert_goal_owned недоступен."""
+    cur.execute('SELECT 1 FROM life_goals WHERE id = %s AND family_id = %s', (goal_id, family_id))
+    return cur.fetchone() is not None
+
+
+def _handle_portfolio_links(method, cur, conn, family_id, user_id, item_id, event):
+    """Этап 3.3.1: связь Workshop goal <-> Portfolio item (manual attach).
+    Контракт: справочная связь, НЕ меняет progress цели и НЕ меняет portfolio item.
+    GET    /?resource=portfolio-links&goalId=...      — список связей цели
+    POST   /?resource=portfolio-links   body: {goalId, itemType, itemId}
+    DELETE /?resource=portfolio-links&id=...          — отвязать
+    """
+    qp = event.get('queryStringParameters') or {}
+    body = json.loads(event.get('body') or '{}')
+    goal_id = qp.get('goalId') or body.get('goalId')
+
+    if method == 'GET':
+        if not goal_id or not _assert_goal_owned_simple(cur, goal_id, family_id):
+            return _resp(400, {'error': 'invalid goalId'})
+        # JOIN на member_achievements — подтянем title/sphere/icon/earnedAt.
+        # LEFT JOIN, чтобы битые ссылки тоже приходили (UI покажет broken-state).
+        cur.execute(
+            '''
+            SELECT l.id, l.goal_id, l.item_type, l.item_id, l.meta, l.linked_by, l.linked_at,
+                   a.title, a.sphere_key, a.icon, a.member_id, a.earned_at
+            FROM goal_portfolio_links l
+            LEFT JOIN member_achievements a
+              ON l.item_type = 'achievement' AND a.id = l.item_id AND a.family_id = %s
+            WHERE l.goal_id = %s
+            ORDER BY l.linked_at DESC
+            ''',
+            (family_id, goal_id),
+        )
+        return _resp(200, [_portfolio_link_row_to_dict(r) for r in cur.fetchall()])
+
+    if method == 'POST':
+        if not goal_id or not _assert_goal_owned_simple(cur, goal_id, family_id):
+            return _resp(400, {'error': 'invalid goalId'})
+        item_type = body.get('itemType')
+        body_item_id = body.get('itemId')
+        if item_type not in {'achievement', 'development_plan'}:
+            return _resp(400, {'error': 'invalid itemType', 'allowed': ['achievement', 'development_plan']})
+        if not body_item_id:
+            return _resp(400, {'error': 'itemId required'})
+
+        # Family-safe: item должен принадлежать той же семье.
+        if item_type == 'achievement':
+            cur.execute(
+                'SELECT id, title FROM member_achievements WHERE id = %s AND family_id = %s',
+                (body_item_id, family_id),
+            )
+        else:
+            cur.execute(
+                'SELECT id, title FROM member_development_plans WHERE id = %s AND family_id = %s',
+                (body_item_id, family_id),
+            )
+        row = cur.fetchone()
+        if not row:
+            return _resp(404, {'error': 'item not found or not in your family'})
+
+        snapshot_title = row[1]
+        meta = body.get('meta') or {}
+        meta.setdefault('source', 'manual')
+        meta.setdefault('sourceTitle', snapshot_title)
+
+        cur.execute(
+            '''
+            INSERT INTO goal_portfolio_links (goal_id, item_type, item_id, meta, linked_by)
+            VALUES (%s, %s, %s, %s::jsonb, %s)
+            ON CONFLICT (goal_id, item_type, item_id) DO UPDATE
+                SET meta = EXCLUDED.meta
+            RETURNING id, goal_id, item_type, item_id, meta, linked_by, linked_at
+            ''',
+            (goal_id, item_type, body_item_id, json.dumps(meta), user_id),
+        )
+        conn.commit()
+        return _resp(200, _portfolio_link_row_to_dict(cur.fetchone()))
+
+    if method == 'DELETE':
+        link_id = qp.get('id') or item_id
+        if not link_id:
+            return _resp(400, {'error': 'id required'})
+        # Подтверждаем принадлежность семье через JOIN на goal.
+        cur.execute(
+            '''
+            DELETE FROM goal_portfolio_links l
+            USING life_goals g
+            WHERE l.id = %s AND l.goal_id = g.id AND g.family_id = %s
+            ''',
+            (link_id, family_id),
+        )
+        conn.commit()
+        return _resp(200, {'success': True})
+
+    return _resp(405, {'error': 'Method not allowed'})
+
+
+def _handle_portfolio_picker(method, cur, conn, family_id, event):
+    """Этап 3.3.1: picker списка Portfolio items для attach-диалога.
+    GET /?resource=portfolio-picker&itemType=achievement&q=...&excludeGoalId=...&limit=50
+    Только items текущей семьи. Можно исключить уже привязанные к данной цели.
+    """
+    if method != 'GET':
+        return _resp(405, {'error': 'Method not allowed'})
+    qp = event.get('queryStringParameters') or {}
+    item_type = qp.get('itemType') or 'achievement'
+    if item_type not in {'achievement', 'development_plan'}:
+        return _resp(400, {'error': 'invalid itemType'})
+    q = (qp.get('q') or '').strip()
+    exclude_goal_id = qp.get('excludeGoalId')
+    try:
+        limit = max(1, min(100, int(qp.get('limit') or 50)))
+    except ValueError:
+        limit = 50
+
+    if item_type == 'achievement':
+        sql = (
+            'SELECT a.id, a.title, a.description, a.sphere_key, a.icon, a.category, '
+            'a.member_id, a.earned_at, a.badge_key '
+            'FROM member_achievements a WHERE a.family_id = %s'
+        )
+        params: list = [family_id]
+        if q:
+            sql += ' AND (a.title ILIKE %s OR a.description ILIKE %s OR a.badge_key ILIKE %s)'
+            like = f'%{q}%'
+            params += [like, like, like]
+        if exclude_goal_id:
+            sql += (
+                ' AND a.id NOT IN ('
+                "SELECT l.item_id FROM goal_portfolio_links l "
+                "WHERE l.goal_id = %s AND l.item_type = 'achievement'"
+                ')'
+            )
+            params.append(exclude_goal_id)
+        sql += ' ORDER BY a.earned_at DESC NULLS LAST, a.created_at DESC LIMIT %s'
+        params.append(limit)
+        cur.execute(sql, tuple(params))
+        rows = cur.fetchall()
+        result = [
+            {
+                'id': str(r[0]),
+                'itemType': 'achievement',
+                'title': r[1],
+                'description': r[2],
+                'sphereKey': r[3],
+                'icon': r[4],
+                'category': r[5],
+                'memberId': str(r[6]) if r[6] else None,
+                'earnedAt': r[7].isoformat() if r[7] else None,
+                'badgeKey': r[8],
+            }
+            for r in rows
+        ]
+        return _resp(200, result)
+
+    # development_plan
+    sql = (
+        'SELECT p.id, p.title, p.description, p.sphere_key, p.member_id, p.status, p.progress, p.target_date '
+        'FROM member_development_plans p WHERE p.family_id = %s'
+    )
+    params = [family_id]
+    if q:
+        sql += ' AND (p.title ILIKE %s OR p.description ILIKE %s)'
+        like = f'%{q}%'
+        params += [like, like]
+    if exclude_goal_id:
+        sql += (
+            ' AND p.id NOT IN ('
+            "SELECT l.item_id FROM goal_portfolio_links l "
+            "WHERE l.goal_id = %s AND l.item_type = 'development_plan'"
+            ')'
+        )
+        params.append(exclude_goal_id)
+    sql += ' ORDER BY p.updated_at DESC LIMIT %s'
+    params.append(limit)
+    cur.execute(sql, tuple(params))
+    rows = cur.fetchall()
+    result = [
+        {
+            'id': str(r[0]),
+            'itemType': 'development_plan',
+            'title': r[1],
+            'description': r[2],
+            'sphereKey': r[3],
+            'memberId': str(r[4]) if r[4] else None,
+            'status': r[5],
+            'progress': r[6],
+            'targetDate': r[7].isoformat() if r[7] else None,
+        }
+        for r in rows
+    ]
+    return _resp(200, result)
 
 
 def _handle_photo(method, family_id, event):
