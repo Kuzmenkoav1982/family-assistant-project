@@ -115,6 +115,12 @@ export const lifeApi = {
   // Portfolio links (Этап 3.3.1)
   listPortfolioLinks: (goalId: string) =>
     call<GoalPortfolioLink[]>('GET', `?resource=portfolio-links&goalId=${goalId}`),
+  /** Этап 3.3.2: обратный поиск связей по item (для Portfolio UI). */
+  listPortfolioLinksByItem: (itemType: PortfolioItemType, itemId: string) =>
+    call<GoalPortfolioLink[]>(
+      'GET',
+      `?resource=portfolio-links&itemType=${encodeURIComponent(itemType)}&itemId=${encodeURIComponent(itemId)}`,
+    ),
   attachPortfolioItem: (input: { goalId: string; itemType: PortfolioItemType; itemId: string; meta?: Record<string, unknown> }) =>
     call<GoalPortfolioLink>('POST', '?resource=portfolio-links', input),
   detachPortfolioItem: (linkId: string) =>

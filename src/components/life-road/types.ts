@@ -87,8 +87,9 @@ export interface GoalCheckin {
   createdAt?: string;
 }
 
-// Этап 3.3.1: связь Workshop goal <-> Portfolio item (manual attach).
-export type PortfolioItemType = 'achievement' | 'development_plan';
+// Этап 3.3.1 + 3.3.2: связь Workshop goal <-> Portfolio item (manual attach).
+// Variant A: пока поддерживаем только 'achievement'. development_plan — будущая итерация.
+export type PortfolioItemType = 'achievement';
 
 export interface GoalPortfolioLink {
   id: string;
@@ -104,6 +105,10 @@ export interface GoalPortfolioLink {
   itemIcon?: string | null;
   itemMemberId?: string | null;
   itemEarnedAt?: string | null;
+  // Для обратного поиска (по item) приходят данные goal.
+  goalTitle?: string | null;
+  goalStatus?: string | null;
+  goalFrameworkType?: string | null;
 }
 
 export interface PortfolioPickerItem {

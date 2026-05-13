@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import type { PortfolioData } from '@/types/portfolio.types';
+import AchievementDetailsDialog from './AchievementDetailsDialog';
+import type { Achievement, PortfolioData } from '@/types/portfolio.types';
 
 interface AchievementsWallProps {
   data: PortfolioData;
@@ -23,6 +25,7 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
 
 export default function AchievementsWall({ data }: AchievementsWallProps) {
   const achievements = data.achievements.slice(0, 12);
+  const [selected, setSelected] = useState<Achievement | null>(null);
 
   return (
     <Card className="border-0 shadow-sm">
@@ -47,10 +50,12 @@ export default function AchievementsWall({ data }: AchievementsWallProps) {
             {achievements.map((a) => {
               const gradient = CATEGORY_GRADIENTS[a.category] || 'from-primary to-purple-500';
               return (
-                <div
+                <button
+                  type="button"
                   key={a.id}
-                  className="group relative p-3 rounded-xl border bg-card hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col items-center min-h-[130px]"
-                  title={`${a.title}${a.description ? ` — ${a.description}` : ''}`}
+                  onClick={() => setSelected(a)}
+                  className="group relative p-3 rounded-xl border bg-card hover:shadow-md transition-all hover:-translate-y-0.5 flex flex-col items-center min-h-[130px] text-left"
+                  title={`${a.title}${a.description ? ` — ${a.description}` : ''} · Открыть подробности`}
                 >
                   <div
                     className={`w-12 h-12 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center mb-2 shadow-sm flex-shrink-0`}
@@ -66,12 +71,17 @@ export default function AchievementsWall({ data }: AchievementsWallProps) {
                       month: 'short',
                     })}
                   </p>
-                </div>
+                </button>
               );
             })}
           </div>
         )}
       </CardContent>
+      <AchievementDetailsDialog
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+        achievement={selected}
+      />
     </Card>
   );
 }

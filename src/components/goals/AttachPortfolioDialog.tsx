@@ -20,11 +20,7 @@ interface Props {
   onAttached?: () => void;
 }
 
-const TYPES: { value: PortfolioItemType; label: string; icon: string }[] = [
-  { value: 'achievement', label: 'Достижения', icon: 'Award' },
-  { value: 'development_plan', label: 'Планы развития', icon: 'Map' },
-];
-
+// Variant A: пока поддерживаем только achievement. Архитектура готова к расширению.
 export default function AttachPortfolioDialog({
   open,
   onOpenChange,
@@ -32,7 +28,7 @@ export default function AttachPortfolioDialog({
   portfolioPath = '/portfolio',
   onAttached,
 }: Props) {
-  const [itemType, setItemType] = useState<PortfolioItemType>('achievement');
+  const itemType: PortfolioItemType = 'achievement';
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<PortfolioPickerItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -101,19 +97,10 @@ export default function AttachPortfolioDialog({
         </DialogHeader>
 
         <div className="flex items-center gap-1.5 pt-2">
-          {TYPES.map((t) => (
-            <Button
-              key={t.value}
-              type="button"
-              size="sm"
-              variant={itemType === t.value ? 'default' : 'outline'}
-              onClick={() => setItemType(t.value)}
-              className="text-xs h-8"
-            >
-              <Icon name={t.icon} size={12} className="mr-1" />
-              {t.label}
-            </Button>
-          ))}
+          <Button type="button" size="sm" variant="default" className="text-xs h-8" disabled>
+            <Icon name="Award" size={12} className="mr-1" />
+            Достижения
+          </Button>
         </div>
 
         <div className="relative mt-2">

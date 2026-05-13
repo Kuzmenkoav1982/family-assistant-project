@@ -639,6 +639,17 @@ def _handle_goals(method, cur, conn, family_id, user_id, item_id, event):
         gid = item_id or body.get('id')
         if not gid:
             return _resp(400, {'error': 'id required'})
+        # Проверяем что цель действительно наша.
+        cur.execute('SELECT id FROM life_goals WHERE id = %s AND family_id = %s', (gid, family_id))
+        if not cur.fetchone():
+            return _resp(404, {'error': 'Goal not found'})
+        # Этап 3.3.2 follow-up: cleanup связей до удаления самой цели (нет CASCADE).
+        # Порядок важен: сначала чистим зависимости, потом саму цель.
+        cur.execute('DELETE FROM goal_portfolio_links WHERE goal_id = %s', (gid,))
+        cur.execute('DELETE FROM goal_action_links WHERE goal_id = %s', (gid,))
+        cur.execute('DELETE FROM goal_checkins WHERE goal_id = %s', (gid,))
+        cur.execute('DELETE FROM goal_key_results WHERE goal_id = %s', (gid,))
+        cur.execute('DELETE FROM goal_milestones WHERE goal_id = %s', (gid,))
         cur.execute('DELETE FROM life_goals WHERE id = %s AND family_id = %s', (gid, family_id))
         conn.commit()
         return _resp(200, {'success': True})
@@ -1144,6 +1155,43 @@ def _handle_portfolio_links(method, cur, conn, family_id, user_id, item_id, even
     qp = event.get('queryStringParameters') or {}
     body = json.loads(event.get('body') or '{}')
     goal_id = qp.get('goalId') or body.get('goalId')
+    # Этап 3.3.2: обратный поиск связей по item (для Portfolio UI).
+    item_type_q = qp.get('itemType')
+    item_id_q = qp.get('itemId')
+
+    if method == 'GET' and item_type_q and item_id_q:
+        if item_type_q != 'achievement':
+            return _resp(400, {'error': 'invalid itemType'})
+        # Family-safe: возвращаем только связи, у которых goal в нашей семье.
+        # Подтягиваем title/status цели для UI.
+        cur.execute(
+            '''
+            SELECT l.id, l.goal_id, l.item_type, l.item_id, l.meta, l.linked_by, l.linked_at,
+                   g.title AS goal_title, g.status AS goal_status, g.framework_type AS goal_framework_type
+            FROM goal_portfolio_links l
+            JOIN life_goals g ON g.id = l.goal_id
+            WHERE l.item_type = %s AND l.item_id = %s AND g.family_id = %s
+            ORDER BY l.linked_at DESC
+            ''',
+            (item_type_q, item_id_q, family_id),
+        )
+        rows = cur.fetchall()
+        result = []
+        for r in rows:
+            base = {
+                'id': str(r[0]),
+                'goalId': str(r[1]),
+                'itemType': r[2],
+                'itemId': str(r[3]),
+                'meta': r[4] or {},
+                'linkedBy': str(r[5]) if r[5] else None,
+                'linkedAt': r[6].isoformat() if r[6] else None,
+                'goalTitle': r[7],
+                'goalStatus': r[8],
+                'goalFrameworkType': r[9] or 'generic',
+            }
+            result.append(base)
+        return _resp(200, result)
 
     if method == 'GET':
         if not goal_id or not _assert_goal_owned_simple(cur, goal_id, family_id):
@@ -1167,24 +1215,19 @@ def _handle_portfolio_links(method, cur, conn, family_id, user_id, item_id, even
     if method == 'POST':
         if not goal_id or not _assert_goal_owned_simple(cur, goal_id, family_id):
             return _resp(400, {'error': 'invalid goalId'})
-        item_type = body.get('itemType')
+        item_type = body.get('itemType') or 'achievement'
         body_item_id = body.get('itemId')
-        if item_type not in {'achievement', 'development_plan'}:
-            return _resp(400, {'error': 'invalid itemType', 'allowed': ['achievement', 'development_plan']})
+        # Этап 3.3.2 (Variant A): пока поддерживаем только achievement.
+        if item_type != 'achievement':
+            return _resp(400, {'error': 'invalid itemType', 'allowed': ['achievement']})
         if not body_item_id:
             return _resp(400, {'error': 'itemId required'})
 
         # Family-safe: item должен принадлежать той же семье.
-        if item_type == 'achievement':
-            cur.execute(
-                'SELECT id, title FROM member_achievements WHERE id = %s AND family_id = %s',
-                (body_item_id, family_id),
-            )
-        else:
-            cur.execute(
-                'SELECT id, title FROM member_development_plans WHERE id = %s AND family_id = %s',
-                (body_item_id, family_id),
-            )
+        cur.execute(
+            'SELECT id, title FROM member_achievements WHERE id = %s AND family_id = %s',
+            (body_item_id, family_id),
+        )
         row = cur.fetchone()
         if not row:
             return _resp(404, {'error': 'item not found or not in your family'})
@@ -1235,8 +1278,9 @@ def _handle_portfolio_picker(method, cur, conn, family_id, event):
         return _resp(405, {'error': 'Method not allowed'})
     qp = event.get('queryStringParameters') or {}
     item_type = qp.get('itemType') or 'achievement'
-    if item_type not in {'achievement', 'development_plan'}:
-        return _resp(400, {'error': 'invalid itemType'})
+    # Variant A: только achievement до полной поддержки других типов.
+    if item_type != 'achievement':
+        return _resp(400, {'error': 'invalid itemType', 'allowed': ['achievement']})
     q = (qp.get('q') or '').strip()
     exclude_goal_id = qp.get('excludeGoalId')
     try:
@@ -1244,79 +1288,40 @@ def _handle_portfolio_picker(method, cur, conn, family_id, event):
     except ValueError:
         limit = 50
 
-    if item_type == 'achievement':
-        sql = (
-            'SELECT a.id, a.title, a.description, a.sphere_key, a.icon, a.category, '
-            'a.member_id, a.earned_at, a.badge_key '
-            'FROM member_achievements a WHERE a.family_id = %s'
-        )
-        params: list = [family_id]
-        if q:
-            sql += ' AND (a.title ILIKE %s OR a.description ILIKE %s OR a.badge_key ILIKE %s)'
-            like = f'%{q}%'
-            params += [like, like, like]
-        if exclude_goal_id:
-            sql += (
-                ' AND a.id NOT IN ('
-                "SELECT l.item_id FROM goal_portfolio_links l "
-                "WHERE l.goal_id = %s AND l.item_type = 'achievement'"
-                ')'
-            )
-            params.append(exclude_goal_id)
-        sql += ' ORDER BY a.earned_at DESC NULLS LAST, a.created_at DESC LIMIT %s'
-        params.append(limit)
-        cur.execute(sql, tuple(params))
-        rows = cur.fetchall()
-        result = [
-            {
-                'id': str(r[0]),
-                'itemType': 'achievement',
-                'title': r[1],
-                'description': r[2],
-                'sphereKey': r[3],
-                'icon': r[4],
-                'category': r[5],
-                'memberId': str(r[6]) if r[6] else None,
-                'earnedAt': r[7].isoformat() if r[7] else None,
-                'badgeKey': r[8],
-            }
-            for r in rows
-        ]
-        return _resp(200, result)
-
-    # development_plan
     sql = (
-        'SELECT p.id, p.title, p.description, p.sphere_key, p.member_id, p.status, p.progress, p.target_date '
-        'FROM member_development_plans p WHERE p.family_id = %s'
+        'SELECT a.id, a.title, a.description, a.sphere_key, a.icon, a.category, '
+        'a.member_id, a.earned_at, a.badge_key '
+        'FROM member_achievements a WHERE a.family_id = %s'
     )
-    params = [family_id]
+    params: list = [family_id]
     if q:
-        sql += ' AND (p.title ILIKE %s OR p.description ILIKE %s)'
+        sql += ' AND (a.title ILIKE %s OR a.description ILIKE %s OR a.badge_key ILIKE %s)'
         like = f'%{q}%'
-        params += [like, like]
+        params += [like, like, like]
     if exclude_goal_id:
         sql += (
-            ' AND p.id NOT IN ('
+            ' AND a.id NOT IN ('
             "SELECT l.item_id FROM goal_portfolio_links l "
-            "WHERE l.goal_id = %s AND l.item_type = 'development_plan'"
+            "WHERE l.goal_id = %s AND l.item_type = 'achievement'"
             ')'
         )
         params.append(exclude_goal_id)
-    sql += ' ORDER BY p.updated_at DESC LIMIT %s'
+    sql += ' ORDER BY a.earned_at DESC NULLS LAST, a.created_at DESC LIMIT %s'
     params.append(limit)
     cur.execute(sql, tuple(params))
     rows = cur.fetchall()
     result = [
         {
             'id': str(r[0]),
-            'itemType': 'development_plan',
+            'itemType': 'achievement',
             'title': r[1],
             'description': r[2],
             'sphereKey': r[3],
-            'memberId': str(r[4]) if r[4] else None,
-            'status': r[5],
-            'progress': r[6],
-            'targetDate': r[7].isoformat() if r[7] else None,
+            'icon': r[4],
+            'category': r[5],
+            'memberId': str(r[6]) if r[6] else None,
+            'earnedAt': r[7].isoformat() if r[7] else None,
+            'badgeKey': r[8],
         }
         for r in rows
     ]
