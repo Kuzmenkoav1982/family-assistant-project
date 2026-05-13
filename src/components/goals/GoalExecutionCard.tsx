@@ -15,9 +15,18 @@ interface Props {
   milestones: GoalMilestone[];
   keyResults: GoalKeyResult[];
   onChanged?: () => Promise<void> | void;
+  onCreateTaskFromMilestone?: (m: GoalMilestone) => void;
+  onCreateTaskFromKr?: (kr: GoalKeyResult) => void;
 }
 
-export default function GoalExecutionCard({ goal, milestones, keyResults, onChanged }: Props) {
+export default function GoalExecutionCard({
+  goal,
+  milestones,
+  keyResults,
+  onChanged,
+  onCreateTaskFromMilestone,
+  onCreateTaskFromKr,
+}: Props) {
   const [newTitle, setNewTitle] = useState('');
   const [newDate, setNewDate] = useState('');
   const [busy, setBusy] = useState(false);
@@ -123,6 +132,15 @@ export default function GoalExecutionCard({ goal, milestones, keyResults, onChan
                   {new Date(m.dueDate).toLocaleDateString('ru-RU')}
                 </span>
               )}
+              {onCreateTaskFromMilestone && (
+                <button
+                  onClick={() => onCreateTaskFromMilestone(m)}
+                  className="text-blue-500 hover:text-blue-700 flex-shrink-0"
+                  title="Создать задачу из этой вехи"
+                >
+                  <Icon name="Plus" size={12} />
+                </button>
+              )}
               <button
                 onClick={() => deleteMilestone(m)}
                 className="text-rose-500 hover:text-rose-700 flex-shrink-0"
@@ -170,10 +188,19 @@ export default function GoalExecutionCard({ goal, milestones, keyResults, onChan
                 className="flex items-center gap-2 text-xs bg-white rounded-lg border border-gray-100 p-2"
               >
                 <Icon name="Target" size={14} className="text-violet-600" />
-                <span className="text-gray-800">{kr.title}</span>
-                <span className="ml-auto text-violet-700 font-semibold">
+                <span className="flex-1 text-gray-800">{kr.title}</span>
+                <span className="text-violet-700 font-semibold">
                   {kr.currentValue}/{kr.targetValue} {kr.unit || ''}
                 </span>
+                {onCreateTaskFromKr && (
+                  <button
+                    onClick={() => onCreateTaskFromKr(kr)}
+                    className="text-blue-500 hover:text-blue-700 flex-shrink-0"
+                    title="Создать задачу из этого KR"
+                  >
+                    <Icon name="Plus" size={12} />
+                  </button>
+                )}
               </div>
             ))}
           </div>

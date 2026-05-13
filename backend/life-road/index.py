@@ -71,6 +71,11 @@ def handler(event: dict, context) -> dict:
         if resource == 'links':
             return _handle_links(method, cur, conn, family_id, user_id, item_id, event)
         if resource == 'cache-backfill':
+            # Защита: backfill — служебная операция, требует X-Admin-Token.
+            admin_token = headers.get('X-Admin-Token') or headers.get('x-admin-token')
+            expected = os.environ.get('ADMIN_TOKEN') or ''
+            if not expected or admin_token != expected:
+                return _resp(403, {'error': 'admin_only'})
             return _handle_cache_backfill(method, cur, conn, family_id)
         if resource == 'balance':
             return _handle_balance(method, cur, conn, family_id, user_id, event)
@@ -995,6 +1000,9 @@ def _handle_links(method, cur, conn, family_id, user_id, item_id, event):
         eid = body.get('entityId')
         if not et or not eid:
             return _resp(400, {'error': 'entityType and entityId required'})
+        # Этап 3.1.1: семантика связи. Допустимые типы фиксированы.
+        if et not in {'task', 'habit', 'ritual', 'event'}:
+            return _resp(400, {'error': 'invalid entityType', 'allowed': ['task', 'habit', 'ritual', 'event']})
         cur.execute('''
             INSERT INTO goal_action_links (goal_id, entity_type, entity_id, milestone_id, key_result_id, meta)
             VALUES (%s, %s, %s, %s, %s, %s::jsonb)

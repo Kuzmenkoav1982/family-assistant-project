@@ -8,8 +8,16 @@ import GoalProgressCard from '@/components/goals/GoalProgressCard';
 import GoalWhyCard from '@/components/goals/GoalWhyCard';
 import GoalExecutionCard from '@/components/goals/GoalExecutionCard';
 import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
+import GoalLinkedTasksCard from '@/components/goals/GoalLinkedTasksCard';
+import CreateTaskFromGoalDialog from '@/components/goals/CreateTaskFromGoalDialog';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoal } from '@/lib/goals/goalMappers';
+import {
+  buildPrefillFromGoal,
+  buildPrefillFromKr,
+  buildPrefillFromMilestone,
+  type CreateTaskFromGoalInput,
+} from '@/lib/goals/tasksBridge';
 import type { GoalKeyResult, GoalMilestone, LifeGoal } from '@/components/life-road/types';
 
 export default function WorkshopGoalPage() {
@@ -20,6 +28,10 @@ export default function WorkshopGoalPage() {
   const [keyResults, setKeyResults] = useState<GoalKeyResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Bridge state: prefill + видимость диалога + счётчик-триггер для refresh linked tasks
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [taskPrefill, setTaskPrefill] = useState<CreateTaskFromGoalInput | null>(null);
+  const [linkedTasksRefresh, setLinkedTasksRefresh] = useState(0);
 
   const loadGoal = async (gid: string) => {
     const [allGoals, ms, krs] = await Promise.all([
@@ -67,6 +79,48 @@ export default function WorkshopGoalPage() {
     [goal],
   );
 
+  const openCreateTask = (prefill: CreateTaskFromGoalInput) => {
+    setTaskPrefill(prefill);
+    setTaskDialogOpen(true);
+  };
+
+  const openCreateTaskFromGoal = () => {
+    if (!goal) return;
+    openCreateTask(
+      buildPrefillFromGoal({
+        goalId: goal.id,
+        goalTitle: goal.title,
+        goalDeadline: goal.deadline,
+      }),
+    );
+  };
+
+  const openCreateTaskFromMilestone = (m: GoalMilestone) => {
+    if (!goal) return;
+    openCreateTask(
+      buildPrefillFromMilestone({
+        goalId: goal.id,
+        goalTitle: goal.title,
+        milestoneId: m.id,
+        milestoneTitle: m.title,
+        milestoneDueDate: m.dueDate,
+      }),
+    );
+  };
+
+  const openCreateTaskFromKr = (kr: GoalKeyResult) => {
+    if (!goal) return;
+    openCreateTask(
+      buildPrefillFromKr({
+        goalId: goal.id,
+        goalTitle: goal.title,
+        krId: kr.id,
+        krTitle: kr.title,
+        krDueDate: kr.dueDate,
+      }),
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center">
@@ -103,7 +157,16 @@ export default function WorkshopGoalPage() {
           <Button variant="ghost" size="sm" onClick={() => navigate('/workshop')}>
             <Icon name="ArrowLeft" size={14} className="mr-1.5" /> Мастерская
           </Button>
-          <div className="ml-auto flex items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline"
+            className="ml-auto"
+            onClick={openCreateTaskFromGoal}
+            title="Создать задачу из этой цели"
+          >
+            <Icon name="Plus" size={12} className="mr-1" /> Задача из цели
+          </Button>
+          <div className="flex items-center gap-1.5">
             {goal.status === 'done' && (
               <Badge className="bg-emerald-100 text-emerald-700">Достигнуто</Badge>
             )}
@@ -152,14 +215,30 @@ export default function WorkshopGoalPage() {
           milestones={milestones}
           keyResults={keyResults}
           onChanged={reloadCollections}
+          onCreateTaskFromMilestone={openCreateTaskFromMilestone}
+          onCreateTaskFromKr={openCreateTaskFromKr}
         />
 
         {/* Block 4 — Прогресс */}
         <GoalProgressCard goal={goal} milestones={milestones} keyResults={keyResults} />
 
-        {/* Block 5 — Check-ins (reflection, не source) */}
+        {/* Block 5 — Связанные задачи (мост в Планирование) */}
+        <GoalLinkedTasksCard
+          goal={goal}
+          onCreateClick={openCreateTaskFromGoal}
+          refreshKey={linkedTasksRefresh}
+        />
+
+        {/* Block 6 — Check-ins (reflection, не source) */}
         <GoalCheckinsCard goal={goal} keyResults={keyResults} />
       </div>
+
+      <CreateTaskFromGoalDialog
+        open={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        prefill={taskPrefill}
+        onCreated={() => setLinkedTasksRefresh((n) => n + 1)}
+      />
     </div>
   );
 }

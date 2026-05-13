@@ -1,9 +1,12 @@
 // Parity self-check для progress.ts.
-// Запускается вручную через computeProgress на фикстурах из progress.fixtures.json.
-// Это НЕ полноценные jest-тесты — просто экспортируемая функция-валидатор,
-// которую можно вызвать в админке или dev-консоли.
-//
+// Это dev-only утилита: НИКОГДА НЕ ИМПОРТИРОВАТЬ в код приложения.
+// Запускать только из консоли разработчика, например:
+//   import('@/lib/goals/__fixtures__/progress.parity.test').then(m => console.table(m.runProgressParity()))
+// Файл не должен попадать в production bundle через статические импорты.
 // Backend (Python) использует те же фикстуры из общего JSON-файла.
+
+/* eslint-disable */
+// @ts-nocheck-import-side-effects
 
 import { computeProgress } from '@/lib/goals/progress';
 import fixtures from './progress.fixtures.json';
