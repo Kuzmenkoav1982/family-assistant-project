@@ -615,3 +615,132 @@ grep -RInE "saveAuthSession|updateAuthUser|clearAuthSession" src
 1. **node `scripts/test-actor-user-id.mjs`** — фактический прогон + вывод консоли.
 2. **Browser smoke S1–S10** (из 4.5) — хотя бы первые 5 закрывают A1/A2/A3.
 3. **(Optional)** `npm run lint` + `npm run build` — желательно зелёные.
+
+---
+
+## 4.7 Runtime verification (external run)
+
+> Важно: этот раздел заполняется ТОЛЬКО по фактическому runtime-прогону в окружении с доступом к shell/browser.
+> AI-правки кода и grep-верификация не считаются заменой runtime.
+
+### Commands executed
+
+```bash
+node scripts/test-actor-user-id.mjs
+npm run build
+npm run lint
+```
+
+### Runner output
+
+```
+[paste full output of `node scripts/test-actor-user-id.mjs` here]
+```
+
+### Build output
+
+```
+[paste full output of `npm run build` here]
+```
+
+### Lint output
+
+```
+[paste full output of `npm run lint` here]
+```
+
+### Browser smoke matrix
+
+| Scenario | Result | URL/Page | Actor context | Expected | Actual | Notes |
+|---|---|---|---|---|---|---|
+| S1 (auth bootstrap) | PASS / FAIL |  |  | identity не теряется после reload |  |  |
+| S2 (portfolio read) | PASS / FAIL |  |  | X-User-Id == userData.id |  |  |
+| S3 (portfolio write) | PASS / FAIL |  |  | actor contract держится на write |  |  |
+| S4 (health read) | PASS / FAIL |  |  | X-User-Id == userData.member_id; нет '1'; нет selectedProfile.id |  |  |
+| S5 (health destructive) | PASS / FAIL |  |  | X-User-Id != selectedProfile.id; verifies A2 fix |  |  |
+| S6 (life-road read) | PASS / FAIL |  |  | X-User-Id == userData.member_id |  |  |
+| S7 (life-road create+photo) | PASS / FAIL |  |  | A3 fix не сломал photo path |  |  |
+| S8 (workshop↔goals bridge) | PASS / FAIL |  |  | actor-семантики не текут между сервисами |  |  |
+| S9 (missing identity) | PASS / FAIL |  |  | controlled fail, нет fake actor |  |  |
+| S10 (relogin contamination) | PASS / FAIL |  |  | старые IDs не протекают между сессиями |  |  |
+
+### Findings (заполняется при FAIL)
+
+```
+### Finding F-XX — [short title]
+
+- Scenario: S?
+- URL/Page:
+- Preconditions:
+  - user id:
+  - member id:
+  - family id:
+  - role/access:
+- Action performed:
+- Expected result:
+- Actual result:
+- Request details:
+  - method:
+  - endpoint:
+  - query/path params:
+- Headers:
+  - Authorization: [present / absent]
+  - X-User-Id: [value]
+- Response:
+  - status:
+  - body:
+- Storage snapshot:
+  - authToken:
+  - user/userData:
+  - userId:
+- Console errors:
+- Network notes:
+- Suspected layer: UI / hook / authStorage / API / backend contract
+- Regression type: read-side / write-side / mapping / orphan endpoint / unrelated
+- Proposed fix:
+- Retest result:
+```
+
+### FAIL evidence checklist
+
+- [ ] Полный вывод `node scripts/test-actor-user-id.mjs`
+- [ ] Номер сценария (S1–S10)
+- [ ] Точный URL / страница
+- [ ] Ожидаемое vs фактическое поведение
+- [ ] HTTP method + endpoint
+- [ ] Response status + body
+- [ ] Ключевые request headers (Authorization, X-User-Id)
+- [ ] Текущий actor context (user_id, member_id, family_id, role)
+- [ ] Снимок relevant storage keys (authToken/auth_token, user/userData/user_data, userId)
+- [ ] Console errors / stack trace
+- [ ] Screenshot (если UI regression)
+
+---
+
+## 4.8 Final sign-off
+
+### Code-level status
+- 4.6.1 auth write/remove unification: **DONE**
+- 4.6.2 raw `userId` cleanup: **DONE**
+- 4.6.3 useUploadMedicalFile mini-discovery: **DONE** (orphan frozen, children-data provisional)
+
+### Runtime status
+- actor-user-id runner: **PENDING**
+- build: **PENDING**
+- lint: **PENDING**
+- smoke S1–S10: **PENDING**
+
+### Final verdict
+- Stage 4: **BLOCKED on runtime evidence**
+- Blocking issues:
+  - awaiting external runtime execution (см. 4.7)
+
+### Runtime pending
+
+Awaiting external execution of:
+- `node scripts/test-actor-user-id.mjs`
+- `npm run build`
+- `npm run lint`
+- browser smoke S1–S10
+
+No final runtime sign-off without attached outputs.
