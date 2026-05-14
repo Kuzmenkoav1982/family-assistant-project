@@ -10,6 +10,8 @@ import SmartProgressDisplay from '@/components/goals/SmartProgressDisplay';
 import SmartCheckin from '@/components/goals/SmartCheckin';
 import OkrProgressDisplay from '@/components/goals/OkrProgressDisplay';
 import OkrCheckin from '@/components/goals/OkrCheckin';
+import WheelProgressDisplay from '@/components/goals/WheelProgressDisplay';
+import WheelCheckin from '@/components/goals/WheelCheckin';
 import GoalExecutionCard from '@/components/goals/GoalExecutionCard';
 import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
 import GoalLinkedTasksCard from '@/components/goals/GoalLinkedTasksCard';
@@ -313,6 +315,26 @@ export default function WorkshopGoalPage() {
               goal={goal}
               keyResults={keyResults}
               onGoalRefreshed={applyOkrCheckinSaved}
+              onCheckinSaved={(checkinId) => {
+                setCheckinsRefreshKey((n) => n + 1);
+                if (checkinId) setPendingHighlightCheckinId(checkinId);
+              }}
+            />
+          </>
+        )}
+
+        {/* Wheel vertical slice: радар + список сфер + быстрый замер.
+            Симметрично SMART/OKR — те же polish-эффекты. */}
+        {goal.frameworkType === 'wheel' && (
+          <>
+            <WheelProgressDisplay
+              goal={goal}
+              variant="full"
+              flash={progressFlash}
+            />
+            <WheelCheckin
+              goal={goal}
+              onSaved={applyGoalAfterCheckin}
               onCheckinSaved={(checkinId) => {
                 setCheckinsRefreshKey((n) => n + 1);
                 if (checkinId) setPendingHighlightCheckinId(checkinId);
