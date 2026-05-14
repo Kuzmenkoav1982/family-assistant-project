@@ -16,7 +16,8 @@ import {
 import GoalHubCard from '@/components/goals/hub/GoalHubCard';
 import GoalsSummary from '@/components/goals/hub/GoalsSummary';
 import GoalsHubFilters from '@/components/goals/hub/GoalsHubFilters';
-import type { LifeGoal } from '@/components/life-road/types';
+import WeeklyReviewSection from '@/components/goals/review/WeeklyReviewSection';
+import type { GoalCheckin, LifeGoal } from '@/components/life-road/types';
 
 // Хаб Мастерской жизни — раздел триады «Куда и зачем я иду».
 // В Этапе 1 это лёгкий лендинг с быстрым входом в цели.
@@ -25,28 +26,57 @@ import type { LifeGoal } from '@/components/life-road/types';
 export default function WorkshopPage() {
   const navigate = useNavigate();
   const [goals, setGoals] = useState<LifeGoal[]>([]);
+  const [checkinsByGoalId, setCheckinsByGoalId] = useState<Record<string, GoalCheckin[]>>({});
   const [loading, setLoading] = useState(true);
+  const [reviewLoading, setReviewLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [filter, setFilter] = useState<GoalFilterPreset>('active');
   const [sort, setSort] = useState<GoalSortPreset>('updated');
 
   const reload = () => {
     let cancelled = false;
     setLoading(true);
+    setReviewLoading(true);
     setError(null);
+    setReviewError(null);
     lifeApi
       .listGoals()
-      .then((rows) => {
+      .then(async (rows) => {
         if (cancelled) return;
-        setGoals(normalizeLegacyGoals(rows));
+        const normalized = normalizeLegacyGoals(rows);
+        setGoals(normalized);
+        setLoading(false);
+
+        // Параллельно подтягиваем check-ins по всем целям.
+        // Ошибки по отдельным целям не валят весь обзор — пустой массив = «нет замеров».
+        try {
+          const pairs = await Promise.all(
+            normalized.map((g) =>
+              lifeApi
+                .listCheckins(g.id)
+                .then((rows) => [g.id, rows as GoalCheckin[]] as const)
+                .catch(() => [g.id, [] as GoalCheckin[]] as const),
+            ),
+          );
+          if (cancelled) return;
+          const map: Record<string, GoalCheckin[]> = {};
+          for (const [gid, list] of pairs) map[gid] = list;
+          setCheckinsByGoalId(map);
+        } catch (e) {
+          if (cancelled) return;
+          setReviewError((e as Error).message || 'Не удалось загрузить замеры');
+        } finally {
+          if (!cancelled) setReviewLoading(false);
+        }
       })
       .catch((e: Error) => {
         if (cancelled) return;
         setGoals([]);
+        setCheckinsByGoalId({});
         setError(e.message || 'Не удалось загрузить цели');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
+        setReviewLoading(false);
       });
     return () => {
       cancelled = true;
@@ -263,6 +293,15 @@ export default function WorkshopPage() {
             )}
           </div>
         </div>
+
+        {/* Weekly Review V1 — обзор недели */}
+        <WeeklyReviewSection
+          goals={goals}
+          checkinsByGoalId={checkinsByGoalId}
+          loading={reviewLoading}
+          error={reviewError}
+          onRetry={reload}
+        />
 
         {/* Заметка про этап */}
         <div className="text-[11px] text-gray-400 text-center italic">

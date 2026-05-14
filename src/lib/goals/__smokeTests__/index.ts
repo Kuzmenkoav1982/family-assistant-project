@@ -11,6 +11,7 @@ import * as okr from './okrPolish.smoke';
 import * as wheel from './wheelPolish.smoke';
 import * as shared from './sharedFlow.smoke';
 import * as hub from './hubHelpers.smoke';
+import * as weekly from './weeklyReview.smoke';
 
 export async function runAllGoalsSmokeTests(): Promise<void> {
    
@@ -21,6 +22,7 @@ export async function runAllGoalsSmokeTests(): Promise<void> {
   await wheel.runAll();
   await shared.runAll();
   await hub.runAll();
+  await weekly.runAll();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ Прогон завершён за ${dt} мс`);
@@ -29,4 +31,4 @@ export async function runAllGoalsSmokeTests(): Promise<void> {
 }
 
 // Экспортируем отдельные runner'ы — если нужно прогнать только один блок.
-export { smart, okr, wheel, shared, hub };
+export { smart, okr, wheel, shared, hub, weekly };
