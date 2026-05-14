@@ -119,8 +119,11 @@ import('@/lib/goals/__smokeTests__').then(m => m.runAllGoalsSmokeTests())
 8. **Smoke-tests — без React Testing Library.** Тестируют логику, не сами хуки в реальном React-дереве. Хуки проверены code-audit'ом, поведение зафиксировано в shared-механике.
 9. **Backend KR check-in.** `OkrCheckin` делает PUT KR + отдельный refetch goal + POST check-in (best-effort). Атомарность через единый эндпоинт не реализована — возможен короткий рассинхрон progress кеша.
 10. **Нет undo для check-in.** Удаление записи доступно только через диалог истории.
-11. **N+1 на загрузке Weekly Review.** Для обзора недели Workshop делает `Promise.all(listCheckins(goal))` по каждой цели. На текущем количестве целей не проблема. На V2 — заменить на batch-endpoint (например, `listRecentCheckinsByUser` или серверная агрегация weekly review), чтобы не упираться в число запросов при росте.
+11. **N+1 на загрузке Weekly Review / Focus.** Для обзора недели и Focus Workshop делает `Promise.all(listCheckins(goal))` по каждой цели. На текущем количестве целей не проблема. На V2 — заменить на batch-endpoint (например, `listRecentCheckinsByUser` или серверная агрегация), чтобы не упираться в число запросов при росте. Focus переиспользует тот же data-pipeline, поэтому отдельных запросов не добавляет.
 12. **Weekly Narrative — детерминированный шаблон.** V1.1 даёт одну фразу-итог и 1–2 nudge без AI. Никакой персональной истории, никакого dismiss/snooze, никаких напоминаний. Эмоциональная окраска намеренно нейтральная.
+13. **Focus V1 — переход в detail, без inline/modal check-in.** Один CTA: «Открыть цель» / «Обновить цель». Inline mini-form и модалка — V1.1 polish, не блокер V1.
+14. **Focus V1 — узкий набор причин.** Только overdue / regressed / stale. Low-progress <20%, дублирующиеся подзадачи, тематические подсказки — НЕ V1 (намеренный шум-кат). Заходят в V1.1 backlog.
+15. **Focus V1 — без пользовательской сортировки.** Жёсткий severity-порядок (overdue → regressed → stale). Селектор сортировки появится только при доказанной пользовательской боли.
 
 ---
 

@@ -35,6 +35,13 @@ function frameworkOf(g: LifeGoal): string {
 
 const STATIC_LINKS: ScenarioLink[] = [
   {
+    id: 'focus-section',
+    area: 'hub',
+    state: 'normal',
+    description: 'Focus — что делать сейчас (верх Workshop)',
+    href: '/workshop',
+  },
+  {
     id: 'hub-normal',
     area: 'hub',
     state: 'normal',

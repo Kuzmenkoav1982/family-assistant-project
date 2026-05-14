@@ -13,6 +13,7 @@ import * as shared from './sharedFlow.smoke';
 import * as hub from './hubHelpers.smoke';
 import * as weekly from './weeklyReview.smoke';
 import * as narrative from './weeklyNarrative.smoke';
+import * as focus from './focusQueue.smoke';
 
 export async function runAllGoalsSmokeTests(): Promise<void> {
    
@@ -25,6 +26,7 @@ export async function runAllGoalsSmokeTests(): Promise<void> {
   await hub.runAll();
   await weekly.runAll();
   await narrative.runAll();
+  await focus.runAll();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ Прогон завершён за ${dt} мс`);
@@ -33,4 +35,4 @@ export async function runAllGoalsSmokeTests(): Promise<void> {
 }
 
 // Экспортируем отдельные runner'ы — если нужно прогнать только один блок.
-export { smart, okr, wheel, shared, hub, weekly, narrative };
+export { smart, okr, wheel, shared, hub, weekly, narrative, focus };

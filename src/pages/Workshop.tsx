@@ -17,6 +17,7 @@ import GoalHubCard from '@/components/goals/hub/GoalHubCard';
 import GoalsSummary from '@/components/goals/hub/GoalsSummary';
 import GoalsHubFilters from '@/components/goals/hub/GoalsHubFilters';
 import WeeklyReviewSection from '@/components/goals/review/WeeklyReviewSection';
+import FocusSection from '@/components/goals/focus/FocusSection';
 import type { GoalCheckin, LifeGoal } from '@/components/life-road/types';
 
 // Хаб Мастерской жизни — раздел триады «Куда и зачем я иду».
@@ -173,6 +174,15 @@ export default function WorkshopPage() {
             </button>
           ))}
         </div>
+
+        {/* Goals Focus V1 — что делать сейчас (overdue → regressed → stale) */}
+        <FocusSection
+          goals={goals}
+          checkinsByGoalId={checkinsByGoalId}
+          loading={reviewLoading}
+          error={reviewError}
+          onRetry={reload}
+        />
 
         {/* Goals Hub V1 — единый верхний экран по всем целям */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 shadow-sm space-y-3">
