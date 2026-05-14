@@ -128,13 +128,45 @@ V1 считается готовым к sign-off, когда **все** пунк
 ## 5. Freeze path (как доходим до sign-off)
 
 1. **Charter** — этот документ. ✅
-2. **Sprint A — Hub `/portfolio`**: карточки, состояния, mobile.
+2. **Sprint A — Hub `/portfolio`**: карточки, состояния, mobile. ✅ **dev-done**
 3. **Sprint B — Member detail**: единый visual-language, 7 блоков, refresh + toast.
 4. **Sprint C — Sphere detail**: новая страница + видимые связи Goals↔Portfolio.
 5. **Sprint D — Polish & A11y**: единые state-паттерны, keyboard, aria, mobile финал.
 6. **Smoke + freeze doc + visual QA pack** одновременно с Sprint D.
 7. **Human visual pass** (как с Goals V1).
 8. **Sign-off → FROZEN**.
+
+### Sprint A — итог (что сделано)
+
+- Полностью переписан `src/pages/FamilyPortfolio.tsx` под 4-состоянийный контракт:
+  - **loading** — skeleton-карточки (6 шт), не центральный spinner;
+  - **error** — inline alert в стиле Focus error, с кнопкой «Повторить»;
+  - **empty** (нет участников с портфолио) — dashed-блок с подсказкой;
+  - **success** — сетка карточек с summary-чипами в шапке.
+- Отдельный кейс «нет семьи» — собственный dashed-блок + CTA «Создать семью».
+- Карточка участника — три visual-state (`ready` / `thin` / `empty`), едино со стилем Goals Hub: лёгкая рамка, hover-shadow, ChevronRight, Avatar fallback в градиенте.
+- Введён человеческий timestamp «обновлено N минут/часов/дней/недель/месяцев/лет назад» через `formatLastAggregated` (с честным русским склонением).
+- Сводка в шапке: total / с активным портфолио / мало данных / без портфолио — четыре цветные плашки.
+- Mobile-first: `max-w-5xl`, `gap-3`, `text-xs sm:text-sm`, аватар уменьшен до 12 (с 14), сетка стек→2→3.
+- Демо-CTA «песочница» оставлен только когда у пользователя нет портфолио (раньше показывался всегда).
+- Helpers вынесены в `src/lib/portfolio/portfolioHubHelpers.ts` (чистые функции — формат, состояния, чипы, summary, sort).
+- Smoke: новый модуль `portfolioHubHelpers.smoke.ts` (14 групп: pluralRu, формат timestamp с границами, состояния карточек, дедуп чипов, sort, summary). Запуск через `runAllPortfolioSmokeTests`.
+- Создан umbrella runner `src/lib/development/__smokeTests__` для прогона Goals + Portfolio одной командой.
+- Goals smoke-runner оставлен **в неизменном виде** (10 модулей) — контракт frozen Goals соблюдён.
+
+### Sprint A — required screenshots (для будущего visual QA pack)
+
+| # | Файл | Сцена |
+|---|---|---|
+| A1 | `portfolio-hub-loading-desktop.png` | Slow 3G, видны skeleton-карточки |
+| A2 | `portfolio-hub-success-desktop.png` | Семья с 3+ участниками, mix состояний |
+| A3 | `portfolio-hub-empty-no-members-desktop.png` | Семья есть, участников нет |
+| A4 | `portfolio-hub-no-family-desktop.png` | Нет семьи — CTA «Создать семью» |
+| A5 | `portfolio-hub-error-desktop.png` | Backend упал, виден alert + «Повторить» |
+| A6 | `portfolio-hub-card-ready.png` | Карточка ready (summary, chips, timestamp) |
+| A7 | `portfolio-hub-card-thin.png` | Карточка thin (мало данных, янтарная) |
+| A8 | `portfolio-hub-card-empty.png` | Карточка empty (dashed, «создать портфолио») |
+| A9 | `portfolio-hub-mobile-375px.png` | Mobile, видна сетка в один столбец |
 
 Каждый спринт = атомарный коммит + краткий status (как делали по Goals).
 
@@ -165,3 +197,4 @@ V1 считается готовым к sign-off, когда **все** пунк
 ## 8. История документа
 
 - **2026-05-14** — создан после фиксации решения «Wave 2 = Portfolio V1». Базируется на инвентаризации Portfolio (snapshot выполнен в этот же день).
+- **2026-05-14 (build `01594d2`)** — Sprint A dev-done. `FamilyPortfolio.tsx` полностью переписан под 4-состоянийный контракт; добавлены `portfolioHubHelpers.ts` + smoke-tests + portfolio runner + umbrella runner «Развитие». Goals smoke не тронут. Required screenshots A1–A9 зафиксированы для будущего visual QA pack.
