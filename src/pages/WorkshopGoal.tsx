@@ -8,6 +8,8 @@ import GoalProgressCard from '@/components/goals/GoalProgressCard';
 import GoalWhyCard from '@/components/goals/GoalWhyCard';
 import SmartProgressDisplay from '@/components/goals/SmartProgressDisplay';
 import SmartCheckin from '@/components/goals/SmartCheckin';
+import OkrProgressDisplay from '@/components/goals/OkrProgressDisplay';
+import OkrCheckin from '@/components/goals/OkrCheckin';
 import GoalExecutionCard from '@/components/goals/GoalExecutionCard';
 import GoalCheckinsCard from '@/components/goals/GoalCheckinsCard';
 import GoalLinkedTasksCard from '@/components/goals/GoalLinkedTasksCard';
@@ -106,10 +108,12 @@ export default function WorkshopGoalPage() {
 
   // Обёртка над setGoal после check-in: сравниваем execution до/после
   // и поднимаем pulse только при реальном изменении.
+  // Универсально работает и для SMART (источник — frameworkState), и для OKR
+  // (источник — keyResults), потому что передаём актуальные коллекции.
   const applyGoalAfterCheckin = (next: LifeGoal) => {
     const normalized = normalizeLegacyGoal(next);
-    const prevExec = goal ? computeProgress(goal, [], []).execution : 0;
-    const nextExec = computeProgress(normalized, [], []).execution;
+    const prevExec = goal ? computeProgress(goal, [], keyResults).execution : 0;
+    const nextExec = computeProgress(normalized, [], keyResults).execution;
     const delta = nextExec - prevExec;
     setGoal(normalized);
     if (delta !== 0) {
@@ -119,6 +123,21 @@ export default function WorkshopGoalPage() {
         to: nextExec,
         nonce: Date.now(),
       });
+    }
+  };
+
+  // Для OKR-check-in нужно обновить и цель, и KR (currentValue только что менялось).
+  const applyOkrCheckinSaved = async (next: LifeGoal) => {
+    // KR в БД уже обновлён — перечитываем актуальный список перед сравнением.
+    const freshKrs = (await lifeApi.listKeyResults(next.id).catch(() => keyResults)) as GoalKeyResult[];
+    const normalized = normalizeLegacyGoal(next);
+    const prevExec = goal ? computeProgress(goal, [], keyResults).execution : 0;
+    const nextExec = computeProgress(normalized, [], freshKrs).execution;
+    const delta = nextExec - prevExec;
+    setKeyResults(freshKrs);
+    setGoal(normalized);
+    if (delta !== 0) {
+      setProgressFlash({ delta, from: prevExec, to: nextExec, nonce: Date.now() });
     }
   };
 
@@ -272,6 +291,28 @@ export default function WorkshopGoalPage() {
             <SmartCheckin
               goal={goal}
               onSaved={applyGoalAfterCheckin}
+              onCheckinSaved={(checkinId) => {
+                setCheckinsRefreshKey((n) => n + 1);
+                if (checkinId) setPendingHighlightCheckinId(checkinId);
+              }}
+            />
+          </>
+        )}
+
+        {/* OKR vertical slice: панель прогресса (Objective + KR-сводка) + быстрый замер KR.
+            Симметрично SMART — те же polish-эффекты (tick-up / pulse / delta / a11y). */}
+        {goal.frameworkType === 'okr' && (
+          <>
+            <OkrProgressDisplay
+              goal={goal}
+              keyResults={keyResults}
+              variant="full"
+              flash={progressFlash}
+            />
+            <OkrCheckin
+              goal={goal}
+              keyResults={keyResults}
+              onGoalRefreshed={applyOkrCheckinSaved}
               onCheckinSaved={(checkinId) => {
                 setCheckinsRefreshKey((n) => n + 1);
                 if (checkinId) setPendingHighlightCheckinId(checkinId);

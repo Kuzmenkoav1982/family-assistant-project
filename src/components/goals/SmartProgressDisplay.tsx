@@ -1,9 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 import type { LifeGoal } from '@/components/life-road/types';
 import { computeProgress } from '@/lib/goals/progress';
 import type { SmartFrameworkState } from '@/components/goals/forms/SmartForm';
+import {
+  useAnimatedNumber,
+  usePrefersReducedMotion,
+  type ProgressFlash,
+} from '@/components/goals/hooks/useProgressAnimations';
 
 // Витрина прогресса SMART-цели — без редактирования.
 // Используется в LifeGoalsList (compact) и на странице цели (full).
@@ -18,60 +22,7 @@ interface Props {
   /** compact: одна строка для карточки списка. full: панель приборов на странице цели. */
   variant?: 'compact' | 'full';
   /** Pulse-эффект и дельта после успешного check-in. nonce — чтобы повторять эффект. */
-  flash?: { delta: number; from: number; to: number; nonce: number } | null;
-}
-
-// Хук — уважает системную настройку «уменьшать анимации».
-// Используем для отказа от pulse у тех, кто этого попросил.
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-  return reduced;
-}
-
-// Tick-up: плавно докручивает отображаемое число от старого значения к новому.
-// При reduced-motion — мгновенно. Длительность ~700ms, ease-out (быстрый старт, плавное завершение).
-function useAnimatedNumber(target: number, reducedMotion: boolean, durationMs = 700): number {
-  const [displayed, setDisplayed] = useState(target);
-  const fromRef = useRef(target);
-  const startTsRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    // Сбрасываем стартовое значение перед новым прогоном.
-    fromRef.current = displayed;
-    if (reducedMotion || displayed === target) {
-      setDisplayed(target);
-      return;
-    }
-    startTsRef.current = null;
-    const tick = (ts: number) => {
-      if (startTsRef.current === null) startTsRef.current = ts;
-      const elapsed = ts - startTsRef.current;
-      const t = Math.min(1, elapsed / durationMs);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - t, 3);
-      const value = Math.round(fromRef.current + (target - fromRef.current) * eased);
-      setDisplayed(value);
-      if (t < 1) {
-        rafRef.current = requestAnimationFrame(tick);
-      }
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [target, reducedMotion]);
-
-  return displayed;
+  flash?: ProgressFlash | null;
 }
 
 export default function SmartProgressDisplay({ goal, variant = 'full', flash }: Props) {
