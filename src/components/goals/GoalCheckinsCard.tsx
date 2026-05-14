@@ -97,21 +97,47 @@ export default function GoalCheckinsCard({
         </Button>
       </div>
 
-      {loading && (
-        <div className="text-xs text-gray-400 italic flex items-center gap-2">
-          <Icon name="Loader2" size={12} className="animate-spin" /> Загружаем историю...
-        </div>
-      )}
+      {/* Слот с зафиксированной минимальной высотой — без layout jump между loading/empty/error */}
+      <div className="min-h-[72px]" aria-live="polite" aria-busy={loading}>
+        {loading && (
+          <div className="space-y-2" aria-label="Загружаем историю check-ins">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-12 rounded-xl bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100 animate-pulse"
+              />
+            ))}
+          </div>
+        )}
 
-      {error && (
-        <div className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-2">{error}</div>
-      )}
+        {!loading && error && (
+          <div
+            role="alert"
+            className="flex items-start gap-1.5 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-2"
+          >
+            <Icon name="AlertCircle" size={13} className="mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <div className="font-semibold mb-0.5">Не удалось загрузить историю</div>
+              <div className="text-rose-600">{error}</div>
+              <button
+                onClick={reload}
+                className="mt-1 text-rose-700 underline hover:no-underline"
+              >
+                Повторить
+              </button>
+            </div>
+          </div>
+        )}
 
-      {!loading && !error && recent.length === 0 && (
-        <div className="text-xs text-gray-400 italic rounded-xl bg-slate-50 border border-slate-100 p-3 text-center">
-          Пока нет записей. Сделай первый check-in — это поможет видеть путь, а не только текущий снимок.
-        </div>
-      )}
+        {!loading && !error && recent.length === 0 && (
+          <div className="text-xs text-gray-500 italic rounded-xl bg-slate-50 border border-slate-100 p-3 text-center flex flex-col items-center gap-1.5">
+            <Icon name="MessageCircle" size={18} className="text-gray-400" />
+            <div>
+              Пока нет записей. Сделай первый check-in — это поможет видеть путь, а не только текущий снимок.
+            </div>
+          </div>
+        )}
+      </div>
 
       {recent.length > 0 && (
         <div className="space-y-2">

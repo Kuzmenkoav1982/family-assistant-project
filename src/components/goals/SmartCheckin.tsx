@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,10 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Стабильный id для связи aria-describedby у input → error/help.
+  const errorId = `smart-checkin-error-${goal.id}`;
+  const helpId = `smart-checkin-help-${goal.id}`;
   // Краткая сводка последнего успешного замера: prev → next unit
   const [successSummary, setSuccessSummary] = useState<{
     prev: number | null;
@@ -60,19 +64,24 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
     setSuccessSummary(null);
 
     const trimmed = value.trim();
+    const failValidation = (msg: string) => {
+      setError(msg);
+      // Фокус на поле — пользователь сразу может исправить.
+      requestAnimationFrame(() => inputRef.current?.focus());
+    };
     if (trimmed === '') {
-      setError('Укажи новое значение метрики');
+      failValidation('Укажи новое значение метрики');
       return;
     }
     // Поддерживаем запятую как разделитель.
     const normalized = trimmed.replace(',', '.');
     const numeric = Number(normalized);
     if (Number.isNaN(numeric) || !Number.isFinite(numeric)) {
-      setError('Введи число в корректном формате (например, 3.5)');
+      failValidation('Введи число в корректном формате (например, 3.5)');
       return;
     }
     if (currentInState !== null && numeric === currentInState) {
-      setError('Новое значение должно отличаться от предыдущего');
+      failValidation('Новое значение должно отличаться от предыдущего');
       return;
     }
 
@@ -161,6 +170,7 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
             {unit ? `, ${unit}` : ''}
           </Label>
           <Input
+            ref={inputRef}
             type="number"
             inputMode="decimal"
             value={value}
@@ -174,6 +184,9 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
             placeholder="например, 3.5"
             className="h-9 text-sm"
             disabled={saving}
+            aria-invalid={!!error}
+            aria-describedby={error ? errorId : helpId}
+            aria-label={`Новое значение метрики ${metric}`}
           />
         </div>
         <Button
@@ -191,35 +204,46 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
         </Button>
       </div>
 
-      {error && (
-        <div className="flex items-start gap-1.5 text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded p-1.5 mt-2">
-          <Icon name="AlertCircle" size={12} className="mt-0.5 shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
+      {/* Слот сообщений всегда занимает место — нет layout jump между empty/success/error.
+          Достаточно для двухстрочного success-блока. */}
+      <div className="min-h-[52px] mt-2" aria-live="polite" aria-atomic="true">
+        {error && (
+          <div
+            id={errorId}
+            role="alert"
+            className="flex items-start gap-1.5 text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded p-1.5"
+          >
+            <Icon name="AlertCircle" size={12} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-      {successSummary && !error && (
-        <div className="flex items-start gap-1.5 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded p-1.5 mt-2">
-          <Icon name="CheckCircle2" size={12} className="mt-0.5 shrink-0 text-emerald-600" />
-          <div className="min-w-0">
-            <div className="font-semibold">Запись добавлена</div>
-            <div className="text-emerald-700">
-              {metric}:{' '}
-              {successSummary.prev !== null ? (
-                <>
-                  {successSummary.prev} <span className="text-emerald-500">→</span>{' '}
+        {successSummary && !error && (
+          <div
+            role="status"
+            className="flex items-start gap-1.5 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded p-1.5"
+          >
+            <Icon name="CheckCircle2" size={12} className="mt-0.5 shrink-0 text-emerald-600" />
+            <div className="min-w-0">
+              <div className="font-semibold">Запись добавлена</div>
+              <div className="text-emerald-700">
+                {metric}:{' '}
+                {successSummary.prev !== null ? (
+                  <>
+                    {successSummary.prev} <span className="text-emerald-500">→</span>{' '}
+                    <b>{successSummary.next}</b>
+                  </>
+                ) : (
                   <b>{successSummary.next}</b>
-                </>
-              ) : (
-                <b>{successSummary.next}</b>
-              )}
-              {successSummary.unit ? ` ${successSummary.unit}` : ''}
+                )}
+                {successSummary.unit ? ` ${successSummary.unit}` : ''}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <p className="text-[10px] text-gray-400 mt-2">
+      <p id={helpId} className="text-[10px] text-gray-400 mt-2">
         Запись сразу обновит прогресс цели и сохранит точку в истории замеров.
       </p>
     </div>

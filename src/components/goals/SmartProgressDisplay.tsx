@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 import type { LifeGoal } from '@/components/life-road/types';
@@ -36,17 +36,59 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
+// Tick-up: плавно докручивает отображаемое число от старого значения к новому.
+// При reduced-motion — мгновенно. Длительность ~700ms, ease-out (быстрый старт, плавное завершение).
+function useAnimatedNumber(target: number, reducedMotion: boolean, durationMs = 700): number {
+  const [displayed, setDisplayed] = useState(target);
+  const fromRef = useRef(target);
+  const startTsRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    // Сбрасываем стартовое значение перед новым прогоном.
+    fromRef.current = displayed;
+    if (reducedMotion || displayed === target) {
+      setDisplayed(target);
+      return;
+    }
+    startTsRef.current = null;
+    const tick = (ts: number) => {
+      if (startTsRef.current === null) startTsRef.current = ts;
+      const elapsed = ts - startTsRef.current;
+      const t = Math.min(1, elapsed / durationMs);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      const value = Math.round(fromRef.current + (target - fromRef.current) * eased);
+      setDisplayed(value);
+      if (t < 1) {
+        rafRef.current = requestAnimationFrame(tick);
+      }
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target, reducedMotion]);
+
+  return displayed;
+}
+
 export default function SmartProgressDisplay({ goal, variant = 'full', flash }: Props) {
   const reducedMotion = usePrefersReducedMotion();
-  if (goal.frameworkType !== 'smart') return null;
-
   const fs = (goal.frameworkState ?? {}) as Partial<SmartFrameworkState>;
+  // computeProgress безопасен даже для не-smart целей: на этой ветке всё равно вернёт значение,
+  // а раннее возвращение мы делаем после всех хуков, чтобы соблюсти rules-of-hooks.
   const breakdown = computeProgress(goal, [], []);
+  // Tick-up: плавно докручиваем отображаемое число.
+  const animatedExecution = useAnimatedNumber(breakdown.execution, reducedMotion);
   // Pulse активен только в режиме 'full' и только при реальной дельте.
   const flashActive = !!flash && flash.delta !== 0;
   const deltaText = flash
     ? `${flash.delta > 0 ? '+' : ''}${flash.delta}%`
     : '';
+
+  if (goal.frameworkType !== 'smart') return null;
 
   const current = fs.currentValue ?? null;
   const target = fs.targetValue ?? null;
@@ -67,17 +109,26 @@ export default function SmartProgressDisplay({ goal, variant = 'full', flash }: 
             <span className="truncate">{metric}</span>
             <span className="text-gray-700 font-semibold">{valueLabel}</span>
           </span>
-          <span className="font-bold text-blue-700 flex items-center gap-1">
-            {breakdown.execution}%
+          <span
+            className="font-bold text-blue-700 flex items-center gap-1"
+            aria-label={`Прогресс ${breakdown.execution} процентов`}
+          >
+            {animatedExecution}%
             {breakdown.overshoot && (
               <Icon name="Sparkles" size={10} className="text-violet-600" />
             )}
           </span>
         </div>
-        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className="h-1.5 bg-gray-100 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={breakdown.execution}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all"
-            style={{ width: `${breakdown.execution}%` }}
+            style={{ width: `${animatedExecution}%` }}
           />
         </div>
         {breakdown.insufficientData && (
@@ -110,13 +161,13 @@ export default function SmartProgressDisplay({ goal, variant = 'full', flash }: 
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className="text-[11px] text-gray-500 flex items-center justify-end gap-1.5">
-            прогресс
+          <div className="text-[11px] text-gray-500 flex items-center justify-end gap-1.5 whitespace-nowrap">
+            <span>прогресс</span>
             {flashActive && (
               <span
                 key={flash!.nonce}
                 className={
-                  'inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full border ' +
+                  'inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full border leading-none ' +
                   (flash!.delta > 0
                     ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
                     : 'bg-rose-100 text-rose-700 border-rose-300') +
@@ -127,8 +178,12 @@ export default function SmartProgressDisplay({ goal, variant = 'full', flash }: 
               </span>
             )}
           </div>
-          <div className="text-2xl font-extrabold text-blue-700 leading-tight">
-            {breakdown.execution}%
+          <div
+            className="text-2xl font-extrabold text-blue-700 leading-tight tabular-nums"
+            aria-live="polite"
+            aria-label={`Прогресс ${breakdown.execution} процентов`}
+          >
+            {animatedExecution}%
           </div>
         </div>
       </div>
@@ -142,13 +197,17 @@ export default function SmartProgressDisplay({ goal, variant = 'full', flash }: 
               : 'border-blue-400 ring-2 ring-blue-300/70 shadow-[0_0_12px_rgba(59,130,246,0.45)]'
             : 'border-blue-100')
         }
+        role="progressbar"
+        aria-valuenow={breakdown.execution}
+        aria-valuemin={0}
+        aria-valuemax={100}
       >
         <div
           className={
             'h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-700 ' +
             (flashActive && !reducedMotion ? 'brightness-110' : '')
           }
-          style={{ width: `${breakdown.execution}%` }}
+          style={{ width: `${animatedExecution}%` }}
         />
       </div>
 
