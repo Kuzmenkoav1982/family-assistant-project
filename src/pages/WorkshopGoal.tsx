@@ -16,6 +16,7 @@ import CreateTaskFromGoalDialog from '@/components/goals/CreateTaskFromGoalDialo
 import CreateAchievementFromGoalDialog from '@/components/goals/CreateAchievementFromGoalDialog';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoal } from '@/lib/goals/goalMappers';
+import { computeProgress } from '@/lib/goals/progress';
 import {
   buildPrefillFromGoal,
   buildPrefillFromKr,
@@ -44,6 +45,14 @@ export default function WorkshopGoalPage() {
   // ID только что созданного check-in — нужен, чтобы подсветить именно эту строку,
   // а не первую по порядку. После того как UI подсветил запись, сбрасывается в null.
   const [pendingHighlightCheckinId, setPendingHighlightCheckinId] = useState<string | null>(null);
+  // Pulse-эффект прогресса: показываем только при реальном изменении execution.
+  // Не переживает hard refresh — это runtime-only состояние.
+  const [progressFlash, setProgressFlash] = useState<{
+    delta: number;
+    from: number;
+    to: number;
+    nonce: number;
+  } | null>(null);
 
   const loadGoal = async (gid: string) => {
     const [allGoals, ms, krs] = await Promise.all([
@@ -85,6 +94,33 @@ export default function WorkshopGoalPage() {
     };
      
   }, [id]);
+
+  // Автосброс pulse-эффекта прогресса через 2 сек.
+  // nonce в зависимостях гарантирует, что повторный check-in даст свежий таймер,
+  // а не «доживёт» старый.
+  useEffect(() => {
+    if (!progressFlash) return;
+    const t = setTimeout(() => setProgressFlash(null), 2000);
+    return () => clearTimeout(t);
+  }, [progressFlash?.nonce]);
+
+  // Обёртка над setGoal после check-in: сравниваем execution до/после
+  // и поднимаем pulse только при реальном изменении.
+  const applyGoalAfterCheckin = (next: LifeGoal) => {
+    const normalized = normalizeLegacyGoal(next);
+    const prevExec = goal ? computeProgress(goal, [], []).execution : 0;
+    const nextExec = computeProgress(normalized, [], []).execution;
+    const delta = nextExec - prevExec;
+    setGoal(normalized);
+    if (delta !== 0) {
+      setProgressFlash({
+        delta,
+        from: prevExec,
+        to: nextExec,
+        nonce: Date.now(),
+      });
+    }
+  };
 
   const isLegacy = useMemo(
     () => goal?.frameworkType === 'generic' && !!goal?.framework && goal.framework !== 'generic',
@@ -228,10 +264,14 @@ export default function WorkshopGoalPage() {
             goal.frameworkType !== 'okr' &&
             goal.frameworkType !== 'wheel')) && (
           <>
-            <SmartProgressDisplay goal={goal} variant="full" />
+            <SmartProgressDisplay
+              goal={goal}
+              variant="full"
+              flash={progressFlash}
+            />
             <SmartCheckin
               goal={goal}
-              onSaved={(next) => setGoal(normalizeLegacyGoal(next))}
+              onSaved={applyGoalAfterCheckin}
               onCheckinSaved={(checkinId) => {
                 setCheckinsRefreshKey((n) => n + 1);
                 if (checkinId) setPendingHighlightCheckinId(checkinId);

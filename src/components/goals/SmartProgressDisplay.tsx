@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 import type { LifeGoal } from '@/components/life-road/types';
@@ -16,13 +17,36 @@ interface Props {
   goal: LifeGoal;
   /** compact: одна строка для карточки списка. full: панель приборов на странице цели. */
   variant?: 'compact' | 'full';
+  /** Pulse-эффект и дельта после успешного check-in. nonce — чтобы повторять эффект. */
+  flash?: { delta: number; from: number; to: number; nonce: number } | null;
 }
 
-export default function SmartProgressDisplay({ goal, variant = 'full' }: Props) {
+// Хук — уважает системную настройку «уменьшать анимации».
+// Используем для отказа от pulse у тех, кто этого попросил.
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduced(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return reduced;
+}
+
+export default function SmartProgressDisplay({ goal, variant = 'full', flash }: Props) {
+  const reducedMotion = usePrefersReducedMotion();
   if (goal.frameworkType !== 'smart') return null;
 
   const fs = (goal.frameworkState ?? {}) as Partial<SmartFrameworkState>;
   const breakdown = computeProgress(goal, [], []);
+  // Pulse активен только в режиме 'full' и только при реальной дельте.
+  const flashActive = !!flash && flash.delta !== 0;
+  const deltaText = flash
+    ? `${flash.delta > 0 ? '+' : ''}${flash.delta}%`
+    : '';
 
   const current = fs.currentValue ?? null;
   const target = fs.targetValue ?? null;
@@ -86,16 +110,44 @@ export default function SmartProgressDisplay({ goal, variant = 'full' }: Props) 
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className="text-[11px] text-gray-500">прогресс</div>
+          <div className="text-[11px] text-gray-500 flex items-center justify-end gap-1.5">
+            прогресс
+            {flashActive && (
+              <span
+                key={flash!.nonce}
+                className={
+                  'inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full border ' +
+                  (flash!.delta > 0
+                    ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                    : 'bg-rose-100 text-rose-700 border-rose-300') +
+                  (reducedMotion ? '' : ' animate-in fade-in zoom-in-95 duration-300')
+                }
+              >
+                {deltaText}
+              </span>
+            )}
+          </div>
           <div className="text-2xl font-extrabold text-blue-700 leading-tight">
             {breakdown.execution}%
           </div>
         </div>
       </div>
 
-      <div className="h-2 bg-white rounded-full overflow-hidden border border-blue-100">
+      <div
+        className={
+          'h-2 bg-white rounded-full overflow-hidden border transition-all duration-500 ' +
+          (flashActive
+            ? reducedMotion
+              ? 'border-blue-400 ring-1 ring-blue-300'
+              : 'border-blue-400 ring-2 ring-blue-300/70 shadow-[0_0_12px_rgba(59,130,246,0.45)]'
+            : 'border-blue-100')
+        }
+      >
         <div
-          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all"
+          className={
+            'h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-700 ' +
+            (flashActive && !reducedMotion ? 'brightness-110' : '')
+          }
           style={{ width: `${breakdown.execution}%` }}
         />
       </div>
