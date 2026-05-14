@@ -27,7 +27,8 @@ const subSections: SubSection[] = [
     icon: 'Target',
     iconColor: 'text-indigo-600',
     iconBg: 'bg-indigo-50 dark:bg-indigo-950/40',
-    path: '/goals',
+    // R2 Wave 2: legacy /goals скрыт, ведём пользователя в Мастерскую (Goals V1).
+    path: '/workshop',
     modality: 'service',
     status: 'ready',
     cta: 'Открыть',

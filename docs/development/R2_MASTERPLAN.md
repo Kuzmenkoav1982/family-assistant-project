@@ -70,7 +70,7 @@
 
 | Объект | Проблема | Действие |
 |---|---|---|
-| `/goals` (Goals.tsx, V0) | Параллельная подсистема целей на localStorage, не связана с `life_goals` / Workshop | **deprecate → migrate → remove** в волне интеграции |
+| `/goals` (Goals.tsx, V0) | Параллельная подсистема целей на localStorage, не связана с `life_goals` / Workshop | ✅ **скрыт в Wave 2** — route `/goals` теперь redirect на `/workshop`, явный линк из PlanningHub перенаправлен туда же. Полный remove кода + страницы — в Wave 3 |
 | Portfolio Compare | Скорее всего мало используется (нет тёплых данных) | Решить: keep / refactor / hide в R2 inventory |
 | `/development` vs PARI vs Workshop coach | 3 разных места «работы над собой» без единого языка | Унифицировать на этапе Wave 3 (section UX) |
 | Tasks ↔ Goals | Связь есть в БД (`goal_action_links`), но в UI слабо видна | Усилить во время Wave 2 / 3 |
@@ -117,49 +117,30 @@
 | Wave | Название | Состав | Статус |
 |---|---|---|---|
 | **Wave 1** | Goals vertical | Goals Core / Hub / Weekly Review / Focus V1·V2·V2.1 | ✅ **Frozen** (commit `2135101`) |
-| **Wave 2** | Next vertical | Выбирается (см. §4) | ⏳ candidate selection |
-| **Wave 3** | Section integration / unified UX | Единый язык, навигация триады, унификация empty/loading/toast, связи Goal↔Task/Achievement/Insight | ⏳ pending Wave 2 |
-| **Wave 4** | Post-freeze scale-up | Telemetry, недельный/месячный циклы на уровне раздела, A/B-готовность, batch-эндпоинты для N+1 | ⏳ pending Wave 3 |
+| **Wave 2** | **Portfolio V1 (Зеркало)** | `/portfolio` Hub + sphere detail + insights + achievements + snapshot-цикл + явные связи с Goals | 🟢 **active** — см. `R2_WAVE_2_PORTFOLIO_CHARTER.md` |
+| **Wave 3** | Section integration / unified UX | Единый язык, навигация триады, унификация empty/loading/toast, связи Goal↔Task/Achievement/Insight, **полный remove legacy `/goals`** (сейчас только redirect) | ⏳ после freeze Wave 2 |
+| **Wave 4** | Next vertical (вероятно PlanningHub V1) | Двигатель / Today-Week flow на основе унифицированных паттернов | ⏳ после Wave 3 |
 
 Каждая волна закрывается своим `R2_WAVE_X_FREEZE.md` и `R2_WAVE_X_SIGNOFF.md` по тому же шаблону, что Goals V1.
 
 ---
 
-## 4. Wave 2 — кандидаты на следующую вертикаль
+## 4. Wave 2 — выбор зафиксирован: Portfolio V1
 
-Я выделил 4 продуктово оправданных кандидата по итогам инвентаризации. Финальный выбор — за тобой (см. блок «AskUserQuestion» в чате).
+Решение принято 2026-05-14 (build `d13743f`).
 
-### Кандидат A — **Portfolio V1 (Зеркало)**
-- **Что:** Привести `/portfolio` к такому же законченному виду, как Workshop. Полный sign-off Hub-уровня (главная страница), детальный экран сферы, единая система insights/achievements, snapshot-цикл, mobile.
-- **Почему сейчас:** уже есть данные (snapshots, metrics, plans, insights). Не хватает UX-каркаса, аналогичного Goals Hub.
-- **User value:** «Где я сейчас» — прямая ценность, видна каждый раз при заходе.
-- **Зависимость от Goals:** через `goal_portfolio_links` и `member_achievements` — уже есть.
-- **Сложность:** средняя (модель есть, нужен Hub-слой).
-- **Риск:** объём агрегаций.
+**Wave 2 = Portfolio V1 (Зеркало).**
 
-### Кандидат B — **PlanningHub V1 (Двигатель)**
-- **Что:** Привести `/planning-hub` + `/tasks` к единому Today/Week-flow. Связь Task ↔ Goal через `goal_action_links` сделать видимой. Inline quick-actions (как в Focus).
-- **Почему сейчас:** Goals дал «что делать» на стратегическом уровне; Двигатель — «что делать сегодня операционно».
-- **User value:** ежедневный поток.
-- **Зависимость от Goals:** прямая.
-- **Сложность:** средняя.
-- **Риск:** Tasks базовые — придётся углублять.
+Краткое обоснование (полная версия — в `R2_WAVE_2_PORTFOLIO_CHARTER.md`):
+- Максимум value на уже существующей поверхности (UI и DB есть, не greenfield).
+- Лучший компаньон к frozen Goals: Goals закрыли «куда и зачем», Portfolio закрывает «где я сейчас».
+- Дешёвый интеграционный рычаг через `goal_portfolio_links` и `member_achievements` — связь Goals ↔ Portfolio уже на уровне БД.
+- Ниже риск scope explosion, чем у LifeRoad / Habits / PlanningHub.
 
-### Кандидат C — **LifeRoad V1 (Компас, продолжение)**
-- **Что:** Закрыть LifeRoad как полноценный модуль (5 табов: Дорога / Инсайты / Цели / Баланс / Методики). Stable freeze всех 5 разделов, единый UX, share/story.
-- **Почему сейчас:** уже большой модуль, но не на freeze-уровне.
-- **User value:** долгосрочное мышление, история.
-- **Зависимость от Goals:** «Цели»-таб напрямую.
-- **Сложность:** высокая (5 разнородных вкладок).
-- **Риск:** scope расползётся.
-
-### Кандидат D — **Habits V1 (новая подсистема)**
-- **Что:** Создать с нуля подсистему привычек: DB (`habits`, `habit_logs`), backend, UI (хаб, daily check-off, streak, связь с goal_action_links).
-- **Почему сейчас:** Habits — естественный complement к Goals (стратегия → ежедневка). В коде нет.
-- **User value:** ежедневный ритм, retention.
-- **Зависимость от Goals:** дополняет, не пересекается.
-- **Сложность:** высокая (новый домен).
-- **Риск:** легко превратиться в самостоятельный продукт.
+Альтернативы оставлены в backlog (рассматриваются для Wave 4):
+- **PlanningHub V1 (Двигатель)** — самый вероятный следующий после Wave 3 (Today/Week flow + видимые Task↔Goal links).
+- **LifeRoad V1 (Компас, продолжение)** — закрыть 5 табов до freeze; высокий риск scope, отложено.
+- **Habits V1 (новый домен)** — greenfield, отложено как самостоятельный продукт.
 
 ---
 
@@ -187,3 +168,8 @@
 ## 7. История изменений документа
 
 - **2026-05-14** — создан после freeze Goals V1 (commit `2135101`, build `4743b49`). Wave 1 закрыт. Wave 2 — выбор следующей вертикали.
+- **2026-05-14 (build `d13743f`)** — приняты 3 ключевых решения:
+  1. Wave 2 = **Portfolio V1**.
+  2. Legacy `/goals` скрыт **сейчас**: route → `Navigate to /workshop replace`, явный линк из PlanningHub перенаправлен на `/workshop`. Полное удаление кода — Wave 3.
+  3. Wave 3 стартует **после** freeze Wave 2 (последовательно, не параллельно).
+- **Создан** `docs/development/R2_WAVE_2_PORTFOLIO_CHARTER.md` — стартовый контракт Portfolio V1.
