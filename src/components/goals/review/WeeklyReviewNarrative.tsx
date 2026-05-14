@@ -1,8 +1,9 @@
 import Icon from '@/components/ui/icon';
-import type {
-  NarrativeNudge,
-  NarrativeTone,
-  WeeklyNarrative,
+import {
+  pluralRu,
+  type NarrativeNudge,
+  type NarrativeTone,
+  type WeeklyNarrative,
 } from '@/lib/goals/weeklyReviewNarrative';
 
 // V1.1 — мягкая полоса итога недели + 1–2 actionable nudges.
@@ -78,7 +79,13 @@ export default function WeeklyReviewNarrative({
             </span>
             <span className="text-[10px] text-gray-400">
               Последние 7 дней
-              {goalsUpdatedThisWeek > 0 && ` · ${goalsUpdatedThisWeek} обновлений`}
+              {goalsUpdatedThisWeek > 0 &&
+                ` · ${goalsUpdatedThisWeek} ${pluralRu(
+                  goalsUpdatedThisWeek,
+                  'обновление',
+                  'обновления',
+                  'обновлений',
+                )}`}
             </span>
           </div>
           <p className="text-sm text-gray-800 leading-snug mt-0.5">

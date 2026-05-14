@@ -100,6 +100,8 @@ const Development = lazy(() => import("./pages/Development"));
 const DevelopmentHub = lazy(() => import("./pages/DevelopmentHub"));
 const Workshop = lazy(() => import("./pages/Workshop"));
 const WorkshopGoal = lazy(() => import("./pages/WorkshopGoal"));
+// Dev-only QA manifest. Маршрут регистрируется только при import.meta.env.DEV.
+const DevGoalsQa = lazy(() => import("./pages/DevGoalsQa"));
 const LifeRoad = lazy(() => import("./pages/LifeRoad"));
 const Goals = lazy(() => import("./pages/Goals"));
 const Tasks = lazy(() => import("./pages/Tasks"));
@@ -460,6 +462,10 @@ const App = () => {
                       <Route path="/life-road" element={<LifeRoad />} />
                       <Route path="/workshop" element={<Workshop />} />
                       <Route path="/workshop/goal/:id" element={<WorkshopGoal />} />
+                      {/* Goals V1 QA manifest — только в dev-сборке, не попадает в production-навигацию. */}
+                      {import.meta.env.DEV && (
+                        <Route path="/dev/goals-qa" element={<DevGoalsQa />} />
+                      )}
                       <Route path="/in-development" element={<InDevelopmentList />} />
                       <Route path="/family-management" element={<FamilyManagement />} />
                       <Route path="/launch-plan" element={<LaunchPlan />} />

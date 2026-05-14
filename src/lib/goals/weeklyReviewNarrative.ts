@@ -40,7 +40,8 @@ export interface WeeklyNarrative {
 
 // ============================ Pluralize ============================
 
-function pluralRu(n: number, one: string, few: string, many: string): string {
+/** Русский плюрализатор. Экспортируется — нужен UI-компонентам. */
+export function pluralRu(n: number, one: string, few: string, many: string): string {
   const mod10 = n % 10;
   const mod100 = n % 100;
   if (mod10 === 1 && mod100 !== 11) return one;

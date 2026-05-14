@@ -11,6 +11,7 @@ import {
 } from '@/lib/goals/weeklyReviewHelpers';
 import {
   buildWeeklyNarrative,
+  pluralRu,
   type NarrativeNudge,
 } from '@/lib/goals/weeklyReviewNarrative';
 import WeeklyReviewSummary, { type WeeklyTab } from './WeeklyReviewSummary';
@@ -128,9 +129,14 @@ export default function WeeklyReviewSection({
         </div>
         <div className="text-[10px] text-gray-400">
           {summary.goalsUpdatedThisWeek > 0
-            ? `${summary.goalsUpdatedThisWeek} цел${
-                summary.goalsUpdatedThisWeek === 1 ? 'ь' : 'ей'
-              } обновлялись`
+            ? `${summary.goalsUpdatedThisWeek} ${pluralRu(
+                summary.goalsUpdatedThisWeek,
+                'цель',
+                'цели',
+                'целей',
+              )} ${
+                summary.goalsUpdatedThisWeek === 1 ? 'обновлялась' : 'обновлялись'
+              }`
             : 'без обновлений'}
         </div>
       </div>
