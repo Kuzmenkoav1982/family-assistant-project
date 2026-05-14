@@ -9,9 +9,14 @@ import {
   recentWeeklyCheckins,
   viewsBySegment,
 } from '@/lib/goals/weeklyReviewHelpers';
+import {
+  buildWeeklyNarrative,
+  type NarrativeNudge,
+} from '@/lib/goals/weeklyReviewNarrative';
 import WeeklyReviewSummary, { type WeeklyTab } from './WeeklyReviewSummary';
 import WeeklyReviewGoalRow from './WeeklyReviewGoalRow';
 import WeeklyCheckinsList from './WeeklyCheckinsList';
+import WeeklyReviewNarrative from './WeeklyReviewNarrative';
 
 // Weekly Review V1 — обзор недели по целям.
 //
@@ -49,6 +54,17 @@ export default function WeeklyReviewSection({
   const updated = useMemo(() => views.filter((v) => v.weeklyCount > 0), [views]);
   const recent = useMemo(() => recentWeeklyCheckins(views, 7), [views]);
 
+  // V1.1 — детерминированный итог недели + 1–2 nudges.
+  const narrative = useMemo(
+    () =>
+      buildWeeklyNarrative({
+        summary,
+        segments: { progressed, regressed, needsReview },
+        totalGoals: goals.length,
+      }),
+    [summary, progressed, regressed, needsReview, goals.length],
+  );
+
   const totalChanges =
     summary.checkinsThisWeek +
     summary.goalsProgressed +
@@ -56,6 +72,21 @@ export default function WeeklyReviewSection({
     summary.goalsNeedingReview;
 
   const goOpen = (id: string) => navigate(`/workshop/goal/${id}`);
+
+  // Один обработчик для всех nudges: ведёт в конкретную цель / переключает таб / route.
+  const handleNudge = (n: NarrativeNudge) => {
+    switch (n.target.kind) {
+      case 'goal':
+        goOpen(n.target.goalId);
+        return;
+      case 'tab':
+        setTab(n.target.tab);
+        return;
+      case 'route':
+        navigate(n.target.path);
+        return;
+    }
+  };
 
   // Активный список по вкладке.
   const activeList: typeof progressed = (() => {
@@ -160,30 +191,38 @@ export default function WeeklyReviewSection({
         )}
 
         {!loading && !error && goals.length > 0 && totalChanges === 0 && (
-          <div className="text-center py-8 border-2 border-dashed border-amber-200 rounded-xl space-y-2">
-            <Icon
-              name="CalendarHeart"
-              size={24}
-              className="mx-auto text-amber-300"
+          <div className="space-y-3">
+            <WeeklyReviewNarrative
+              narrative={narrative}
+              goalsUpdatedThisWeek={summary.goalsUpdatedThisWeek}
+              onNudgeClick={handleNudge}
             />
-            <div className="text-sm font-semibold text-gray-700">
-              За последние 7 дней не было замеров
+            <div className="text-center py-6 border-2 border-dashed border-amber-200 rounded-xl space-y-2">
+              <Icon name="CalendarHeart" size={24} className="mx-auto text-amber-300" />
+              <div className="text-sm font-semibold text-gray-700">
+                За последние 7 дней не было замеров
+              </div>
+              <p className="text-[11px] text-gray-500">
+                Загляни в цели и сделай первый замер — он сразу появится в обзоре.
+              </p>
+              <Button
+                size="sm"
+                onClick={() => navigate('/life-road')}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+              >
+                Открыть цели
+              </Button>
             </div>
-            <p className="text-[11px] text-gray-500">
-              Загляни в цели и сделай первый замер — он сразу появится в обзоре.
-            </p>
-            <Button
-              size="sm"
-              onClick={() => navigate('/life-road')}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-            >
-              Открыть цели
-            </Button>
           </div>
         )}
 
         {!loading && !error && goals.length > 0 && totalChanges > 0 && (
           <div className="space-y-3">
+            <WeeklyReviewNarrative
+              narrative={narrative}
+              goalsUpdatedThisWeek={summary.goalsUpdatedThisWeek}
+              onNudgeClick={handleNudge}
+            />
             <WeeklyReviewSummary summary={summary} activeTab={tab} onTabChange={setTab} />
 
             <div className="space-y-2">
