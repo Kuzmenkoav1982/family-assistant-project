@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -53,16 +53,30 @@ export default function GoalCheckinsCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goal.id, refreshKey]);
 
+  // Ref на подсвеченную строку — нужен чтобы доскроллить её в видимую область.
+  const highlightedRowRef = useRef<HTMLDivElement | null>(null);
+
   // Подсвечиваем строку только когда она реально пришла в данных.
   // Не зависим от индекса/сортировки — только от совпадения id.
+  // onHighlightConsumed зовём ПОСЛЕ таймера, чтобы родитель не сбросил pending
+  // раньше, чем подсветка реально отыграла на экране.
   useEffect(() => {
     if (!highlightCheckinId) return;
     const found = checkins.some((c) => c.id === highlightCheckinId);
     if (!found) return;
     setHighlightedId(highlightCheckinId);
-    onHighlightConsumed?.();
-    const t = setTimeout(() => setHighlightedId(null), 1500);
-    return () => clearTimeout(t);
+    // Доскроллим к новой строке после рендера.
+    const scrollRaf = requestAnimationFrame(() => {
+      highlightedRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    const t = setTimeout(() => {
+      setHighlightedId(null);
+      onHighlightConsumed?.();
+    }, 1800);
+    return () => {
+      cancelAnimationFrame(scrollRaf);
+      clearTimeout(t);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightCheckinId, checkins]);
 
@@ -101,9 +115,17 @@ export default function GoalCheckinsCard({
 
       {recent.length > 0 && (
         <div className="space-y-2">
-          {recent.map((c) => (
-            <CheckinRow key={c.id} checkin={c} highlighted={c.id === highlightedId} />
-          ))}
+          {recent.map((c) => {
+            const isHi = c.id === highlightedId;
+            return (
+              <CheckinRow
+                key={c.id}
+                checkin={c}
+                highlighted={isHi}
+                rowRef={isHi ? highlightedRowRef : undefined}
+              />
+            );
+          })}
           {checkins.length > 5 && (
             <div className="text-[10px] text-gray-400 italic text-center">
               Показаны последние 5 из {checkins.length}
@@ -153,7 +175,15 @@ function getSmartMetricSummary(
   return { label, prev, next, unit };
 }
 
-function CheckinRow({ checkin, highlighted }: { checkin: GoalCheckin; highlighted?: boolean }) {
+function CheckinRow({
+  checkin,
+  highlighted,
+  rowRef,
+}: {
+  checkin: GoalCheckin;
+  highlighted?: boolean;
+  rowRef?: React.RefObject<HTMLDivElement>;
+}) {
   const [expanded, setExpanded] = useState(false);
   const snapshot = (checkin.data as { snapshot?: Record<string, unknown> })?.snapshot;
   const created = checkin.createdAt ? new Date(checkin.createdAt) : null;
@@ -161,10 +191,11 @@ function CheckinRow({ checkin, highlighted }: { checkin: GoalCheckin; highlighte
 
   return (
     <div
+      ref={rowRef}
       className={
-        'rounded-xl border p-2.5 transition-colors duration-700 ' +
+        'rounded-xl border p-2.5 transition-all duration-700 ' +
         (highlighted
-          ? 'bg-emerald-50 border-emerald-200'
+          ? 'bg-emerald-100 border-emerald-300 border-l-4 border-l-emerald-500 ring-2 ring-emerald-200 shadow-md'
           : 'bg-white border-gray-100')
       }
     >
