@@ -139,7 +139,9 @@ import('@/lib/goals/__smokeTests__').then(m => m.runAllGoalsSmokeTests())
     - **Без undo**: rollback-семантика для check-in / reschedule / complete сейчас вне scope (требует безопасных delete/revert на бэке).
     - **Без error-toast**: ошибки сети остаются inline в самих формах (alert внутри панели), глобальный feedback не плодим.
     - **Без auto-open следующей строки**: пользователь сам решает, что открыть дальше.
-    - Один toast за раз обеспечивает sonner-провайдер; auto-hide 3.5s для checkin/reschedule, 4s для complete.
+    - **Жёсткий контракт «один Focus-toast одновременно»**: глобальный `sonner` сам по себе стэкует до 3-х. Поэтому секция держит локальный `lastToastIdRef` и перед каждым новым тостом делает `toast.dismiss(prevId)`. Гарантия — даже если пользователь быстро подряд сделал несколько действий, видимым останется только последний Focus-toast. Глобальный Toaster не меняли — поведение в остальном приложении сохранено.
+    - При размонтировании секции висящий Focus-toast гасится — он не остаётся поверх других экранов.
+    - Auto-hide: 3.5s для checkin/reschedule, 4s для complete.
 
 ---
 
