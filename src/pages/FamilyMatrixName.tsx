@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@/lib/helmet';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { analyzeName, getTopNames, type NameAnalysis } from '@/lib/name-calculator';
 import MemberAvatar from '@/components/ui/member-avatar';

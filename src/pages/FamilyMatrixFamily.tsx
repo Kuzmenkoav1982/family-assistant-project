@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@/lib/helmet';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateNumerologyProfile } from '@/lib/numerology';
 import { calculateAstrologyProfile, getElementLabel } from '@/lib/astrology';

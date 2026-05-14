@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@/lib/helmet';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
 import type { Modality } from '@/components/hub/ModalityBadge';

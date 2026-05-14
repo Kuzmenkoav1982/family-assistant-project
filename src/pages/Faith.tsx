@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@/lib/helmet';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../backend/func2url.json';
 

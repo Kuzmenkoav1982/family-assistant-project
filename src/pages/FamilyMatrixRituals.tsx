@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@/lib/helmet';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { generateReconciliationScenarios } from '@/lib/reconciliation';
 import { calculateAstrologyProfile, getElementLabel } from '@/lib/astrology';

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client'
-import { HelmetProvider } from 'react-helmet-async'
+import { HelmetProvider } from '@/lib/helmet'
 import App from './App'
 import './index.css'
 import { initWebVitals } from './utils/webVitals'

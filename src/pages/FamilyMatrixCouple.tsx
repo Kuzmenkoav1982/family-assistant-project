@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from '@/lib/helmet';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateCoupleCompatibility } from '@/lib/compatibility';
 import CompatibilityGauge from '@/components/family-code/CompatibilityGauge';
