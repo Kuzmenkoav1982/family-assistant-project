@@ -33,10 +33,17 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
+  // Краткая сводка последнего успешного замера: prev → next unit
+  const [successSummary, setSuccessSummary] = useState<{
+    prev: number | null;
+    next: number;
+    unit: string;
+  } | null>(null);
 
   useEffect(() => {
     setValue(currentInState !== null ? String(currentInState) : '');
     setError(null);
+    setSuccessSummary(null);
   }, [goal.id, currentInState]);
 
   if (goal.frameworkType !== 'smart') return null;
@@ -46,15 +53,26 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
   const target = fs.targetValue ?? null;
 
   const handleSave = async () => {
-    setError(null);
+    // Защита от повторного клика — пока идёт сохранение, новые вызовы игнорируем.
+    if (saving) return;
 
-    if (value.trim() === '') {
-      setError('Введи число замера');
+    setError(null);
+    setSuccessSummary(null);
+
+    const trimmed = value.trim();
+    if (trimmed === '') {
+      setError('Укажи новое значение метрики');
       return;
     }
-    const numeric = Number(value);
-    if (Number.isNaN(numeric)) {
-      setError('Это должно быть число');
+    // Поддерживаем запятую как разделитель.
+    const normalized = trimmed.replace(',', '.');
+    const numeric = Number(normalized);
+    if (Number.isNaN(numeric) || !Number.isFinite(numeric)) {
+      setError('Введи число в корректном формате (например, 3.5)');
+      return;
+    }
+    if (currentInState !== null && numeric === currentInState) {
+      setError('Новое значение должно отличаться от предыдущего');
       return;
     }
 
@@ -102,10 +120,20 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
           // История замеров — best-effort. Прогресс уже обновлён через updateGoal.
         });
 
+      // Success-summary с краткой SMART-сводкой prev → next.
+      setSuccessSummary({ prev: currentInState, next: numeric, unit });
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 1500);
+      setTimeout(() => setSuccessSummary(null), 4000);
     } catch (e) {
-      setError((e as Error).message || 'Не удалось сохранить замер');
+      // Понятный человеческий текст вместо сухого failed.
+      const raw = (e as Error)?.message?.trim();
+      const isNetwork = !raw || /network|failed to fetch|load failed/i.test(raw);
+      setError(
+        isNetwork
+          ? 'Не удалось сохранить — проверь интернет и попробуй ещё раз'
+          : `Не удалось сохранить замер. ${raw}`,
+      );
     } finally {
       setSaving(false);
     }
@@ -137,6 +165,12 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
             inputMode="decimal"
             value={value}
             onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !saving) {
+                e.preventDefault();
+                handleSave();
+              }
+            }}
             placeholder="например, 3.5"
             className="h-9 text-sm"
             disabled={saving}
@@ -145,21 +179,44 @@ export default function SmartCheckin({ goal, onSaved, onCheckinSaved }: Props) {
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="h-9 bg-blue-600 hover:bg-blue-700 text-white"
+          aria-busy={saving}
+          className="h-9 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-70"
         >
           <Icon
             name={saving ? 'Loader2' : savedFlash ? 'Check' : 'Save'}
             size={14}
             className={`mr-1.5 ${saving ? 'animate-spin' : ''}`}
           />
-          {saving ? 'Сохраняю' : savedFlash ? 'Записано' : 'Записать'}
+          {saving ? 'Сохраняем…' : savedFlash ? 'Записано' : 'Записать'}
         </Button>
       </div>
 
       {error && (
-        <p className="text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded p-1.5 mt-2">
-          {error}
-        </p>
+        <div className="flex items-start gap-1.5 text-[11px] text-rose-700 bg-rose-50 border border-rose-200 rounded p-1.5 mt-2">
+          <Icon name="AlertCircle" size={12} className="mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {successSummary && !error && (
+        <div className="flex items-start gap-1.5 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded p-1.5 mt-2">
+          <Icon name="CheckCircle2" size={12} className="mt-0.5 shrink-0 text-emerald-600" />
+          <div className="min-w-0">
+            <div className="font-semibold">Запись добавлена</div>
+            <div className="text-emerald-700">
+              {metric}:{' '}
+              {successSummary.prev !== null ? (
+                <>
+                  {successSummary.prev} <span className="text-emerald-500">→</span>{' '}
+                  <b>{successSummary.next}</b>
+                </>
+              ) : (
+                <b>{successSummary.next}</b>
+              )}
+              {successSummary.unit ? ` ${successSummary.unit}` : ''}
+            </div>
+          </div>
+        </div>
       )}
 
       <p className="text-[10px] text-gray-400 mt-2">
