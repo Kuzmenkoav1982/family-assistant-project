@@ -20,7 +20,7 @@ import CreateTaskFromGoalDialog from '@/components/goals/CreateTaskFromGoalDialo
 import CreateAchievementFromGoalDialog from '@/components/goals/CreateAchievementFromGoalDialog';
 import { lifeApi } from '@/components/life-road/api';
 import { normalizeLegacyGoal } from '@/lib/goals/goalMappers';
-import { computeProgress } from '@/lib/goals/progress';
+import { useGoalCheckinFlow } from '@/components/goals/hooks/useGoalCheckinFlow';
 import {
   buildPrefillFromGoal,
   buildPrefillFromKr,
@@ -46,17 +46,15 @@ export default function WorkshopGoalPage() {
   const [portfolioLinksRefresh, setPortfolioLinksRefresh] = useState(0);
   // Счётчик-триггер для перечитывания истории check-ins после быстрого замера.
   const [checkinsRefreshKey, setCheckinsRefreshKey] = useState(0);
-  // ID только что созданного check-in — нужен, чтобы подсветить именно эту строку,
-  // а не первую по порядку. После того как UI подсветил запись, сбрасывается в null.
-  const [pendingHighlightCheckinId, setPendingHighlightCheckinId] = useState<string | null>(null);
-  // Pulse-эффект прогресса: показываем только при реальном изменении execution.
-  // Не переживает hard refresh — это runtime-only состояние.
-  const [progressFlash, setProgressFlash] = useState<{
-    delta: number;
-    from: number;
-    to: number;
-    nonce: number;
-  } | null>(null);
+  // Общая механика после check-in: pulse прогресса + подсветка новой строки.
+  // Один источник правды для SMART / OKR / Wheel — никаких ручных setState/useEffect здесь.
+  const {
+    progressFlash,
+    pendingHighlightCheckinId,
+    applyAfterSave,
+    setPendingHighlight,
+    consumePendingHighlight,
+  } = useGoalCheckinFlow({ durationMs: 2000 });
 
   const loadGoal = async (gid: string) => {
     const [allGoals, ms, krs] = await Promise.all([
@@ -99,48 +97,35 @@ export default function WorkshopGoalPage() {
      
   }, [id]);
 
-  // Автосброс pulse-эффекта прогресса через 2 сек.
-  // nonce в зависимостях гарантирует, что повторный check-in даст свежий таймер,
-  // а не «доживёт» старый.
-  useEffect(() => {
-    if (!progressFlash) return;
-    const t = setTimeout(() => setProgressFlash(null), 2000);
-    return () => clearTimeout(t);
-  }, [progressFlash?.nonce]);
-
-  // Обёртка над setGoal после check-in: сравниваем execution до/после
-  // и поднимаем pulse только при реальном изменении.
-  // Универсально работает и для SMART (источник — frameworkState), и для OKR
-  // (источник — keyResults), потому что передаём актуальные коллекции.
-  const applyGoalAfterCheckin = (next: LifeGoal) => {
+  // Тонкая обёртка для SMART/Wheel: подставляем актуальные KR в shared-flow.
+  // Сам hook делает всё остальное: сравнение через computeProgress, flash, highlight.
+  const applyGoalAfterCheckin = (next: LifeGoal, checkinId?: string | null) => {
     const normalized = normalizeLegacyGoal(next);
-    const prevExec = goal ? computeProgress(goal, [], keyResults).execution : 0;
-    const nextExec = computeProgress(normalized, [], keyResults).execution;
-    const delta = nextExec - prevExec;
+    applyAfterSave({
+      prevGoal: goal,
+      nextGoal: normalized,
+      prevKeyResults: keyResults,
+      checkinId,
+    });
     setGoal(normalized);
-    if (delta !== 0) {
-      setProgressFlash({
-        delta,
-        from: prevExec,
-        to: nextExec,
-        nonce: Date.now(),
-      });
-    }
   };
 
-  // Для OKR-check-in нужно обновить и цель, и KR (currentValue только что менялось).
-  const applyOkrCheckinSaved = async (next: LifeGoal) => {
-    // KR в БД уже обновлён — перечитываем актуальный список перед сравнением.
-    const freshKrs = (await lifeApi.listKeyResults(next.id).catch(() => keyResults)) as GoalKeyResult[];
+  // Для OKR: KR были изменены в БД — перечитываем свежий список перед сравнением,
+  // чтобы next execution считался по актуальным данным.
+  const applyOkrCheckinSaved = async (next: LifeGoal, checkinId?: string | null) => {
+    const freshKrs = (await lifeApi
+      .listKeyResults(next.id)
+      .catch(() => keyResults)) as GoalKeyResult[];
     const normalized = normalizeLegacyGoal(next);
-    const prevExec = goal ? computeProgress(goal, [], keyResults).execution : 0;
-    const nextExec = computeProgress(normalized, [], freshKrs).execution;
-    const delta = nextExec - prevExec;
+    applyAfterSave({
+      prevGoal: goal,
+      nextGoal: normalized,
+      prevKeyResults: keyResults,
+      nextKeyResults: freshKrs,
+      checkinId,
+    });
     setKeyResults(freshKrs);
     setGoal(normalized);
-    if (delta !== 0) {
-      setProgressFlash({ delta, from: prevExec, to: nextExec, nonce: Date.now() });
-    }
   };
 
   const isLegacy = useMemo(
@@ -292,10 +277,10 @@ export default function WorkshopGoalPage() {
             />
             <SmartCheckin
               goal={goal}
-              onSaved={applyGoalAfterCheckin}
+              onSaved={(next) => applyGoalAfterCheckin(next)}
               onCheckinSaved={(checkinId) => {
                 setCheckinsRefreshKey((n) => n + 1);
-                if (checkinId) setPendingHighlightCheckinId(checkinId);
+                setPendingHighlight(checkinId);
               }}
             />
           </>
@@ -314,10 +299,10 @@ export default function WorkshopGoalPage() {
             <OkrCheckin
               goal={goal}
               keyResults={keyResults}
-              onGoalRefreshed={applyOkrCheckinSaved}
+              onGoalRefreshed={(next) => applyOkrCheckinSaved(next)}
               onCheckinSaved={(checkinId) => {
                 setCheckinsRefreshKey((n) => n + 1);
-                if (checkinId) setPendingHighlightCheckinId(checkinId);
+                setPendingHighlight(checkinId);
               }}
             />
           </>
@@ -334,10 +319,10 @@ export default function WorkshopGoalPage() {
             />
             <WheelCheckin
               goal={goal}
-              onSaved={applyGoalAfterCheckin}
+              onSaved={(next) => applyGoalAfterCheckin(next)}
               onCheckinSaved={(checkinId) => {
                 setCheckinsRefreshKey((n) => n + 1);
-                if (checkinId) setPendingHighlightCheckinId(checkinId);
+                setPendingHighlight(checkinId);
               }}
             />
           </>
@@ -383,7 +368,7 @@ export default function WorkshopGoalPage() {
           keyResults={keyResults}
           refreshKey={checkinsRefreshKey}
           highlightCheckinId={pendingHighlightCheckinId ?? undefined}
-          onHighlightConsumed={() => setPendingHighlightCheckinId(null)}
+          onHighlightConsumed={consumePendingHighlight}
         />
       </div>
 
