@@ -124,6 +124,14 @@ import('@/lib/goals/__smokeTests__').then(m => m.runAllGoalsSmokeTests())
 13. **Focus V1 — переход в detail, без inline/modal check-in.** Один CTA: «Открыть цель» / «Обновить цель». Inline mini-form и модалка — V1.1 polish, не блокер V1.
 14. **Focus V1 — узкий набор причин.** Только overdue / regressed / stale. Low-progress <20%, дублирующиеся подзадачи, тематические подсказки — НЕ V1 (намеренный шум-кат). Заходят в V1.1 backlog.
 15. **Focus V1 — без пользовательской сортировки.** Жёсткий severity-порядок (overdue → regressed → stale). Селектор сортировки появится только при доказанной пользовательской боли.
+16. **Focus V2 — Reason-aware Quick Actions (поверх V1).** В строку Focus добавлена inline-панель с действиями, зависящими от причины:
+    - `stale` / `regressed` → inline quick check-in (textarea «что изменилось?» + опциональная самооценка 0..10). Пишется как обычный `GoalCheckin` с `data.kind = 'focus-quick-checkin'`.
+    - `overdue` → панель из двух действий: **Перенести срок** (date-input, валидация «не в прошлом», `updateGoal({ deadline })`) и **Завершить цель** с двухшаговым подтверждением (`updateGoal({ status: 'done' })`). Inline check-in для overdue **не показывается** намеренно — он не закрывает причину.
+    - Главный CTA «Открыть цель» / «Обновить цель» сохранён всегда: панель не подменяет переход в detail.
+17. **Focus V2 — single-expand controller.** В каждый момент времени раскрыт максимум один item. Открытие новой строки автоматически закрывает предыдущую.
+18. **Focus V2 — нет modal, нет нового `/focus`, нет bulk-actions, нет dismiss / snooze.** Всё inline в Workshop.
+19. **Focus V2 — переиспользует существующий API.** `lifeApi.createCheckin` для quick check-in и `lifeApi.updateGoal` для reschedule/complete. Никаких параллельных flow или дубликатов validation. После успешного действия секция зовёт `onChanged` → Workshop делает `reload()` → очередь пересчитывается, причина у цели может смениться или цель уходит из Focus.
+20. **Focus V2 — `completeGoal` не открывает диалог достижений.** Это совместимо с текущей моделью (`status='done'` без побочной публикации Achievement). Полноценный flow «Завершил → создать Achievement» остаётся в detail-экране, как и было.
 
 ---
 

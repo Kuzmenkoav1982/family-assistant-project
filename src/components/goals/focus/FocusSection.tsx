@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
@@ -8,19 +8,19 @@ import { buildFocusQueue, type FocusItem } from '@/lib/goals/focusHelpers';
 import FocusItemRow from './FocusItemRow';
 import { pluralRu } from '@/lib/goals/weeklyReviewNarrative';
 
-// Goals Focus / Execution V1.
+// Goals Focus / Execution V2 — Reason-aware Quick Actions.
 //
 // Верхняя секция Workshop: «что делать сейчас».
 // Сама не делает запросов — берёт уже загруженные goals + checkinsByGoalId
 // (тот же источник, что у WeeklyReviewSection).
 //
-// Состояния:
-//   - loading: skeleton, остальной Workshop не блокируется
-//   - error:   красный alert + retry, остальной Workshop живёт
-//   - empty:   friendly empty state — «Сегодня всё спокойно»
-//   - list:    очередь с фокусом (overdue → regressed → stale)
-//
-// V1 действие: переход в detail (`/workshop/goal/:id`). Без inline/modal.
+// V2 поверх V1:
+//   - reason-aware действия inline (без modal, без нового /focus):
+//       stale/regressed → quick check-in
+//       overdue         → reschedule / complete
+//   - single-expand controller: один раскрытый item за раз
+//   - после успеха зовём onChanged → Workshop делает reload(), очередь
+//     перестраивается с новой причиной/позицией или строка уходит.
 
 interface Props {
   goals: LifeGoal[];
@@ -28,7 +28,9 @@ interface Props {
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
-  /** В V1 фиксированный лимит — не разрастаться по экрану. */
+  /** Зовётся после любого успешного действия (Workshop делает reload). */
+  onChanged?: () => void;
+  /** Лимит видимых строк, остальные сворачиваются в подпись «+ ещё N». */
   limit?: number;
 }
 
@@ -40,9 +42,11 @@ export default function FocusSection({
   loading,
   error,
   onRetry,
+  onChanged,
   limit = DEFAULT_LIMIT,
 }: Props) {
   const navigate = useNavigate();
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const views = useMemo(
     () => buildWeeklyView({ goals, checkinsByGoalId }),
@@ -57,7 +61,30 @@ export default function FocusSection({
   const visible = queue.slice(0, limit);
   const hiddenCount = Math.max(0, queue.length - visible.length);
 
+  // Если раскрытая цель пропала из очереди (после успешного действия)
+  // или больше нет в visible — схлопываем.
+  useEffect(() => {
+    if (!expandedId) return;
+    const stillVisible = visible.some((i) => i.view.goal.id === expandedId);
+    if (!stillVisible) setExpandedId(null);
+  }, [visible, expandedId]);
+
   const goOpen = (id: string) => navigate(`/workshop/goal/${id}`);
+
+  const handleToggle = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  const handleActionDone = () => {
+    // После успешного действия закрываем раскрытый item, родитель reload'нёт
+    // данные через onChanged → очередь пересчитается, эффект выше уберёт
+    // строку (или оставит с другой причиной).
+    setExpandedId(null);
+  };
+
+  const handleChanged = () => {
+    onChanged?.();
+  };
 
   return (
     <section
@@ -154,7 +181,11 @@ export default function FocusSection({
               <FocusItemRow
                 key={item.view.goal.id}
                 item={item}
+                expanded={expandedId === item.view.goal.id}
                 onOpen={() => goOpen(item.view.goal.id)}
+                onToggleExpand={() => handleToggle(item.view.goal.id)}
+                onActionDone={handleActionDone}
+                onChanged={handleChanged}
               />
             ))}
             {hiddenCount > 0 && (

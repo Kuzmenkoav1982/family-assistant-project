@@ -175,13 +175,14 @@ export default function WorkshopPage() {
           ))}
         </div>
 
-        {/* Goals Focus V1 — что делать сейчас (overdue → regressed → stale) */}
+        {/* Goals Focus V2 — что делать сейчас + reason-aware quick actions */}
         <FocusSection
           goals={goals}
           checkinsByGoalId={checkinsByGoalId}
           loading={reviewLoading}
           error={reviewError}
           onRetry={reload}
+          onChanged={reload}
         />
 
         {/* Goals Hub V1 — единый верхний экран по всем целям */}
