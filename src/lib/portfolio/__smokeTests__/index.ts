@@ -3,16 +3,19 @@
 // Использование в консоли браузера:
 //   import('@/lib/portfolio/__smokeTests__').then(m => m.runAllPortfolioSmokeTests());
 //
-// Текущий состав (Sprint A — Hub):
-//   - portfolioHubHelpers (форматирование, состояния карточек, summary, sort)
+// Текущий состав:
+//   - portfolioHubHelpers    (Sprint A: формат, состояния карточек, summary, sort)
+//   - portfolioMemberHelpers (Sprint B: refresh-toast форматтер + trimOneLine)
 
 import * as hubHelpers from './portfolioHubHelpers.smoke';
+import * as memberHelpers from './portfolioMemberHelpers.smoke';
 
 export async function runAllPortfolioSmokeTests(): Promise<void> {
    
   console.group('🪞 Portfolio V1 — All smoke tests');
   const t0 = performance.now();
   await hubHelpers.runAll();
+  await memberHelpers.runAll();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ Прогон завершён за ${dt} мс`);
@@ -20,4 +23,4 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   console.groupEnd();
 }
 
-export { hubHelpers };
+export { hubHelpers, memberHelpers };

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,8 @@ import ImproveAccuracyBlock from '@/components/portfolio/ImproveAccuracyBlock';
 import { Link } from 'react-router-dom';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { PortfolioData } from '@/types/portfolio.types';
-import { formatTimeAgo } from '@/utils/timeAgo';
+import { formatLastAggregated } from '@/lib/portfolio/portfolioHubHelpers';
+import { buildRefreshToast } from '@/lib/portfolio/portfolioMemberHelpers';
 import { shareToFamilyChat } from '@/services/familyChatShare';
 import { buildPortfolioChatMessage } from '@/utils/portfolioShare';
 import { useToast } from '@/hooks/use-toast';
@@ -37,28 +38,50 @@ export default function MemberPortfolio() {
   const pdfEnabled = useFeatureFlag('portfolio_pdf_export', true);
   const aiEnabled = useFeatureFlag('portfolio_ai_insights', true);
 
-  useEffect(() => {
+  // Загрузка/повторная загрузка — единый путь, чтобы Retry в error-state
+  // ходил по тому же коду, что и первичная загрузка страницы.
+  const load = useCallback(() => {
     if (!memberId) return;
     setLoading(true);
+    setError(null);
     portfolioApi
       .get(memberId)
       .then((d) => {
         setData(d);
         setError(null);
       })
-      .catch((e) => setError(String(e)))
+      .catch((e) => setError((e as Error)?.message || String(e)))
       .finally(() => setLoading(false));
   }, [memberId]);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
   const handleRefresh = async () => {
-    if (!memberId) return;
+    if (!memberId || refreshing) return;
     setRefreshing(true);
     try {
       await portfolioApi.aggregate(memberId);
       const full = await portfolioApi.get(memberId);
       setData(full);
+      const t = buildRefreshToast({
+        kind: 'success',
+        memberName: full.member?.name ?? data?.member?.name ?? null,
+      });
+      toast({ title: t.title, description: t.description });
     } catch (e) {
-      setError(String(e));
+      // Inline-ошибку в шапке не выводим — данные старого снимка остаются
+      // на экране; пользователю достаточно одного destructive-тоста.
+      const t = buildRefreshToast({
+        kind: 'error',
+        errorMessage: (e as Error)?.message || String(e),
+      });
+      toast({
+        title: t.title,
+        description: t.description,
+        variant: 'destructive',
+      });
     } finally {
       setRefreshing(false);
     }
@@ -87,12 +110,35 @@ export default function MemberPortfolio() {
     }
   };
 
+  // Единый page-shell для loading/error — стилистически совпадает с Hub
+  // (gradient background, container, skeleton-блоки вместо центрального
+  // спиннера, inline alert + Retry вместо «Вернуться»).
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Собираем портфолио…</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+        <div
+          className="container mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          {/* Hero skeleton */}
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-1/2 rounded bg-slate-200 animate-pulse" />
+                <div className="h-3 w-1/3 rounded bg-slate-100 animate-pulse" />
+                <div className="h-2 w-2/3 rounded bg-slate-100 animate-pulse mt-2" />
+              </div>
+            </div>
+          </div>
+          {/* Body skeleton (3 секции) */}
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-32 rounded-2xl border border-white/60 bg-white/60 shadow-sm animate-pulse"
+            />
+          ))}
         </div>
       </div>
     );
@@ -100,74 +146,146 @@ export default function MemberPortfolio() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardContent className="pt-6 text-center">
-            <Icon name="AlertCircle" size={48} className="mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground mb-4">
-              {error || 'Не удалось загрузить портфолио'}
-            </p>
-            <Button onClick={() => navigate(-1)}>Вернуться</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+        <div className="container mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="h-8 px-2 text-gray-600"
+            >
+              <Icon name="ArrowLeft" size={14} className="mr-1" />
+              Назад
+            </Button>
+          </div>
+          <div
+            role="alert"
+            className="rounded-2xl border border-rose-200 bg-rose-50 p-4 flex items-start gap-2.5"
+          >
+            <Icon
+              name="AlertCircle"
+              size={16}
+              className="text-rose-600 mt-0.5 shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold text-rose-800 mb-0.5">
+                Не удалось загрузить портфолио
+              </div>
+              <div className="text-xs text-rose-700 mb-2 break-words">
+                {error || 'Данные не пришли. Попробуйте ещё раз.'}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={load}
+                  className="h-7 text-xs border-rose-300 text-rose-700 hover:bg-rose-100"
+                >
+                  <Icon name="RefreshCw" size={12} className="mr-1" />
+                  Повторить
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => navigate(-1)}
+                  className="h-7 text-xs text-rose-700 hover:bg-rose-100"
+                >
+                  Назад
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const updatedHuman = formatLastAggregated(data.last_aggregated_at);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <SEOHead title={`Портфолио ${data.member.name}`} description="Паспорт развития" />
-      <div className="container mx-auto max-w-6xl px-4 py-6 md:py-8 space-y-6">
+      <div className="container mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+        {/* Hero action-bar (Sprint B): timestamp + Refresh CTA + secondary actions.
+            Карточный фон в стиле Goals/Hub. Сам PortfolioHeader — без изменений. */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 print:hidden">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <span
+              className={`w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center shrink-0 ${refreshing ? 'animate-pulse' : ''}`}
+              aria-hidden
+            >
+              <Icon name="LineChart" size={14} className="text-emerald-700" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-[11px] uppercase tracking-wide text-gray-500 font-semibold">
+                Паспорт развития
+              </div>
+              <div
+                className="text-[11px] text-gray-600 truncate"
+                aria-live="polite"
+              >
+                {refreshing
+                  ? 'Собираем свежие данные…'
+                  : updatedHuman
+                    ? `Обновлено ${updatedHuman}`
+                    : 'Данных об обновлении пока нет'}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <Button
+              size="sm"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white h-8 px-3"
+              aria-label="Обновить портфолио"
+            >
+              <Icon
+                name={refreshing ? 'Loader2' : 'RefreshCw'}
+                size={13}
+                className={`mr-1.5 ${refreshing ? 'animate-spin' : ''}`}
+              />
+              {refreshing ? 'Обновляю…' : 'Обновить'}
+            </Button>
+            <SourcesDrawer data={data} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleShare}
+              disabled={sharing}
+              className="gap-1.5 h-8"
+              title="Отправить карточку в семейный чат"
+            >
+              <Icon
+                name={sharing ? 'Loader2' : 'Share2'}
+                size={13}
+                className={sharing ? 'animate-spin' : ''}
+              />
+              {sharing ? 'Отправляю…' : 'В чат семьи'}
+            </Button>
+            {pdfEnabled && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.print()}
+                className="gap-1.5 h-8"
+                title="Сохранить как PDF (через диалог печати)"
+              >
+                <Icon name="FileDown" size={13} />
+                <span className="hidden sm:inline">Скачать PDF</span>
+              </Button>
+            )}
+          </div>
+        </div>
+
         <PortfolioHeader data={data} />
 
         <TrustBlock memberId={memberId} />
 
         <KeyHighlights data={data} />
 
-        <div className="flex flex-wrap gap-2 justify-end items-center print:hidden">
-          <button
-            type="button"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            title="Обновить"
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          >
-            <Icon
-              name="RefreshCw"
-              size={12}
-              className={refreshing ? 'animate-spin' : ''}
-            />
-            Обновлено {formatTimeAgo(data.last_aggregated_at)}
-          </button>
-          <SourcesDrawer data={data} />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleShare}
-            disabled={sharing}
-            className="gap-1.5"
-            title="Отправить карточку в семейный чат"
-          >
-            <Icon
-              name={sharing ? 'Loader' : 'Share2'}
-              size={14}
-              className={sharing ? 'animate-spin' : ''}
-            />
-            {sharing ? 'Отправляю…' : 'В чат семьи'}
-          </Button>
-          {pdfEnabled && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              className="gap-1.5"
-              title="Сохранить как PDF (через диалог печати)"
-            >
-              <Icon name="FileDown" size={14} />
-              Скачать PDF
-            </Button>
-          )}
-        </div>
+        {/* Старый action-bar удалён — переехал в Hero выше (Sprint B). */}
 
         <SpheresRadar data={data} />
 

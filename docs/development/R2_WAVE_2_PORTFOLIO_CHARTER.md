@@ -129,12 +129,13 @@ V1 считается готовым к sign-off, когда **все** пунк
 
 1. **Charter** — этот документ. ✅
 2. **Sprint A — Hub `/portfolio`**: карточки, состояния, mobile. ✅ **dev-done**
-3. **Sprint B — Member detail**: единый visual-language, 7 блоков, refresh + toast.
-4. **Sprint C — Sphere detail**: новая страница + видимые связи Goals↔Portfolio.
-5. **Sprint D — Polish & A11y**: единые state-паттерны, keyboard, aria, mobile финал.
-6. **Smoke + freeze doc + visual QA pack** одновременно с Sprint D.
-7. **Human visual pass** (как с Goals V1).
-8. **Sign-off → FROZEN**.
+3. **Sprint B.1 — Member detail (Hero + Refresh + visual-language)**: единый page-shell (loading/error), карточный action-bar, success/error toast. ✅ **dev-done**
+4. **Sprint B.2 — Member detail (нижние блоки visual-language)**: лёгкое выравнивание Trust/KeyHighlights/Radar/Insights/History/Table/Plan/Achievements под единый язык, без redesign.
+5. **Sprint C — Sphere detail**: новая страница + видимые связи Goals↔Portfolio.
+6. **Sprint D — Polish & A11y**: единые state-паттерны, keyboard, aria, mobile финал.
+7. **Smoke + freeze doc + visual QA pack** одновременно с Sprint D.
+8. **Human visual pass** (как с Goals V1).
+9. **Sign-off → FROZEN**.
 
 ### Sprint A — итог (что сделано)
 
@@ -168,6 +169,41 @@ V1 считается готовым к sign-off, когда **все** пунк
 | A8 | `portfolio-hub-card-empty.png` | Карточка empty (dashed, «создать портфолио») |
 | A9 | `portfolio-hub-mobile-375px.png` | Mobile, видна сетка в один столбец |
 
+### Sprint B.1 — итог (что сделано)
+
+- Полностью переделан page-shell `MemberPortfolio`:
+  - **loading** — skeleton Hero + 3 карточки-блока вместо центрального спиннера, gradient-фон в стиле Hub.
+  - **error** — inline rose-alert с **двумя** действиями: «Повторить» (новый — переиспользует `load()`, единый код первичной загрузки и retry) и «Назад». Раньше был только «Вернуться».
+- Над `PortfolioHeader` появился новый **карточный action-bar Hero**:
+  - Слева — `LineChart`-эмблема (pulse при refresh) + лейбл «Паспорт развития» + строка статуса с aria-live: «Обновлено N минут/дней/… назад» / «Собираем свежие данные…» / fallback «Данных об обновлении пока нет».
+  - Справа — основной CTA «Обновить» (gradient purple→pink, primary-стиль из Workshop), вторичные `SourcesDrawer`, «В чат семьи», «Скачать PDF» в ровную линию.
+- Старый плоский action-row ниже `KeyHighlights` удалён — он мигрировал в Hero.
+- Обновлён фон страницы на `from-purple-50 via-pink-50 to-orange-50` (как Hub и Workshop).
+- Контейнер уменьшен с `max-w-6xl` → `max-w-5xl`, padding по mobile приведён к `px-3 sm:px-4 py-4 sm:py-6` — единый ритм с Hub.
+- Кнопки PDF и Share получили `hidden sm:inline` для ярлыков на mobile.
+- Refresh flow теперь даёт обратную связь:
+  - **success** → `toast({ title: 'Портфолио обновлено', description: 'Свежий снимок данных для <Имя>' })`.
+  - **error** → `toast({ variant: 'destructive', title: 'Не удалось обновить', description: <короткое одно-строчное сообщение или fallback> })`.
+  - Inline-error при refresh **не выводится** (старый `setError` после успешной первичной загрузки больше не ломает экран): на странице остаётся последний успешный snapshot, ошибка только в toast.
+- Тексты тостов вынесены в `src/lib/portfolio/portfolioMemberHelpers.ts`:
+  - `buildRefreshToast(kind, ctx)` — детерминированный форматтер (success/error, with/without name, multiline → одна строка, обрезка до 140 с многоточием).
+  - `trimOneLine(value, max)` — общий хелпер.
+- Smoke: новый модуль `portfolioMemberHelpers.smoke.ts` (10 групп: trim, success-with/without/empty name, error-with/without message, длинное сообщение → обрезка, multiline → flatten). Подключён в Portfolio runner.
+- **Контракт `useSingleToast` пересмотрен**: в проекте уже есть `@/hooks/use-toast` с `TOAST_LIMIT = 1`. Это и есть «один toast за раз», поэтому отдельный хук строить не пришлось. Использован существующий `useToast()` — никаких глобальных изменений.
+- **Не тронуто**: PortfolioHeader, TrustBlock, KeyHighlights, SpheresRadar, ImproveAccuracyBlock, InsightsBlock, HistoryChart, DevelopmentTable, ActiveDevelopmentPlan, AchievementsWall, нижний info-card. Goals — без единой строки изменений.
+
+### Sprint B.1 — required screenshots (для будущего visual QA pack)
+
+| # | Файл | Сцена |
+|---|---|---|
+| B1 | `portfolio-member-loading-desktop.png` | Slow 3G на `/portfolio/:id` — Hero skeleton + 3 блока |
+| B2 | `portfolio-member-error-desktop.png` | Backend упал — inline rose-alert с «Повторить» и «Назад» |
+| B3 | `portfolio-member-hero-actionbar-desktop.png` | Готовый Hero action-bar: эмблема, статус, CTA «Обновить» + secondary |
+| B4 | `portfolio-member-refreshing-state.png` | Кнопка показывает «Обновляю…», статус-строка «Собираем свежие данные…» |
+| B5 | `portfolio-member-toast-success.png` | Success toast «Портфолио обновлено · Свежий снимок данных для …» |
+| B6 | `portfolio-member-toast-error.png` | Destructive toast «Не удалось обновить · …» (любое сообщение) |
+| B7 | `portfolio-member-mobile-375px.png` | Mobile: action-bar свернулся в 2 строки, статус выше, кнопки ниже |
+
 Каждый спринт = атомарный коммит + краткий status (как делали по Goals).
 
 ---
@@ -198,3 +234,4 @@ V1 считается готовым к sign-off, когда **все** пунк
 
 - **2026-05-14** — создан после фиксации решения «Wave 2 = Portfolio V1». Базируется на инвентаризации Portfolio (snapshot выполнен в этот же день).
 - **2026-05-14 (build `01594d2`)** — Sprint A dev-done. `FamilyPortfolio.tsx` полностью переписан под 4-состоянийный контракт; добавлены `portfolioHubHelpers.ts` + smoke-tests + portfolio runner + umbrella runner «Развитие». Goals smoke не тронут. Required screenshots A1–A9 зафиксированы для будущего visual QA pack.
+- **2026-05-14 (build `712cae8`)** — Sprint B.1 dev-done. `MemberPortfolio.tsx` получил единый page-shell (loading skeleton + inline error+retry), новый карточный Hero action-bar над PortfolioHeader, refresh с success/destructive toast (используем существующий `useToast()` с `TOAST_LIMIT=1` — отдельный single-toast хук не понадобился). Хелперы `portfolioMemberHelpers.ts` + smoke (10 групп). PortfolioHeader и нижние блоки — без изменений. Required screenshots B1–B7 зафиксированы.
