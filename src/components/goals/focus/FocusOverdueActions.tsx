@@ -3,7 +3,12 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { LifeGoal } from '@/components/life-road/types';
-import { useFocusActions, validateRescheduleDate } from './useFocusActions';
+import {
+  useFocusActions,
+  validateRescheduleDate,
+  type FocusActionContext,
+  type FocusActionKind,
+} from './useFocusActions';
 
 // Goals Focus V2 — действия для overdue целей.
 //
@@ -17,7 +22,7 @@ interface Props {
   goal: LifeGoal;
   onDone: () => void;
   onCancel: () => void;
-  onChanged: () => void;
+  onChanged: (kind: FocusActionKind, ctx: FocusActionContext) => void;
 }
 
 const todayIso = (): string => {
@@ -44,7 +49,7 @@ export default function FocusOverdueActions({
   const dateRef = useRef<HTMLInputElement | null>(null);
 
   const actions = useFocusActions({
-    onChanged: () => onChanged(),
+    onChanged: (kind, _id, ctx) => onChanged(kind, ctx),
   });
 
   useEffect(() => {

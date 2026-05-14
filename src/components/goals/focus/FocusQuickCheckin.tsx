@@ -6,6 +6,8 @@ import type { LifeGoal } from '@/components/life-road/types';
 import {
   useFocusActions,
   validateQuickCheckin,
+  type FocusActionContext,
+  type FocusActionKind,
   type QuickCheckinInput,
 } from './useFocusActions';
 
@@ -28,8 +30,8 @@ interface Props {
   placeholder?: string;
   onSaved: () => void;
   onCancel: () => void;
-  /** Прокидывается из FocusSection: вызывает Workshop.reload. */
-  onChanged: () => void;
+  /** Прокидывается из FocusSection: reload + success toast. */
+  onChanged: (kind: FocusActionKind, ctx: FocusActionContext) => void;
 }
 
 const DEFAULT_PLACEHOLDER =
@@ -48,7 +50,7 @@ export default function FocusQuickCheckin({
   const taRef = useRef<HTMLTextAreaElement | null>(null);
 
   const actions = useFocusActions({
-    onChanged: () => onChanged(),
+    onChanged: (kind, _id, ctx) => onChanged(kind, ctx),
   });
 
   useEffect(() => {

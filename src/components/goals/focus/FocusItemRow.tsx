@@ -7,6 +7,7 @@ import {
 import { pluralRu } from '@/lib/goals/weeklyReviewNarrative';
 import FocusQuickCheckin from './FocusQuickCheckin';
 import FocusOverdueActions from './FocusOverdueActions';
+import type { FocusActionContext, FocusActionKind } from './useFocusActions';
 
 // Goals Focus V2 — одна строка очереди + reason-aware quick action.
 //
@@ -26,7 +27,7 @@ interface Props {
   onOpen: () => void;
   onToggleExpand: () => void;
   onActionDone: () => void;
-  onChanged: () => void;
+  onChanged: (kind: FocusActionKind, ctx: FocusActionContext) => void;
 }
 
 const REASON_TONE: Record<

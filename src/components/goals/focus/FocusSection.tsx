@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import type { GoalCheckin, LifeGoal } from '@/components/life-road/types';
@@ -7,6 +8,8 @@ import { buildWeeklyView } from '@/lib/goals/weeklyReviewHelpers';
 import { buildFocusQueue, type FocusItem } from '@/lib/goals/focusHelpers';
 import FocusItemRow from './FocusItemRow';
 import { pluralRu } from '@/lib/goals/weeklyReviewNarrative';
+import { buildFocusToast } from './focusToasts';
+import type { FocusActionContext, FocusActionKind } from './useFocusActions';
 
 // Goals Focus / Execution V2 — Reason-aware Quick Actions.
 //
@@ -82,7 +85,17 @@ export default function FocusSection({
     setExpandedId(null);
   };
 
-  const handleChanged = () => {
+  // V2.1 polish: после успешного действия — короткий success toast.
+  // Один тост на действие, текст детерминированный (см. focusToasts.ts).
+  // Auto-hide / закрытие крестиком обеспечивает sonner (глобально в App.tsx).
+  // Без undo: rollback-семантика для checkin/reschedule/complete сейчас вне scope.
+  const handleChanged = (kind: FocusActionKind, ctx: FocusActionContext) => {
+    const t = buildFocusToast(kind, ctx);
+    if (kind === 'complete') {
+      toast.success(t.title, { description: t.description, duration: 4000 });
+    } else {
+      toast(t.title, { description: t.description, duration: 3500 });
+    }
     onChanged?.();
   };
 

@@ -23,9 +23,20 @@ import type { GoalCheckin, LifeGoal } from '@/components/life-road/types';
 
 export type FocusActionKind = 'checkin' | 'reschedule' | 'complete';
 
+export interface FocusActionContext {
+  /** Заголовок цели на момент действия — нужен для toast'а. */
+  goalTitle: string;
+  /** Только для reschedule: новая дата в формате YYYY-MM-DD. */
+  newDeadline?: string;
+}
+
 export interface FocusActionsOptions {
   /** Зовётся после любого успешного действия. Workshop вызывает reload(). */
-  onChanged?: (kind: FocusActionKind, goalId: string) => void;
+  onChanged?: (
+    kind: FocusActionKind,
+    goalId: string,
+    ctx: FocusActionContext,
+  ) => void;
 }
 
 export interface QuickCheckinInput {
@@ -117,7 +128,7 @@ export function useFocusActions(opts: FocusActionsOptions = {}): UseFocusActions
           },
         };
         const created = await lifeApi.createCheckin(next);
-        opts.onChanged?.('checkin', goal.id);
+        opts.onChanged?.('checkin', goal.id, { goalTitle: goal.title });
         return created;
       } catch (e) {
         setError((e as Error).message || 'Не удалось сохранить замер');
@@ -141,7 +152,10 @@ export function useFocusActions(opts: FocusActionsOptions = {}): UseFocusActions
       setError(null);
       try {
         const updated = await lifeApi.updateGoal(goal.id, { deadline: newDeadline });
-        opts.onChanged?.('reschedule', goal.id);
+        opts.onChanged?.('reschedule', goal.id, {
+          goalTitle: goal.title,
+          newDeadline,
+        });
         return updated;
       } catch (e) {
         setError((e as Error).message || 'Не удалось перенести срок');
@@ -164,7 +178,7 @@ export function useFocusActions(opts: FocusActionsOptions = {}): UseFocusActions
       setError(null);
       try {
         const updated = await lifeApi.updateGoal(goal.id, { status: 'done' });
-        opts.onChanged?.('complete', goal.id);
+        opts.onChanged?.('complete', goal.id, { goalTitle: goal.title });
         return updated;
       } catch (e) {
         setError((e as Error).message || 'Не удалось завершить цель');

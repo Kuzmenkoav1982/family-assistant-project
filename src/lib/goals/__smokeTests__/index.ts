@@ -15,6 +15,7 @@ import * as weekly from './weeklyReview.smoke';
 import * as narrative from './weeklyNarrative.smoke';
 import * as focus from './focusQueue.smoke';
 import * as focusActions from './focusActions.smoke';
+import * as focusToasts from './focusToasts.smoke';
 
 export async function runAllGoalsSmokeTests(): Promise<void> {
    
@@ -29,6 +30,7 @@ export async function runAllGoalsSmokeTests(): Promise<void> {
   await narrative.runAll();
   await focus.runAll();
   await focusActions.runAll();
+  await focusToasts.runAll();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ Прогон завершён за ${dt} мс`);
@@ -37,4 +39,15 @@ export async function runAllGoalsSmokeTests(): Promise<void> {
 }
 
 // Экспортируем отдельные runner'ы — если нужно прогнать только один блок.
-export { smart, okr, wheel, shared, hub, weekly, narrative, focus, focusActions };
+export {
+  smart,
+  okr,
+  wheel,
+  shared,
+  hub,
+  weekly,
+  narrative,
+  focus,
+  focusActions,
+  focusToasts,
+};

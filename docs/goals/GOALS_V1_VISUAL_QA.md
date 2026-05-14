@@ -219,6 +219,44 @@
 
 ---
 
+## BFV21. Goals Focus V2.1 — success toast polish
+
+### BFV21.1. Toast после quick check-in
+- [ ] Заполнил check-in для stale цели → появляется toast «Замер сохранён» с подзаголовком «Цель «…»»
+- [ ] Toast уходит сам через ~3.5s
+- [ ] Toast можно закрыть вручную (X / клик)
+- [ ] Никаких inline-сообщений «Сохранено» в самой панели — только toast
+
+### BFV21.2. Toast после reschedule
+- [ ] Перенёс срок overdue-цели на конкретную дату → toast «Срок перенесён на 14 мая 2026»
+- [ ] Дата в человеческом формате (день, месяц словом, год)
+- [ ] Подзаголовок: «Цель «…»»
+- [ ] Toast уходит через ~3.5s
+
+### BFV21.3. Toast после complete
+- [ ] Завершил цель → toast «Цель завершена ✨»
+- [ ] Подзаголовок: «… — больше не в Focus»
+- [ ] Иконка success (зелёная) — это `toast.success`, не обычный `toast`
+- [ ] Длительность чуть больше — ~4s
+
+### BFV21.4. Один toast за раз
+- [ ] Сделал 2 быстрых действия подряд (например, два check-in'а) → видно стэкование sonner-провайдера, но интерфейс не ломается
+- [ ] Тосты не перекрывают raised-панели
+
+### BFV21.5. Без undo
+- [ ] В тостах НЕТ кнопки «Отменить» / «Undo» (это намеренно)
+- [ ] В тостах НЕТ ссылки «вернуть»
+
+### BFV21.6. Ошибки не показывают success-toast
+- [ ] Если quick check-in упал — toast НЕ появляется, ошибка остаётся inline в панели
+- [ ] То же для reschedule и complete
+
+### BFV21.7. Mobile
+- [ ] Toast не залезает на bottom navigation
+- [ ] Текст не обрезается на 375px
+
+---
+
 ## C. Weekly Review V1.1 — секция в Workshop
 
 ### C1. Progress week (есть только рост)
@@ -335,6 +373,8 @@
 | 17 | Focus — empty state «Сегодня всё спокойно» | `/workshop` когда сигналов нет |
 | 18 | Focus V2 — раскрытый quick check-in (stale/regressed) | `/workshop` сверху |
 | 19 | Focus V2 — раскрытая панель overdue actions (с date-input) | `/workshop` сверху |
+| 20 | Focus V2.1 — success toast после reschedule (с человеческой датой) | `/workshop` после переноса срока |
+| 21 | Focus V2.1 — success toast после complete (зелёный, с эмодзи) | `/workshop` после завершения цели |
 
 ### Опциональные артефакты (видео 10–15 сек)
 - `goals-smart-success-flow.webm` — клик «Записать» → pulse + delta + tick-up + подсветка

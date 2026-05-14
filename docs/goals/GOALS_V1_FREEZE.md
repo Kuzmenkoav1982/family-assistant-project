@@ -132,6 +132,14 @@ import('@/lib/goals/__smokeTests__').then(m => m.runAllGoalsSmokeTests())
 18. **Focus V2 — нет modal, нет нового `/focus`, нет bulk-actions, нет dismiss / snooze.** Всё inline в Workshop.
 19. **Focus V2 — переиспользует существующий API.** `lifeApi.createCheckin` для quick check-in и `lifeApi.updateGoal` для reschedule/complete. Никаких параллельных flow или дубликатов validation. После успешного действия секция зовёт `onChanged` → Workshop делает `reload()` → очередь пересчитывается, причина у цели может смениться или цель уходит из Focus.
 20. **Focus V2 — `completeGoal` не открывает диалог достижений.** Это совместимо с текущей моделью (`status='done'` без побочной публикации Achievement). Полноценный flow «Завершил → создать Achievement» остаётся в detail-экране, как и было.
+21. **Focus V2.1 — success toast polish (поверх V2).** После каждого успешного действия в Focus показывается один короткий success toast через глобальный `sonner` (уже подключён в `App.tsx`):
+    - `checkin` → «Замер сохранён» + описание «Цель «…»»
+    - `reschedule` → «Срок перенесён на 14 мая 2026» (дата форматируется в человеческом виде; невалидная дата → fallback «Срок перенесён»)
+    - `complete` → «Цель завершена ✨» + «… — больше не в Focus» (для complete используется `toast.success`, чтобы выделить позитив)
+    - **Без undo**: rollback-семантика для check-in / reschedule / complete сейчас вне scope (требует безопасных delete/revert на бэке).
+    - **Без error-toast**: ошибки сети остаются inline в самих формах (alert внутри панели), глобальный feedback не плодим.
+    - **Без auto-open следующей строки**: пользователь сам решает, что открыть дальше.
+    - Один toast за раз обеспечивает sonner-провайдер; auto-hide 3.5s для checkin/reschedule, 4s для complete.
 
 ---
 
