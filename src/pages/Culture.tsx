@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SEOHead from "@/components/SEOHead";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { initialTraditions } from '@/data/mockData';
 
 export default function Culture() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [traditions, setTraditions] = useState<Tradition[]>(() => {
     const saved = localStorage.getItem('traditions');
     if (saved) {
@@ -27,7 +28,7 @@ export default function Culture() {
     localStorage.setItem('traditions', JSON.stringify(traditions));
   }, [traditions]);
 
-  const handleAddTradition = () => {
+  const handleAddTradition = useCallback(() => {
     const name = prompt('Название традиции:');
     if (!name) return;
     const description = prompt('Описание традиции:');
@@ -45,7 +46,25 @@ export default function Culture() {
     };
 
     setTraditions(prev => [...prev, newTradition]);
-  };
+  }, []);
+
+  // D.1: deep-link из портфолио — ?action=add-ritual или ?action=add-tradition
+  // открывает форму добавления традиции сразу после загрузки страницы.
+  const actionHandled = useRef(false);
+  useEffect(() => {
+    if (actionHandled.current) return;
+    const action = searchParams.get('action');
+    if (action === 'add-ritual' || action === 'add-tradition') {
+      actionHandled.current = true;
+      const next = new URLSearchParams(searchParams);
+      next.delete('action');
+      next.delete('tab');
+      next.delete('from');
+      setSearchParams(next, { replace: true });
+      // Запускаем prompt-цепочку чуть позже, чтобы не блокировать первый рендер.
+      setTimeout(() => handleAddTradition(), 100);
+    }
+  }, [searchParams, setSearchParams, handleAddTradition]);
 
   const handleDeleteTradition = (id: string) => {
     if (window.confirm('Удалить эту традицию?')) {

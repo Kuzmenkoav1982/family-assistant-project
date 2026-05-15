@@ -46,33 +46,36 @@ function runTests(): TestResult[] {
     ),
   );
 
-  // 3. BUG D.1.0: family_rituals больше НЕ ведёт на /family-policy.
+  // 3. BUG D.1.0: family_rituals НЕ ведёт на /family-policy и НЕ на /family-matrix/rituals
+  //    (это «Ритуалы примирения» — про конфликты, не про семейные ритуалы).
   const ritualsTarget = resolveRecommendationTarget(MEMBER, 'family_rituals');
   results.push(
     assert(
-      ritualsTarget !== null && ritualsTarget.pathname !== '/family-policy',
-      'family_rituals NOT /family-policy (bugfix)',
+      ritualsTarget !== null &&
+        ritualsTarget.pathname !== '/family-policy' &&
+        ritualsTarget.pathname !== '/family-matrix/rituals',
+      'family_rituals NOT /family-policy and NOT /family-matrix/rituals',
       ritualsTarget?.pathname,
     ),
   );
 
-  // 4. family_rituals ведёт на /family-matrix/rituals.
+  // 4. family_rituals ведёт на /culture (раздел "Традиции и культура").
   results.push(
     assert(
-      ritualsTarget !== null && ritualsTarget.pathname === '/family-matrix/rituals',
-      'family_rituals → /family-matrix/rituals',
+      ritualsTarget !== null && ritualsTarget.pathname === '/culture',
+      'family_rituals → /culture',
       ritualsTarget?.pathname,
     ),
   );
 
-  // 5. family_traditions — то же самое.
+  // 5. family_traditions — то же самое, /culture + add-tradition.
   const traditionsTarget = resolveRecommendationTarget(MEMBER, 'family_traditions');
   results.push(
     assert(
       traditionsTarget !== null &&
-        traditionsTarget.pathname === '/family-matrix/rituals' &&
+        traditionsTarget.pathname === '/culture' &&
         traditionsTarget.action === 'add-tradition',
-      'family_traditions → /family-matrix/rituals + add-tradition',
+      'family_traditions → /culture + add-tradition',
       traditionsTarget?.action,
     ),
   );
@@ -117,21 +120,22 @@ function runTests(): TestResult[] {
     assert(allResolved, 'all actionable sources resolve to entry.route', firstFailure),
   );
 
-  // 10. Ни один CTA не ведёт на /family-policy после bugfix.
-  let leaksToFamilyPolicy = false;
+  // 10. Ни один CTA не ведёт на /family-policy или /family-matrix/rituals (конфликтная страница).
+  const FORBIDDEN_ROUTES = ['/family-policy', '/family-matrix/rituals'];
+  let leakRoute = '';
   let leakSource = '';
   for (const [sourceType, entry] of Object.entries(SOURCES_REGISTRY)) {
-    if (entry.route === '/family-policy') {
-      leaksToFamilyPolicy = true;
+    if (entry.route && FORBIDDEN_ROUTES.includes(entry.route)) {
+      leakRoute = entry.route;
       leakSource = sourceType;
       break;
     }
   }
   results.push(
     assert(
-      !leaksToFamilyPolicy,
-      'no source still routes to /family-policy',
-      leakSource,
+      !leakRoute,
+      'no source routes to /family-policy or /family-matrix/rituals',
+      leakSource ? `${leakSource} → ${leakRoute}` : '',
     ),
   );
 
