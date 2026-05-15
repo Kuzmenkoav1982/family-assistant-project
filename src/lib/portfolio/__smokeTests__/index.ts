@@ -7,10 +7,12 @@
 //   - portfolioHubHelpers        (Sprint A: формат, состояния карточек, summary, sort)
 //   - portfolioMemberHelpers     (Sprint B.1: refresh-toast форматтер + trimOneLine)
 //   - portfolioSectionContract   (Sprint B.2: invariant'ы обёртки секций)
+//   - sphereDetail               (Sprint C: helpers страницы Sphere Detail)
 
 import * as hubHelpers from './portfolioHubHelpers.smoke';
 import * as memberHelpers from './portfolioMemberHelpers.smoke';
 import * as sectionContract from './portfolioSectionContract.smoke';
+import * as sphereDetail from './sphereDetail.smoke';
 
 export async function runAllPortfolioSmokeTests(): Promise<void> {
    
@@ -19,6 +21,7 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   await hubHelpers.runAll();
   await memberHelpers.runAll();
   await sectionContract.runAll();
+  await sphereDetail.runAll();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ Прогон завершён за ${dt} мс`);
@@ -26,4 +29,4 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   console.groupEnd();
 }
 
-export { hubHelpers, memberHelpers, sectionContract };
+export { hubHelpers, memberHelpers, sectionContract, sphereDetail };
