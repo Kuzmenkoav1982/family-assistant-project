@@ -40,6 +40,8 @@ const AIAssistantWidget = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
+    // SSR-safe: на prerender localStorage отсутствует.
+    if (typeof localStorage === 'undefined') return [];
     try {
       const role = localStorage.getItem('kuzyaRole') || 'family-assistant';
       const saved = localStorage.getItem('kuzyaMessages_' + role);

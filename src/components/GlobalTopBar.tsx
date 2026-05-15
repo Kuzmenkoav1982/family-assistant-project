@@ -22,9 +22,15 @@ export default function GlobalTopBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // SSR-safe lazy init: на prerender localStorage отсутствует.
   const [isVisible, setIsVisible] = useState(() => {
-    const saved = localStorage.getItem('globalTopBarVisible');
-    return saved !== null ? saved === 'true' : true;
+    if (typeof localStorage === 'undefined') return true;
+    try {
+      const saved = localStorage.getItem('globalTopBarVisible');
+      return saved !== null ? saved === 'true' : true;
+    } catch {
+      return true;
+    }
   });
 
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
@@ -34,9 +40,11 @@ export default function GlobalTopBar() {
     (m) => String(m.id) === String(familyCtx?.currentMemberId),
   );
 
-  const authToken = localStorage.getItem('authToken');
+  // SSR-safe: чтение localStorage в теле компонента — оборачиваем гардом.
+  const hasLS = typeof localStorage !== 'undefined';
+  const authToken = hasLS ? localStorage.getItem('authToken') : null;
   const isAuthenticated = !!authToken;
-  const isDemoMode = !isAuthenticated && localStorage.getItem('isDemoMode') === 'true';
+  const isDemoMode = !isAuthenticated && hasLS && localStorage.getItem('isDemoMode') === 'true';
 
   const fetchBalance = useCallback(() => {
     if (!authToken) return;
