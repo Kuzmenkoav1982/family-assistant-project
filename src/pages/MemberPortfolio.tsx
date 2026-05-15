@@ -293,13 +293,13 @@ export default function MemberPortfolio() {
           label="Ключевые акценты"
           icon="Sparkles"
         >
-          <KeyHighlights data={data} />
+          <KeyHighlights data={data} memberId={memberId ?? null} />
         </PortfolioSection>
 
         {/* Старый action-bar удалён — переехал в Hero выше (Sprint B.1). */}
 
         <PortfolioSection id="radar">
-          <SpheresRadar data={data} />
+          <SpheresRadar data={data} memberId={memberId ?? null} />
         </PortfolioSection>
 
         <PortfolioSection id="accuracy">
