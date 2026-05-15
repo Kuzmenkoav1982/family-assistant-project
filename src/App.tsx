@@ -33,8 +33,12 @@ import { ProtectedRoute, AdminRoute } from "@/components/RouteGuards";
 
 // Side-effect: глобальный fetch-перехватчик (auth header proxy и т.п.).
 // Должен инициализироваться до первого fetch в приложении, поэтому стоит
-// сразу после импортов на module level.
-installFetchInterceptor();
+// сразу после импортов на module level. SSR-safe гард: на prerender-фазе
+// `window` отсутствует — инициализацию пропускаем (на клиенте отработает
+// при гидрации, см. AuthProvider).
+if (typeof window !== 'undefined') {
+  installFetchInterceptor();
+}
 
 // ─── Core / Index ──────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
