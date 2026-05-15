@@ -130,7 +130,7 @@ V1 считается готовым к sign-off, когда **все** пунк
 1. **Charter** — этот документ. ✅
 2. **Sprint A — Hub `/portfolio`**: карточки, состояния, mobile. ✅ **dev-done**
 3. **Sprint B.1 — Member detail (Hero + Refresh + visual-language)**: единый page-shell (loading/error), карточный action-bar, success/error toast. ✅ **dev-done**
-4. **Sprint B.2 — Member detail (нижние блоки visual-language)**: лёгкое выравнивание Trust/KeyHighlights/Radar/Insights/History/Table/Plan/Achievements под единый язык, без redesign.
+4. **Sprint B.2 — Member detail (нижние блоки visual-language)**: PortfolioSection-wrapper, якоря, единый skeleton/error в Insights+History. ✅ **dev-done**
 5. **Sprint C — Sphere detail**: новая страница + видимые связи Goals↔Portfolio.
 6. **Sprint D — Polish & A11y**: единые state-паттерны, keyboard, aria, mobile финал.
 7. **Smoke + freeze doc + visual QA pack** одновременно с Sprint D.
@@ -204,6 +204,40 @@ V1 считается готовым к sign-off, когда **все** пунк
 | B6 | `portfolio-member-toast-error.png` | Destructive toast «Не удалось обновить · …» (любое сообщение) |
 | B7 | `portfolio-member-mobile-375px.png` | Mobile: action-bar свернулся в 2 строки, статус выше, кнопки ниже |
 
+### Sprint B.2 — итог (что сделано)
+
+Контракт спринта был «выровнять нижние блоки detail page под единый visual-language **без redesign**». После снимка 9 блоков (Trust/KeyHighlights/Radar/Improve/Insights/History/Table/Plan/Achievements) принят минимально инвазивный путь: **не трогаем внутренний `<Card>` каждого блока** (там tinted-семантика — primary/5 для Trust, amber/5 для ImproveAccuracy и т.п., это часть UX-смысла, переписать = редизайн). Вместо этого:
+
+- Добавлена лёгкая обёртка `src/components/portfolio/PortfolioSection.tsx`:
+  - `id` (якорь для будущей навигации: `#trust`, `#radar`, `#insights`, `#history`, `#table`, `#plan-and-achievements`, `#highlights`, `#accuracy`, `#profile`)
+  - опциональная sticky-лейбл-шапка `text-[11px] uppercase tracking-wide text-gray-500 font-semibold` + опц. иконка (только при наличии label)
+  - `scroll-mt-4` для аккуратного скролла к якорю
+  - aria-связь `aria-labelledby` (только при id+label)
+- В `MemberPortfolio.tsx` 9 нижних блоков обёрнуты в `<PortfolioSection>`. Лейбл-шапка добавлена **только** для одной секции — «Ключевые акценты» (Sparkles): у остальных блоков уже есть свой `CardTitle` внутри, дублировать заголовок нельзя.
+- `gap-6` на финальной grid → `gap-4` (единый ритм со всей страницей).
+- Точечные правки skeleton/error **только в 2 блоках**, у которых эти состояния были и стилистически отставали:
+  - `InsightsBlock`: skeleton `bg-muted/40 rounded-lg` → `bg-white/60 border border-white/60 rounded-2xl`; aiError (раньше тонкая строка `text-amber-600`) → полноценный rose-alert с кнопкой «Повторить» и Loader2 во время повторного запроса.
+  - `HistoryChart`: skeleton — то же приведение `rounded-lg bg-muted/40` → `rounded-2xl bg-white/60 border border-white/60`.
+- Внутренние `<Card>` 9 блоков **не тронуты**: ни classes, ни логика, ни графики, ни диалоги.
+- Smoke: новый модуль `portfolioSectionContract.smoke.ts` (3 группы инвариантов: header visibility, icon visibility, aria-labelledby link). Подключён в Portfolio runner.
+
+**Не сделано (намеренно, не входит в B.2):**
+- Не переписаны корневые `<Card>` в 9 блоках (gradient/tinted фоны сохранены).
+- Не унифицированы внутренние radius/border-color/shadow в каждом блоке.
+- Не добавлены лейбл-шапки большинству секций — дублирование с `CardTitle` внутри.
+- Не тронуты диаграммы, таблицы, диалоги, accordion-логика.
+
+### Sprint B.2 — required screenshots
+
+| # | Файл | Сцена |
+|---|---|---|
+| B.2.1 | `portfolio-member-section-rhythm-desktop.png` | Всё detail page сверху вниз — единый вертикальный ритм, секции через `space-y-4`, лейбл «Ключевые акценты» виден |
+| B.2.2 | `portfolio-member-insights-skeleton.png` | Skeleton Insights (2 светлые карточки в едином стиле) |
+| B.2.3 | `portfolio-member-insights-ai-error.png` | aiError → rose-alert + кнопка «Повторить» с Loader2 |
+| B.2.4 | `portfolio-member-history-skeleton.png` | Skeleton HistoryChart в едином стиле |
+| B.2.5 | `portfolio-member-anchors-desktop.png` | Devtools открыты, видны id-якоря секций (`#radar`, `#insights`, `#history` и т.д.) |
+| B.2.6 | `portfolio-member-mobile-375px-full.png` | Detail page на 375px — секции не ломаются, лейбл «Ключевые акценты» читается, grid Plan+Achievements в один столбец |
+
 Каждый спринт = атомарный коммит + краткий status (как делали по Goals).
 
 ---
@@ -235,3 +269,5 @@ V1 считается готовым к sign-off, когда **все** пунк
 - **2026-05-14** — создан после фиксации решения «Wave 2 = Portfolio V1». Базируется на инвентаризации Portfolio (snapshot выполнен в этот же день).
 - **2026-05-14 (build `01594d2`)** — Sprint A dev-done. `FamilyPortfolio.tsx` полностью переписан под 4-состоянийный контракт; добавлены `portfolioHubHelpers.ts` + smoke-tests + portfolio runner + umbrella runner «Развитие». Goals smoke не тронут. Required screenshots A1–A9 зафиксированы для будущего visual QA pack.
 - **2026-05-14 (build `712cae8`)** — Sprint B.1 dev-done. `MemberPortfolio.tsx` получил единый page-shell (loading skeleton + inline error+retry), новый карточный Hero action-bar над PortfolioHeader, refresh с success/destructive toast (используем существующий `useToast()` с `TOAST_LIMIT=1` — отдельный single-toast хук не понадобился). Хелперы `portfolioMemberHelpers.ts` + smoke (10 групп). PortfolioHeader и нижние блоки — без изменений. Required screenshots B1–B7 зафиксированы.
+- **2026-05-14 (build `0a12dcb`)** — human visual pass A1–A9 + B1–B7 → зелёный, P0/P1 не найдено.
+- **2026-05-14 (Sprint B.2 dev-done)** — добавлена обёртка `PortfolioSection` (id-якорь, опц. лейбл с иконкой, scroll-mt, aria-labelledby). 9 нижних блоков MemberPortfolio обёрнуты, лейбл-шапка добавлена только секции «Ключевые акценты» (у остальных есть свой `CardTitle`). Точечно унифицированы skeleton/error в `InsightsBlock` (skeleton + rose-alert вместо тонкой строки `text-amber-600`) и skeleton в `HistoryChart`. Внутренние `<Card>` 9 блоков и их UX-семантика (gradient/tinted фоны) **не тронуты**. Smoke: новый модуль `portfolioSectionContract.smoke.ts` (3 группы). Required screenshots B.2.1–B.2.6 зафиксированы.

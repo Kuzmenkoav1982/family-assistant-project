@@ -15,6 +15,7 @@ import AchievementsWall from '@/components/portfolio/AchievementsWall';
 import SourcesDrawer from '@/components/portfolio/SourcesDrawer';
 import TrustBlock from '@/components/portfolio/TrustBlock';
 import ImproveAccuracyBlock from '@/components/portfolio/ImproveAccuracyBlock';
+import PortfolioSection from '@/components/portfolio/PortfolioSection';
 import { Link } from 'react-router-dom';
 import { portfolioApi } from '@/services/portfolioApi';
 import type { PortfolioData } from '@/types/portfolio.types';
@@ -279,40 +280,64 @@ export default function MemberPortfolio() {
           </div>
         </div>
 
-        <PortfolioHeader data={data} />
+        <PortfolioSection id="profile">
+          <PortfolioHeader data={data} />
+        </PortfolioSection>
 
-        <TrustBlock memberId={memberId} />
+        <PortfolioSection id="trust">
+          <TrustBlock memberId={memberId} />
+        </PortfolioSection>
 
-        <KeyHighlights data={data} />
+        <PortfolioSection
+          id="highlights"
+          label="Ключевые акценты"
+          icon="Sparkles"
+        >
+          <KeyHighlights data={data} />
+        </PortfolioSection>
 
-        {/* Старый action-bar удалён — переехал в Hero выше (Sprint B). */}
+        {/* Старый action-bar удалён — переехал в Hero выше (Sprint B.1). */}
 
-        <SpheresRadar data={data} />
+        <PortfolioSection id="radar">
+          <SpheresRadar data={data} />
+        </PortfolioSection>
 
-        <ImproveAccuracyBlock data={data} />
+        <PortfolioSection id="accuracy">
+          <ImproveAccuracyBlock data={data} />
+        </PortfolioSection>
 
         {memberId && (
-          <InsightsBlock
-            memberId={memberId}
-            aiEnabled={aiEnabled}
-            member={data.member}
-            sphereLabelsAdult={data.sphere_labels_adult}
-            sphereLabelsChild={data.sphere_labels_child}
-          />
+          <PortfolioSection id="insights">
+            <InsightsBlock
+              memberId={memberId}
+              aiEnabled={aiEnabled}
+              member={data.member}
+              sphereLabelsAdult={data.sphere_labels_adult}
+              sphereLabelsChild={data.sphere_labels_child}
+            />
+          </PortfolioSection>
         )}
 
-        {memberId && <HistoryChart memberId={memberId} />}
+        {memberId && (
+          <PortfolioSection id="history">
+            <HistoryChart memberId={memberId} />
+          </PortfolioSection>
+        )}
 
-        <DevelopmentTable data={data} />
+        <PortfolioSection id="table">
+          <DevelopmentTable data={data} />
+        </PortfolioSection>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ActiveDevelopmentPlan
-            data={data}
-            memberId={memberId}
-            onChanged={handleRefresh}
-          />
-          <AchievementsWall data={data} />
-        </div>
+        <PortfolioSection id="plan-and-achievements">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <ActiveDevelopmentPlan
+              data={data}
+              memberId={memberId}
+              onChanged={handleRefresh}
+            />
+            <AchievementsWall data={data} />
+          </div>
+        </PortfolioSection>
 
         <Card className="border-dashed border-2 bg-muted/20">
           <CardContent className="p-4 flex items-start gap-3">
