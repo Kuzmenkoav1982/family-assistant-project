@@ -21,25 +21,27 @@ const MEMBER = 'm-test-1';
 function runTests(): TestResult[] {
   const results: TestResult[] = [];
 
-  // 1. Валидный source_type возвращает target с правильным pathname.
+  // 1. Дневник настроения ведёт в /children (отдельный детский диалог), НЕ в /health.
   const moodTarget = resolveRecommendationTarget(MEMBER, 'children_mood_entries');
   results.push(
     assert(
-      moodTarget !== null && moodTarget.pathname === '/health',
-      'mood_entries → /health',
+      moodTarget !== null && moodTarget.pathname === '/children',
+      'mood_entries → /children',
       moodTarget ? `pathname=${moodTarget.pathname}` : 'null',
     ),
   );
 
-  // 2. href содержит member, action, tab, from=portfolio.
+  // 2. href содержит member, childId, action, tab=diary, mode=child, from=portfolio.
   results.push(
     assert(
       !!moodTarget &&
         moodTarget.href.includes(`member=${MEMBER}`) &&
+        moodTarget.href.includes(`childId=${MEMBER}`) &&
         moodTarget.href.includes('action=add-mood-entry') &&
-        moodTarget.href.includes('tab=history') &&
+        moodTarget.href.includes('tab=diary') &&
+        moodTarget.href.includes('mode=child') &&
         moodTarget.href.includes('from=portfolio'),
-      'mood href contains all query params',
+      'mood href has childId alias, mode=child, tab=diary',
       moodTarget?.href,
     ),
   );

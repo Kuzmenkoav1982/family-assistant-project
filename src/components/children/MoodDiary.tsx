@@ -25,14 +25,22 @@ interface RawMoodEntry {
 
 interface MoodDiaryProps {
   childId: string;
+  /** D.1: внешний контроль открытия диалога — для deep-link из портфолио. */
+  openDialog?: boolean;
+  onOpenDialogChange?: (open: boolean) => void;
 }
 
-export function MoodDiary({ childId }: MoodDiaryProps) {
+export function MoodDiary({ childId, openDialog, onOpenDialogChange }: MoodDiaryProps) {
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [addEntryDialog, setAddEntryDialog] = useState(false);
+  const [addEntryDialogInternal, setAddEntryDialogInternal] = useState(false);
+  const addEntryDialog = openDialog ?? addEntryDialogInternal;
+  const setAddEntryDialog = (v: boolean) => {
+    setAddEntryDialogInternal(v);
+    onOpenDialogChange?.(v);
+  };
   const [selectedMood, setSelectedMood] = useState('😊');
   const [note, setNote] = useState('');
 

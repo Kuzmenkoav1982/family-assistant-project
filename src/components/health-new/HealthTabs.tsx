@@ -57,7 +57,6 @@ interface HealthTabsProps {
 const ACTION_TO_TAB: Record<string, string> = {
   'add-vaccination': 'vaccinations',
   'add-doctor-visit': 'history',
-  'add-mood-entry': 'history',
   'add-vital': 'vitals',
   'add-record': 'history',
 };
@@ -89,10 +88,6 @@ export default function HealthTabs({
     if (initialAction === 'add-vaccination') setOpenVaccination(true);
     else if (initialAction === 'add-vital') setOpenVital(true);
     else if (initialAction === 'add-doctor-visit') {
-      setRecordDefaultType('visit');
-      setOpenRecord(true);
-    } else if (initialAction === 'add-mood-entry') {
-      // Отдельной формы дневника настроения пока нет — открываем общую запись здоровья.
       setRecordDefaultType('visit');
       setOpenRecord(true);
     } else if (initialAction === 'add-record') {

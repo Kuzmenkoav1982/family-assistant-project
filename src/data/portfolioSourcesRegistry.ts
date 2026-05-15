@@ -42,6 +42,8 @@ export interface SourceRegistryEntry {
     | 'add-ritual'
     | 'add-tradition'
     | 'add-record';
+  /** D.1: дополнительные query-параметры, специфичные для целевой страницы (например mode=child). */
+  extraParams?: Record<string, string>;
 }
 
 /**
@@ -80,6 +82,7 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     priority: 8,
     tab: 'development',
     action: 'add-skill',
+    extraParams: { mode: 'parent' },
     label_adult: 'Личные навыки',
     hint_adult: 'Список ваших умений и компетенций — что вы делаете самостоятельно и хорошо.',
     cta_text_adult: 'Открыть профиль',
@@ -134,13 +137,15 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     hint: 'Регулярные записи о настроении и самочувствии ребёнка.',
     spheres: ['emotions'],
     category: 'family',
-    route: '/health',
+    route: '/children',
     cta_text: 'Добавить запись',
     freshness_days: 14,
     priority: 9,
-    tab: 'history',
+    tab: 'diary',
     action: 'add-mood-entry',
+    extraParams: { mode: 'child' },
     hint_adult: 'Регулярные записи о вашем настроении и самочувствии.',
+    hide_for_adult: true,
   },
   child_development_assessments: {
     source_type: 'child_development_assessments',
@@ -386,9 +391,20 @@ export function resolveRecommendationTarget(
   if (!entry.route) return null;
 
   const params = new URLSearchParams();
-  if (memberId) params.set('member', memberId);
+  if (memberId) {
+    params.set('member', memberId);
+    // На /children исторически используется ключ childId — дублируем для совместимости.
+    if (entry.route === '/children') {
+      params.set('childId', memberId);
+    }
+  }
   if (entry.action) params.set('action', entry.action);
   if (entry.tab) params.set('tab', entry.tab);
+  if (entry.extraParams) {
+    for (const [k, v] of Object.entries(entry.extraParams)) {
+      params.set(k, v);
+    }
+  }
   params.set('from', 'portfolio');
 
   const search = params.toString();
