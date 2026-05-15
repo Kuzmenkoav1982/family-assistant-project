@@ -93,6 +93,7 @@ const FamilyMatrixAstrology = lazy(() => import("./pages/FamilyMatrixAstrology")
 
 // ─── Portfolio / Development ───────────────────────────────────────────────
 const MemberPortfolio = lazy(() => import("./pages/MemberPortfolio"));
+const SphereDetail = lazy(() => import("./pages/SphereDetail"));
 const FamilyPortfolio = lazy(() => import("./pages/FamilyPortfolio"));
 const PortfolioCompare = lazy(() => import("./pages/PortfolioCompare"));
 const PortfolioAbout = lazy(() => import("./pages/PortfolioAbout"));
@@ -387,6 +388,11 @@ const App = () => {
                       <Route path="/portfolio/:memberId" element={
                         <ProtectedRoute>
                           <MemberPortfolio />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/portfolio/:memberId/sphere/:sphereKey" element={
+                        <ProtectedRoute>
+                          <SphereDetail />
                         </ProtectedRoute>
                       } />
                       <Route path="/family-code" element={<FamilyCode />} />
