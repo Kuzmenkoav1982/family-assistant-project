@@ -1,6 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 import SEOHead from "@/components/SEOHead";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,8 +20,6 @@ export default function Leisure() {
   const l = useLeisure();
   const counts = l.getTabCounts();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { returnIfRequested } = useReturnToPortfolio();
-  const wasDialogOpen = useRef(false);
 
   // D.1: deep-link из портфолио — ?action=add-activity открывает диалог добавления.
   useEffect(() => {
@@ -35,18 +32,6 @@ export default function Leisure() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
-
-  // D.1: трекаем закрытие диалога после открытия — если returnTo есть, возвращаемся.
-  useEffect(() => {
-    if (l.isAddDialogOpen) {
-      wasDialogOpen.current = true;
-    } else if (wasDialogOpen.current) {
-      wasDialogOpen.current = false;
-      // Закрытие может быть успешным сохранением или отменой — returnIfRequested сам
-      // проверит наличие ?returnTo и сделает no-op если параметра нет.
-      returnIfRequested();
-    }
-  }, [l.isAddDialogOpen, returnIfRequested]);
 
   return (
     <>

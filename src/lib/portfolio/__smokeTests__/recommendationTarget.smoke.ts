@@ -98,34 +98,9 @@ function runTests(): TestResult[] {
     assert(
       noMember !== null &&
         noMember.pathname === '/health' &&
-        !noMember.href.includes('member=') &&
-        !noMember.href.includes('returnTo='),
-      'null memberId → target без member и без returnTo',
+        !noMember.href.includes('member='),
+      'null memberId → target без member',
       noMember?.href,
-    ),
-  );
-
-  // 8b. Любой target с memberId должен содержать returnTo=/portfolio/<memberId>.
-  const vacTarget = resolveRecommendationTarget(MEMBER, 'children_vaccinations');
-  results.push(
-    assert(
-      !!vacTarget && vacTarget.href.includes(`returnTo=${encodeURIComponent('/portfolio/' + MEMBER)}`),
-      'href contains returnTo=/portfolio/<memberId>',
-      vacTarget?.href,
-    ),
-  );
-
-  // 8c. children_activities ведёт в /children?mode=parent&tab=development&action=add-activity.
-  const actTarget = resolveRecommendationTarget(MEMBER, 'children_activities');
-  results.push(
-    assert(
-      !!actTarget &&
-        actTarget.pathname === '/children' &&
-        actTarget.href.includes('mode=parent') &&
-        actTarget.href.includes('tab=development') &&
-        actTarget.href.includes('action=add-activity'),
-      'children_activities → /children?mode=parent&tab=development&action=add-activity',
-      actTarget?.href,
     ),
   );
 

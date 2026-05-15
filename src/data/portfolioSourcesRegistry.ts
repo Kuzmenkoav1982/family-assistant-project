@@ -77,11 +77,11 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     spheres: ['life_skills', 'intellect'],
     category: 'family',
     route: '/children',
-    cta_text: 'Добавить область',
+    cta_text: 'Добавить навык',
     freshness_days: 90,
     priority: 8,
     tab: 'development',
-    action: 'add-area',
+    action: 'add-skill',
     extraParams: { mode: 'parent' },
     label_adult: 'Личные навыки',
     hint_adult: 'Список ваших умений и компетенций — что вы делаете самостоятельно и хорошо.',
@@ -94,17 +94,14 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     hint: 'Регулярные занятия, секции, увлечения ребёнка.',
     spheres: ['creativity', 'body', 'social', 'intellect'],
     category: 'family',
-    route: '/children',
-    cta_text: 'Добавить занятие',
+    route: '/leisure',
+    cta_text: 'Добавить активность',
     freshness_days: 30,
     priority: 7,
-    tab: 'development',
     action: 'add-activity',
-    extraParams: { mode: 'parent' },
     label_adult: 'Хобби и активности',
     hint_adult: 'Регулярные занятия, спорт, хобби и увлечения.',
-    cta_text_adult: 'Добавить занятие',
-    hide_for_adult: true,
+    cta_text_adult: 'Добавить активность',
   },
   children_vaccinations: {
     source_type: 'children_vaccinations',
@@ -409,10 +406,6 @@ export function resolveRecommendationTarget(
     }
   }
   params.set('from', 'portfolio');
-  // D.1: куда вернуть пользователя после успешного сохранения формы.
-  if (memberId) {
-    params.set('returnTo', `/portfolio/${memberId}`);
-  }
 
   const search = params.toString();
   const href = search ? `${entry.route}?${search}` : entry.route;

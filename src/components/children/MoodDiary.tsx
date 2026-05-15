@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 import func2url from '../../../backend/func2url.json';
 
 const CHILDREN_DATA_API = (func2url as Record<string, string>)['children-data'];
@@ -35,7 +34,6 @@ export function MoodDiary({ childId, openDialog, onOpenDialogChange }: MoodDiary
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { returnIfRequested } = useReturnToPortfolio();
 
   const [addEntryDialogInternal, setAddEntryDialogInternal] = useState(false);
   const addEntryDialog = openDialog ?? addEntryDialogInternal;
@@ -132,8 +130,6 @@ export function MoodDiary({ childId, openDialog, onOpenDialogChange }: MoodDiary
         ]);
         setNote('');
         setAddEntryDialog(false);
-        // D.1: если попали сюда из портфолио — возвращаем пользователя обратно.
-        returnIfRequested();
       } else {
         alert(data.error || 'Не удалось сохранить запись');
       }
