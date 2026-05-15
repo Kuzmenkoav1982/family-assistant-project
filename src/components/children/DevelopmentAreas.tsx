@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 
 interface DevelopmentAreasProps {
   developmentAreas: any[];
@@ -13,16 +14,27 @@ interface DevelopmentAreasProps {
   onAddArea: (data: { area: string; current_level: number; target_level: number; family_id: string }) => Promise<{ success: boolean; error?: string }>;
   onUpdateProgress: (areaId: string, newLevel: number) => Promise<void>;
   onDeleteArea: (id: string) => Promise<void>;
+  /** D.1: внешний контроль открытия диалога для deep-link из портфолио. */
+  openDialog?: boolean;
+  onOpenDialogChange?: (open: boolean) => void;
 }
 
-export function DevelopmentAreas({ 
-  developmentAreas, 
-  loading, 
-  onAddArea, 
-  onUpdateProgress, 
-  onDeleteArea 
+export function DevelopmentAreas({
+  developmentAreas,
+  loading,
+  onAddArea,
+  onUpdateProgress,
+  onDeleteArea,
+  openDialog,
+  onOpenDialogChange,
 }: DevelopmentAreasProps) {
-  const [addAreaDialog, setAddAreaDialog] = useState(false);
+  const [addAreaDialogInternal, setAddAreaDialogInternal] = useState(false);
+  const addAreaDialog = openDialog ?? addAreaDialogInternal;
+  const setAddAreaDialog = (v: boolean) => {
+    setAddAreaDialogInternal(v);
+    onOpenDialogChange?.(v);
+  };
+  const { returnIfRequested } = useReturnToPortfolio();
   const [newAreaData, setNewAreaData] = useState({
     area: '',
     current_level: 0,
@@ -67,6 +79,8 @@ export function DevelopmentAreas({
     if (result.success) {
       setAddAreaDialog(false);
       setNewAreaData({ area: '', current_level: 0, target_level: 100 });
+      // D.1: если попали сюда из портфолио — возвращаем пользователя обратно.
+      returnIfRequested();
     } else {
       alert(result.error || 'Ошибка добавления области');
     }

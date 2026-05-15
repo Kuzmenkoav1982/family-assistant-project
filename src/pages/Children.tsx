@@ -441,7 +441,18 @@ export default function Children() {
             </div>
 
             {viewMode === 'parent' ? (
-              <ParentDashboard child={selectedChild} />
+              <ParentDashboard
+                child={selectedChild}
+                initialTab={searchParams.get('tab')}
+                initialAction={searchParams.get('action')}
+                onActionHandled={() => {
+                  const next = new URLSearchParams(searchParams);
+                  next.delete('action');
+                  next.delete('tab');
+                  next.delete('from');
+                  setSearchParams(next, { replace: true });
+                }}
+              />
             ) : (
               <ChildProfileComponent
                 child={selectedChild}

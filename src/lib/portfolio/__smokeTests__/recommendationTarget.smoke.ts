@@ -2,9 +2,9 @@
 //
 // Контракт:
 //   - pure TS, без DOM
-//   - проверяем: валидные source_type → корректный href с member/action/tab/from;
-//     неизвестный source_type → null; route=null → null; bug-fix /family-policy
-//     заменён на /family-matrix/rituals для семейных традиций/ритуалов.
+//   - проверяем: валидные source_type → корректный href с member/action/tab/from/returnTo;
+//     неизвестный source_type → null; route=null → null;
+//     явные «запрещённые» маршруты для семейных ритуалов/традиций.
 
 import {
   resolveRecommendationTarget,
@@ -46,7 +46,7 @@ function runTests(): TestResult[] {
     ),
   );
 
-  // 3. BUG D.1.0: family_rituals НЕ ведёт на /family-policy и НЕ на /family-matrix/rituals
+  // 3. BUG: family_rituals НЕ ведёт на /family-policy и НЕ на /family-matrix/rituals
   //    (это «Ритуалы примирения» — про конфликты, не про семейные ритуалы).
   const ritualsTarget = resolveRecommendationTarget(MEMBER, 'family_rituals');
   results.push(
@@ -59,7 +59,7 @@ function runTests(): TestResult[] {
     ),
   );
 
-  // 4. family_rituals ведёт на /culture (раздел "Традиции и культура").
+  // 4. family_rituals ведёт на /culture.
   results.push(
     assert(
       ritualsTarget !== null && ritualsTarget.pathname === '/culture',
@@ -68,7 +68,7 @@ function runTests(): TestResult[] {
     ),
   );
 
-  // 5. family_traditions — то же самое, /culture + add-tradition.
+  // 5. family_traditions — /culture + add-tradition.
   const traditionsTarget = resolveRecommendationTarget(MEMBER, 'family_traditions');
   results.push(
     assert(
@@ -98,9 +98,34 @@ function runTests(): TestResult[] {
     assert(
       noMember !== null &&
         noMember.pathname === '/health' &&
-        !noMember.href.includes('member='),
-      'null memberId → target без member',
+        !noMember.href.includes('member=') &&
+        !noMember.href.includes('returnTo='),
+      'null memberId → target без member и без returnTo',
       noMember?.href,
+    ),
+  );
+
+  // 8b. Любой target с memberId должен содержать returnTo=/portfolio/<memberId>.
+  const vacTarget = resolveRecommendationTarget(MEMBER, 'children_vaccinations');
+  results.push(
+    assert(
+      !!vacTarget && vacTarget.href.includes(`returnTo=${encodeURIComponent('/portfolio/' + MEMBER)}`),
+      'href contains returnTo=/portfolio/<memberId>',
+      vacTarget?.href,
+    ),
+  );
+
+  // 8c. children_activities ведёт в /children?mode=parent&tab=development&action=add-activity.
+  const actTarget = resolveRecommendationTarget(MEMBER, 'children_activities');
+  results.push(
+    assert(
+      !!actTarget &&
+        actTarget.pathname === '/children' &&
+        actTarget.href.includes('mode=parent') &&
+        actTarget.href.includes('tab=development') &&
+        actTarget.href.includes('action=add-activity'),
+      'children_activities → /children?mode=parent&tab=development&action=add-activity',
+      actTarget?.href,
     ),
   );
 
@@ -120,7 +145,7 @@ function runTests(): TestResult[] {
     assert(allResolved, 'all actionable sources resolve to entry.route', firstFailure),
   );
 
-  // 10. Ни один CTA не ведёт на /family-policy или /family-matrix/rituals (конфликтная страница).
+  // 10. Ни один CTA не ведёт на /family-policy или /family-matrix/rituals.
   const FORBIDDEN_ROUTES = ['/family-policy', '/family-matrix/rituals'];
   let leakRoute = '';
   let leakSource = '';
