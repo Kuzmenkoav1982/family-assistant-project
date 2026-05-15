@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useChildrenData } from '@/hooks/useChildrenData';
 import type { FamilyMember } from '@/types/family.types';
@@ -6,10 +7,32 @@ import { ActivitiesSection } from './ActivitiesSection';
 import { TestsSection } from './TestsSection';
 import { SectionHelp } from './SectionHelp';
 
-export function DevelopmentSection({ child }: { child: FamilyMember }) {
+interface DevelopmentSectionProps {
+  child: FamilyMember;
+  /** D.1: deep-link action — 'add-activity' / 'add-area'. */
+  initialAction?: string | null;
+  onActionHandled?: () => void;
+}
+
+export function DevelopmentSection({ child, initialAction, onActionHandled }: DevelopmentSectionProps) {
   const { data, loading, addItem, updateItem, deleteItem } = useChildrenData(child.id);
-  
+
   const developmentAreas = data?.development || [];
+
+  // D.1: программное открытие диалогов по action из портфолио.
+  const [openAreaDialog, setOpenAreaDialog] = useState(false);
+  const [openActivityDialog, setOpenActivityDialog] = useState(false);
+
+  useEffect(() => {
+    if (!initialAction) return;
+    if (initialAction === 'add-area' || initialAction === 'add-skill') {
+      setOpenAreaDialog(true);
+    } else if (initialAction === 'add-activity') {
+      setOpenActivityDialog(true);
+    }
+    onActionHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAction]);
 
   const handleAddArea = async (areaData: { area: string; current_level: number; target_level: number; family_id: string }) => {
     return await addItem('development_area', areaData);
@@ -77,12 +100,16 @@ export function DevelopmentSection({ child }: { child: FamilyMember }) {
         onAddArea={handleAddArea}
         onUpdateProgress={handleUpdateProgress}
         onDeleteArea={handleDeleteArea}
+        openDialog={openAreaDialog}
+        onOpenDialogChange={setOpenAreaDialog}
       />
 
       <ActivitiesSection
         developmentAreas={developmentAreas}
         onAddActivity={handleAddActivity}
         onDeleteActivity={handleDeleteActivity}
+        openDialog={openActivityDialog}
+        onOpenDialogChange={setOpenActivityDialog}
       />
 
       <TestsSection

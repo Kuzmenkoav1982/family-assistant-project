@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SEOHead from "@/components/SEOHead";
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +13,7 @@ import { initialTraditions } from '@/data/mockData';
 export default function Culture() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { returnIfRequested } = useReturnToPortfolio();
   const [traditions, setTraditions] = useState<Tradition[]>(() => {
     const saved = localStorage.getItem('traditions');
     if (saved) {
@@ -46,7 +48,9 @@ export default function Culture() {
     };
 
     setTraditions(prev => [...prev, newTradition]);
-  }, []);
+    // D.1: если попали сюда из портфолио — возвращаем пользователя обратно.
+    returnIfRequested();
+  }, [returnIfRequested]);
 
   // D.1: deep-link из портфолио — ?action=add-ritual или ?action=add-tradition
   // открывает форму добавления традиции сразу после загрузки страницы.

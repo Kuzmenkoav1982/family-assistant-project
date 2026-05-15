@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -70,6 +71,7 @@ export default function HealthTabs({
   initialTab, initialAction,
 }: HealthTabsProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { returnIfRequested } = useReturnToPortfolio();
   const inferredTab = initialTab || (initialAction ? ACTION_TO_TAB[initialAction] : null);
   const [tabValue, setTabValue] = useState<string>(inferredTab || 'overview');
   const [openVaccination, setOpenVaccination] = useState(false);
@@ -199,7 +201,7 @@ export default function HealthTabs({
               <h3 className="text-lg font-semibold">Медицинские записи</h3>
               <AddHealthRecordDialog
                 profileId={selectedProfile.id}
-                onSuccess={refetchRecords}
+                onSuccess={() => { refetchRecords(); returnIfRequested(); }}
                 open={openRecord || undefined}
                 onOpenChange={(v) => { setOpenRecord(v); if (!v) setRecordDefaultType(undefined); }}
                 defaultType={recordDefaultType}
@@ -239,7 +241,7 @@ export default function HealthTabs({
               <h3 className="text-lg font-semibold">График прививок</h3>
               <AddVaccinationDialog
                 profileId={selectedProfile.id}
-                onSuccess={refetchVaccinations}
+                onSuccess={() => { refetchVaccinations(); returnIfRequested(); }}
                 open={openVaccination || undefined}
                 onOpenChange={setOpenVaccination}
               />
@@ -288,7 +290,7 @@ export default function HealthTabs({
               <h3 className="text-lg font-semibold">Дневник самочувствия</h3>
               <AddVitalRecordDialog
                 profileId={selectedProfile.id}
-                onSuccess={refetchVitals}
+                onSuccess={() => { refetchVitals(); returnIfRequested(); }}
                 open={openVital || undefined}
                 onOpenChange={setOpenVital}
               />
