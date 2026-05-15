@@ -13,6 +13,7 @@ import * as hubHelpers from './portfolioHubHelpers.smoke';
 import * as memberHelpers from './portfolioMemberHelpers.smoke';
 import * as sectionContract from './portfolioSectionContract.smoke';
 import * as sphereDetail from './sphereDetail.smoke';
+import * as recommendationTarget from './recommendationTarget.smoke';
 
 export async function runAllPortfolioSmokeTests(): Promise<void> {
    
@@ -22,6 +23,7 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   await memberHelpers.runAll();
   await sectionContract.runAll();
   await sphereDetail.runAll();
+  await recommendationTarget.runAll();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ Прогон завершён за ${dt} мс`);
@@ -29,4 +31,4 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   console.groupEnd();
 }
 
-export { hubHelpers, memberHelpers, sectionContract, sphereDetail };
+export { hubHelpers, memberHelpers, sectionContract, sphereDetail, recommendationTarget };

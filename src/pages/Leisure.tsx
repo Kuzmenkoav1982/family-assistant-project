@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SEOHead from "@/components/SEOHead";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +19,19 @@ import { TABS_CONFIG, VIEW_MODES } from '@/data/leisureTypes';
 export default function Leisure() {
   const l = useLeisure();
   const counts = l.getTabCounts();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // D.1: deep-link из портфолио — ?action=add-activity открывает диалог добавления.
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'add-activity' || action === 'add') {
+      l.setIsAddDialogOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('action');
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   return (
     <>

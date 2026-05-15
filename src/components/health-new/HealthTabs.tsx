@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -46,7 +48,19 @@ interface HealthTabsProps {
   setSelectedProfile: (p: HealthProfile) => void;
   onDeleteMedication: (id: string) => void;
   onDeleteRecord: (id: string) => void;
+  /** D.1: вкладка, выбранная через ?tab=... из портфолио. */
+  initialTab?: string | null;
+  /** D.1: действие, переданное через ?action=... — открыть конкретный диалог. */
+  initialAction?: string | null;
 }
+
+const ACTION_TO_TAB: Record<string, string> = {
+  'add-vaccination': 'vaccinations',
+  'add-doctor-visit': 'history',
+  'add-mood-entry': 'history',
+  'add-vital': 'vitals',
+  'add-record': 'history',
+};
 
 export default function HealthTabs({
   selectedProfile, records, vaccinations, medications, vitals, doctors, insurance, sessions,
@@ -54,7 +68,44 @@ export default function HealthTabs({
   refetchProfiles, refetchRecords, refetchVaccinations, refetchMedications,
   refetchVitals, refetchDoctors, refetchInsurance, refetchTelemedicine,
   setSelectedProfile, onDeleteMedication, onDeleteRecord,
+  initialTab, initialAction,
 }: HealthTabsProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const inferredTab = initialTab || (initialAction ? ACTION_TO_TAB[initialAction] : null);
+  const [tabValue, setTabValue] = useState<string>(inferredTab || 'overview');
+  const [openVaccination, setOpenVaccination] = useState(false);
+  const [openRecord, setOpenRecord] = useState(false);
+  const [openVital, setOpenVital] = useState(false);
+  const [recordDefaultType, setRecordDefaultType] = useState<string | undefined>(undefined);
+
+  // D.1: переключаем вкладку при изменении initial-параметров из URL.
+  useEffect(() => {
+    if (inferredTab) setTabValue(inferredTab);
+  }, [inferredTab]);
+
+  // D.1: открываем нужный диалог по action и зачищаем URL.
+  useEffect(() => {
+    if (!initialAction) return;
+    if (initialAction === 'add-vaccination') setOpenVaccination(true);
+    else if (initialAction === 'add-vital') setOpenVital(true);
+    else if (initialAction === 'add-doctor-visit') {
+      setRecordDefaultType('visit');
+      setOpenRecord(true);
+    } else if (initialAction === 'add-mood-entry') {
+      // Отдельной формы дневника настроения пока нет — открываем общую запись здоровья.
+      setRecordDefaultType('visit');
+      setOpenRecord(true);
+    } else if (initialAction === 'add-record') {
+      setOpenRecord(true);
+    }
+    // Снимаем action из URL чтобы повторно не срабатывало при F5 / возврате.
+    const next = new URLSearchParams(searchParams);
+    next.delete('action');
+    next.delete('tab');
+    next.delete('from');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialAction]);
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -75,7 +126,7 @@ export default function HealthTabs({
         </div>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="overview" className="w-full">
+        <Tabs value={tabValue} onValueChange={setTabValue} className="w-full">
           <TabsList className="flex flex-wrap h-auto gap-1.5 bg-transparent p-0 justify-start mb-4">
             <TabsTrigger value="dashboard" className="whitespace-nowrap data-[state=active]:bg-violet-600 data-[state=active]:text-white bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2 text-xs font-semibold border-2 border-transparent">{'\u{1F4CA}'} Дашборд</TabsTrigger>
             <TabsTrigger value="overview" className="whitespace-nowrap data-[state=active]:bg-violet-600 data-[state=active]:text-white bg-gray-100 dark:bg-gray-800 rounded-xl px-3 py-2 text-xs font-semibold border-2 border-transparent">Обзор</TabsTrigger>
@@ -151,7 +202,13 @@ export default function HealthTabs({
           <TabsContent value="history" className="space-y-4 pb-32">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Медицинские записи</h3>
-              <AddHealthRecordDialog profileId={selectedProfile.id} onSuccess={refetchRecords} />
+              <AddHealthRecordDialog
+                profileId={selectedProfile.id}
+                onSuccess={refetchRecords}
+                open={openRecord || undefined}
+                onOpenChange={(v) => { setOpenRecord(v); if (!v) setRecordDefaultType(undefined); }}
+                defaultType={recordDefaultType}
+              />
             </div>
             <div className="space-y-4">
               {records.map((record: any) => (
@@ -185,7 +242,12 @@ export default function HealthTabs({
           <TabsContent value="vaccinations" className="space-y-4 pb-32">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">График прививок</h3>
-              <AddVaccinationDialog profileId={selectedProfile.id} onSuccess={refetchVaccinations} />
+              <AddVaccinationDialog
+                profileId={selectedProfile.id}
+                onSuccess={refetchVaccinations}
+                open={openVaccination || undefined}
+                onOpenChange={setOpenVaccination}
+              />
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               {vaccinations.map((vacc: any) => (
@@ -229,7 +291,12 @@ export default function HealthTabs({
           <TabsContent value="vitals" className="space-y-4 pb-32">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Дневник самочувствия</h3>
-              <AddVitalRecordDialog profileId={selectedProfile.id} onSuccess={refetchVitals} />
+              <AddVitalRecordDialog
+                profileId={selectedProfile.id}
+                onSuccess={refetchVitals}
+                open={openVital || undefined}
+                onOpenChange={setOpenVital}
+              />
             </div>
             <p className="text-sm text-muted-foreground">Отслеживайте вес, рост, давление, пульс и другие показатели здоровья. Графики помогут увидеть динамику изменений.</p>
             <div className="grid md:grid-cols-3 gap-4">

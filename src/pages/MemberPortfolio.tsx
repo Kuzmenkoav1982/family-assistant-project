@@ -303,7 +303,7 @@ export default function MemberPortfolio() {
         </PortfolioSection>
 
         <PortfolioSection id="accuracy">
-          <ImproveAccuracyBlock data={data} />
+          <ImproveAccuracyBlock data={data} memberId={memberId ?? null} />
         </PortfolioSection>
 
         {memberId && (

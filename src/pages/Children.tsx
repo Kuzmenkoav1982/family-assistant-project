@@ -84,7 +84,8 @@ export default function Children() {
   useEffect(() => {
     if (!Array.isArray(members) || members.length === 0) return;
     
-    const childId = searchParams.get('childId');
+    // D.1: поддерживаем ?member= как алиас ?childId= для deep-link из портфолио.
+    const childId = searchParams.get('childId') || searchParams.get('member');
     const mode = searchParams.get('mode') as 'parent' | 'child' | null;
     
     if (childId) {

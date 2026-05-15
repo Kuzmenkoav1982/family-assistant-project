@@ -13,10 +13,18 @@ interface AddVitalRecordDialogProps {
   profileId: string;
   onSuccess: () => void;
   trigger?: React.ReactNode;
+  /** D.1: внешний контроль открытия (для deep-link из портфолио). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddVitalRecordDialog({ profileId, onSuccess, trigger }: AddVitalRecordDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddVitalRecordDialog({ profileId, onSuccess, trigger, open: openProp, onOpenChange }: AddVitalRecordDialogProps) {
+  const [openInternal, setOpenInternal] = useState(false);
+  const open = openProp ?? openInternal;
+  const setOpen = (v: boolean) => {
+    setOpenInternal(v);
+    onOpenChange?.(v);
+  };
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
