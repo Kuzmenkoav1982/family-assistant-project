@@ -4,6 +4,7 @@ import { HelmetProvider } from '@/lib/helmet'
 import App from './App'
 import './index.css'
 import { initWebVitals } from './utils/webVitals'
+import '@/lib/__smoke/install';
 
 initWebVitals();
 
