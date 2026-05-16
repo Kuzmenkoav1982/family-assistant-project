@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -127,6 +128,38 @@ export default function ValuesHub() {
           { label: 'Полезные статьи', icon: 'BookOpen', path: '/articles' },
         ]}
       >
+        <HowItWorksBlock
+          accent="pink"
+          intro="«Ценности» — пространство, где семья определяет, что для неё по-настоящему важно. Здесь рождаются договорённости, правила и общий язык — основа для всех решений."
+          steps={[
+            {
+              icon: 'Heart',
+              title: 'Шаг 1. Определите ценности',
+              description:
+                'Выберите и обсудите ключевые ценности семьи. Это не формальность — это компас для решений.',
+            },
+            {
+              icon: 'ScrollText',
+              title: 'Шаг 2. Превратите в правила',
+              description:
+                'Из ценностей рождаются простые семейные правила и договорённости — понятные каждому.',
+            },
+            {
+              icon: 'MessageCircle',
+              title: 'Шаг 3. Обсуждайте и уточняйте',
+              description:
+                'Возвращайтесь к ценностям, когда возникают спорные ситуации. Они помогают найти общий ответ.',
+            },
+            {
+              icon: 'Sparkles',
+              title: 'Шаг 4. Живите этим',
+              description:
+                'Ценности и правила становятся естественной частью жизни — а не списком на стене.',
+            },
+          ]}
+          footer="Это смысловой слой семьи: всё, что вы делаете, опирается на ценности и договорённости."
+        />
+
         <div>
           <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
             Сервисы

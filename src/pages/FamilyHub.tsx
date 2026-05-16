@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2, { type HubAttentionItem, type HubNextStep } from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import { signals } from '@/lib/cardStatus';
@@ -257,6 +258,38 @@ export default function FamilyHub() {
         ]}
       >
         <div className="space-y-6">
+          <HowItWorksBlock
+            accent="blue"
+            intro="«Семья» — центральное пространство, где живёт состав, связи и совместная жизнь. Добавьте близких, опишите отношения — и все остальные разделы оживут вашими реальными данными."
+            steps={[
+              {
+                icon: 'UserPlus',
+                title: 'Шаг 1. Добавьте членов семьи',
+                description:
+                  'Заполните имена, даты рождения и роли. Это база для всех расчётов: от планов до семейного кода.',
+              },
+              {
+                icon: 'GitBranch',
+                title: 'Шаг 2. Постройте дерево связей',
+                description:
+                  'Укажите родственные отношения — кто кому кем приходится. Это раскрывает картину семьи целиком.',
+              },
+              {
+                icon: 'CalendarDays',
+                title: 'Шаг 3. Ведите общую жизнь',
+                description:
+                  'Календарь событий, задачи, праздники, традиции — всё, что объединяет семью в одном месте.',
+              },
+              {
+                icon: 'Heart',
+                title: 'Шаг 4. Связи с другими разделами',
+                description:
+                  'Данные о семье автоматически подтягиваются в «Развитие», «Семейный код», «Ценности» и другие хабы.',
+              },
+            ]}
+            footer="Чем подробнее заполнен профиль семьи — тем точнее работают ИИ-советы и персональные рекомендации во всех разделах."
+          />
+
           <div>
             <div className="flex items-center justify-between mb-2 px-2">
               <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
