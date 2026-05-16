@@ -1,7 +1,6 @@
 import type {
   FamilyMember,
   Task,
-  Tradition,
   FamilyValue,
   BlogPost,
   ImportantDate,
@@ -28,7 +27,6 @@ interface FamilyTabsContentProps {
   createTask?: (taskData: Partial<Task>) => Promise<{success: boolean; task?: Task; error?: string}>;
   updateTask?: (taskData: Partial<Task> & {id: string}) => Promise<{success: boolean; task?: Task; error?: string}>;
   deleteTask?: (taskId: string) => Promise<{success: boolean; error?: string}>;
-  traditions: Tradition[];
   familyValues: FamilyValue[];
   blogPosts: BlogPost[];
   importantDates: ImportantDate[];
@@ -65,7 +63,6 @@ export function FamilyTabsContent({
   createTask,
   updateTask,
   deleteTask,
-  traditions,
   familyValues,
   blogPosts,
   importantDates,
@@ -136,7 +133,6 @@ export function FamilyTabsContent({
       />
 
       <OtherTabsContent 
-        traditions={traditions}
         familyValues={familyValues}
         blogPosts={blogPosts}
         importantDates={importantDates}

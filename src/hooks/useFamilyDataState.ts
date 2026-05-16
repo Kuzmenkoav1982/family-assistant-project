@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type {
   Reminder,
-  Tradition,
   FamilyValue,
   BlogPost,
   ImportantDate,
@@ -19,7 +18,6 @@ import {
   initialImportantDates,
   initialFamilyValues,
   initialBlogPosts,
-  initialTraditions,
   initialChatMessages,
   initialFamilyAlbum,
   initialFamilyNeeds,
@@ -40,18 +38,6 @@ export default function useFamilyDataState() {
       }
     }
     return initialFamilyValues;
-  });
-
-  const [traditions, setTraditions] = useState<Tradition[]>(() => {
-    const saved = localStorage.getItem('traditions');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialTraditions;
-      }
-    }
-    return initialTraditions;
   });
 
   const [blogPosts] = useState<BlogPost[]>(initialBlogPosts);
@@ -79,7 +65,6 @@ export default function useFamilyDataState() {
   return {
     reminders, setReminders,
     familyValues, setFamilyValues,
-    traditions, setTraditions,
     blogPosts,
     importantDates,
     childrenProfiles,

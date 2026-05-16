@@ -303,11 +303,7 @@ export default function Index({ onLogout }: IndexProps) {
                   setFamilyValues={state.setFamilyValues}
                 />
 
-                <TraditionsTabContent
-                  traditions={state.traditions}
-                  setTraditions={state.setTraditions}
-                  navigate={navigate}
-                />
+                <TraditionsTabContent />
 
                 <TabsContent value="goals">
                   {handlers.isWidgetEnabled('goals') && (

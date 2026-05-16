@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 import type {
   FamilyMember,
   Task,
-  Tradition,
   FamilyValue,
   BlogPost,
   ImportantDate,
@@ -48,7 +47,6 @@ interface MainContentGridProps {
   createTask: any;
   updateTask: any;
   deleteTask: any;
-  traditions: Tradition[];
   familyValues: FamilyValue[];
   blogPosts: BlogPost[];
   importantDates: ImportantDate[];
@@ -96,7 +94,6 @@ export function MainContentGrid({
   createTask,
   updateTask,
   deleteTask,
-  traditions,
   familyValues,
   blogPosts,
   importantDates,
@@ -330,7 +327,6 @@ export function MainContentGrid({
             createTask={createTask}
             updateTask={updateTask}
             deleteTask={deleteTask}
-            traditions={traditions}
             familyValues={familyValues}
             blogPosts={blogPosts}
             importantDates={importantDates}

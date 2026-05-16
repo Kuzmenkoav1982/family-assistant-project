@@ -6,7 +6,6 @@ import { TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import type {
   FamilyMember,
-  Tradition,
   FamilyValue,
   BlogPost,
   ImportantDate,
@@ -14,9 +13,9 @@ import type {
   DevelopmentPlan,
   CalendarEvent,
 } from '@/types/family.types';
+import { useFamilyTraditions } from '@/hooks/useFamilyTraditions';
 
 interface OtherTabsContentProps {
-  traditions: Tradition[];
   familyValues: FamilyValue[];
   blogPosts: BlogPost[];
   importantDates: ImportantDate[];
@@ -28,7 +27,6 @@ interface OtherTabsContentProps {
 }
 
 export function OtherTabsContent({
-  traditions,
   familyValues,
   blogPosts,
   importantDates,
@@ -38,6 +36,7 @@ export function OtherTabsContent({
   getAISuggestedMeals,
   exportStatsToCSV,
 }: OtherTabsContentProps) {
+  const { traditions } = useFamilyTraditions();
   return (
     <>
       <TabsContent value="traditions" className="space-y-4">
