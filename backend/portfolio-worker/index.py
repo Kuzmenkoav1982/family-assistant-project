@@ -1,5 +1,6 @@
 """
 Business: Portfolio Rebuild Worker — фоновая обработка portfolio_rebuild_queue.
+# v2 — PORTFOLIO_INTERNAL_TOKEN support
 
 Забирает pending-задачи из очереди через FOR UPDATE SKIP LOCKED,
 вызывает portfolio?action=aggregate по X-Internal-Token,

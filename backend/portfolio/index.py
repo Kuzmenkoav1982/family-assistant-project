@@ -1,5 +1,6 @@
 """
 Business: Модуль Портфолио — агрегатор развития, snapshot, инсайты, достижения.
+# v2 — X-Internal-Token support for portfolio-worker
 Действия (action в query): aggregate | get | snapshot | insights | achievements | list | achievement_create
 Args: event с httpMethod, queryStringParameters (action, member_id, family_id)
 Returns: JSON с данными портфолио или ошибкой
