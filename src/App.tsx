@@ -79,6 +79,7 @@ const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
 const FamilyNews = lazy(() => import("./pages/FamilyNews"));
 const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
 const Tree = lazy(() => import("./pages/Tree"));
+const Memory = lazy(() => import("./pages/Memory"));
 const Children = lazy(() => import("./pages/Children"));
 const AssessmentReport = lazy(() => import("./pages/AssessmentReport"));
 const MemberProfile = lazy(() => import("./pages/MemberProfile"));
@@ -374,6 +375,11 @@ const App = () => {
                       <Route path="/pets" element={<Pets />} />
                       <Route path="/faith" element={<Faith />} />
                       <Route path="/tree" element={<Tree />} />
+                      <Route path="/memory" element={
+                        <ProtectedRoute>
+                          <Memory />
+                        </ProtectedRoute>
+                      } />
                       <Route path="/shopping" element={<Shopping />} />
                       <Route path="/meals" element={<Meals />} />
                       <Route path="/calendar" element={<Calendar />} />
