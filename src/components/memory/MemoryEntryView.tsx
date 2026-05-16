@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useFamilyTree } from '@/hooks/useFamilyTree';
+import AddToAlbumDialog from './AddToAlbumDialog';
 import type { MemoryEntry } from './types';
 
 interface MemoryEntryViewProps {
@@ -21,6 +22,8 @@ interface MemoryEntryViewProps {
   onOpenChange: (open: boolean) => void;
   onEdit?: (entry: MemoryEntry) => void;
   onArchive?: (entry: MemoryEntry) => void;
+  /** Если задан — вместо "В архив" показывает "Убрать из альбома". */
+  removeFromAlbumMode?: boolean;
 }
 
 function formatDate(entry: MemoryEntry): string | null {
@@ -40,8 +43,10 @@ export default function MemoryEntryView({
   onOpenChange,
   onEdit,
   onArchive,
+  removeFromAlbumMode = false,
 }: MemoryEntryViewProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [addToAlbumOpen, setAddToAlbumOpen] = useState(false);
   const { members } = useFamilyTree();
 
   if (!entry) return null;
@@ -132,10 +137,14 @@ export default function MemoryEntryView({
                 onClick={() => onArchive(entry)}
                 className="text-muted-foreground"
               >
-                <Icon name="Archive" size={16} className="mr-1.5" />
-                В архив
+                <Icon name={removeFromAlbumMode ? 'FolderMinus' : 'Archive'} size={16} className="mr-1.5" />
+                {removeFromAlbumMode ? 'Убрать из альбома' : 'В архив'}
               </Button>
             )}
+            <Button variant="outline" size="sm" onClick={() => setAddToAlbumOpen(true)}>
+              <Icon name="FolderPlus" size={16} className="mr-1.5" />
+              В альбом
+            </Button>
             {onEdit && (
               <Button variant="outline" size="sm" onClick={() => onEdit(entry)}>
                 <Icon name="Pencil" size={16} className="mr-1.5" />
@@ -148,6 +157,12 @@ export default function MemoryEntryView({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AddToAlbumDialog
+        open={addToAlbumOpen}
+        onOpenChange={setAddToAlbumOpen}
+        entry={entry}
+      />
 
       {lightboxIndex != null && sortedAssets[lightboxIndex] && (
         <div
