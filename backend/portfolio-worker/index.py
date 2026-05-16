@@ -249,43 +249,48 @@ def call_aggregate(member_id: str, timeout: float = 15.0) -> Dict[str, Any]:
 
 
 def gc_completed(cur) -> int:
-    """Удаляет gc-pending записи старше 1 дня."""
+    """Архивирует завершённые записи (gc-pending, completed) старше 1 дня."""
+    states_sql = ", ".join(f"'{s}'" for s in ('gc-pending', 'completed'))
     cur.execute(f"""
         UPDATE {SCHEMA}.portfolio_rebuild_queue
         SET locked_at = now() + INTERVAL '100 years',
             locked_by = 'gc-done',
             updated_at = now()
-        WHERE locked_by = 'gc-pending'
+        WHERE locked_by IN ({states_sql})
           AND updated_at < now() - INTERVAL '1 day'
     """)
     return cur.rowcount
 
 
+TERMINAL_STATES = ('gc-pending', 'gc-done', 'dead-letter', 'completed')
+
+
 def queue_health(cur) -> Dict[str, Any]:
+    states_sql = ", ".join(f"'{s}'" for s in TERMINAL_STATES)
     cur.execute(f"""
         SELECT
-            COUNT(*) FILTER (WHERE locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter')
+            COUNT(*) FILTER (WHERE locked_by NOT IN ({states_sql})
                 OR locked_by IS NULL)                                              AS total,
             COUNT(*) FILTER (WHERE locked_at IS NOT NULL
                 AND locked_at >= now() - INTERVAL '{STUCK_LOCK_MINUTES} minutes'
-                AND locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter'))     AS locked,
+                AND locked_by NOT IN ({states_sql}))                               AS locked,
             COUNT(*) FILTER (WHERE locked_at IS NOT NULL
                 AND locked_at < now() - INTERVAL '{STUCK_LOCK_MINUTES} minutes'
-                AND locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter'))     AS stuck,
+                AND locked_by NOT IN ({states_sql}))                               AS stuck,
             COUNT(*) FILTER (WHERE next_attempt_at > now()
                 AND (locked_at IS NULL
                     OR locked_at < now() - INTERVAL '{STUCK_LOCK_MINUTES} minutes')
                 AND (locked_by IS NULL
-                    OR locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter'))) AS delayed,
+                    OR locked_by NOT IN ({states_sql})))                           AS delayed,
             COUNT(*) FILTER (WHERE next_attempt_at <= now()
                 AND (locked_at IS NULL
                     OR locked_at < now() - INTERVAL '{STUCK_LOCK_MINUTES} minutes')
                 AND (locked_by IS NULL
-                    OR locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter'))) AS ready,
-            MAX(attempts) FILTER (WHERE locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter')
+                    OR locked_by NOT IN ({states_sql})))                           AS ready,
+            MAX(attempts) FILTER (WHERE locked_by NOT IN ({states_sql})
                 OR locked_by IS NULL)                                              AS max_attempts,
             MAX(next_attempt_at) FILTER (
-                WHERE locked_by NOT IN ('gc-pending', 'gc-done', 'dead-letter')
+                WHERE locked_by NOT IN ({states_sql})
                 OR locked_by IS NULL)                                              AS furthest_retry
         FROM {SCHEMA}.portfolio_rebuild_queue
     """)
@@ -377,6 +382,24 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     headers = event.get('headers') or {}
     bearer = _extract_bearer(headers)
     params = event.get('queryStringParameters') or {}
+    action = params.get('action', 'run')
+    limit = min(int(params.get('limit', '10')), 50)
+
+    # health — публичный (только read-only счётчики, не раскрывает данных)
+    if action == 'health':
+        conn = get_conn()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        try:
+            health = queue_health(cur)
+            return ok({
+                'queue': health,
+                'worker': 'portfolio-worker',
+                'max_attempts': MAX_ATTEMPTS,
+                'portfolio_token_configured': bool(PORTFOLIO_INTERNAL_TOKEN),
+            })
+        finally:
+            cur.close()
+            conn.close()
 
     authed = False
     if CRON_SECRET and bearer == CRON_SECRET:
@@ -385,31 +408,43 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     if not authed:
         return err(403, 'forbidden: Authorization: Bearer <CRON_SECRET> required')
 
-    action = params.get('action', 'run')
-    limit = min(int(params.get('limit', '10')), 50)
-
     try:
         if action in ('run', 'run_once'):
             actual_limit = 1 if action == 'run_once' else limit
             result = run_worker(actual_limit)
             return ok(result)
 
-        if action == 'health':
-            conn = get_conn()
-            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        if action == 'enqueue_test':
+            member_id = params.get('member_id', '40e4eece-5988-4133-a6bb-0aaaee4db0c2')
+            conn2 = get_conn()
+            conn2.autocommit = True
+            cur2 = conn2.cursor()
             try:
-                health = queue_health(cur)
-                return ok({
-                    'queue': health,
-                    'worker': 'portfolio-worker',
-                    'max_attempts': MAX_ATTEMPTS,
-                    'portfolio_token_configured': bool(PORTFOLIO_INTERNAL_TOKEN),
-                })
+                cur2.execute(f"""
+                    INSERT INTO {SCHEMA}.portfolio_rebuild_queue
+                        (member_id, requested_by_user_id, reasons, priority, next_attempt_at)
+                    VALUES
+                        ({esc(member_id)}::uuid, {esc(member_id)}::uuid,
+                         '{{"smoke:bearer-auth-test"}}', 5, now())
+                    ON CONFLICT (member_id) DO UPDATE SET
+                        reasons        = EXCLUDED.reasons,
+                        locked_at      = NULL,
+                        locked_by      = NULL,
+                        next_attempt_at = now(),
+                        attempts       = 0,
+                        updated_at     = now()
+                """)
+                cur2.execute(f"""
+                    UPDATE {SCHEMA}.member_portfolios
+                    SET needs_refresh = TRUE, marked_dirty_at = now(), updated_at = now()
+                    WHERE member_id = {esc(member_id)}::uuid
+                """)
             finally:
-                cur.close()
-                conn.close()
+                cur2.close()
+                conn2.close()
+            return ok({'enqueued': member_id, 'ok': True})
 
-        return err(400, f'Unknown action: {action}. Use: run | run_once | health')
+        return err(400, f'Unknown action: {action}. Use: run | run_once | health | enqueue_test')
 
     except Exception as exc:
         return err(500, str(exc))

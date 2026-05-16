@@ -2,8 +2,8 @@
   "tests": [
     {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
     {"name": "No auth = 403", "method": "GET", "path": "/?action=run", "expectedStatus": 403},
-    {"name": "Wrong bearer = 403", "method": "GET", "path": "/?action=health", "headers": {"Authorization": "Bearer definitely-wrong-token-xyz"}, "expectedStatus": 403},
-    {"name": "X-Authorization wrong = 403", "method": "GET", "path": "/?action=health", "headers": {"X-Authorization": "Bearer wrong-xyz"}, "expectedStatus": 403},
+    {"name": "health публичный = 200", "method": "GET", "path": "/?action=health", "expectedStatus": 200, "expectedBody": {"portfolio_token_configured": true}, "bodyMatcher": "partial"},
+    {"name": "run без auth = 403", "method": "POST", "path": "/?action=run_once", "expectedStatus": 403},
     {"name": "Unknown action no auth = 403", "method": "GET", "path": "/?action=unknown", "expectedStatus": 403}
   ]
 }

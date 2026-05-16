@@ -1557,9 +1557,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # ===== Internal worker path: aggregate по Bearer-токену =====
         # portfolio-worker шлёт Authorization: Bearer <PORTFOLIO_INTERNAL_TOKEN>
         # Proxy платформы: Authorization → X-Authorization в функции.
+        _hdrs = event.get('headers') or {}
         _raw_auth = (
-            (event.get('headers') or {}).get('X-Authorization') or
-            (event.get('headers') or {}).get('x-authorization') or ''
+            _hdrs.get('X-Authorization') or _hdrs.get('x-authorization')
+            or _hdrs.get('Authorization') or _hdrs.get('authorization')
+            or ''
         ).strip()
         if _raw_auth.lower().startswith('bearer '):
             _raw_auth = _raw_auth[7:].strip()
