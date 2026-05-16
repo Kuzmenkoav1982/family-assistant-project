@@ -109,14 +109,18 @@ def claim_jobs(cur, limit: int, worker_id: str) -> List[Dict]:
         WHERE q.member_id = picked.member_id
         RETURNING
             q.member_id, q.requested_by_user_id, q.reasons,
-            q.priority, q.attempts, q.last_error, q.payload
+            q.priority, q.attempts, q.last_error, q.payload,
+            q.locked_at, q.locked_by
     """)
     return [dict(r) for r in cur.fetchall()]
 
 
 def move_to_dead_letter(cur, job: Dict) -> None:
-    """Перемещает poison-job в DLQ."""
+    """Перемещает poison-job в DLQ. Защита от race: UPDATE только по lock ownership."""
     member_id = str(job['member_id'])
+    worker_id = str(job.get('locked_by', ''))
+    locked_at  = job.get('locked_at')
+
     cur.execute(f"""
         INSERT INTO {SCHEMA}.portfolio_rebuild_dead_letter
             (member_id, reasons, attempts, last_error, payload)
@@ -128,37 +132,64 @@ def move_to_dead_letter(cur, job: Dict) -> None:
             {esc(job.get('payload', {}))}
         )
     """)
-    # Убираем из активной очереди через UPDATE locked (чтобы worker больше не брал)
+    # Блокируем навечно ТОЛЬКО если мы всё ещё владелец lock-а
+    lock_guard = ''
+    if worker_id and locked_at:
+        lock_guard = (
+            f" AND locked_by = {esc(worker_id)}"
+            f" AND locked_at = {esc(str(locked_at))}::timestamptz"
+        )
     cur.execute(f"""
         UPDATE {SCHEMA}.portfolio_rebuild_queue
         SET
             locked_at  = now() + INTERVAL '100 years',
             locked_by  = 'dead-letter',
             updated_at = now()
-        WHERE member_id = {esc(member_id)}::uuid
+        WHERE member_id = {esc(member_id)}::uuid{lock_guard}
     """)
 
 
-def mark_success(cur, member_id: str) -> None:
-    """Помечаем needs_refresh=false + убираем lock."""
+def mark_success(cur, member_id: str, worker_id: str, locked_at) -> int:
+    """needs_refresh=false + DELETE queue row.
+
+    DELETE защищён по lock ownership (member_id + locked_by + locked_at).
+    Возвращает rowcount: 0 = job была пере-enqueue-нута, не трогаем.
+    """
     cur.execute(f"""
         UPDATE {SCHEMA}.member_portfolios
         SET needs_refresh = FALSE, marked_dirty_at = NULL, updated_at = now()
         WHERE member_id = {esc(member_id)}::uuid
     """)
+    lock_cond = ''
+    if worker_id and locked_at:
+        lock_cond = (
+            f" AND locked_by = {esc(worker_id)}"
+            f" AND locked_at = {esc(str(locked_at))}::timestamptz"
+        )
     cur.execute(f"""
         UPDATE {SCHEMA}.portfolio_rebuild_queue
-        SET
-            locked_at  = now() + INTERVAL '100 years',
-            locked_by  = 'completed',
+        SET locked_at = now() + INTERVAL '100 years',
+            locked_by = 'completed',
             updated_at = now()
-        WHERE member_id = {esc(member_id)}::uuid
+        WHERE member_id = {esc(member_id)}::uuid{lock_cond}
     """)
+    return cur.rowcount
 
 
-def mark_failed(cur, member_id: str, error_msg: str, attempts: int) -> None:
+def mark_failed(cur, member_id: str, error_msg: str, attempts: int,
+                worker_id: str = '', locked_at=None) -> int:
+    """Retry с backoff. UPDATE только если мы всё ещё владелец lock-а.
+
+    Возвращает rowcount: 0 = lock уже перехвачен другим worker-ом.
+    """
     delay = backoff_seconds(attempts)
     next_at = (datetime.now(timezone.utc) + timedelta(seconds=delay)).isoformat()
+    lock_cond = ''
+    if worker_id and locked_at:
+        lock_cond = (
+            f" AND locked_by = {esc(worker_id)}"
+            f" AND locked_at = {esc(str(locked_at))}::timestamptz"
+        )
     cur.execute(f"""
         UPDATE {SCHEMA}.portfolio_rebuild_queue
         SET
@@ -167,8 +198,9 @@ def mark_failed(cur, member_id: str, error_msg: str, attempts: int) -> None:
             locked_by       = NULL,
             next_attempt_at = {esc(next_at)}::timestamptz,
             updated_at      = now()
-        WHERE member_id = {esc(member_id)}::uuid
+        WHERE member_id = {esc(member_id)}::uuid{lock_cond}
     """)
+    return cur.rowcount
 
 
 def call_aggregate(member_id: str, timeout: float = 15.0) -> Dict[str, Any]:
@@ -230,8 +262,9 @@ def run_worker(limit: int) -> Dict[str, Any]:
             return {'processed': 0, 'worker_id': worker_id, 'results': []}
 
         for job in jobs:
-            member_id = str(job['member_id'])
-            attempts = int(job.get('attempts', 1))
+            member_id  = str(job['member_id'])
+            attempts   = int(job.get('attempts', 1))
+            job_locked_at = job.get('locked_at')
             result = {'member_id': member_id, 'attempts': attempts}
 
             # Poison-job → dead-letter
@@ -247,15 +280,22 @@ def run_worker(limit: int) -> Dict[str, Any]:
 
             try:
                 call_aggregate(member_id)
-                mark_success(cur, member_id)
+                owned = mark_success(cur, member_id, worker_id, job_locked_at)
                 result['ok'] = True
                 result['action'] = 'aggregated'
+                # owned=0 → во время aggregate пришёл новый save и re-enqueue,
+                # lock уже не наш — queue row остаётся для следующего прогона.
+                if owned == 0:
+                    result['note'] = 're-enqueued_during_aggregate'
             except Exception as exc:
                 error_msg = str(exc)[:500]
-                mark_failed(cur, member_id, error_msg, attempts)
+                owned = mark_failed(cur, member_id, error_msg, attempts,
+                                    worker_id, job_locked_at)
                 result['ok'] = False
                 result['error'] = error_msg
                 result['next_retry_seconds'] = backoff_seconds(attempts)
+                if owned == 0:
+                    result['note'] = 'lock_stolen_by_another_worker'
 
             results.append(result)
 
@@ -310,7 +350,8 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             try:
                 health = queue_health(cur)
                 return ok({'queue': health, 'worker': 'portfolio-worker',
-                           'max_attempts': MAX_ATTEMPTS})
+                           'max_attempts': MAX_ATTEMPTS,
+                           'portfolio_token_configured': bool(PORTFOLIO_INTERNAL_TOKEN)})
             finally:
                 cur.close()
                 conn.close()
