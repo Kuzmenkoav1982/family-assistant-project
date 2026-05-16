@@ -3,6 +3,7 @@ import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -127,6 +128,38 @@ export default function PlanningHub() {
           { label: 'Развитие',  icon: 'Brain',   path: '/development-hub' },
         ]}
       >
+        <HowItWorksBlock
+          accent="indigo"
+          intro="«Планирование» — превращает намерения семьи в конкретные шаги. Цели, задачи, календарь и аналитика — чтобы идеи не оставались на бумаге."
+          steps={[
+            {
+              icon: 'Target',
+              title: 'Шаг 1. Поставьте цели',
+              description:
+                'Семейные и личные цели — от мелких до больших. Каждая разбивается на понятные шаги.',
+            },
+            {
+              icon: 'ListTodo',
+              title: 'Шаг 2. Задачи и шаги',
+              description:
+                'Декомпозируйте цели в задачи. Назначайте ответственных, ставьте дедлайны.',
+            },
+            {
+              icon: 'Calendar',
+              title: 'Шаг 3. Календарь и расписание',
+              description:
+                'Общий семейный календарь: события, задачи, напоминания — у всех на виду.',
+            },
+            {
+              icon: 'TrendingUp',
+              title: 'Шаг 4. Аналитика и прогресс',
+              description:
+                'Отслеживайте, что движется, а что застряло. ИИ-помощник подскажет, где ускориться.',
+            },
+          ]}
+          footer="Хороший план — не идеальный, а живой: его легко менять, когда меняется жизнь."
+        />
+
         <SectionAIAdvisor
           role="organizer"
           title="ИИ-Организатор"

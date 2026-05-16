@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -178,6 +179,38 @@ export default function StateHub() {
           { label: 'Полезные статьи', icon: 'BookOpen', path: '/articles' },
         ]}
       >
+        <HowItWorksBlock
+          accent="slate"
+          intro="«Госуслуги и право» — навигатор по господдержке и правовым вопросам семьи. Льготы, пособия, выплаты и юридические ориентиры — всё в одном месте, понятным языком."
+          steps={[
+            {
+              icon: 'Search',
+              title: 'Шаг 1. Найдите свою поддержку',
+              description:
+                'Подберите положенные пособия и льготы по составу семьи: дети, многодетные, ипотека, материнский капитал.',
+            },
+            {
+              icon: 'FileText',
+              title: 'Шаг 2. Документы и сроки',
+              description:
+                'Что нужно оформить, где подать, когда обновить. Без блужданий по сайтам ведомств.',
+            },
+            {
+              icon: 'Scale',
+              title: 'Шаг 3. Правовые ориентиры',
+              description:
+                'Базовые знания о праве: семейном, налоговом, жилищном. Понятный язык — никакого юридического тумана.',
+            },
+            {
+              icon: 'Landmark',
+              title: 'Шаг 4. Связь с госуслугами',
+              description:
+                'Подсказки по получению услуг через портал Госуслуг и МФЦ — пошагово и без лишних звонков.',
+            },
+          ]}
+          footer="Раздел не заменяет юриста и официальные ведомства, но помогает быстро сориентироваться и не пропустить важное."
+        />
+
         {subGroups.map(group => (
           <div key={group.id}>
             <div className="px-2 mb-2">

@@ -3,6 +3,7 @@ import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 
 export default function HealthHub() {
   const navigate = useNavigate();
@@ -43,6 +44,38 @@ export default function HealthHub() {
           { label: 'Развитие',   icon: 'Brain',      path: '/development-hub' },
         ]}
       >
+        <HowItWorksBlock
+          accent="rose"
+          intro="«Здоровье» — единое пространство заботы о теле и самочувствии всей семьи. Медкарты, прививки, лекарства и ИИ-доктор — всё, чтобы держать здоровье под контролем без хаоса."
+          steps={[
+            {
+              icon: 'FileText',
+              title: 'Шаг 1. Медкарты',
+              description:
+                'Заведите электронную медкарту на каждого члена семьи: анамнез, аллергии, хронические заболевания.',
+            },
+            {
+              icon: 'Syringe',
+              title: 'Шаг 2. Прививки и лекарства',
+              description:
+                'Календарь вакцинации, аптечка, напоминания о приёме препаратов — ничего не забыто.',
+            },
+            {
+              icon: 'Activity',
+              title: 'Шаг 3. ИИ-доктор',
+              description:
+                'Задавайте вопросы ИИ-помощнику: расшифровка анализов, симптомы, рекомендации (не заменяет врача).',
+            },
+            {
+              icon: 'HeartPulse',
+              title: 'Шаг 4. Здоровые привычки',
+              description:
+                'Фитнес-трекинг, режим сна и питания, спортивные цели — здоровье как ежедневная практика.',
+            },
+          ]}
+          footer="Все данные хранятся приватно и доступны только членам вашей семьи."
+        />
+
         <SectionAIAdvisor
           role="fitness-trainer"
           title="ИИ-Доктор и Фитнес-тренер"

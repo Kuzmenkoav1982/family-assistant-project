@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import NutritionHubInstructions from '@/components/nutrition/NutritionHubInstructions';
 import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -153,6 +153,38 @@ export default function NutritionHub() {
           { label: 'Питомцы',   icon: 'PawPrint',   path: '/pets' },
         ]}
       >
+        <HowItWorksBlock
+          accent="emerald"
+          intro="«Питание» — личный диетолог для всей семьи. Меню, рационы, рецепты и подсчёт калорий — с учётом возраста, целей и предпочтений каждого члена семьи."
+          steps={[
+            {
+              icon: 'UserCircle2',
+              title: 'Шаг 1. Профиль питания',
+              description:
+                'Укажите возраст, вес, цели и предпочтения. Это основа персональных рекомендаций ИИ-диетолога.',
+            },
+            {
+              icon: 'ChefHat',
+              title: 'Шаг 2. Меню и рецепты',
+              description:
+                'Получайте готовые меню на неделю, выбирайте рецепты с учётом продуктов в холодильнике.',
+            },
+            {
+              icon: 'Apple',
+              title: 'Шаг 3. Считайте калории',
+              description:
+                'Дневник питания, КБЖУ и анализ привычек — без занудства, в формате семейного помощника.',
+            },
+            {
+              icon: 'ShoppingCart',
+              title: 'Шаг 4. Покупки автоматически',
+              description:
+                'Из меню формируется список покупок. Один клик — и в холодильнике всё, что нужно для рациона.',
+            },
+          ]}
+          footer="ИИ-диетолог учитывает диеты, аллергии и медицинские ограничения — не заменяет врача, но помогает выстроить здоровое питание."
+        />
+
         <SectionAIAdvisor
           role="nutritionist"
           title="ИИ-Диетолог"

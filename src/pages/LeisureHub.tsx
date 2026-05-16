@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -101,6 +102,38 @@ export default function LeisureHub() {
           { label: 'Госуслуги', icon: 'Landmark', path: '/state-hub' },
         ]}
       >
+        <HowItWorksBlock
+          accent="sky"
+          intro="«Досуг» — пространство для совместных впечатлений. Путешествия, развлечения, праздники и семейные традиции — всё, что объединяет и оставляет тёплые воспоминания."
+          steps={[
+            {
+              icon: 'Plane',
+              title: 'Шаг 1. Планируйте поездки',
+              description:
+                'Маршруты, бюджет, чек-листы и документы — всё, чтобы отдых прошёл без сюрпризов.',
+            },
+            {
+              icon: 'PartyPopper',
+              title: 'Шаг 2. Праздники и события',
+              description:
+                'Дни рождения, годовщины, праздники — календарь напомнит, идеи подскажет.',
+            },
+            {
+              icon: 'Calendar',
+              title: 'Шаг 3. Развлечения',
+              description:
+                'Подбирайте активности: кино, выставки, прогулки. Сохраняйте идеи на «когда-нибудь».',
+            },
+            {
+              icon: 'Heart',
+              title: 'Шаг 4. Семейные традиции',
+              description:
+                'Создавайте и поддерживайте традиции — то, что делает семью особенной и крепкой.',
+            },
+          ]}
+          footer="Время вместе — самая ценная инвестиция. «Досуг» помогает не откладывать её на потом."
+        />
+
         <div>
           <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
             Сервисы

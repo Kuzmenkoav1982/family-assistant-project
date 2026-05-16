@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 import { signals } from '@/lib/cardStatus';
@@ -204,6 +205,38 @@ export default function HouseholdHub() {
           { label: 'Питание',     icon: 'Apple',   path: '/nutrition' },
         ]}
       >
+        <HowItWorksBlock
+          accent="amber"
+          intro="«Дом» — операционная система быта. Покупки, голосования, транспорт, ремонт и хозяйство — всё, что делает дом удобным и организованным без хаоса."
+          steps={[
+            {
+              icon: 'ShoppingCart',
+              title: 'Шаг 1. Списки покупок',
+              description:
+                'Общий список для всей семьи. Кто-то добавил молоко — другой увидит в магазине. Без чатов и звонков.',
+            },
+            {
+              icon: 'Vote',
+              title: 'Шаг 2. Семейные голосования',
+              description:
+                'Спорный вопрос — куда поехать, что купить, как назвать кота? Голосуем семьёй, решаем вместе.',
+            },
+            {
+              icon: 'Home',
+              title: 'Шаг 3. Дом и транспорт',
+              description:
+                'Учёт техники, ремонт, машины, ТО, страховки — все важные даты и документы в одном месте.',
+            },
+            {
+              icon: 'Sparkles',
+              title: 'Шаг 4. Быт без рутины',
+              description:
+                'Графики уборки, дежурства, поручения — распределение задач, чтобы никто не выгорал.',
+            },
+          ]}
+          footer="«Дом» снимает с памяти бытовую нагрузку — освобождает время и силы для главного."
+        />
+
         {subGroups.map(group => (
           <div key={group.id}>
             <div className="px-2 mb-2">

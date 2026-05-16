@@ -8,9 +8,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
-import { FinanceHubInstructions } from '@/components/finance/FinanceInstructions';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -142,7 +142,37 @@ export default function FinanceHub() {
           { label: 'Госуслуги', icon: 'Landmark',     path: '/state-hub' },
         ]}
       >
-        <FinanceHubInstructions />
+        <HowItWorksBlock
+          accent="emerald"
+          intro="«Финансы» — центр управления семейным благополучием. Бюджет, счета, кредиты, цели и защита от мошенников — всё в одном месте, под рукой и под контролем."
+          steps={[
+            {
+              icon: 'Wallet',
+              title: 'Шаг 1. Добавьте счета',
+              description:
+                'Внесите счета, карты и накопления. Это основа: финансовый пульс семьи начинает работать сразу.',
+            },
+            {
+              icon: 'PieChart',
+              title: 'Шаг 2. Настройте бюджет',
+              description:
+                'Распределите доходы по категориям. Кэш-флоу прогноз покажет, куда движутся деньги.',
+            },
+            {
+              icon: 'Target',
+              title: 'Шаг 3. Поставьте цели',
+              description:
+                'Подушка безопасности, отпуск, крупные покупки. Стратегия погашения долгов — отдельный модуль.',
+            },
+            {
+              icon: 'Shield',
+              title: 'Шаг 4. Защита и финграмотность',
+              description:
+                'Антимошенник, скидочные карты, имущество и обучение — финансовая безопасность на каждый день.',
+            },
+          ]}
+          footer="12 модулей подключаются автоматически по мере заполнения. Начните с одного — остальное подтянется."
+        />
 
         <details className="rounded-xl bg-gradient-to-r from-emerald-500/10 via-green-500/5 to-transparent border border-emerald-200/50 group/privacy">
           <summary className="flex items-center gap-3 p-4 cursor-pointer list-none [&::-webkit-details-marker]:hidden">

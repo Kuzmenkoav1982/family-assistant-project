@@ -12,7 +12,7 @@ interface HowItWorksBlockProps {
   intro: string;
   steps: HowItWorksStep[];
   footer?: string;
-  accent?: 'violet' | 'amber' | 'pink' | 'blue' | 'emerald';
+  accent?: 'violet' | 'amber' | 'pink' | 'blue' | 'emerald' | 'rose' | 'slate' | 'sky' | 'indigo';
   title?: string;
   defaultOpen?: boolean;
 }
@@ -72,6 +72,50 @@ const ACCENTS = {
     icon: 'text-emerald-600',
     desc: 'text-emerald-800/70',
     footerText: 'text-emerald-800/80',
+  },
+  rose: {
+    border: 'border-rose-200',
+    bg: 'bg-gradient-to-br from-rose-50 via-pink-50 to-red-50',
+    iconBg: 'bg-rose-100 text-rose-600',
+    text: 'text-rose-900/80',
+    cardBorder: 'border-rose-100',
+    title: 'text-rose-900',
+    icon: 'text-rose-600',
+    desc: 'text-rose-800/70',
+    footerText: 'text-rose-800/80',
+  },
+  slate: {
+    border: 'border-slate-200',
+    bg: 'bg-gradient-to-br from-slate-50 via-gray-50 to-zinc-50',
+    iconBg: 'bg-slate-100 text-slate-600',
+    text: 'text-slate-900/80',
+    cardBorder: 'border-slate-100',
+    title: 'text-slate-900',
+    icon: 'text-slate-600',
+    desc: 'text-slate-800/70',
+    footerText: 'text-slate-800/80',
+  },
+  sky: {
+    border: 'border-sky-200',
+    bg: 'bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50',
+    iconBg: 'bg-sky-100 text-sky-600',
+    text: 'text-sky-900/80',
+    cardBorder: 'border-sky-100',
+    title: 'text-sky-900',
+    icon: 'text-sky-600',
+    desc: 'text-sky-800/70',
+    footerText: 'text-sky-800/80',
+  },
+  indigo: {
+    border: 'border-indigo-200',
+    bg: 'bg-gradient-to-br from-indigo-50 via-violet-50 to-purple-50',
+    iconBg: 'bg-indigo-100 text-indigo-600',
+    text: 'text-indigo-900/80',
+    cardBorder: 'border-indigo-100',
+    title: 'text-indigo-900',
+    icon: 'text-indigo-600',
+    desc: 'text-indigo-800/70',
+    footerText: 'text-indigo-800/80',
   },
 };
 
