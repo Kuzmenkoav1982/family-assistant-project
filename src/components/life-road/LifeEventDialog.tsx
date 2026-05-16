@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { readActorMemberId } from '@/lib/identity';
 import { CATEGORY_CONFIG, IMPORTANCE_CONFIG, type LifeEvent, type LifeEventCategory, type LifeEventImportance } from './types';
+import EventMemorySection from '@/components/memory/EventMemorySection';
 import func2url from '../../../backend/func2url.json';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
@@ -255,6 +256,14 @@ export default function LifeEventDialog({ open, onOpenChange, initialEvent, onSa
               )}
             </div>
           </div>
+
+          {isEdit && initialEvent?.id && (
+            <EventMemorySection
+              eventId={initialEvent.id}
+              eventTitle={initialEvent.title}
+              eventDate={initialEvent.date}
+            />
+          )}
 
           <div className="flex justify-end gap-2 pt-3 border-t">
             <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>

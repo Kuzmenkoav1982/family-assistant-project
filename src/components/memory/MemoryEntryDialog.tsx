@@ -27,6 +27,10 @@ interface MemoryEntryDialogProps {
   initialEntry?: MemoryEntry | null;
   initialMemberId?: number;
   initialEventId?: string;
+  /** Мягкие подсказки для новой памяти (заполняют только пустые поля). */
+  suggestedTitle?: string;
+  suggestedDate?: string;
+  suggestedLocation?: string;
   onSaved: (entry: MemoryEntry) => void;
 }
 
@@ -36,6 +40,9 @@ export default function MemoryEntryDialog({
   initialEntry,
   initialMemberId,
   initialEventId,
+  suggestedTitle,
+  suggestedDate,
+  suggestedLocation,
   onSaved,
 }: MemoryEntryDialogProps) {
   const isEdit = Boolean(initialEntry);
@@ -57,19 +64,29 @@ export default function MemoryEntryDialog({
   const [saving, setSaving] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
 
-  // Сброс при открытии
+  // Сброс при открытии: для новой памяти подставляем мягкие suggestions
   useEffect(() => {
     if (!open) return;
     setEntry(initialEntry ?? null);
-    setTitle(initialEntry?.title ?? '');
-    setCaption(initialEntry?.caption ?? '');
-    setStory(initialEntry?.story ?? '');
-    setMemoryDate(initialEntry?.memory_date ?? '');
-    setPeriodLabel(initialEntry?.memory_period_label ?? '');
-    setLocation(initialEntry?.location_label ?? '');
-    setMemberIds(initialEntry?.member_ids ?? (initialMemberId ? [initialMemberId] : []));
+    if (initialEntry) {
+      setTitle(initialEntry.title ?? '');
+      setCaption(initialEntry.caption ?? '');
+      setStory(initialEntry.story ?? '');
+      setMemoryDate(initialEntry.memory_date ?? '');
+      setPeriodLabel(initialEntry.memory_period_label ?? '');
+      setLocation(initialEntry.location_label ?? '');
+      setMemberIds(initialEntry.member_ids ?? []);
+    } else {
+      setTitle(suggestedTitle ?? '');
+      setCaption('');
+      setStory('');
+      setMemoryDate(suggestedDate ?? '');
+      setPeriodLabel('');
+      setLocation(suggestedLocation ?? '');
+      setMemberIds(initialMemberId ? [initialMemberId] : []);
+    }
     setMemberSearch('');
-  }, [open, initialEntry, initialMemberId]);
+  }, [open, initialEntry, initialMemberId, suggestedTitle, suggestedDate, suggestedLocation]);
 
   const assets = useMemo(
     () => (entry ? [...entry.assets].sort((a, b) => a.sort_order - b.sort_order) : []),
