@@ -10,12 +10,6 @@ import SectionHero from '@/components/ui/section-hero';
 import { useFamilyTraditions } from '@/hooks/useFamilyTraditions';
 import type { TraditionItem } from '@/lib/familyTraditions/api';
 
-const INITIAL_TRADITIONS: TraditionItem[] = [
-  { id: '1', name: 'Воскресный семейный обед', description: 'Каждое воскресенье мы собираемся всей семьей за большим столом', icon: '🍽️', frequency: 'weekly', nextDate: '', participants: [] },
-  { id: '2', name: 'Пятничный киновечер', description: 'Каждую пятницу вечером смотрим семейный фильм с попкорном', icon: '🎬', frequency: 'weekly', nextDate: '', participants: [] },
-  { id: '3', name: 'Сказка перед сном', description: 'Каждый вечер читаем сказку перед сном', icon: '📖', frequency: 'weekly', nextDate: '', participants: [] },
-];
-
 const FREQ_LABEL: Record<string, string> = { weekly: 'Еженедельно', monthly: 'Ежемесячно', yearly: 'Ежегодно' };
 const FREQ_COLOR: Record<string, string> = { weekly: 'bg-blue-500', monthly: 'bg-purple-500', yearly: 'bg-pink-500' };
 
@@ -24,7 +18,7 @@ export default function Culture() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { returnIfRequested } = useReturnToPortfolio();
 
-  const { traditions, loading, persistTraditions } = useFamilyTraditions(INITIAL_TRADITIONS);
+  const { traditions, loading, persistTraditions } = useFamilyTraditions();
 
   const handleAddTradition = useCallback(() => {
     const name = prompt('Название традиции:');

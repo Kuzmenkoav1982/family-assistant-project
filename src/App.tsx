@@ -23,6 +23,8 @@ import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BlogCoverJobProvider } from "@/contexts/BlogCoverJobContext";
 import BlogCoverJobIndicator from "@/components/admin/blog/BlogCoverJobIndicator";
+import { FamilyTraditionsProvider } from "@/contexts/FamilyTraditionsContext";
+import { DEFAULT_TRADITIONS } from "@/data/defaultTraditions";
 import { clearAuthSession } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
@@ -303,6 +305,7 @@ const App = () => {
         <DemoModeProvider>
           <DialogLockProvider>
             <FamilyMembersProvider>
+              <FamilyTraditionsProvider defaultItems={DEFAULT_TRADITIONS}>
               <AIAssistantProvider>
                 <BlogCoverJobProvider>
                 <TooltipProvider>
@@ -533,6 +536,7 @@ const App = () => {
                 </TooltipProvider>
                 </BlogCoverJobProvider>
               </AIAssistantProvider>
+              </FamilyTraditionsProvider>
             </FamilyMembersProvider>
           </DialogLockProvider>
         </DemoModeProvider>
