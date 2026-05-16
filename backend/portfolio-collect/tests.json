@@ -53,6 +53,36 @@
       "expectedStatus": 200,
       "expectedBody": {"collected": 0},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Live parity: Misha has grades+dreams+meds+traditions metrics",
+      "method": "GET",
+      "path": "/?member_id=3f1aa585-176f-4ec0-85d0-7973d36de053",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "by_source": {
+          "children_grades": 2,
+          "children_dreams": 2,
+          "children_medications": 1,
+          "traditions": 1
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Empty-state: Petya has only family traditions, no personal metrics",
+      "method": "GET",
+      "path": "/?member_id=aaaaaaaa-0000-4444-bbbb-cccccccccccc",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "by_source": {
+          "traditions": 1,
+          "children_grades": 0,
+          "children_dreams": 0,
+          "children_medications": 0
+        }
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
