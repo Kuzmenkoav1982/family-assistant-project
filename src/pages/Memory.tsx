@@ -21,6 +21,7 @@ import MemoryAlbumCard from '@/components/memory/MemoryAlbumCard';
 import MemoryAlbumDialog from '@/components/memory/MemoryAlbumDialog';
 import MemoryEntryDialog from '@/components/memory/MemoryEntryDialog';
 import MemoryEntryView from '@/components/memory/MemoryEntryView';
+import BulkAddToAlbumDialog from '@/components/memory/BulkAddToAlbumDialog';
 import type { MemoryAlbum, MemoryEntry } from '@/components/memory/types';
 
 export default function Memory() {
@@ -51,6 +52,7 @@ export default function Memory() {
   const [viewEntry, setViewEntry] = useState<MemoryEntry | null>(null);
   const [albumDialogOpen, setAlbumDialogOpen] = useState(false);
   const [editingAlbum, setEditingAlbum] = useState<MemoryAlbum | null>(null);
+  const [bulkAddOpen, setBulkAddOpen] = useState(false);
 
   const filterMember = useMemo(
     () => (filterMemberId ? members.find(m => m.id === filterMemberId) : null),
@@ -212,6 +214,7 @@ export default function Memory() {
             setAlbumDialogOpen(true);
           }}
           onArchive={handleArchiveAlbum}
+          onBulkAdd={() => setBulkAddOpen(true)}
         />
       )}
 
@@ -237,6 +240,7 @@ export default function Memory() {
           }
           filterLabel={filterMember?.name || filterEvent?.title || filterAlbum?.title}
           onAdd={() => setCreateOpen(true)}
+          onBulkAdd={filterAlbum ? () => setBulkAddOpen(true) : undefined}
           onClearFilter={hasFilter ? clearFilter : undefined}
         />
       ) : (
@@ -284,6 +288,17 @@ export default function Memory() {
         }}
         initialAlbum={editingAlbum}
         onSaved={() => reloadAlbums()}
+      />
+
+      <BulkAddToAlbumDialog
+        open={bulkAddOpen}
+        onOpenChange={setBulkAddOpen}
+        album={filterAlbum || null}
+        excludeEntryIds={new Set(entries.map(e => e.id))}
+        onAdded={() => {
+          reload();
+          reloadAlbums();
+        }}
       />
     </div>
   );
@@ -369,11 +384,13 @@ function AlbumHeader({
   onClear,
   onEdit,
   onArchive,
+  onBulkAdd,
 }: {
   album: MemoryAlbum;
   onClear: () => void;
   onEdit: () => void;
   onArchive: () => void;
+  onBulkAdd: () => void;
 }) {
   return (
     <div className="mb-4 rounded-xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
@@ -414,10 +431,21 @@ function AlbumHeader({
           </Button>
         </div>
       </div>
-      <Badge variant="secondary" className="mt-2 bg-white">
-        <Icon name="Images" size={11} className="mr-1" />
-        Новая память здесь автоматически попадёт в этот альбом
-      </Badge>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onBulkAdd}
+          className="border-amber-300 bg-white text-amber-900 hover:bg-amber-50"
+        >
+          <Icon name="FolderPlus" size={14} className="mr-1.5" />
+          Добавить существующие
+        </Button>
+        <Badge variant="secondary" className="bg-white">
+          <Icon name="Images" size={11} className="mr-1" />
+          Новая память здесь автоматически попадёт в этот альбом
+        </Badge>
+      </div>
     </div>
   );
 }
@@ -457,11 +485,13 @@ function EmptyState({
   filterKind,
   filterLabel,
   onAdd,
+  onBulkAdd,
   onClearFilter,
 }: {
   filterKind: 'member' | 'event' | 'album' | null;
   filterLabel?: string;
   onAdd: () => void;
+  onBulkAdd?: () => void;
   onClearFilter?: () => void;
 }) {
   let heading = 'Здесь будут жить семейные моменты';
@@ -470,7 +500,7 @@ function EmptyState({
   else if (filterKind === 'album' && filterLabel) heading = `Альбом «${filterLabel}» пока пуст`;
 
   const description = filterKind === 'album'
-    ? 'Создайте новую карточку памяти — она автоматически попадёт в этот альбом. Или добавьте уже существующие через кнопку «В альбом» при просмотре карточки.'
+    ? 'Соберите его из уже созданных карточек или создайте новую — она автоматически попадёт сюда.'
     : filterKind
       ? 'Создайте первую карточку памяти — фото, дата и короткая история. Контекст уже привязан.'
       : 'Добавьте первую карточку памяти: 1–10 фото, кто на них, дата и короткая история. Раз в месяц или раз в полгода — пополняйте альбом вместе с семьёй.';
@@ -483,9 +513,15 @@ function EmptyState({
       <h2 className="text-xl font-semibold">{heading}</h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+        {onBulkAdd && (
+          <Button onClick={onBulkAdd} size="lg" variant="outline">
+            <Icon name="FolderPlus" size={18} className="mr-1.5" />
+            Добавить существующие
+          </Button>
+        )}
         <Button onClick={onAdd} size="lg">
           <Icon name="Plus" size={18} className="mr-1.5" />
-          {filterKind ? 'Добавить первое' : 'Создать первую память'}
+          {filterKind ? 'Создать новую' : 'Создать первую память'}
         </Button>
         {onClearFilter && (
           <Button variant="ghost" size="lg" onClick={onClearFilter}>
