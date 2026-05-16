@@ -1,0 +1,1 @@
+UPDATE t_p5815085_family_assistant_pro.member_portfolios SET needs_refresh = TRUE, marked_dirty_at = now() WHERE member_id IN ('92e96008-f2cb-4561-8cef-8f196f8561dd', '217077d4-0686-43f7-853b-dfa7465e6c51', '40e4eece-5988-4133-a6bb-0aaaee4db0c2');

@@ -5,10 +5,10 @@ import psycopg2.extras
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from encryption_helper import encrypt_medical_fields, decrypt_medical_fields
-from _portfolio_refresh import trigger_portfolio_aggregate
+from _portfolio_enqueue import enqueue_portfolio_rebuild, trigger_fast_path
 
-# Version: 2025-01-17-02 - Portfolio refresh triggers on grade/dream/medication save
-VERSION = "2025-01-17-02"
+# Version: 2025-01-17-03 - Transactional outbox via portfolio_rebuild_queue
+VERSION = "2025-01-17-03"
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 
@@ -642,22 +642,40 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'success': False, 'error': f'Неизвестный тип данных: {data_type}'})
                     }
                 
-                # Portfolio refresh — best-effort, после commit, не ломает save
+                # Enqueue (autocommit conn) + fast-path после source commit
+                _add_actor_uid = None
                 if data_type in _PORTFOLIO_TYPES:
                     try:
-                        actor_uid = _get_actor_user_id(child_id, cur)
-                        if actor_uid:
-                            trigger_portfolio_aggregate(
-                                [child_id], actor_uid,
-                                reason=f'{data_type}_add',
-                                force_fail=_force_refresh_fail,
+                        _add_actor_uid = _get_actor_user_id(child_id, cur)
+                        _eq_conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                        _eq_conn.autocommit = True
+                        _eq_cur = _eq_conn.cursor()
+                        try:
+                            enqueue_portfolio_rebuild(
+                                cur=_eq_cur,
+                                member_ids=[child_id],
+                                requested_by_user_id=_add_actor_uid,
+                                reason=f'children-data:{data_type}:add',
                             )
+                        finally:
+                            _eq_cur.close()
+                            _eq_conn.close()
                     except Exception as _pe:
-                        print(f'[PORTFOLIO_REFRESH] error: {_pe}')
+                        print(f'[PORTFOLIO_ENQUEUE] error: {_pe}')
 
                 cur.close()
                 conn.close()
-                
+
+                if data_type in _PORTFOLIO_TYPES and _add_actor_uid:
+                    try:
+                        trigger_fast_path(
+                            [child_id], _add_actor_uid,
+                            reason=f'children-data:{data_type}:add',
+                            force_fail=_force_refresh_fail,
+                        )
+                    except Exception as _pe:
+                        print(f'[PORTFOLIO_FAST_PATH] error: {_pe}')
+
                 return {
                     'statusCode': 200,
                     'headers': headers,
@@ -816,22 +834,39 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 conn.commit()
 
-                # Portfolio refresh — best-effort, после commit, не ломает save
+                _upd_actor_uid = None
                 if data_type in _PORTFOLIO_TYPES:
                     try:
-                        actor_uid = _get_actor_user_id(child_id, cur)
-                        if actor_uid:
-                            trigger_portfolio_aggregate(
-                                [child_id], actor_uid,
-                                reason=f'{data_type}_update',
-                                force_fail=_force_refresh_fail,
+                        _upd_actor_uid = _get_actor_user_id(child_id, cur)
+                        _eq_conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                        _eq_conn.autocommit = True
+                        _eq_cur = _eq_conn.cursor()
+                        try:
+                            enqueue_portfolio_rebuild(
+                                cur=_eq_cur,
+                                member_ids=[child_id],
+                                requested_by_user_id=_upd_actor_uid,
+                                reason=f'children-data:{data_type}:update',
                             )
+                        finally:
+                            _eq_cur.close()
+                            _eq_conn.close()
                     except Exception as _pe:
-                        print(f'[PORTFOLIO_REFRESH] error: {_pe}')
+                        print(f'[PORTFOLIO_ENQUEUE] error: {_pe}')
 
                 cur.close()
                 conn.close()
-                
+
+                if data_type in _PORTFOLIO_TYPES and _upd_actor_uid:
+                    try:
+                        trigger_fast_path(
+                            [child_id], _upd_actor_uid,
+                            reason=f'children-data:{data_type}:update',
+                            force_fail=_force_refresh_fail,
+                        )
+                    except Exception as _pe:
+                        print(f'[PORTFOLIO_FAST_PATH] error: {_pe}')
+
                 return {
                     'statusCode': 200,
                     'headers': headers,
@@ -873,22 +908,39 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cur.execute(f"DELETE FROM {schema}.{table_map[data_type]} WHERE id = {record_id_safe}")
                 conn.commit()
 
-                # Portfolio refresh — best-effort, после commit, не ломает save
+                _del_actor_uid = None
                 if data_type in _PORTFOLIO_TYPES:
                     try:
-                        actor_uid = _get_actor_user_id(child_id, cur)
-                        if actor_uid:
-                            trigger_portfolio_aggregate(
-                                [child_id], actor_uid,
-                                reason=f'{data_type}_delete',
-                                force_fail=_force_refresh_fail,
+                        _del_actor_uid = _get_actor_user_id(child_id, cur)
+                        _eq_conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+                        _eq_conn.autocommit = True
+                        _eq_cur = _eq_conn.cursor()
+                        try:
+                            enqueue_portfolio_rebuild(
+                                cur=_eq_cur,
+                                member_ids=[child_id],
+                                requested_by_user_id=_del_actor_uid,
+                                reason=f'children-data:{data_type}:delete',
                             )
+                        finally:
+                            _eq_cur.close()
+                            _eq_conn.close()
                     except Exception as _pe:
-                        print(f'[PORTFOLIO_REFRESH] error: {_pe}')
+                        print(f'[PORTFOLIO_ENQUEUE] error: {_pe}')
 
                 cur.close()
                 conn.close()
-                
+
+                if data_type in _PORTFOLIO_TYPES and _del_actor_uid:
+                    try:
+                        trigger_fast_path(
+                            [child_id], _del_actor_uid,
+                            reason=f'children-data:{data_type}:delete',
+                            force_fail=_force_refresh_fail,
+                        )
+                    except Exception as _pe:
+                        print(f'[PORTFOLIO_FAST_PATH] error: {_pe}')
+
                 return {
                     'statusCode': 200,
                     'headers': headers,
