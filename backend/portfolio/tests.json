@@ -125,6 +125,47 @@
       "method": "GET",
       "path": "/?action=cron_snapshot",
       "expectedStatus": 403
+    },
+    {
+      "name": "debug=1 без auth = 401 (контракт не меняется)",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053&debug=1",
+      "expectedStatus": 401
+    },
+    {
+      "name": "debug=1 Миша: intellect grades_average, values dreams+traditions, body medications",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053&debug=1",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {
+        "debug": {
+          "age_group": "7-10",
+          "sphere_details": {
+            "intellect": {"score": 4.0, "coverage": {"matched_groups": 1}},
+            "values": {"score": 1.4, "coverage": {"matched_groups": 2}},
+            "body": {"score": 3.0, "coverage": {"matched_groups": 1}}
+          }
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "debug=1 Петя: intellect/body пустые, values только traditions",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=aaaaaaaa-0000-4444-bbbb-cccccccccccc&debug=1",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {
+        "debug": {
+          "sphere_details": {
+            "intellect": {"matched_metrics": [], "coverage": {"matched_groups": 0}},
+            "body": {"matched_metrics": [], "coverage": {"matched_groups": 0}},
+            "values": {"coverage": {"matched_groups": 1}}
+          }
+        }
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

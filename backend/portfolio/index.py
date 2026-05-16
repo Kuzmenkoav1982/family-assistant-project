@@ -252,39 +252,64 @@ def fetch_metrics(cur, member_id: str) -> List[Dict[str, Any]]:
     return [dict(r) for r in cur.fetchall()]
 
 
-def calc_sphere(sphere: str, rules: List[Dict[str, Any]], metrics: List[Dict[str, Any]]) -> Dict[str, Any]:
+def calc_sphere(
+    sphere: str,
+    rules: List[Dict[str, Any]],
+    metrics: List[Dict[str, Any]],
+    debug: bool = False,
+) -> Dict[str, Any]:
     """
     Считает score (0-100) и confidence (0-100) для одной сферы.
     Score: взвешенная сумма ТОЛЬКО по доступным группам метрик.
     Confidence: 50% coverage + 30% freshness + 20% diversity.
+
+    При debug=True возвращает дополнительные поля:
+      matched_metrics  — метрики, реально участвовавшие в score
+      missing_groups   — metric_group без покрытия
+      unused_metrics   — метрики сферы, не покрытые ни одним rule
+      coverage         — {matched_groups, total_groups}
     """
     sphere_rules = [r for r in rules if r['sphere_key'] == sphere]
     sphere_metrics = [m for m in metrics if m['sphere_key'] == sphere]
 
     if not sphere_rules:
-        return {'score': 0, 'confidence': 0, 'metric_count': 0, 'sources': []}
+        base = {'score': 0, 'confidence': 0, 'metric_count': 0, 'sources': []}
+        if debug:
+            base.update({
+                'matched_metrics': [], 'missing_groups': [],
+                'unused_metrics': [], 'coverage': {'matched_groups': 0, 'total_groups': 0},
+            })
+        return base
 
-    # Группируем правила и метрики по metric_group
-    groups = {}
+    # Группируем правила по metric_group
+    groups: Dict[str, List[Dict[str, Any]]] = {}
     for r in sphere_rules:
         groups.setdefault(r['metric_group'], []).append(r)
 
-    available_groups_weights = []
-    available_group_scores = []
-
+    # metric_key → список метрик
     metrics_by_key: Dict[str, List[Dict[str, Any]]] = {}
     for m in sphere_metrics:
         metrics_by_key.setdefault(m['metric_key'], []).append(m)
 
+    # rule metric_keys для фильтрации unused
+    all_rule_keys: set = {r['metric_key'] for r in sphere_rules}
+
+    available_groups_weights: List[float] = []
+    available_group_scores: List[float] = []
     expected_metrics_total = 0
     found_metrics_total = 0
+
+    # Debug collectors
+    matched_metrics_debug: List[Dict[str, Any]] = []
+    matched_groups: List[str] = []
+    missing_groups: List[str] = []
 
     for group_name, group_rules in groups.items():
         group_weight_sum = sum(float(r['weight']) for r in group_rules)
         if group_weight_sum == 0:
             continue
 
-        group_metric_scores = []
+        group_metric_scores: List[float] = []
         group_has_data = False
 
         for r in group_rules:
@@ -294,22 +319,35 @@ def calc_sphere(sphere: str, rules: List[Dict[str, Any]], metrics: List[Dict[str
 
             if mkey in metrics_by_key:
                 vals = metrics_by_key[mkey]
-                # Берём последние expected значений
                 recent = sorted(vals, key=lambda x: x['measured_at'], reverse=True)[:expected]
                 if recent:
                     nums = [float(v['metric_value']) for v in recent if v['metric_value'] is not None]
                     if nums:
                         avg = sum(nums) / len(nums)
-                        # Учитываем coverage внутри метрики (если меньше ожидаемого — штраф)
-                        coverage = min(1.0, len(nums) / expected)
-                        group_metric_scores.append(avg * coverage * float(r['weight']))
+                        cov = min(1.0, len(nums) / expected)
+                        weighted = avg * cov * float(r['weight'])
+                        group_metric_scores.append(weighted)
                         group_has_data = True
                         found_metrics_total += len(nums)
+                        if debug:
+                            matched_metrics_debug.append({
+                                'metric_key': mkey,
+                                'source_type': vals[0].get('source_type', ''),
+                                'raw_value': round(avg, 3),
+                                'weight': float(r['weight']),
+                                'metric_group': group_name,
+                                'contribution': round(weighted, 3),
+                            })
 
         if group_has_data:
             score_in_group = sum(group_metric_scores) / group_weight_sum
             available_groups_weights.append(group_weight_sum)
             available_group_scores.append(score_in_group * group_weight_sum)
+            if debug:
+                matched_groups.append(group_name)
+        else:
+            if debug:
+                missing_groups.append(group_name)
 
     if available_groups_weights:
         total_w = sum(available_groups_weights)
@@ -318,28 +356,42 @@ def calc_sphere(sphere: str, rules: List[Dict[str, Any]], metrics: List[Dict[str
         score = 0.0
 
     # Confidence
-    coverage = min(1.0, found_metrics_total / max(1, expected_metrics_total))
-
-    # Freshness — экспоненциальный спад от самого свежего измерения
+    coverage_ratio = min(1.0, found_metrics_total / max(1, expected_metrics_total))
     freshness = 0.0
     if sphere_metrics:
         most_recent = max(sphere_metrics, key=lambda x: x['measured_at'])
         days_old = (datetime.now(timezone.utc) - most_recent['measured_at'].replace(tzinfo=timezone.utc)).days
-        # 90 дней = 0.5
         freshness = max(0.0, min(1.0, 0.5 ** (days_old / 90.0)))
-
-    # Diversity — % уникальных metric_group из 4
     available_groups_count = len(available_groups_weights)
     diversity = available_groups_count / 4.0
+    confidence = 0.5 * coverage_ratio + 0.3 * freshness + 0.2 * diversity
 
-    confidence = 0.5 * coverage + 0.3 * freshness + 0.2 * diversity
-
-    return {
+    result = {
         'score': round(min(100, max(0, score)), 1),
         'confidence': round(min(100, max(0, confidence * 100)), 1),
         'metric_count': len(sphere_metrics),
         'sources': list(set(m['source_type'] for m in sphere_metrics)),
     }
+
+    if debug:
+        unused = [
+            {
+                'metric_key': m['metric_key'],
+                'source_type': m.get('source_type', ''),
+                'reason': 'no_matching_rule' if m['metric_key'] not in all_rule_keys else 'informational_only',
+            }
+            for m in sphere_metrics
+            if m['metric_key'] not in {mm['metric_key'] for mm in matched_metrics_debug}
+        ]
+        result['matched_metrics'] = matched_metrics_debug
+        result['missing_groups'] = missing_groups
+        result['unused_metrics'] = unused
+        result['coverage'] = {
+            'matched_groups': len(matched_groups),
+            'total_groups': len(groups),
+        }
+
+    return result
 
 
 def find_strengths_growth(scores: Dict[str, float], confidences: Dict[str, float]) -> Dict[str, List[str]]:
@@ -419,7 +471,7 @@ def collect_metrics_inline(cur, member_id: str) -> None:
     _shared_collect_all(cur, SCHEMA, member_id)
 
 
-def aggregate(member_id: str) -> Dict[str, Any]:
+def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
@@ -441,7 +493,7 @@ def aggregate(member_id: str) -> Dict[str, Any]:
         confidences = {}
         sphere_details = {}
         for sphere in SPHERE_KEYS:
-            res = calc_sphere(sphere, rules, metrics)
+            res = calc_sphere(sphere, rules, metrics, debug=debug)
             scores[sphere] = res['score']
             confidences[sphere] = res['confidence']
             sphere_details[sphere] = res
@@ -499,6 +551,25 @@ def aggregate(member_id: str) -> Dict[str, Any]:
             'completeness': completeness,
             'aggregated_at': datetime.now(timezone.utc).isoformat(),
         }
+
+        # debug-блок: только при debug=True, не сохраняется в БД, не меняет обычный контракт
+        if debug:
+            debug_spheres = {}
+            for sphere in SPHERE_KEYS:
+                sd = sphere_details[sphere]
+                debug_spheres[sphere] = {
+                    'score': sd['score'],
+                    'confidence': sd['confidence'],
+                    'coverage': sd.get('coverage', {'matched_groups': 0, 'total_groups': 0}),
+                    'matched_metrics': sd.get('matched_metrics', []),
+                    'missing_groups': sd.get('missing_groups', []),
+                    'unused_metrics': sd.get('unused_metrics', []),
+                }
+            result['debug'] = {
+                'age_group': age_group,
+                'sphere_details': debug_spheres,
+            }
+
     finally:
         cur.close()
         conn.close()
@@ -1400,6 +1471,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     member_id = params.get('member_id')
     family_id = params.get('family_id')
     plan_id = params.get('plan_id')
+    debug_mode = params.get('debug', '') in ('1', 'true', 'yes')
 
     try:
         # ===== Системный action: cron =====
@@ -1439,7 +1511,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if action == 'list':
             data = list_family_portfolios(family_id)
         elif action == 'aggregate':
-            data = aggregate(member_id)
+            data = aggregate(member_id, debug=debug_mode)
         elif action == 'get':
             data = get_portfolio(member_id)
         elif action == 'snapshot':
