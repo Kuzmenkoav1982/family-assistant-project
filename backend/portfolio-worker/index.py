@@ -9,14 +9,12 @@ Business: Portfolio Rebuild Worker — фоновая обработка portfol
 Actions (query param action=):
   run        — обработать до limit задач (default: 10)
   run_once   — обработать ровно 1 задачу
-  health     — статус очереди без обработки
+  health     — статус очереди (публичный, read-only)
 
-Auth (cron → worker):
-  Authorization: Bearer <CRON_SECRET>
-  или X-Authorization: Bearer <CRON_SECRET>
-
-Auth (worker → portfolio):
-  Authorization: Bearer <PORTFOLIO_INTERNAL_TOKEN>  (proxy remaps → X-Authorization)
+Auth:
+  run / run_once: Authorization: Bearer <CRON_SECRET>
+  Proxy remaps: внешний Authorization → X-Authorization внутри функции.
+  Читаем оба варианта.
 """
 
 import json
@@ -414,37 +412,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             result = run_worker(actual_limit)
             return ok(result)
 
-        if action == 'enqueue_test':
-            member_id = params.get('member_id', '40e4eece-5988-4133-a6bb-0aaaee4db0c2')
-            conn2 = get_conn()
-            conn2.autocommit = True
-            cur2 = conn2.cursor()
-            try:
-                cur2.execute(f"""
-                    INSERT INTO {SCHEMA}.portfolio_rebuild_queue
-                        (member_id, requested_by_user_id, reasons, priority, next_attempt_at)
-                    VALUES
-                        ({esc(member_id)}::uuid, {esc(member_id)}::uuid,
-                         '{{"smoke:bearer-auth-test"}}', 5, now())
-                    ON CONFLICT (member_id) DO UPDATE SET
-                        reasons        = EXCLUDED.reasons,
-                        locked_at      = NULL,
-                        locked_by      = NULL,
-                        next_attempt_at = now(),
-                        attempts       = 0,
-                        updated_at     = now()
-                """)
-                cur2.execute(f"""
-                    UPDATE {SCHEMA}.member_portfolios
-                    SET needs_refresh = TRUE, marked_dirty_at = now(), updated_at = now()
-                    WHERE member_id = {esc(member_id)}::uuid
-                """)
-            finally:
-                cur2.close()
-                conn2.close()
-            return ok({'enqueued': member_id, 'ok': True})
-
-        return err(400, f'Unknown action: {action}. Use: run | run_once | health | enqueue_test')
+        return err(400, f'Unknown action: {action}. Use: run | run_once | health')
 
     except Exception as exc:
         return err(500, str(exc))
