@@ -22,6 +22,8 @@ import MemoryAlbumDialog from '@/components/memory/MemoryAlbumDialog';
 import MemoryEntryDialog from '@/components/memory/MemoryEntryDialog';
 import MemoryEntryView from '@/components/memory/MemoryEntryView';
 import BulkAddToAlbumDialog from '@/components/memory/BulkAddToAlbumDialog';
+import SelectAlbumCoverDialog from '@/components/memory/SelectAlbumCoverDialog';
+import { resolveAlbumCover } from '@/components/memory/coverResolver';
 import type { MemoryAlbum, MemoryEntry } from '@/components/memory/types';
 
 export default function Memory() {
@@ -53,6 +55,7 @@ export default function Memory() {
   const [albumDialogOpen, setAlbumDialogOpen] = useState(false);
   const [editingAlbum, setEditingAlbum] = useState<MemoryAlbum | null>(null);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
+  const [coverDialogOpen, setCoverDialogOpen] = useState(false);
 
   const filterMember = useMemo(
     () => (filterMemberId ? members.find(m => m.id === filterMemberId) : null),
@@ -208,6 +211,7 @@ export default function Memory() {
       {filterAlbum && (
         <AlbumHeader
           album={filterAlbum}
+          coverUrl={resolveAlbumCover(filterAlbum, entries)}
           onClear={clearFilter}
           onEdit={() => {
             setEditingAlbum(filterAlbum);
@@ -215,6 +219,7 @@ export default function Memory() {
           }}
           onArchive={handleArchiveAlbum}
           onBulkAdd={() => setBulkAddOpen(true)}
+          onPickCover={() => setCoverDialogOpen(true)}
         />
       )}
 
@@ -300,6 +305,13 @@ export default function Memory() {
           reloadAlbums();
         }}
       />
+
+      <SelectAlbumCoverDialog
+        open={coverDialogOpen}
+        onOpenChange={setCoverDialogOpen}
+        album={filterAlbum || null}
+        onSaved={() => reloadAlbums()}
+      />
     </div>
   );
 }
@@ -317,14 +329,8 @@ function AlbumShelf({
   onOpen: (a: MemoryAlbum) => void;
   onCreate: () => void;
 }) {
-  const getCover = (album: MemoryAlbum): string | null => {
-    if (!album.cover_asset_id) return null;
-    for (const e of entries) {
-      const a = e.assets.find(a => a.id === album.cover_asset_id);
-      if (a) return a.file_url;
-    }
-    return null;
-  };
+  const getCover = (album: MemoryAlbum): string | null =>
+    resolveAlbumCover(album, entries);
 
   if (loading) {
     return (
@@ -381,31 +387,54 @@ function AlbumShelf({
 
 function AlbumHeader({
   album,
+  coverUrl,
   onClear,
   onEdit,
   onArchive,
   onBulkAdd,
+  onPickCover,
 }: {
   album: MemoryAlbum;
+  coverUrl: string | null;
   onClear: () => void;
   onEdit: () => void;
   onArchive: () => void;
   onBulkAdd: () => void;
+  onPickCover: () => void;
 }) {
   return (
     <div className="mb-4 rounded-xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
-            <Icon name="BookHeart" size={16} className="text-amber-700" />
-            <span className="text-xs font-medium uppercase tracking-wide text-amber-700">
-              Альбом
-            </span>
-          </div>
-          <h2 className="text-xl font-bold text-amber-950">{album.title}</h2>
-          {album.description && (
-            <p className="mt-1 text-sm text-amber-900/80">{album.description}</p>
+        <div className="flex min-w-0 flex-1 items-start gap-3">
+          {coverUrl && (
+            <button
+              type="button"
+              onClick={onPickCover}
+              className="group relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 border-amber-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary sm:h-20 sm:w-20"
+              title="Сменить обложку"
+            >
+              <img src={coverUrl} alt={album.title} className="h-full w-full object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/40">
+                <Icon
+                  name="Pencil"
+                  size={14}
+                  className="text-white opacity-0 transition-opacity group-hover:opacity-100"
+                />
+              </div>
+            </button>
           )}
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <Icon name="BookHeart" size={16} className="text-amber-700" />
+              <span className="text-xs font-medium uppercase tracking-wide text-amber-700">
+                Альбом
+              </span>
+            </div>
+            <h2 className="text-xl font-bold text-amber-950">{album.title}</h2>
+            {album.description && (
+              <p className="mt-1 text-sm text-amber-900/80">{album.description}</p>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <DropdownMenu>
@@ -418,6 +447,10 @@ function AlbumHeader({
               <DropdownMenuItem onClick={onEdit}>
                 <Icon name="Pencil" size={14} className="mr-2" />
                 Редактировать
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onPickCover}>
+                <Icon name="Image" size={14} className="mr-2" />
+                Выбрать обложку
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onArchive} className="text-destructive">
                 <Icon name="Archive" size={14} className="mr-2" />
