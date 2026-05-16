@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS t_p5815085_family_assistant_pro.portfolio_rebuild_dead_letter (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), member_id uuid NOT NULL, reasons jsonb NOT NULL DEFAULT '[]', attempts int NOT NULL, last_error text, payload jsonb NOT NULL DEFAULT '{}', moved_at timestamptz NOT NULL DEFAULT now());

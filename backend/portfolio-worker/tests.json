@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {"name": "OPTIONS preflight", "method": "OPTIONS", "path": "/", "expectedStatus": 200},
+    {"name": "No auth = 403", "method": "GET", "path": "/?action=run", "expectedStatus": 403},
+    {"name": "Wrong cron token = 403", "method": "GET", "path": "/?action=health", "headers": {"X-Cron-Secret": "definitely-wrong-token"}, "expectedStatus": 403},
+    {"name": "Wrong internal token = 403", "method": "GET", "path": "/?action=health", "headers": {"X-Internal-Token": "wrong-xyz"}, "expectedStatus": 403},
+    {"name": "Unknown action no auth = 403", "method": "GET", "path": "/?action=unknown", "expectedStatus": 403}
+  ]
+}

@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_portfolio_rebuild_dlq_member ON t_p5815085_family_assistant_pro.portfolio_rebuild_dead_letter (member_id);

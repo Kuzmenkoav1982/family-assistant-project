@@ -146,7 +146,7 @@ def _refresh_portfolio_for_family(family_id: str, user_id: str, cur) -> None:
 
 
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
-    """Семейные традиции: GET — список, PUT — полная синхронизация."""
+    """Семейные традиции: GET — список, PUT — полная синхронизация. v2."""
     method = event.get('httpMethod', 'GET')
 
     if method == 'OPTIONS':

@@ -1000,7 +1000,7 @@ def gen_ai_insights(member_id: str) -> Dict[str, Any]:
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
             data = json.loads(resp.read().decode('utf-8'))
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+    except Exception as e:
         return {'insights': [], 'count': 0, 'error': f'AI request failed: {str(e)[:200]}'}
 
     text = ''
