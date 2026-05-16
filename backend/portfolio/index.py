@@ -735,6 +735,7 @@ def get_portfolio(member_id: str, debug: bool = False) -> Dict[str, Any]:
             'sphere_labels_child': SPHERE_LABELS_CHILD,
             'sphere_icons': SPHERE_ICONS,
             'last_aggregated_at': portfolio['last_aggregated_at'].isoformat(),
+            'needs_refresh': bool(portfolio.get('needs_refresh', False)),
         }
 
         # debug-блок из сохранённого snapshot (без пересчёта)

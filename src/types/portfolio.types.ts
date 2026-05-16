@@ -114,6 +114,7 @@ export interface PortfolioData {
   sphere_labels_child: Record<SphereKey, string>;
   sphere_icons: Record<SphereKey, string>;
   last_aggregated_at: string;
+  needs_refresh?: boolean;
 }
 
 export interface FamilyPortfolioListItem {

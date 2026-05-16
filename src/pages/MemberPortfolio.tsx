@@ -35,6 +35,7 @@ export default function MemberPortfolio() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [pollCount, setPollCount] = useState(0);
   const { toast } = useToast();
   const pdfEnabled = useFeatureFlag('portfolio_pdf_export', true);
   const aiEnabled = useFeatureFlag('portfolio_ai_insights', true);
@@ -58,6 +59,19 @@ export default function MemberPortfolio() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Авто-поллинг пока needs_refresh=true: проверяем каждые 20 сек, максимум 6 раз (2 мин)
+  useEffect(() => {
+    if (!data?.needs_refresh || !memberId) return;
+    if (pollCount >= 6) return;
+    const timer = setTimeout(() => {
+      portfolioApi.get(memberId).then((fresh) => {
+        setData(fresh);
+        setPollCount((n) => n + 1);
+      }).catch(() => {});
+    }, 20_000);
+    return () => clearTimeout(timer);
+  }, [data?.needs_refresh, memberId, pollCount]);
 
   const handleRefresh = async () => {
     if (!memberId || refreshing) return;
@@ -208,6 +222,20 @@ export default function MemberPortfolio() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <SEOHead title={`Портфолио ${data.member.name}`} description="Паспорт развития" />
       <div className="container mx-auto max-w-5xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+        {/* Баннер «данные обновляются» — показывается пока needs_refresh=true */}
+        {data.needs_refresh && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 print:hidden"
+          >
+            <Icon name="Loader2" size={15} className="shrink-0 animate-spin text-amber-500" />
+            <span>
+              <span className="font-medium">Данные обновляются</span>
+              {' — '}обычно это занимает меньше минуты. Страница обновится автоматически.
+            </span>
+          </div>
+        )}
         {/* Hero action-bar (Sprint B): timestamp + Refresh CTA + secondary actions.
             Карточный фон в стиле Goals/Hub. Сам PortfolioHeader — без изменений. */}
         <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center gap-3 print:hidden">
