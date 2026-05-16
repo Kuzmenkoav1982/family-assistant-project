@@ -32,8 +32,6 @@ import {
 //   - НЕ трогаем Member detail, sphere detail, snapshot-цикл
 //   - НЕ выносим shared primitives заранее — только по факту нужды
 
-const SPRING_DEMO_MEMBER_ID = '000000d1-0000-0000-0000-000000000001';
-
 function HubSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" aria-hidden>
@@ -390,23 +388,7 @@ export default function FamilyPortfolio() {
           )}
         </div>
 
-        {/* Песочница / демо-портфолио — только если у пользователя
-            нет своих участников или они только начинают */}
-        {!loading && !error && (items.length === 0 || summary.withPortfolio === 0) && (
-          <div className="bg-white/70 rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm flex flex-col items-center text-center gap-2">
-            <p className="text-xs sm:text-sm text-gray-600 max-w-md">
-              Хотите посмотреть, как выглядит готовое портфолио? Откройте демо-профиль Ильи (5 лет).
-            </p>
-            <Button
-              size="sm"
-              onClick={() => navigate(`/portfolio/${SPRING_DEMO_MEMBER_ID}`)}
-              className="bg-gradient-to-r from-amber-400 to-orange-500 text-white border-0 shadow-sm"
-            >
-              <Icon name="Sparkles" size={14} className="mr-1.5" />
-              Открыть песочницу
-            </Button>
-          </div>
-        )}
+
       </div>
     </div>
   );
