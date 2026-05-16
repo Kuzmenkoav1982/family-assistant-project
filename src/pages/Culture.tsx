@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import SEOHead from "@/components/SEOHead";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,26 +9,85 @@ import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
 import type { Tradition } from '@/types/family.types';
 import { initialTraditions } from '@/data/mockData';
+import { readActorUserId } from '@/lib/identity';
+import func2url from '../../backend/func2url.json';
+
+const API_URL = func2url['family-traditions'];
+
+function buildHeaders(): Record<string, string> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const uid = readActorUserId();
+  if (uid) headers['X-User-Id'] = uid;
+  return headers;
+}
+
+async function fetchTraditions(): Promise<Tradition[]> {
+  const res = await fetch(API_URL, { headers: buildHeaders() });
+  if (!res.ok) throw new Error(`${res.status}`);
+  const data = await res.json();
+  return (data.traditions || []) as Tradition[];
+}
+
+async function syncTraditions(items: Tradition[]): Promise<void> {
+  const res = await fetch(API_URL, {
+    method: 'PUT',
+    headers: buildHeaders(),
+    body: JSON.stringify({ items }),
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+}
+
+const LS_KEY = 'traditions';
 
 export default function Culture() {
   const navigate = useNavigate();
-  const [traditions, setTraditions] = useState<Tradition[]>(() => {
-    const saved = localStorage.getItem('traditions');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return initialTraditions;
-      }
-    }
-    return initialTraditions;
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { returnIfRequested } = useReturnToPortfolio();
+
+  const [traditions, setTraditions] = useState<Tradition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('traditions', JSON.stringify(traditions));
-  }, [traditions]);
+    let cancelled = false;
+    fetchTraditions()
+      .then((remote) => {
+        if (cancelled) return;
+        if (remote.length > 0) {
+          setTraditions(remote);
+          localStorage.removeItem(LS_KEY);
+        } else {
+          const saved = localStorage.getItem(LS_KEY);
+          const local: Tradition[] = saved ? JSON.parse(saved) : initialTraditions;
+          setTraditions(local);
+          if (local.length > 0) {
+            syncTraditions(local).catch(() => null);
+            localStorage.removeItem(LS_KEY);
+          }
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const saved = localStorage.getItem(LS_KEY);
+        setTraditions(saved ? JSON.parse(saved) : initialTraditions);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
-  const handleAddTradition = () => {
+  const persistTraditions = useCallback((next: Tradition[]) => {
+    setTraditions(next);
+    if (syncTimeout.current) clearTimeout(syncTimeout.current);
+    syncTimeout.current = setTimeout(() => {
+      syncTraditions(next).catch(() => {
+        localStorage.setItem(LS_KEY, JSON.stringify(next));
+      });
+    }, 500);
+  }, []);
+
+  const handleAddTradition = useCallback(() => {
     const name = prompt('Название традиции:');
     if (!name) return;
     const description = prompt('Описание традиции:');
@@ -41,15 +101,32 @@ export default function Culture() {
       description: description || '',
       icon,
       frequency,
-      nextDate: nextDate || new Date().toISOString().split('T')[0]
+      nextDate: nextDate || new Date().toISOString().split('T')[0],
     };
 
-    setTraditions(prev => [...prev, newTradition]);
-  };
+    persistTraditions([...traditions, newTradition]);
+    returnIfRequested();
+  }, [returnIfRequested, traditions, persistTraditions]);
+
+  // D.1: deep-link из портфолио — ?action=add-ritual или ?action=add-tradition
+  const actionHandled = useRef(false);
+  useEffect(() => {
+    if (actionHandled.current || loading) return;
+    const action = searchParams.get('action');
+    if (action === 'add-ritual' || action === 'add-tradition') {
+      actionHandled.current = true;
+      const next = new URLSearchParams(searchParams);
+      next.delete('action');
+      next.delete('tab');
+      next.delete('from');
+      setSearchParams(next, { replace: true });
+      setTimeout(() => handleAddTradition(), 100);
+    }
+  }, [searchParams, setSearchParams, handleAddTradition, loading]);
 
   const handleDeleteTradition = (id: string) => {
     if (window.confirm('Удалить эту традицию?')) {
-      setTraditions(prev => prev.filter(t => t.id !== id));
+      persistTraditions(traditions.filter(t => t.id !== id));
     }
   };
 
@@ -73,7 +150,7 @@ export default function Culture() {
 
   return (
     <>
-    <SEOHead title="Традиции семьи — обычаи и ритуалы" description="Семейные традиции и обычаи: праздничные ритуалы, кулинарные тр��диции, семейные игры. Сохраняйте и передавайте поколениям." path="/culture" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Традиции", path: "/culture" }]} />
+    <SEOHead title="Традиции семьи — обычаи и ритуалы" description="Семейные традиции и обычаи: праздничные ритуалы, кулинарные традиции, семейные игры. Сохраняйте и передавайте поколениям." path="/culture" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Традиции", path: "/culture" }]} />
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
       <div className="max-w-5xl mx-auto p-4 space-y-6">
         <SectionHero
@@ -129,64 +206,73 @@ export default function Culture() {
           <Button
             onClick={handleAddTradition}
             className="bg-gradient-to-r from-amber-500 to-orange-500"
+            disabled={loading}
           >
             <Icon name="Plus" className="mr-2" size={16} />
             Добавить традицию
           </Button>
         </div>
 
-        <div className="grid gap-4">
-          {traditions.length > 0 ? traditions.map((tradition, idx) => (
-            <Card
-              key={tradition.id}
-              className="animate-fade-in hover:shadow-lg transition-all"
-              style={{ animationDelay: `${idx * 0.1}s` }}
-            >
-              <CardHeader>
-                <CardTitle>
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{tradition.icon}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span>{tradition.name}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`${getFrequencyColor(tradition.frequency)} text-white`}>
-                            {getFrequencyLabel(tradition.frequency)}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteTradition(tradition.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Icon name="Trash2" size={16} />
-                          </Button>
+        {loading ? (
+          <div className="flex justify-center py-12">
+            <div className="w-8 h-8 border-4 border-amber-400 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {traditions.length > 0 ? traditions.map((tradition, idx) => (
+              <Card
+                key={tradition.id}
+                className="animate-fade-in hover:shadow-lg transition-all"
+                style={{ animationDelay: `${idx * 0.1}s` }}
+              >
+                <CardHeader>
+                  <CardTitle>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{tradition.icon}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <span>{tradition.name ?? tradition.title}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${getFrequencyColor(tradition.frequency)} text-white`}>
+                              {getFrequencyLabel(tradition.frequency)}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteTradition(tradition.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Icon name="Trash2" size={16} />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-3">{tradition.description}</p>
+                  {tradition.nextDate && (
+                    <div className="text-sm text-muted-foreground">
+                      <Icon name="Calendar" size={14} className="inline mr-1" />
+                      Следующая: {tradition.nextDate}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icon name="Sparkles" size={40} className="text-amber-600" />
                   </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-3">{tradition.description}</p>
-                <div className="text-sm text-muted-foreground">
-                  <Icon name="Calendar" size={14} className="inline mr-1" />
-                  Следующая: {tradition.nextDate}
-                </div>
-              </CardContent>
-            </Card>
-          )) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Icon name="Sparkles" size={40} className="text-amber-600" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Нет традиций</h3>
-                <p className="text-sm text-muted-foreground">Создайте семейные традиции, которые объединяют вас</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                  <h3 className="text-lg font-semibold mb-2">Нет традиций</h3>
+                  <p className="text-sm text-muted-foreground">Создайте семейные традиции, которые объединяют вас</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
     </>

@@ -44,27 +44,36 @@ const defaultRoles: AIAssistantRole[] = [
   { id: 'mechanic', name: 'Автомеханик', icon: 'Wrench', description: 'Авто и обслуживание', emoji: '🔧' }
 ];
 
+// SSR-safe helper: на prerender-фазе localStorage отсутствует.
+function readLS(key: string): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
 export function AIAssistantProvider({ children }: { children: React.ReactNode }) {
   const [hasCompletedSetup, setHasCompletedSetup] = useState<boolean>(() => {
-    return localStorage.getItem('assistantSetupCompleted') === 'true';
+    return readLS('assistantSetupCompleted') === 'true';
   });
 
   const [assistantType, setAssistantTypeState] = useState<AssistantType | null>(() => {
-    const saved = localStorage.getItem('assistantType');
-    return saved as AssistantType | null;
+    return readLS('assistantType') as AssistantType | null;
   });
 
   const [assistantName, setAssistantNameState] = useState<string>(() => {
-    return localStorage.getItem('assistantName') || '';
+    return readLS('assistantName') || '';
   });
 
   const [assistantLevel, setAssistantLevelState] = useState<number>(() => {
-    const saved = localStorage.getItem('assistantLevel');
+    const saved = readLS('assistantLevel');
     return saved ? parseInt(saved) : 1;
   });
 
   const [selectedRole, setSelectedRoleState] = useState<AIAssistantRole | null>(() => {
-    const saved = localStorage.getItem('assistantRole');
+    const saved = readLS('assistantRole');
     if (saved) {
       return defaultRoles.find(r => r.id === saved) || null;
     }

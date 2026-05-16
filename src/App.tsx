@@ -33,8 +33,12 @@ import { ProtectedRoute, AdminRoute } from "@/components/RouteGuards";
 
 // Side-effect: глобальный fetch-перехватчик (auth header proxy и т.п.).
 // Должен инициализироваться до первого fetch в приложении, поэтому стоит
-// сразу после импортов на module level.
-installFetchInterceptor();
+// сразу после импортов на module level. SSR-safe гард: на prerender-фазе
+// `window` отсутствует — инициализацию пропускаем (на клиенте отработает
+// при гидрации, см. AuthProvider).
+if (typeof window !== 'undefined') {
+  installFetchInterceptor();
+}
 
 // ─── Core / Index ──────────────────────────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -93,6 +97,7 @@ const FamilyMatrixAstrology = lazy(() => import("./pages/FamilyMatrixAstrology")
 
 // ─── Portfolio / Development ───────────────────────────────────────────────
 const MemberPortfolio = lazy(() => import("./pages/MemberPortfolio"));
+const SphereDetail = lazy(() => import("./pages/SphereDetail"));
 const FamilyPortfolio = lazy(() => import("./pages/FamilyPortfolio"));
 const PortfolioCompare = lazy(() => import("./pages/PortfolioCompare"));
 const PortfolioAbout = lazy(() => import("./pages/PortfolioAbout"));
@@ -103,7 +108,11 @@ const WorkshopGoal = lazy(() => import("./pages/WorkshopGoal"));
 // Dev-only QA manifest. Маршрут регистрируется только при import.meta.env.DEV.
 const DevGoalsQa = lazy(() => import("./pages/DevGoalsQa"));
 const LifeRoad = lazy(() => import("./pages/LifeRoad"));
-const Goals = lazy(() => import("./pages/Goals"));
+// ⚠️ Legacy /goals (V0, localStorage). Скрыт в Wave 2 R2 (см.
+// docs/development/R2_MASTERPLAN.md, §1.4). Маршрут оставлен как redirect
+// на /workshop, чтобы не ломать внешние/закладочные ссылки. Полное удаление
+// кода запланировано на Wave 3 (Section integration).
+// const Goals = lazy(() => import("./pages/Goals"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const InDevelopmentList = lazy(() => import("./pages/InDevelopmentList"));
 
@@ -385,6 +394,11 @@ const App = () => {
                           <MemberPortfolio />
                         </ProtectedRoute>
                       } />
+                      <Route path="/portfolio/:memberId/sphere/:sphereKey" element={
+                        <ProtectedRoute>
+                          <SphereDetail />
+                        </ProtectedRoute>
+                      } />
                       <Route path="/family-code" element={<FamilyCode />} />
                       <Route path="/chat" element={<FamilyChat />} />
                       <Route path="/family-chat" element={<FamilyChat />} />
@@ -504,7 +518,8 @@ const App = () => {
                       <Route path="/culture" element={<Culture />} />
                       <Route path="/wisdom" element={<Wisdom />} />
                       <Route path="/tasks" element={<Tasks />} />
-                      <Route path="/goals" element={<Goals />} />
+                      {/* Legacy /goals → redirect на новый Workshop (Goals V1). См. R2 Wave 2. */}
+                      <Route path="/goals" element={<Navigate to="/workshop" replace />} />
                       <Route path="/notifications" element={<Notifications />} />
                       <Route path="/family" element={<Navigate to="/?section=family" replace />} />
                       <Route path="/diet" element={<Navigate to="/nutrition/diet" replace />} />

@@ -33,10 +33,14 @@ const NOTIFIED_KEY = 'medication_notified_reminders';
 
 class MedicationNotificationService {
   private checkInterval: number | null = null;
-  private notifiedReminders: Set<string> = this.loadNotifiedFromStorage();
+  // SSR-safe: НЕ инициализируем из localStorage сразу — на prerender-фазе
+  // localStorage отсутствует. Подгрузим лениво при первом start().
+  private notifiedReminders: Set<string> = new Set();
+  private notifiedLoaded = false;
   private lastCheck = '';
 
   private loadNotifiedFromStorage(): Set<string> {
+    if (typeof localStorage === 'undefined') return new Set();
     try {
       const raw = localStorage.getItem(NOTIFIED_KEY);
       if (raw) return new Set(JSON.parse(raw));
@@ -44,17 +48,30 @@ class MedicationNotificationService {
     return new Set();
   }
 
+  private ensureNotifiedLoaded() {
+    if (this.notifiedLoaded) return;
+    this.notifiedReminders = this.loadNotifiedFromStorage();
+    this.notifiedLoaded = true;
+  }
+
   private persistNotified() {
+    if (typeof localStorage === 'undefined') return;
     try {
       localStorage.setItem(NOTIFIED_KEY, JSON.stringify(Array.from(this.notifiedReminders)));
     } catch { /* ignore */ }
   }
 
   start() {
+    // SSR-safe: на prerender нет window — выходим молча. Реальный старт
+    // произойдёт на клиенте после гидрации.
+    if (typeof window === 'undefined') return;
     // bug17: защита от двойного запуска (двойной mount React или повторный вызов)
     if (this.checkInterval !== null) {
       return;
     }
+
+    // Ленивая подгрузка ранее уведомлённых напоминаний из localStorage.
+    this.ensureNotifiedLoaded();
 
     // Проверяем каждую минуту
     this.checkInterval = window.setInterval(() => {

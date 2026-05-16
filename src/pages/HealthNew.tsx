@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import SectionHero from '@/components/ui/section-hero';
 import { HealthInstructions } from '@/components/health/HealthInstructions';
@@ -7,6 +9,31 @@ import HealthTabs from '@/components/health-new/HealthTabs';
 
 function HealthNew() {
   const h = useHealthNew();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const memberFromUrl = searchParams.get('member');
+  const tabFromUrl = searchParams.get('tab');
+  const actionFromUrl = searchParams.get('action');
+
+  // D.1: deep-link из портфолио — ?member=<familyMemberId> выбирает профиль.
+  useEffect(() => {
+    if (!memberFromUrl || h.profiles.length === 0) return;
+    const target = h.profiles.find((p) => p.userId === memberFromUrl);
+    if (target && h.selectedProfile?.id !== target.id) {
+      h.setSelectedProfile(target);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberFromUrl, h.profiles.length]);
+
+  // После того как action выполнен внутри HealthTabs — он сам зачистит ?action.
+  // Здесь же чистим ?member после применения, чтобы URL стал стабильным.
+  useEffect(() => {
+    if (memberFromUrl && h.selectedProfile?.userId === memberFromUrl) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('member');
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [h.selectedProfile?.userId, memberFromUrl]);
 
   if (h.profilesLoading && !h.isDemoMode) {
     return (
@@ -75,6 +102,8 @@ function HealthNew() {
             setSelectedProfile={h.setSelectedProfile}
             onDeleteMedication={h.handleDeleteMedication}
             onDeleteRecord={h.handleDeleteRecord}
+            initialTab={tabFromUrl}
+            initialAction={actionFromUrl}
           />
         )}
       </div>

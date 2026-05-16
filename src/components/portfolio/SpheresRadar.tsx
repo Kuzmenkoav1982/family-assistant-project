@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -18,9 +19,12 @@ import { getConfidenceMeta } from '@/utils/portfolioConfidence';
 
 interface SpheresRadarProps {
   data: PortfolioData;
+  memberId?: string | null;
 }
 
-export default function SpheresRadar({ data }: SpheresRadarProps) {
+const VALID_SPHERES: ReadonlySet<string> = new Set(SPHERE_ORDER);
+
+export default function SpheresRadar({ data, memberId }: SpheresRadarProps) {
   const [showPrev, setShowPrev] = useState(true);
 
   const chartData = SPHERE_ORDER.map((sphere) => ({
@@ -172,12 +176,14 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
             const delta = data.deltas[sphere] ?? 0;
             const dim = conf < 40;
             const cm = getConfidenceMeta(conf);
-            return (
-              <div
-                key={sphere}
-                className={`p-2 rounded-lg border ${dim ? 'opacity-60' : ''}`}
-                title={`${cm.label} · ${Math.round(conf)}%`}
-              >
+            const canLink = !!memberId && VALID_SPHERES.has(sphere);
+            const cardClasses = `p-2 rounded-lg border ${dim ? 'opacity-60' : ''} ${
+              canLink
+                ? 'cursor-pointer transition-colors hover:bg-muted/40 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
+                : ''
+            }`;
+            const inner = (
+              <>
                 <div className="flex items-center justify-between gap-1">
                   <div className="flex items-center gap-1">
                     <Icon name={data.sphere_icons[sphere]} size={14} className="text-primary" />
@@ -202,6 +208,28 @@ export default function SpheresRadar({ data }: SpheresRadarProps) {
                     {delta > 0 ? '↗' : '↘'} {Math.abs(delta).toFixed(1)}
                   </p>
                 )}
+              </>
+            );
+            if (canLink) {
+              return (
+                <Link
+                  key={sphere}
+                  to={`/portfolio/${memberId}/sphere/${sphere}`}
+                  className={`${cardClasses} block no-underline text-inherit`}
+                  title={`${cm.label} · ${Math.round(conf)}% · Подробнее`}
+                  aria-label={`Открыть сферу: ${data.sphere_labels_child[sphere]}`}
+                >
+                  {inner}
+                </Link>
+              );
+            }
+            return (
+              <div
+                key={sphere}
+                className={cardClasses}
+                title={`${cm.label} · ${Math.round(conf)}%`}
+              >
+                {inner}
               </div>
             );
           })}

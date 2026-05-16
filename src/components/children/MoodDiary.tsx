@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 import func2url from '../../../backend/func2url.json';
 
 const CHILDREN_DATA_API = (func2url as Record<string, string>)['children-data'];
@@ -25,14 +26,23 @@ interface RawMoodEntry {
 
 interface MoodDiaryProps {
   childId: string;
+  /** D.1: внешний контроль открытия диалога — для deep-link из портфолио. */
+  openDialog?: boolean;
+  onOpenDialogChange?: (open: boolean) => void;
 }
 
-export function MoodDiary({ childId }: MoodDiaryProps) {
+export function MoodDiary({ childId, openDialog, onOpenDialogChange }: MoodDiaryProps) {
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { returnIfRequested } = useReturnToPortfolio();
 
-  const [addEntryDialog, setAddEntryDialog] = useState(false);
+  const [addEntryDialogInternal, setAddEntryDialogInternal] = useState(false);
+  const addEntryDialog = openDialog ?? addEntryDialogInternal;
+  const setAddEntryDialog = (v: boolean) => {
+    setAddEntryDialogInternal(v);
+    onOpenDialogChange?.(v);
+  };
   const [selectedMood, setSelectedMood] = useState('😊');
   const [note, setNote] = useState('');
 
@@ -122,6 +132,8 @@ export function MoodDiary({ childId }: MoodDiaryProps) {
         ]);
         setNote('');
         setAddEntryDialog(false);
+        // D.1: если попали сюда из портфолио — возвращаем пользователя обратно.
+        returnIfRequested();
       } else {
         alert(data.error || 'Не удалось сохранить запись');
       }

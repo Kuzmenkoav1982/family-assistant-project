@@ -10,9 +10,15 @@ const HIDDEN_ROUTES = [
 export default function GlobalSidebar() {
   const location = useLocation();
 
+  // SSR-safe lazy init.
   const [isVisible, setIsVisible] = useState(() => {
-    const saved = localStorage.getItem('globalSidebarVisible');
-    return saved !== null ? saved === 'true' : false;
+    if (typeof localStorage === 'undefined') return false;
+    try {
+      const saved = localStorage.getItem('globalSidebarVisible');
+      return saved !== null ? saved === 'true' : false;
+    } catch {
+      return false;
+    }
   });
 
   useEffect(() => {

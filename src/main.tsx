@@ -3,9 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from '@/lib/helmet'
 import App from './App'
 import './index.css'
-import { initWebVitals } from './utils/webVitals'
-
-initWebVitals();
+import '@/lib/__smoke/install';
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>

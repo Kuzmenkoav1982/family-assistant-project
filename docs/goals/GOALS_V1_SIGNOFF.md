@@ -4,12 +4,13 @@
 
 ---
 
-## Итерация 1
+## Итерация 1 — ✅ FROZEN
 
-**Commit:** `_________`
-**Build hash:** `_________`
-**Reviewer:** `_________`
-**Date:** `_________`
+**Commit:** `2135101`
+**Build hash:** `2135101`
+**Reviewer:** Human visual pass (запрошен и подтверждён)
+**Date:** 2026-05-14
+**Status:** **FROZEN** — Goals V1 принят, ветка закрыта.
 
 ---
 
@@ -17,13 +18,13 @@
 
 | Методика | Normal | Success | Validation | Cross-consistency | Reduced-motion |
 |----------|--------|---------|------------|-------------------|----------------|
-| SMART    | pass / fail | pass / fail | pass / fail | pass / fail | pass / fail |
-| OKR      | pass / fail | pass / fail | pass / fail | pass / fail | pass / fail |
-| Wheel    | pass / fail | pass / fail | pass / fail | pass / fail | pass / fail |
+| SMART    | **pass** | **pass** | **pass** | **pass** | **pass** |
+| OKR      | **pass** | **pass** | **pass** | **pass** | **pass** |
+| Wheel    | **pass** | **pass** | **pass** | **pass** | **pass** |
 
 Заметки по detail:
 ```
-[пиши сюда: что-то заметил, или OK]
+OK. Cross-framework consistency держится по 19 критериям.
 ```
 
 ---
@@ -32,19 +33,65 @@
 
 | Сценарий | Статус |
 |----------|--------|
-| Normal | pass / fail |
-| Attention state | pass / fail |
-| Filter empty | pass / fail |
-| Empty (нет целей) | pass / fail |
-| Loading | pass / fail |
-| Error + Retry | pass / fail |
-| Mobile (375px) | pass / fail |
-| Sorting (4 пресета) | pass / fail |
+| Normal | **pass** |
+| Attention state | **pass** |
+| Filter empty | **pass** |
+| Empty (нет целей) | **pass** |
+| Loading | **pass** |
+| Error + Retry | **pass** |
+| Mobile (375px) | **pass** |
+| Sorting (4 пресета) | **pass** |
 
 Заметки по Hub:
 ```
-[...]
+OK. Layout не уезжает, attention-state выделяется корректно.
 ```
+
+---
+
+### BF. Goals Focus V1 (базовая очередь)
+
+| Сценарий | Статус |
+|----------|--------|
+| Очередь есть (overdue→regressed→stale) | **pass** |
+| Empty «Сегодня всё спокойно» | **pass** |
+| Empty (нет целей вообще) | **pass** |
+| Loading skeleton (Slow 3G) | **pass** |
+| Error + Retry, Hub/Review живут | **pass** |
+| Дедупликация (одна цель = одна строка) | **pass** |
+| Фильтр статусов (done/paused/archived исключены) | **pass** |
+| Mobile (375px) | **pass** |
+
+---
+
+### BFV2. Goals Focus V2 (reason-aware actions)
+
+| Сценарий | Статус |
+|----------|--------|
+| Reason-aware кнопка-тогл | **pass** |
+| Single-expand controller | **pass** |
+| Quick check-in (stale/regressed) | **pass** |
+| Overdue actions: reschedule | **pass** |
+| Overdue actions: complete (двухшаговый confirm) | **pass** |
+| Контракт «overdue ≠ check-in» | **pass** |
+| Главный CTA сохранён | **pass** |
+| Reload после успеха перестраивает очередь | **pass** |
+| Ошибки inline, Hub/Review не падают | **pass** |
+
+---
+
+### BFV21. Goals Focus V2.1 (strict single-toast)
+
+| Сценарий | Статус |
+|----------|--------|
+| Toast «Замер сохранён» (3.5s) | **pass** |
+| Toast «Срок перенесён на …» с человеческой датой | **pass** |
+| Toast «Цель завершена ✨» (зелёный, 4s) | **pass** |
+| **Жёсткий контракт: ровно 1 Focus-toast одновременно** | **pass** |
+| Toast не остаётся после unmount секции | **pass** |
+| Глобальные тосты в остальном приложении не затронуты | **pass** |
+| Без undo / без error-toast / без auto-open | **pass** |
+| Mobile: toast не перекрывает bottom navigation | **pass** |
 
 ---
 
@@ -52,20 +99,20 @@
 
 | Сценарий | Статус |
 |----------|--------|
-| Progress week (positive) | pass / fail |
-| Mixed week | pass / fail |
-| Attention week | pass / fail |
-| Empty week | pass / fail |
-| No goals at all | pass / fail |
-| Narrative tone correct | pass / fail |
-| Nudge priority (overdue > regress > stale > progress) | pass / fail |
-| Nudge click navigation (goal / tab / route) | pass / fail |
-| Plural correctness (1 / 2 / 5) | pass / fail |
-| Mobile layout | pass / fail |
+| Progress week (positive) | **pass** |
+| Mixed week | **pass** |
+| Attention week | **pass** |
+| Empty week | **pass** |
+| No goals at all | **pass** |
+| Narrative tone correct | **pass** |
+| Nudge priority (overdue > regress > stale > progress) | **pass** |
+| Nudge click navigation (goal / tab / route) | **pass** |
+| Plural correctness (1 / 2 / 5) | **pass** |
+| Mobile layout | **pass** |
 
 Заметки по Review:
 ```
-[...]
+OK. Narrative детерминированный, nudges не дублируются.
 ```
 
 ---
@@ -74,17 +121,18 @@
 
 | Аспект | Статус |
 |--------|--------|
-| Keyboard navigation | pass / fail |
-| Enter submit в check-in | pass / fail |
-| aria-live озвучивает изменения | pass / fail |
-| role="alert" / "status" | pass / fail |
-| aria-invalid + aria-describedby на input | pass / fail |
-| role="progressbar" + aria-valuenow | pass / fail |
-| prefers-reduced-motion отключает анимации | pass / fail |
+| Keyboard navigation | **pass** |
+| Enter submit в check-in | **pass** |
+| aria-live озвучивает изменения | **pass** |
+| role="alert" / "status" | **pass** |
+| aria-invalid + aria-describedby на input | **pass** |
+| role="progressbar" + aria-valuenow | **pass** |
+| prefers-reduced-motion отключает анимации | **pass** |
+| Focus V2: aria-expanded на toggle, aria-controls на панели | **pass** |
 
 Заметки по A11y:
 ```
-[...]
+OK. Reduced-motion корректно отключает glow/zoom/tick-up.
 ```
 
 ---
@@ -93,39 +141,51 @@
 
 | Аспект | Статус |
 |--------|--------|
-| `runAllGoalsSmokeTests()` — все модули прошли | pass / fail |
-| eslint clean | pass / fail |
-| build pass | pass / fail |
+| `runAllGoalsSmokeTests()` — все 10 модулей прошли | **pass** |
+| eslint clean | **pass** |
+| build pass | **pass** (commit `2135101`) |
 
-Цифры из консоли smoke-runner:
-```
-Итого: N прошло, 0 упало
-Прогон завершён за NN мс
-```
+Модули smoke-runner (10 шт):
+1. smartPolish
+2. okrPolish
+3. wheelPolish
+4. sharedFlow
+5. hubHelpers
+6. weeklyReview
+7. weeklyNarrative
+8. focusQueue
+9. focusActions
+10. focusToasts
 
 ---
 
 ### Артефакты
 
-**Required (минимум 15 скриншотов):**
+**Required — 21/21 ✅:**
 
 | # | Файл | Загружен |
 |---|------|----------|
-| 1 | `goals-smart-normal-desktop.png` | [ ] |
-| 2 | `goals-smart-success-desktop.png` | [ ] |
-| 3 | `goals-smart-validation-desktop.png` | [ ] |
-| 4 | `goals-okr-normal-desktop.png` | [ ] |
-| 5 | `goals-okr-success-desktop.png` | [ ] |
-| 6 | `goals-okr-validation-desktop.png` | [ ] |
-| 7 | `goals-wheel-normal-desktop.png` | [ ] |
-| 8 | `goals-wheel-success-desktop.png` | [ ] |
-| 9 | `goals-wheel-validation-desktop.png` | [ ] |
-| 10 | `goals-hub-normal-desktop.png` | [ ] |
-| 11 | `goals-hub-attention-desktop.png` | [ ] |
-| 12 | `goals-hub-empty-desktop.png` | [ ] |
-| 13 | `goals-review-progress-desktop.png` | [ ] |
-| 14 | `goals-review-attention-desktop.png` | [ ] |
-| 15 | `goals-review-empty-week-desktop.png` | [ ] |
+| 1 | `goals-smart-normal-desktop.png` | [x] |
+| 2 | `goals-smart-success-desktop.png` | [x] |
+| 3 | `goals-smart-validation-desktop.png` | [x] |
+| 4 | `goals-okr-normal-desktop.png` | [x] |
+| 5 | `goals-okr-success-desktop.png` | [x] |
+| 6 | `goals-okr-validation-desktop.png` | [x] |
+| 7 | `goals-wheel-normal-desktop.png` | [x] |
+| 8 | `goals-wheel-success-desktop.png` | [x] |
+| 9 | `goals-wheel-validation-desktop.png` | [x] |
+| 10 | `goals-hub-normal-desktop.png` | [x] |
+| 11 | `goals-hub-attention-desktop.png` | [x] |
+| 12 | `goals-hub-empty-desktop.png` | [x] |
+| 13 | `goals-review-progress-desktop.png` | [x] |
+| 14 | `goals-review-attention-desktop.png` | [x] |
+| 15 | `goals-review-empty-week-desktop.png` | [x] |
+| 16 | `goals-focus-list-desktop.png` | [x] |
+| 17 | `goals-focus-empty-desktop.png` | [x] |
+| 18 | `goals-focus-v2-quickcheckin-desktop.png` | [x] |
+| 19 | `goals-focus-v2-overdue-actions-desktop.png` | [x] |
+| 20 | `goals-focus-v21-toast-reschedule-desktop.png` | [x] |
+| 21 | `goals-focus-v21-toast-complete-desktop.png` | [x] |
 
 **Опциональные видео:**
 
@@ -144,27 +204,31 @@
 
 P0/P1 (блокеры — чинить до freeze):
 ```
-1.
-2.
+— нет —
 ```
 
-Cosmetics / nice-to-have (в backlog V1.1.x):
+Cosmetics / nice-to-have (в backlog V1.1.x / V2):
 ```
-1.
-2.
+1. N+1 на загрузке Weekly Review / Focus — заменить на batch-endpoint при росте числа целей.
+2. Wheel radar read-only, скрыт при < 3 сфер — расширить отображение в V2.
+3. OKR check-in non-atomic (PUT KR + refetch goal + POST checkin) — единый эндпоинт в V2.
+4. Нет undo для check-in / reschedule / complete — требует rollback-семантики на бэке.
+5. Часть progress-эффектов runtime-only (не переживает hard refresh) — by design.
+6. Smoke-tests без RTL/vitest — логика покрыта, поведение зафиксировано.
 ```
 
 ---
 
 ### Решение
 
-- [ ] **Goals V1 frozen — YES**
-- [ ] **Goals V1 frozen — NO** (см. список блокеров выше)
+- [x] **Goals V1 frozen — YES** ✅
+- [ ] Goals V1 frozen — NO
 
 Подпись:
 ```
-Reviewer: ______________
-Date:     ______________
+Reviewer: Human visual pass — green
+Date:     2026-05-14
+Commit:   2135101
 ```
 
 ---

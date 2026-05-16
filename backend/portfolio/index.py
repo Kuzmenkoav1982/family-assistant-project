@@ -696,7 +696,7 @@ def collect_metrics_inline(cur, member_id: str) -> None:
             family_id = str(row['family_id'])
             cur.execute(f"""
                 SELECT id, created_at FROM {SCHEMA}.traditions
-                WHERE family_id::text = {esc(family_id)}
+                WHERE family_uuid = {esc(family_id)}::uuid AND is_active = TRUE
             """)
             rows = cur.fetchall()
             if rows:
@@ -704,6 +704,70 @@ def collect_metrics_inline(cur, member_id: str) -> None:
                 _upsert_metric(cur, member_id, 'values', 'family_rituals', float(len(rows)), 'count',
                                'traditions', f'agg_{family_id}',
                                str(last_date), f'{len(rows)} традиций')
+    except Exception:
+        pass
+
+
+    # Оценки (grades) — через children_school → children_grades
+    try:
+        cur.execute(f"""
+            SELECT g.id, g.subject, g.grade, g.date, g.created_at
+            FROM {SCHEMA}.children_grades g
+            JOIN {SCHEMA}.children_school s ON s.id = g.school_id
+            WHERE s.member_id = {esc(member_id)}
+            ORDER BY g.date DESC LIMIT 200
+        """)
+        rows = cur.fetchall()
+        if rows:
+            grades_scores = [float(r['grade']) for r in rows if r.get('grade') is not None]
+            avg_grade = round(sum(grades_scores) / len(grades_scores), 1) if grades_scores else None
+            last_date = str(rows[0].get('date') or rows[0].get('created_at'))
+            _upsert_metric(cur, member_id, 'intellect', 'grades_count', float(len(rows)), 'count',
+                           'children_grades', f'agg_{member_id}',
+                           last_date, f'{len(rows)} оценок')
+            if avg_grade is not None:
+                _upsert_metric(cur, member_id, 'intellect', 'grades_average', avg_grade, 'score',
+                               'children_grades', f'agg_avg_{member_id}',
+                               last_date, f'Средний балл {avg_grade}')
+    except Exception:
+        pass
+
+    # Мечты / цели ребёнка
+    try:
+        cur.execute(f"""
+            SELECT id, title, achieved, created_at, created_date
+            FROM {SCHEMA}.children_dreams
+            WHERE member_id = {esc(member_id)}
+            ORDER BY created_at DESC LIMIT 100
+        """)
+        rows = cur.fetchall()
+        if rows:
+            last_date = str(rows[0].get('created_at') or rows[0].get('created_date'))
+            _upsert_metric(cur, member_id, 'values', 'dreams_count', float(len(rows)), 'count',
+                           'children_dreams', f'agg_{member_id}',
+                           last_date, f'{len(rows)} мечт')
+            achieved = [r for r in rows if r.get('achieved')]
+            if achieved:
+                _upsert_metric(cur, member_id, 'values', 'dreams_achieved', float(len(achieved)), 'count',
+                               'children_dreams', f'agg_achieved_{member_id}',
+                               last_date, f'{len(achieved)} исполнено')
+    except Exception:
+        pass
+
+    # Лекарства / назначения ребёнка
+    try:
+        cur.execute(f"""
+            SELECT id, name, start_date, end_date, created_at
+            FROM {SCHEMA}.children_medications
+            WHERE member_id = {esc(member_id)}
+            ORDER BY created_at DESC LIMIT 100
+        """)
+        rows = cur.fetchall()
+        if rows:
+            last_date = str(rows[0].get('created_at') or rows[0].get('start_date'))
+            _upsert_metric(cur, member_id, 'body', 'medications_count', float(len(rows)), 'count',
+                           'children_medications', f'agg_{member_id}',
+                           last_date, f'{len(rows)} назначений')
     except Exception:
         pass
 
