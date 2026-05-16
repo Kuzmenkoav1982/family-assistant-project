@@ -382,7 +382,7 @@ def collect_calendar_events(cur, member_id: str) -> int:
 
 
 def collect_traditions(cur, member_id: str) -> int:
-    """Семейные традиции — общие на семью, привязываем по family_id участника."""
+    """Семейные традиции — общие на семью, привязываем по family_uuid участника."""
     cur.execute(f"""
         SELECT family_id FROM {SCHEMA}.family_members
         WHERE id = {esc(member_id)}::uuid LIMIT 1
@@ -393,7 +393,7 @@ def collect_traditions(cur, member_id: str) -> int:
     family_id = str(row['family_id'])
     cur.execute(f"""
         SELECT id, created_at FROM {SCHEMA}.traditions
-        WHERE family_id::text = {esc(family_id)}
+        WHERE family_uuid = {esc(family_id)}::uuid AND is_active = TRUE
     """)
     rows = cur.fetchall()
     if not rows:

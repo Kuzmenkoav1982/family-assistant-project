@@ -1,0 +1,30 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET без auth = 401",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "PUT без auth = 401",
+      "method": "PUT",
+      "path": "/",
+      "body": {"items": []},
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET с фейковым user = 403",
+      "method": "GET",
+      "path": "/",
+      "headers": {"X-User-Id": "ffffffff-ffff-ffff-ffff-fffffffffff0"},
+      "expectedStatus": 403
+    }
+  ]
+}

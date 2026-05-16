@@ -696,7 +696,7 @@ def collect_metrics_inline(cur, member_id: str) -> None:
             family_id = str(row['family_id'])
             cur.execute(f"""
                 SELECT id, created_at FROM {SCHEMA}.traditions
-                WHERE family_id::text = {esc(family_id)}
+                WHERE family_uuid = {esc(family_id)}::uuid AND is_active = TRUE
             """)
             rows = cur.fetchall()
             if rows:
