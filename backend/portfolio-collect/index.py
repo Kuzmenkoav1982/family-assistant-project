@@ -397,6 +397,13 @@ def collect_traditions(cur, member_id: str) -> int:
     """)
     rows = cur.fetchall()
     if not rows:
+        # Сбрасываем метрику если традиций не осталось
+        cur.execute(f"""
+            DELETE FROM {SCHEMA}.member_portfolio_metrics
+            WHERE member_id = {esc(member_id)}::uuid
+              AND source_type = 'traditions'
+              AND source_id = {esc(f'agg_{family_id}')}
+        """)
         return 0
     count = len(rows)
     last_date = max((r.get('created_at') for r in rows if r.get('created_at')), default=datetime.now())
@@ -404,6 +411,108 @@ def collect_traditions(cur, member_id: str) -> int:
         cur, member_id, 'values', 'family_rituals', float(count), 'count',
         'traditions', f'agg_{family_id}',
         str(last_date), f'{count} традиций',
+    )
+    return 1
+
+
+def collect_grades(cur, member_id: str) -> int:
+    """Оценки — через children_school → children_grades, сфера intellect."""
+    cur.execute(f"""
+        SELECT g.id, g.subject, g.grade, g.date, g.created_at
+        FROM {SCHEMA}.children_grades g
+        JOIN {SCHEMA}.children_school s ON s.id = g.school_id
+        WHERE s.member_id = {esc(member_id)}
+        ORDER BY g.date DESC LIMIT 200
+    """)
+    rows = cur.fetchall()
+    if not rows:
+        # Сбрасываем обе метрики если оценок не осталось
+        for mk in ('grades_count', 'grades_average'):
+            for sid in (f'agg_{member_id}', f'agg_avg_{member_id}'):
+                cur.execute(f"""
+                    DELETE FROM {SCHEMA}.member_portfolio_metrics
+                    WHERE member_id = {esc(member_id)}::uuid
+                      AND source_type = 'children_grades'
+                      AND source_id = {esc(sid)}
+                      AND metric_key = {esc(mk)}
+                """)
+        return 0
+    last_date = str(rows[0].get('date') or rows[0].get('created_at'))
+    upsert_metric(
+        cur, member_id, 'intellect', 'grades_count', float(len(rows)), 'count',
+        'children_grades', f'agg_{member_id}',
+        last_date, f'{len(rows)} оценок',
+    )
+    grades_scores = [float(r['grade']) for r in rows if r.get('grade') is not None]
+    if grades_scores:
+        avg_grade = round(sum(grades_scores) / len(grades_scores), 1)
+        upsert_metric(
+            cur, member_id, 'intellect', 'grades_average', avg_grade, 'score',
+            'children_grades', f'agg_avg_{member_id}',
+            last_date, f'Средний балл {avg_grade}',
+        )
+    return 1
+
+
+def collect_dreams(cur, member_id: str) -> int:
+    """Мечты / цели ребёнка — сфера values."""
+    cur.execute(f"""
+        SELECT id, title, achieved, created_at, created_date
+        FROM {SCHEMA}.children_dreams
+        WHERE member_id = {esc(member_id)}
+        ORDER BY created_at DESC LIMIT 100
+    """)
+    rows = cur.fetchall()
+    if not rows:
+        # Сбрасываем обе метрики если мечт не осталось
+        for mk in ('dreams_count', 'dreams_achieved'):
+            cur.execute(f"""
+                DELETE FROM {SCHEMA}.member_portfolio_metrics
+                WHERE member_id = {esc(member_id)}::uuid
+                  AND source_type = 'children_dreams'
+                  AND metric_key = {esc(mk)}
+            """)
+        return 0
+    last_date = str(rows[0].get('created_at') or rows[0].get('created_date'))
+    upsert_metric(
+        cur, member_id, 'values', 'dreams_count', float(len(rows)), 'count',
+        'children_dreams', f'agg_{member_id}',
+        last_date, f'{len(rows)} мечт',
+    )
+    achieved = [r for r in rows if r.get('achieved')]
+    if achieved:
+        upsert_metric(
+            cur, member_id, 'values', 'dreams_achieved', float(len(achieved)), 'count',
+            'children_dreams', f'agg_achieved_{member_id}',
+            last_date, f'{len(achieved)} исполнено',
+        )
+    return 1
+
+
+def collect_medications(cur, member_id: str) -> int:
+    """Лекарства / назначения ребёнка — сфера body."""
+    cur.execute(f"""
+        SELECT id, name, start_date, end_date, created_at
+        FROM {SCHEMA}.children_medications
+        WHERE member_id = {esc(member_id)}
+        ORDER BY created_at DESC LIMIT 100
+    """)
+    rows = cur.fetchall()
+    if not rows:
+        # Сбрасываем метрику если назначений не осталось
+        cur.execute(f"""
+            DELETE FROM {SCHEMA}.member_portfolio_metrics
+            WHERE member_id = {esc(member_id)}::uuid
+              AND source_type = 'children_medications'
+              AND source_id = {esc(f'agg_{member_id}')}
+              AND metric_key = 'medications_count'
+        """)
+        return 0
+    last_date = str(rows[0].get('created_at') or rows[0].get('start_date'))
+    upsert_metric(
+        cur, member_id, 'body', 'medications_count', float(len(rows)), 'count',
+        'children_medications', f'agg_{member_id}',
+        last_date, f'{len(rows)} назначений',
     )
     return 1
 
@@ -419,6 +528,9 @@ COLLECTORS = [
     ('children_piggybank', collect_finance),
     ('calendar_events', collect_calendar_events),
     ('traditions', collect_traditions),
+    ('children_grades', collect_grades),
+    ('children_dreams', collect_dreams),
+    ('children_medications', collect_medications),
 ]
 
 

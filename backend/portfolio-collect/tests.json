@@ -15,11 +15,35 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Collect by member_id returns 200",
+      "name": "Collect by member_id returns 200 with all 13 sources",
       "method": "GET",
       "path": "/?member_id=000000d1-0000-0000-0000-000000000001",
       "expectedStatus": 200,
-      "expectedBody": {"by_source": {}},
+      "expectedBody": {"collected": 0, "by_source": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Collect by member_id has grades key in by_source",
+      "method": "GET",
+      "path": "/?member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200,
+      "expectedBody": {"by_source": {"children_grades": 0}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Collect by member_id has dreams key in by_source",
+      "method": "GET",
+      "path": "/?member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200,
+      "expectedBody": {"by_source": {"children_dreams": 0}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Collect by member_id has medications key in by_source",
+      "method": "GET",
+      "path": "/?member_id=000000d1-0000-0000-0000-000000000001",
+      "expectedStatus": 200,
+      "expectedBody": {"by_source": {"children_medications": 0}},
       "bodyMatcher": "partial"
     }
   ]
