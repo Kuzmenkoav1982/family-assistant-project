@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
 import { memoryApi } from './api';
-import type { MemoryEntry, CreateMemoryEntryInput, UpdateMemoryEntryInput } from './types';
+import type { MemoryEntry, MemorySort, CreateMemoryEntryInput, UpdateMemoryEntryInput } from './types';
 
 interface UseMemoryEntriesOptions {
   eventId?: string;
   memberId?: number;
   albumId?: string;
+  q?: string;
+  year?: number;
+  sort?: MemorySort;
   enabled?: boolean;
 }
 
 export function useMemoryEntries(options: UseMemoryEntriesOptions = {}) {
-  const { eventId, memberId, albumId, enabled = true } = options;
+  const { eventId, memberId, albumId, q, year, sort, enabled = true } = options;
   const [entries, setEntries] = useState<MemoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,6 +27,9 @@ export function useMemoryEntries(options: UseMemoryEntriesOptions = {}) {
         event_id: eventId,
         member_id: memberId,
         album_id: albumId,
+        q,
+        year,
+        sort,
       });
       setEntries(list);
     } catch (err) {
@@ -31,7 +37,7 @@ export function useMemoryEntries(options: UseMemoryEntriesOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [enabled, eventId, memberId, albumId]);
+  }, [enabled, eventId, memberId, albumId, q, year, sort]);
 
   useEffect(() => {
     reload();

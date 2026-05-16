@@ -9,6 +9,15 @@ export interface MemoryAsset {
 
 export type MemoryEntryStatus = 'draft' | 'published' | 'archived';
 
+export type MemorySort = 'memory_date_desc' | 'memory_date_asc' | 'created_at_desc' | 'created_at_asc';
+
+export const MEMORY_SORT_OPTIONS: { value: MemorySort; label: string }[] = [
+  { value: 'memory_date_desc', label: 'Сначала новые (по дате памяти)' },
+  { value: 'memory_date_asc', label: 'Сначала старые (по дате памяти)' },
+  { value: 'created_at_desc', label: 'Сначала недавно добавленные' },
+  { value: 'created_at_asc', label: 'Сначала ранее добавленные' },
+];
+
 export interface MemoryEntry {
   id: string;
   title: string;

@@ -6,6 +6,7 @@ import type {
   CreateMemoryEntryInput,
   UpdateMemoryEntryInput,
   MemoryAsset,
+  MemorySort,
 } from './types';
 
 const API_URL = (func2url as Record<string, string>)['memory'];
@@ -46,12 +47,22 @@ async function call<T>(method: string, query: string, body?: unknown): Promise<T
 
 export const memoryApi = {
   // Entries
-  listEntries: (params?: { event_id?: string; member_id?: number; album_id?: string }) => {
-    const q = new URLSearchParams({ resource: 'entries' });
-    if (params?.event_id) q.set('event_id', params.event_id);
-    if (params?.member_id != null) q.set('member_id', String(params.member_id));
-    if (params?.album_id) q.set('album_id', params.album_id);
-    return call<{ entries: MemoryEntry[] }>('GET', `?${q.toString()}`).then(r => r.entries);
+  listEntries: (params?: {
+    event_id?: string;
+    member_id?: number;
+    album_id?: string;
+    q?: string;
+    year?: number | string;
+    sort?: MemorySort;
+  }) => {
+    const sp = new URLSearchParams({ resource: 'entries' });
+    if (params?.event_id) sp.set('event_id', params.event_id);
+    if (params?.member_id != null) sp.set('member_id', String(params.member_id));
+    if (params?.album_id) sp.set('album_id', params.album_id);
+    if (params?.q && params.q.trim()) sp.set('q', params.q.trim());
+    if (params?.year) sp.set('year', String(params.year));
+    if (params?.sort) sp.set('sort', params.sort);
+    return call<{ entries: MemoryEntry[] }>('GET', `?${sp.toString()}`).then(r => r.entries);
   },
 
   getEntry: (id: string) =>

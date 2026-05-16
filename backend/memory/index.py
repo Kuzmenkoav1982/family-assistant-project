@@ -105,19 +105,27 @@ def handler(event: dict, context) -> dict:
 
 def _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body):
     if method == 'GET':
-        # include_drafts=1 — режим для UI редактирования черновика
         include_drafts = qp.get('include_drafts') in ('1', 'true', 'yes')
         if item_id:
             entry = _entry_full(cur, family_id, item_id, include_drafts=True)
             if not entry:
                 return _resp(404, {'error': 'not found'})
             return _resp(200, entry)
-        event_id = qp.get('event_id')
-        member_id = qp.get('member_id')
-        album_id = qp.get('album_id')
         return _resp(
             200,
-            {'entries': _list_entries(cur, family_id, event_id, member_id, album_id, include_drafts=include_drafts)},
+            {
+                'entries': _list_entries(
+                    cur,
+                    family_id,
+                    event_id=qp.get('event_id'),
+                    member_id=qp.get('member_id'),
+                    album_id=qp.get('album_id'),
+                    q=qp.get('q'),
+                    year=qp.get('year'),
+                    sort=qp.get('sort'),
+                    include_drafts=include_drafts,
+                ),
+            },
         )
 
     if method == 'POST':
@@ -181,7 +189,20 @@ def _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body):
     return _resp(405, {'error': 'method not allowed'})
 
 
-def _list_entries(cur, family_id, event_id=None, member_id=None, album_id=None, include_drafts=False):
+SORT_WHITELIST = {
+    'memory_date_desc': 'ORDER BY COALESCE(e.memory_date, e.created_at::date) DESC, e.created_at DESC',
+    'memory_date_asc':  'ORDER BY COALESCE(e.memory_date, e.created_at::date) ASC, e.created_at ASC',
+    'created_at_desc':  'ORDER BY e.created_at DESC',
+    'created_at_asc':   'ORDER BY e.created_at ASC',
+}
+
+
+def _list_entries(
+    cur, family_id,
+    event_id=None, member_id=None, album_id=None,
+    q=None, year=None, sort=None,
+    include_drafts=False,
+):
     sql = '''SELECT e.id, e.title, e.caption, e.story, e.memory_date, e.memory_period_label,
                     e.location_label, e.event_id, e.cover_asset_id, e.created_at, e.updated_at,
                     e.status
@@ -201,7 +222,28 @@ def _list_entries(cur, family_id, event_id=None, member_id=None, album_id=None, 
         sql += ' JOIN memory_album_links al ON al.memory_entry_id = e.id'
         where.append('al.album_id = %s')
         params.append(album_id)
-    sql += ' WHERE ' + ' AND '.join(where) + ' ORDER BY COALESCE(e.memory_date, e.created_at::date) DESC, e.created_at DESC'
+    if q:
+        q_trimmed = str(q).strip()
+        if q_trimmed:
+            pattern = f'%{q_trimmed}%'
+            where.append(
+                "(e.title ILIKE %s OR e.caption ILIKE %s OR e.story ILIKE %s "
+                "OR e.location_label ILIKE %s OR e.memory_period_label ILIKE %s)"
+            )
+            params.extend([pattern, pattern, pattern, pattern, pattern])
+    if year:
+        try:
+            year_int = int(year)
+            where.append(
+                "(EXTRACT(YEAR FROM e.memory_date)::int = %s "
+                "OR (e.memory_date IS NULL AND e.memory_period_label ILIKE %s))"
+            )
+            params.append(year_int)
+            params.append(f'%{year_int}%')
+        except (TypeError, ValueError):
+            pass
+    order_by = SORT_WHITELIST.get((sort or 'memory_date_desc').strip(), SORT_WHITELIST['memory_date_desc'])
+    sql += ' WHERE ' + ' AND '.join(where) + ' ' + order_by
     cur.execute(sql, params)
     rows = cur.fetchall()
     return [_row_to_entry(cur, r) for r in rows]

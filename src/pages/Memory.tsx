@@ -23,17 +23,26 @@ import MemoryEntryDialog from '@/components/memory/MemoryEntryDialog';
 import MemoryEntryView from '@/components/memory/MemoryEntryView';
 import BulkAddToAlbumDialog from '@/components/memory/BulkAddToAlbumDialog';
 import SelectAlbumCoverDialog from '@/components/memory/SelectAlbumCoverDialog';
+import MemoryFiltersBar from '@/components/memory/MemoryFiltersBar';
 import { resolveAlbumCover } from '@/components/memory/coverResolver';
-import type { MemoryAlbum, MemoryEntry } from '@/components/memory/types';
+import type { MemoryAlbum, MemoryEntry, MemorySort } from '@/components/memory/types';
+
+const DEFAULT_SORT: MemorySort = 'memory_date_desc';
 
 export default function Memory() {
   const [searchParams, setSearchParams] = useSearchParams();
   const memberIdParam = searchParams.get('memberId');
   const eventIdParam = searchParams.get('eventId');
   const albumIdParam = searchParams.get('albumId');
+  const qParam = (searchParams.get('q') || '').trim();
+  const yearParam = searchParams.get('year');
+  const sortParam = (searchParams.get('sort') as MemorySort | null) || DEFAULT_SORT;
+
   const filterMemberId = memberIdParam ? Number(memberIdParam) : undefined;
   const filterEventId = eventIdParam || undefined;
   const filterAlbumId = albumIdParam || undefined;
+  const filterYear = yearParam ? Number(yearParam) : undefined;
+  const filterQ = qParam || undefined;
 
   const { members } = useFamilyTree();
   const { events } = useLifeEvents();
@@ -47,6 +56,9 @@ export default function Memory() {
     memberId: filterMemberId,
     eventId: filterEventId,
     albumId: filterAlbumId,
+    q: filterQ,
+    year: filterYear,
+    sort: sortParam,
   });
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -212,6 +224,48 @@ export default function Memory() {
     setSearchParams(next, { replace: true });
   };
 
+  const updateParam = (key: string, value?: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value == null || value === '') next.delete(key);
+    else next.set(key, value);
+    setSearchParams(next, { replace: true });
+  };
+
+  const resetAllFilters = () => {
+    const next = new URLSearchParams();
+    setSearchParams(next, { replace: true });
+  };
+
+  // годы из памятей (только когда они уже загружены) + годы из событий — для select
+  const yearsAvailable = useMemo(() => {
+    const years = new Set<number>();
+    for (const e of entries) {
+      if (e.memory_date) {
+        const y = new Date(e.memory_date).getFullYear();
+        if (Number.isFinite(y)) years.add(y);
+      }
+    }
+    for (const ev of events) {
+      if (ev.date) {
+        const y = new Date(ev.date).getFullYear();
+        if (Number.isFinite(y)) years.add(y);
+      }
+    }
+    return Array.from(years).sort((a, b) => b - a);
+  }, [entries, events]);
+
+  const eventOptions = useMemo(
+    () => events.map(e => ({ id: e.id, title: e.title, date: e.date })),
+    [events],
+  );
+  const memberOptions = useMemo(
+    () => members.map(m => ({ id: m.id, name: m.name, avatar: m.avatar })),
+    [members],
+  );
+
+  const hasAnyFilter = Boolean(filterQ || filterMemberId || filterEventId || filterYear);
+  const hasAnyOrAlbum = hasAnyFilter || Boolean(filterAlbumId);
+
   const openAlbum = (album: MemoryAlbum) => {
     const next = new URLSearchParams(searchParams);
     next.set('albumId', album.id);
@@ -221,7 +275,8 @@ export default function Memory() {
   };
 
   const hasFilter = Boolean(filterMember || filterEvent || filterAlbum);
-  const showAlbumShelf = !hasFilter;
+  // Полка альбомов — только в чистом режиме (без фильтров и без открытого альбома)
+  const showAlbumShelf = !hasFilter && !hasAnyFilter;
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
@@ -252,35 +307,23 @@ export default function Memory() {
         />
       )}
 
-      {filterMember && (
-        <FilterBar
-          color="amber"
-          icon="User"
-          label="Память про"
-          chip={
-            <>
-              <span className="text-base leading-none">{filterMember.avatar || '👤'}</span>
-              {filterMember.name}
-            </>
-          }
-          onClear={clearFilter}
-        />
-      )}
-
-      {filterEvent && (
-        <FilterBar
-          color="purple"
-          icon="Sparkle"
-          label="Память об"
-          chip={
-            <>
-              <Icon name="Calendar" size={12} />
-              {filterEvent.title}
-            </>
-          }
-          onClear={clearFilter}
-        />
-      )}
+      <MemoryFiltersBar
+        q={filterQ ?? ''}
+        memberId={filterMemberId}
+        eventId={filterEventId}
+        year={filterYear}
+        sort={sortParam}
+        years={yearsAvailable}
+        members={memberOptions}
+        events={eventOptions}
+        hasAny={hasAnyOrAlbum || sortParam !== DEFAULT_SORT}
+        onChangeQ={v => updateParam('q', v)}
+        onChangeMember={v => updateParam('memberId', v != null ? String(v) : undefined)}
+        onChangeEvent={v => updateParam('eventId', v)}
+        onChangeYear={v => updateParam('year', v != null ? String(v) : undefined)}
+        onChangeSort={v => updateParam('sort', v === DEFAULT_SORT ? undefined : v)}
+        onResetAll={resetAllFilters}
+      />
 
       {filterAlbum && (
         <AlbumHeader
@@ -317,12 +360,20 @@ export default function Memory() {
       ) : entries.length === 0 ? (
         <EmptyState
           filterKind={
-            filterMember ? 'member' : filterEvent ? 'event' : filterAlbum ? 'album' : null
+            hasAnyFilter
+              ? 'search'
+              : filterMember
+                ? 'member'
+                : filterEvent
+                  ? 'event'
+                  : filterAlbum
+                    ? 'album'
+                    : null
           }
           filterLabel={filterMember?.name || filterEvent?.title || filterAlbum?.title}
           onAdd={() => setCreateOpen(true)}
           onBulkAdd={filterAlbum ? () => setBulkAddOpen(true) : undefined}
-          onClearFilter={hasFilter ? clearFilter : undefined}
+          onClearFilter={hasFilter || hasAnyFilter ? resetAllFilters : undefined}
         />
       ) : (
         <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 ${selectionMode ? 'pb-24' : ''}`}>
@@ -616,36 +667,7 @@ function AlbumHeader({
   );
 }
 
-function FilterBar({
-  color,
-  icon,
-  label,
-  chip,
-  onClear,
-}: {
-  color: 'amber' | 'purple';
-  icon: string;
-  label: string;
-  chip: React.ReactNode;
-  onClear: () => void;
-}) {
-  const bg = color === 'amber' ? 'bg-amber-50' : 'bg-purple-50';
-  const text = color === 'amber' ? 'text-amber-700' : 'text-purple-700';
-  const text2 = color === 'amber' ? 'text-amber-900' : 'text-purple-900';
-  return (
-    <div className={`mb-4 flex items-center gap-2 rounded-lg ${bg} px-3 py-2`}>
-      <Icon name={icon} size={14} className={text} />
-      <span className={`text-sm ${text2}`}>{label}</span>
-      <Badge variant="secondary" className="gap-1.5 bg-white">
-        {chip}
-      </Badge>
-      <Button variant="ghost" size="sm" className="ml-auto h-7 gap-1 px-2 text-xs" onClick={onClear}>
-        <Icon name="X" size={12} />
-        Сбросить
-      </Button>
-    </div>
-  );
-}
+
 
 function EmptyState({
   filterKind,
@@ -654,44 +676,47 @@ function EmptyState({
   onBulkAdd,
   onClearFilter,
 }: {
-  filterKind: 'member' | 'event' | 'album' | null;
+  filterKind: 'member' | 'event' | 'album' | 'search' | null;
   filterLabel?: string;
   onAdd: () => void;
   onBulkAdd?: () => void;
   onClearFilter?: () => void;
 }) {
   let heading = 'Здесь будут жить семейные моменты';
-  if (filterKind === 'member' && filterLabel) heading = `Пока нет воспоминаний про ${filterLabel}`;
+  if (filterKind === 'search') heading = 'Ничего не найдено по текущим фильтрам';
+  else if (filterKind === 'member' && filterLabel) heading = `Пока нет воспоминаний про ${filterLabel}`;
   else if (filterKind === 'event' && filterLabel) heading = `Пока нет воспоминаний об «${filterLabel}»`;
   else if (filterKind === 'album' && filterLabel) heading = `Альбом «${filterLabel}» пока пуст`;
 
-  const description = filterKind === 'album'
-    ? 'Соберите его из уже созданных карточек или создайте новую — она автоматически попадёт сюда.'
-    : filterKind
-      ? 'Создайте первую карточку памяти — фото, дата и короткая история. Контекст уже привязан.'
-      : 'Добавьте первую карточку памяти: 1–10 фото, кто на них, дата и короткая история. Раз в месяц или раз в полгода — пополняйте альбом вместе с семьёй.';
+  let description = 'Добавьте первую карточку памяти: 1–10 фото, кто на них, дата и короткая история. Раз в месяц или раз в полгода — пополняйте альбом вместе с семьёй.';
+  if (filterKind === 'search') description = 'Попробуйте упростить запрос или сбросить часть фильтров.';
+  else if (filterKind === 'album') description = 'Соберите его из уже созданных карточек или создайте новую — она автоматически попадёт сюда.';
+  else if (filterKind) description = 'Создайте первую карточку памяти — фото, дата и короткая история. Контекст уже привязан.';
 
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed bg-muted/20 px-4 py-16 text-center">
       <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-        <Icon name="BookHeart" size={40} />
+        <Icon name={filterKind === 'search' ? 'SearchX' : 'BookHeart'} size={40} />
       </div>
       <h2 className="text-xl font-semibold">{heading}</h2>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        {onBulkAdd && (
+        {onBulkAdd && filterKind !== 'search' && (
           <Button onClick={onBulkAdd} size="lg" variant="outline">
             <Icon name="FolderPlus" size={18} className="mr-1.5" />
             Добавить существующие
           </Button>
         )}
-        <Button onClick={onAdd} size="lg">
-          <Icon name="Plus" size={18} className="mr-1.5" />
-          {filterKind ? 'Создать новую' : 'Создать первую память'}
-        </Button>
+        {filterKind !== 'search' && (
+          <Button onClick={onAdd} size="lg">
+            <Icon name="Plus" size={18} className="mr-1.5" />
+            {filterKind ? 'Создать новую' : 'Создать первую память'}
+          </Button>
+        )}
         {onClearFilter && (
-          <Button variant="ghost" size="lg" onClick={onClearFilter}>
-            Показать все
+          <Button variant={filterKind === 'search' ? 'default' : 'ghost'} size="lg" onClick={onClearFilter}>
+            <Icon name="X" size={16} className="mr-1.5" />
+            Сбросить фильтры
           </Button>
         )}
       </div>
