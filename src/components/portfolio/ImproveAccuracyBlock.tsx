@@ -7,7 +7,6 @@ import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfo
 import { getConfidenceMeta } from '@/utils/portfolioConfidence';
 import {
   getActionableSourcesForSphere,
-  resolveRecommendationTarget,
   type SourceRegistryEntry,
 } from '@/data/portfolioSourcesRegistry';
 import { isAdultMember } from '@/utils/familyRole';
@@ -15,8 +14,6 @@ import { track } from '@/lib/analytics';
 
 interface ImproveAccuracyBlockProps {
   data: PortfolioData;
-  /** D.1: memberId владельца портфолио — пробрасывается в CTA как ?member=... */
-  memberId?: string | null;
 }
 
 interface SphereSuggestion {
@@ -50,7 +47,7 @@ function buildSuggestions(data: PortfolioData, audience: 'child' | 'adult'): Sph
   return items.slice(0, 3);
 }
 
-export default function ImproveAccuracyBlock({ data, memberId }: ImproveAccuracyBlockProps) {
+export default function ImproveAccuracyBlock({ data }: ImproveAccuracyBlockProps) {
   const audience: 'child' | 'adult' = isAdultMember(data.member) ? 'adult' : 'child';
   const suggestions = buildSuggestions(data, audience);
   const [expandedSphere, setExpandedSphere] = useState<SphereKey | null>(
@@ -135,47 +132,41 @@ export default function ImproveAccuracyBlock({ data, memberId }: ImproveAccuracy
                   <p className="text-[11px] text-muted-foreground pt-2">
                     Откройте раздел и добавьте 2–3 свежие записи:
                   </p>
-                  {s.sources.map((src) => {
-                    const target = resolveRecommendationTarget(memberId ?? null, src.source_type);
-                    if (!target) return null;
-                    return (
-                      <Link
-                        key={src.source_type}
-                        to={target.href}
-                        onClick={() =>
-                          track('portfolio_improve_cta_click', {
-                            props: {
-                              sphere: s.sphere,
-                              source_type: src.source_type,
-                              route: target.pathname,
-                              action: target.action ?? null,
-                              tab: target.tab ?? null,
-                              level: s.level,
-                            },
-                          })
-                        }
-                        className="flex items-center gap-2 p-2 rounded-md border bg-card hover:border-primary/40 hover:bg-primary/5 transition-colors group"
-                      >
-                        <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15">
-                          <Icon name="Plus" size={13} className="text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{src.label}</p>
-                          <p className="text-[10px] text-muted-foreground line-clamp-1">
-                            {src.hint}
-                          </p>
-                        </div>
-                        <span className="text-[11px] font-medium text-primary flex items-center gap-0.5 whitespace-nowrap">
-                          {src.cta_text}
-                          <Icon
-                            name="ArrowRight"
-                            size={11}
-                            className="group-hover:translate-x-0.5 transition-transform"
-                          />
-                        </span>
-                      </Link>
-                    );
-                  })}
+                  {s.sources.map((src) => (
+                    <Link
+                      key={src.source_type}
+                      to={src.route as string}
+                      onClick={() =>
+                        track('portfolio_improve_cta_click', {
+                          props: {
+                            sphere: s.sphere,
+                            source_type: src.source_type,
+                            route: src.route as string,
+                            level: s.level,
+                          },
+                        })
+                      }
+                      className="flex items-center gap-2 p-2 rounded-md border bg-card hover:border-primary/40 hover:bg-primary/5 transition-colors group"
+                    >
+                      <div className="w-7 h-7 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/15">
+                        <Icon name="Plus" size={13} className="text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{src.label}</p>
+                        <p className="text-[10px] text-muted-foreground line-clamp-1">
+                          {src.hint}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-medium text-primary flex items-center gap-0.5 whitespace-nowrap">
+                        {src.cta_text}
+                        <Icon
+                          name="ArrowRight"
+                          size={11}
+                          className="group-hover:translate-x-0.5 transition-transform"
+                        />
+                      </span>
+                    </Link>
+                  ))}
                   <Link
                     to="/portfolio/about"
                     onClick={() =>

@@ -21,22 +21,11 @@ import type { FamilyMember } from '@/types/family.types';
 
 interface ParentDashboardProps {
   child: FamilyMember;
-  /** D.1: deep-link из портфолио — стартовая вкладка (overview/health/development/gifts). */
-  initialTab?: string | null;
-  /** D.1: deep-link из портфолио — действие, например 'add-activity', 'add-area'. */
-  initialAction?: string | null;
-  /** D.1: коллбэк после применения action — Children.tsx чистит ?action/?tab из URL. */
-  onActionHandled?: () => void;
 }
 
-export function ParentDashboard({ child, initialTab, initialAction, onActionHandled }: ParentDashboardProps) {
+export function ParentDashboard({ child }: ParentDashboardProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(initialTab || 'overview');
-
-  // D.1: реагируем на смену initialTab — переключаем вкладку программно.
-  useEffect(() => {
-    if (initialTab) setActiveTab(initialTab);
-  }, [initialTab]);
+  const [activeTab, setActiveTab] = useState('overview');
   const [showAssessment, setShowAssessment] = useState(false);
   const assessmentChildRef = useRef(child);
   const { data, isLoading: loading, error, refetch: fetchChildData } = useChildrenDataQuery(child.id, 'all', !showAssessment);
@@ -299,11 +288,7 @@ export function ParentDashboard({ child, initialTab, initialAction, onActionHand
         </TabsContent>
 
         <TabsContent value="development" className="space-y-6">
-          <DevelopmentSection
-            child={child}
-            initialAction={activeTab === 'development' ? initialAction : null}
-            onActionHandled={onActionHandled}
-          />
+          <DevelopmentSection child={child} />
         </TabsContent>
 
         <TabsContent value="gifts" className="space-y-6">

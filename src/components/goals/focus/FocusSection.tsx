@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
@@ -50,22 +50,6 @@ export default function FocusSection({
 }: Props) {
   const navigate = useNavigate();
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  // Жёсткий контракт V2.1: «один Focus-toast одновременно».
-  // Сам глобальный sonner стэкует до 3-х; чтобы не менять глобальную настройку
-  // и поведение в остальном проекте, держим локально id предыдущего тоста и
-  // dismiss-им его перед новым. Это и есть гарантия «один toast за раз».
-  const lastToastIdRef = useRef<string | number | null>(null);
-
-  // На размонтирование секции — гасим висящий Focus-toast, чтобы он не
-  // оставался поверх другого экрана.
-  useEffect(() => {
-    return () => {
-      if (lastToastIdRef.current != null) {
-        toast.dismiss(lastToastIdRef.current);
-        lastToastIdRef.current = null;
-      }
-    };
-  }, []);
 
   const views = useMemo(
     () => buildWeeklyView({ goals, checkinsByGoalId }),
@@ -104,31 +88,14 @@ export default function FocusSection({
   // V2.1 polish: после успешного действия — короткий success toast.
   // Один тост на действие, текст детерминированный (см. focusToasts.ts).
   // Auto-hide / закрытие крестиком обеспечивает sonner (глобально в App.tsx).
-  // Контракт «один Focus-toast за раз»: dismiss предыдущего, потом показ нового.
   // Без undo: rollback-семантика для checkin/reschedule/complete сейчас вне scope.
   const handleChanged = (kind: FocusActionKind, ctx: FocusActionContext) => {
     const t = buildFocusToast(kind, ctx);
-
-    if (lastToastIdRef.current != null) {
-      toast.dismiss(lastToastIdRef.current);
-      lastToastIdRef.current = null;
+    if (kind === 'complete') {
+      toast.success(t.title, { description: t.description, duration: 4000 });
+    } else {
+      toast(t.title, { description: t.description, duration: 3500 });
     }
-
-    const opts = {
-      description: t.description,
-      duration: kind === 'complete' ? 4000 : 3500,
-      onAutoClose: () => {
-        lastToastIdRef.current = null;
-      },
-      onDismiss: () => {
-        lastToastIdRef.current = null;
-      },
-    } as const;
-
-    const id =
-      kind === 'complete' ? toast.success(t.title, opts) : toast(t.title, opts);
-    lastToastIdRef.current = id;
-
     onChanged?.();
   };
 

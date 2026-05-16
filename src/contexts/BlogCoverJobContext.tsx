@@ -28,8 +28,6 @@ interface BlogCoverJobContextType {
 const Ctx = createContext<BlogCoverJobContextType | null>(null);
 
 function loadJob(): CoverJobState | null {
-  // SSR-safe: на prerender нет localStorage — возвращаем null.
-  if (typeof localStorage === 'undefined') return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
@@ -40,15 +38,10 @@ function loadJob(): CoverJobState | null {
 }
 
 function saveJob(state: CoverJobState | null) {
-  if (typeof localStorage === 'undefined') return;
-  try {
-    if (state === null) {
-      localStorage.removeItem(STORAGE_KEY);
-    } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-  } catch {
-    // ignore quota / serialization errors
+  if (state === null) {
+    localStorage.removeItem(STORAGE_KEY);
+  } else {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 }
 

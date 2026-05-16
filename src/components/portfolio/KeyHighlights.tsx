@@ -1,20 +1,10 @@
-import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { SPHERE_ORDER, type PortfolioData, type SphereKey } from '@/types/portfolio.types';
+import type { PortfolioData, SphereKey } from '@/types/portfolio.types';
 import WhySuggestedPopover, { buildPopoverContext } from './WhySuggestedPopover';
 
 interface KeyHighlightsProps {
   data: PortfolioData;
-  memberId?: string | null;
-}
-
-const VALID_SPHERES: ReadonlySet<string> = new Set(SPHERE_ORDER);
-
-function sphereHref(memberId: string | null | undefined, sphere: unknown): string | null {
-  if (!memberId) return null;
-  if (typeof sphere !== 'string' || !VALID_SPHERES.has(sphere)) return null;
-  return `/portfolio/${memberId}/sphere/${sphere}`;
 }
 
 const EARLY_AGE_SOFT_SPHERES: SphereKey[] = ['finance', 'values', 'life_skills'];
@@ -34,7 +24,7 @@ function getActionMeta(source: string | null | undefined): { label: string; icon
   return { label: 'Активный фокус', icon: 'ArrowRight' };
 }
 
-export default function KeyHighlights({ data, memberId }: KeyHighlightsProps) {
+export default function KeyHighlights({ data }: KeyHighlightsProps) {
   const topStrength = data.strengths[0];
   const topGrowth = data.growth_zones[0];
 
@@ -52,13 +42,6 @@ export default function KeyHighlights({ data, memberId }: KeyHighlightsProps) {
     : 'Точка внимания';
   const actionMeta = getActionMeta(topAction?.source);
 
-  const strengthHref = sphereHref(memberId, topStrength?.sphere);
-  const growthHref = sphereHref(memberId, topGrowth?.sphere);
-  const actionHref = sphereHref(memberId, topAction?.sphere);
-
-  const linkBase =
-    'block no-underline text-inherit transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-lg';
-
   return (
     <Card className="border-0 shadow-sm bg-gradient-to-br from-primary/5 via-background to-amber-500/5">
       <CardContent className="p-4 md:p-5">
@@ -68,73 +51,43 @@ export default function KeyHighlights({ data, memberId }: KeyHighlightsProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {topStrength && (() => {
-            const inner = (
-              <>
-                <div className="w-8 h-8 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">
-                  <Icon name={topStrength.icon} size={16} className="text-green-600 dark:text-green-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
-                    Сильнее всего
-                  </p>
-                  <p className="text-sm font-semibold truncate">
-                    {topStrength.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {Math.round(topStrength.score)} из 100
-                  </p>
-                </div>
-              </>
-            );
-            const baseCls =
-              'flex items-start gap-2.5 p-3 rounded-lg bg-green-500/5 border border-green-500/15';
-            return strengthHref ? (
-              <Link
-                to={strengthHref}
-                className={`${baseCls} ${linkBase} hover:bg-green-500/10 hover:border-green-500/30`}
-                aria-label={`Открыть сферу: ${topStrength.label}`}
-              >
-                {inner}
-              </Link>
-            ) : (
-              <div className={baseCls}>{inner}</div>
-            );
-          })()}
+          {topStrength && (
+            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-green-500/5 border border-green-500/15">
+              <div className="w-8 h-8 rounded-full bg-green-500/15 flex items-center justify-center flex-shrink-0">
+                <Icon name={topStrength.icon} size={16} className="text-green-600 dark:text-green-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                  Сильнее всего
+                </p>
+                <p className="text-sm font-semibold truncate">
+                  {topStrength.label}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {Math.round(topStrength.score)} из 100
+                </p>
+              </div>
+            </div>
+          )}
 
-          {topGrowth && (() => {
-            const inner = (
-              <>
-                <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center flex-shrink-0">
-                  <Icon name={topGrowth.icon} size={16} className="text-amber-600 dark:text-amber-400" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
-                    {growthLabel}
-                  </p>
-                  <p className="text-sm font-semibold truncate">
-                    {topGrowth.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {Math.round(topGrowth.score)} из 100
-                  </p>
-                </div>
-              </>
-            );
-            const baseCls =
-              'flex items-start gap-2.5 p-3 rounded-lg bg-amber-500/5 border border-amber-500/15';
-            return growthHref ? (
-              <Link
-                to={growthHref}
-                className={`${baseCls} ${linkBase} hover:bg-amber-500/10 hover:border-amber-500/30`}
-                aria-label={`Открыть сферу: ${topGrowth.label}`}
-              >
-                {inner}
-              </Link>
-            ) : (
-              <div className={baseCls}>{inner}</div>
-            );
-          })()}
+          {topGrowth && (
+            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-500/5 border border-amber-500/15">
+              <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center flex-shrink-0">
+                <Icon name={topGrowth.icon} size={16} className="text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-0.5">
+                  {growthLabel}
+                </p>
+                <p className="text-sm font-semibold truncate">
+                  {topGrowth.label}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {Math.round(topGrowth.score)} из 100
+                </p>
+              </div>
+            </div>
+          )}
 
           {topAction && (
             <div className="flex items-start gap-2.5 p-3 rounded-lg bg-primary/5 border border-primary/15">
@@ -155,20 +108,9 @@ export default function KeyHighlights({ data, memberId }: KeyHighlightsProps) {
                 <p className="text-sm font-semibold leading-snug line-clamp-2">
                   {topAction.action}
                 </p>
-                {actionHref ? (
-                  <Link
-                    to={actionHref}
-                    className="text-xs text-muted-foreground truncate hover:text-primary inline-flex items-center gap-1 mt-0.5"
-                    aria-label={`Открыть сферу: ${topAction.sphere_label}`}
-                  >
-                    {actionMeta.label} · {topAction.sphere_label}
-                    <Icon name="ArrowUpRight" size={11} />
-                  </Link>
-                ) : (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {actionMeta.label} · {topAction.sphere_label}
-                  </p>
-                )}
+                <p className="text-xs text-muted-foreground truncate">
+                  {actionMeta.label} · {topAction.sphere_label}
+                </p>
               </div>
             </div>
           )}

@@ -12,9 +12,6 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 const STORAGE_KEY = 'app_language';
 
 function getInitialLanguage(): LanguageCode {
-  // SSR-safe: при prerender localStorage отсутствует. Возвращаем дефолт,
-  // а реальное значение подтянем в useEffect на клиенте.
-  if (typeof localStorage === 'undefined') return 'ru';
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved && saved in translations) {

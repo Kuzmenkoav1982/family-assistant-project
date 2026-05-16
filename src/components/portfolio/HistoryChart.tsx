@@ -72,8 +72,7 @@ export default function HistoryChart({ memberId }: HistoryChartProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Sprint B.2: единый стиль skeleton в языке Hub+Hero. */}
-          <div className="h-[200px] rounded-2xl bg-white/60 border border-white/60 animate-pulse" />
+          <div className="h-[200px] rounded-lg bg-muted/40 animate-pulse" />
         </CardContent>
       </Card>
     );

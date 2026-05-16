@@ -3,10 +3,8 @@
  * Использует localStorage с fallback на sessionStorage и IndexedDB
  */
 
-// Проверка доступности localStorage. SSR-safe: на prerender-фазе
-// `localStorage` отсутствует — считаем хранилище недоступным.
+// Проверка доступности localStorage
 function isLocalStorageAvailable(): boolean {
-  if (typeof localStorage === 'undefined') return false;
   try {
     const test = '__storage_test__';
     localStorage.setItem(test, test);
@@ -60,8 +58,8 @@ class StorageManager {
     try {
       // Проверяем оба хранилища
       const localValue = this.useLocalStorage ? localStorage.getItem(key) : null;
-      const sessionValue = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem(key) : null;
-
+      const sessionValue = sessionStorage.getItem(key);
+      
       // Возвращаем первое найденное значение
       return localValue || sessionValue;
     } catch (error) {

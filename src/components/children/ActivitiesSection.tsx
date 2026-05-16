@@ -6,31 +6,19 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import { useReturnToPortfolio } from '@/hooks/useReturnToPortfolio';
 
 interface ActivitiesSectionProps {
   developmentAreas: any[];
   onAddActivity: (data: { development_id: string; type: string; name: string; schedule: string; cost: number; status: string }) => Promise<{ success: boolean; error?: string }>;
   onDeleteActivity: (id: string) => Promise<void>;
-  /** D.1: внешний контроль открытия диалога для deep-link из портфолио. */
-  openDialog?: boolean;
-  onOpenDialogChange?: (open: boolean) => void;
 }
 
-export function ActivitiesSection({
-  developmentAreas,
-  onAddActivity,
-  onDeleteActivity,
-  openDialog,
-  onOpenDialogChange,
+export function ActivitiesSection({ 
+  developmentAreas, 
+  onAddActivity, 
+  onDeleteActivity 
 }: ActivitiesSectionProps) {
-  const [addActivityDialogInternal, setAddActivityDialogInternal] = useState(false);
-  const addActivityDialog = openDialog ?? addActivityDialogInternal;
-  const setAddActivityDialog = (v: boolean) => {
-    setAddActivityDialogInternal(v);
-    onOpenDialogChange?.(v);
-  };
-  const { returnIfRequested } = useReturnToPortfolio();
+  const [addActivityDialog, setAddActivityDialog] = useState(false);
   const [newActivityData, setNewActivityData] = useState({
     development_id: '',
     type: 'Секция',
@@ -87,8 +75,6 @@ export function ActivitiesSection({
         cost: '',
         status: 'active'
       });
-      // D.1: если попали сюда из портфолио — возвращаем пользователя обратно.
-      returnIfRequested();
     } else {
       alert(result.error || 'Ошибка добавления занятия');
     }

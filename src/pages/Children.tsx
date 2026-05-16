@@ -84,8 +84,7 @@ export default function Children() {
   useEffect(() => {
     if (!Array.isArray(members) || members.length === 0) return;
     
-    // D.1: поддерживаем ?member= как алиас ?childId= для deep-link из портфолио.
-    const childId = searchParams.get('childId') || searchParams.get('member');
+    const childId = searchParams.get('childId');
     const mode = searchParams.get('mode') as 'parent' | 'child' | null;
     
     if (childId) {
@@ -441,31 +440,9 @@ export default function Children() {
             </div>
 
             {viewMode === 'parent' ? (
-              <ParentDashboard
-                child={selectedChild}
-                initialTab={searchParams.get('tab')}
-                initialAction={searchParams.get('action')}
-                onActionHandled={() => {
-                  const next = new URLSearchParams(searchParams);
-                  next.delete('action');
-                  next.delete('tab');
-                  next.delete('from');
-                  setSearchParams(next, { replace: true });
-                }}
-              />
+              <ParentDashboard child={selectedChild} />
             ) : (
-              <ChildProfileComponent
-                child={selectedChild}
-                initialTab={searchParams.get('tab')}
-                initialAction={searchParams.get('action')}
-                onActionHandled={() => {
-                  const next = new URLSearchParams(searchParams);
-                  next.delete('action');
-                  next.delete('tab');
-                  next.delete('from');
-                  setSearchParams(next, { replace: true });
-                }}
-              />
+              <ChildProfileComponent child={selectedChild} />
             )}
           </>
         )}

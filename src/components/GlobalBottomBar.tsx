@@ -47,25 +47,14 @@ export default function GlobalBottomBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // SSR-safe lazy init: на prerender localStorage отсутствует.
-  const hasLS = typeof localStorage !== 'undefined';
   const [isVisible, setIsVisible] = useState(() => {
-    if (!hasLS) return true;
-    try {
-      const saved = localStorage.getItem('globalBottomBarVisible');
-      return saved !== null ? saved === 'true' : true;
-    } catch {
-      return true;
-    }
+    const saved = localStorage.getItem('globalBottomBarVisible');
+    return saved !== null ? saved === 'true' : true;
   });
 
-  const [domovoyHidden, setDomovoyHidden] = useState(() => {
-    if (!hasLS) return false;
-    try { return localStorage.getItem('domovoyHidden') === 'true'; } catch { return false; }
-  });
+  const [domovoyHidden, setDomovoyHidden] = useState(() => localStorage.getItem('domovoyHidden') === 'true');
 
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
-    if (!hasLS) return DEFAULT_IDS;
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {

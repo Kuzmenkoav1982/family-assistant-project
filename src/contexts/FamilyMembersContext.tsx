@@ -47,11 +47,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // SSR-safe lazy init: при prerender localStorage отсутствует.
-  const [familyId, setFamilyId] = useState<string | null>(() => {
-    if (typeof localStorage === 'undefined') return null;
-    try { return localStorage.getItem('familyId'); } catch { return null; }
-  });
+  const [familyId, setFamilyId] = useState<string | null>(() => localStorage.getItem('familyId'));
   const [currentMemberId, setCurrentMemberId] = useState<string | null>(null);
   const [currentAccessRole, setCurrentAccessRole] = useState<string | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);

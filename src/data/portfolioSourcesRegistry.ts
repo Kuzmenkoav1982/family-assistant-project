@@ -29,22 +29,6 @@ export interface SourceRegistryEntry {
   cta_text_adult?: string;
   /** Если источник вообще не уместен для портфолио взрослого — скрываем */
   hide_for_adult?: boolean;
-  /** D.1: какую вкладку открыть на целевой странице (опционально). */
-  tab?: string;
-  /** D.1: какое действие запустить на целевой странице — обычно открыть форму добавления. */
-  action?:
-    | 'add-skill'
-    | 'add-area'
-    | 'add-activity'
-    | 'add-vaccination'
-    | 'add-doctor-visit'
-    | 'add-mood-entry'
-    | 'add-vital'
-    | 'add-ritual'
-    | 'add-tradition'
-    | 'add-record';
-  /** D.1: дополнительные query-параметры, специфичные для целевой страницы (например mode=child). */
-  extraParams?: Record<string, string>;
 }
 
 /**
@@ -78,12 +62,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     spheres: ['life_skills', 'intellect'],
     category: 'family',
     route: '/children',
-    cta_text: 'Добавить область',
+    cta_text: 'Открыть раздел детей',
     freshness_days: 90,
     priority: 8,
-    tab: 'development',
-    action: 'add-area',
-    extraParams: { mode: 'parent' },
     label_adult: 'Личные навыки',
     hint_adult: 'Список ваших умений и компетенций — что вы делаете самостоятельно и хорошо.',
     cta_text_adult: 'Открыть профиль',
@@ -95,17 +76,13 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     hint: 'Регулярные занятия, секции, увлечения ребёнка.',
     spheres: ['creativity', 'body', 'social', 'intellect'],
     category: 'family',
-    route: '/children',
-    cta_text: 'Добавить занятие',
+    route: '/leisure',
+    cta_text: 'Открыть досуг',
     freshness_days: 30,
     priority: 7,
-    tab: 'development',
-    action: 'add-activity',
-    extraParams: { mode: 'parent' },
     label_adult: 'Хобби и активности',
     hint_adult: 'Регулярные занятия, спорт, хобби и увлечения.',
-    cta_text_adult: 'Добавить занятие',
-    hide_for_adult: true,
+    cta_text_adult: 'Открыть досуг',
   },
   children_vaccinations: {
     source_type: 'children_vaccinations',
@@ -114,11 +91,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     spheres: ['body'],
     category: 'family',
     route: '/health',
-    cta_text: 'Добавить прививку',
+    cta_text: 'Открыть здоровье',
     freshness_days: 365,
     priority: 4,
-    tab: 'vaccinations',
-    action: 'add-vaccination',
     hint_adult: 'Ваш календарь вакцинации и плановые прививки.',
   },
   children_doctor_visits: {
@@ -128,11 +103,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     spheres: ['body'],
     category: 'family',
     route: '/health',
-    cta_text: 'Добавить визит',
+    cta_text: 'Открыть здоровье',
     freshness_days: 180,
     priority: 5,
-    tab: 'history',
-    action: 'add-doctor-visit',
     hint_adult: 'Ваши плановые осмотры и медицинские записи.',
   },
   children_mood_entries: {
@@ -141,15 +114,11 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     hint: 'Регулярные записи о настроении и самочувствии ребёнка.',
     spheres: ['emotions'],
     category: 'family',
-    route: '/children',
-    cta_text: 'Добавить запись',
+    route: '/health',
+    cta_text: 'Открыть здоровье',
     freshness_days: 14,
     priority: 9,
-    tab: 'diary',
-    action: 'add-mood-entry',
-    extraParams: { mode: 'child' },
     hint_adult: 'Регулярные записи о вашем настроении и самочувствии.',
-    hide_for_adult: true,
   },
   child_development_assessments: {
     source_type: 'child_development_assessments',
@@ -171,11 +140,10 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     hint: 'Регулярные семейные привычки и ритуалы — основа ценностей.',
     spheres: ['values', 'social'],
     category: 'family',
-    route: '/culture',
-    cta_text: 'Добавить традицию',
+    route: '/family-policy',
+    cta_text: 'Открыть семейный кодекс',
     freshness_days: 60,
     priority: 6,
-    action: 'add-tradition',
   },
   family_rituals: {
     source_type: 'family_rituals',
@@ -183,11 +151,10 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     hint: 'Ежедневные семейные ритуалы — ужин, чтение перед сном и другие.',
     spheres: ['values', 'social', 'emotions'],
     category: 'family',
-    route: '/culture',
-    cta_text: 'Добавить ритуал',
+    route: '/family-policy',
+    cta_text: 'Открыть семейный кодекс',
     freshness_days: 30,
     priority: 6,
-    action: 'add-ritual',
   },
   tasks_v2: {
     source_type: 'tasks_v2',
@@ -208,11 +175,9 @@ export const SOURCES_REGISTRY: Record<string, SourceRegistryEntry> = {
     spheres: ['body'],
     category: 'auto',
     route: '/health',
-    cta_text: 'Добавить показатель',
+    cta_text: 'Открыть здоровье',
     freshness_days: 90,
     priority: 5,
-    tab: 'vitals',
-    action: 'add-vital',
   },
   achievements: {
     source_type: 'achievements',
@@ -360,72 +325,4 @@ export function getActionableSourcesForSphere(
     .sort((a, b) => b.priority - a.priority)
     .slice(0, limit)
     .map((s) => resolveSourceForAudience(s, audience));
-}
-
-/**
- * D.1: Резолвер «рекомендация → целевое действие».
- *
- * Возвращает {kind, pathname, search} для перехода из блока подсказок портфолио
- * в конкретную форму создания записи. Контракт стабильный:
- *  - kind: 'route' (на текущий момент модалок поверх портфолио нет)
- *  - pathname: маршрут из registry
- *  - search: query-строка с member, action, tab, from=portfolio
- *  - href: готовая строка для <Link to=...>
- *
- * Если в записи нет route или source_type неизвестен — возвращает null
- * (CTA не показывается, фолбэк на отсутствие кнопки).
- */
-export interface RecommendationTarget {
-  kind: 'route';
-  pathname: string;
-  search: string;
-  href: string;
-  sourceType: string;
-  action?: string;
-  tab?: string;
-  memberId?: string;
-}
-
-export function resolveRecommendationTarget(
-  memberId: string | null | undefined,
-  sourceType: string,
-): RecommendationTarget | null {
-  const entry = SOURCES_REGISTRY[sourceType];
-  if (!entry) return null;
-  if (!entry.route) return null;
-
-  const params = new URLSearchParams();
-  if (memberId) {
-    params.set('member', memberId);
-    // На /children исторически используется ключ childId — дублируем для совместимости.
-    if (entry.route === '/children') {
-      params.set('childId', memberId);
-    }
-  }
-  if (entry.action) params.set('action', entry.action);
-  if (entry.tab) params.set('tab', entry.tab);
-  if (entry.extraParams) {
-    for (const [k, v] of Object.entries(entry.extraParams)) {
-      params.set(k, v);
-    }
-  }
-  params.set('from', 'portfolio');
-  // D.1: куда вернуть пользователя после успешного сохранения формы.
-  if (memberId) {
-    params.set('returnTo', `/portfolio/${memberId}`);
-  }
-
-  const search = params.toString();
-  const href = search ? `${entry.route}?${search}` : entry.route;
-
-  return {
-    kind: 'route',
-    pathname: entry.route,
-    search,
-    href,
-    sourceType,
-    action: entry.action,
-    tab: entry.tab,
-    memberId: memberId ?? undefined,
-  };
 }

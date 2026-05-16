@@ -65,13 +65,6 @@ function hasAuthHeader(init?: RequestInit, input?: RequestInfo | URL): boolean {
 }
 
 export function installFetchInterceptor(): void {
-  // SSR-safe double guard: даже если функцию по ошибке вызовут на
-  // prerender-фазе (где `window` и `window.fetch` отсутствуют) — тихо
-  // выходим, не роняя билд.
-  if (typeof window === 'undefined' || typeof window.fetch !== 'function') {
-    return;
-  }
-
   const w = window as unknown as { __fetchInterceptorInstalled?: boolean };
   if (w.__fetchInterceptorInstalled) return;
   w.__fetchInterceptorInstalled = true;

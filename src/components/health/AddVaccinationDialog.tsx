@@ -12,18 +12,10 @@ interface AddVaccinationDialogProps {
   profileId: string;
   onSuccess: () => void;
   trigger?: React.ReactNode;
-  /** D.1: внешний контроль открытия (для deep-link из портфолио). */
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddVaccinationDialog({ profileId, onSuccess, trigger, open: openProp, onOpenChange }: AddVaccinationDialogProps) {
-  const [openInternal, setOpenInternal] = useState(false);
-  const open = openProp ?? openInternal;
-  const setOpen = (v: boolean) => {
-    setOpenInternal(v);
-    onOpenChange?.(v);
-  };
+export function AddVaccinationDialog({ profileId, onSuccess, trigger }: AddVaccinationDialogProps) {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 

@@ -138,10 +138,9 @@ export default function InsightsBlock({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Sprint B.2: единый стиль skeleton в языке Hub+Hero. */}
           <div className="space-y-2">
-            <div className="h-16 rounded-2xl bg-white/60 border border-white/60 animate-pulse" />
-            <div className="h-16 rounded-2xl bg-white/60 border border-white/60 animate-pulse" />
+            <div className="h-16 rounded-lg bg-muted/40 animate-pulse" />
+            <div className="h-16 rounded-lg bg-muted/40 animate-pulse" />
           </div>
         </CardContent>
       </Card>
@@ -221,38 +220,7 @@ export default function InsightsBlock({
       </CardHeader>
       <CardContent>
         {aiError && (
-          <div
-            role="alert"
-            className="mb-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 flex items-start gap-2"
-          >
-            <Icon
-              name="AlertCircle"
-              size={13}
-              className="text-rose-600 mt-0.5 shrink-0"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-semibold text-rose-800">
-                ИИ временно недоступен
-              </div>
-              <div className="text-[11px] text-rose-700 break-words">
-                {aiError}
-              </div>
-            </div>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleAskAi}
-              disabled={aiLoading}
-              className="h-6 px-2 text-[11px] text-rose-700 hover:bg-rose-100"
-            >
-              <Icon
-                name={aiLoading ? 'Loader2' : 'RefreshCw'}
-                size={11}
-                className={`mr-1 ${aiLoading ? 'animate-spin' : ''}`}
-              />
-              {aiLoading ? 'Думаю…' : 'Повторить'}
-            </Button>
-          </div>
+          <p className="text-xs text-amber-600 mb-3">ИИ временно недоступен: {aiError}</p>
         )}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {aiInsightsAdapted.map((ins, i) => renderInsight(ins, i, true))}

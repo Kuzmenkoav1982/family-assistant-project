@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,20 +15,10 @@ interface AddHealthRecordDialogProps {
   profileId: string;
   onSuccess: () => void;
   trigger?: React.ReactNode;
-  /** D.1: внешний контроль открытия (для deep-link из портфолио). */
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  /** D.1: предзаполнение типа записи (например 'mood'/'visit') при открытии из портфолио. */
-  defaultType?: string;
 }
 
-export function AddHealthRecordDialog({ profileId, onSuccess, trigger, open: openProp, onOpenChange, defaultType }: AddHealthRecordDialogProps) {
-  const [openInternal, setOpenInternal] = useState(false);
-  const open = openProp ?? openInternal;
-  const setOpen = (v: boolean) => {
-    setOpenInternal(v);
-    onOpenChange?.(v);
-  };
+export function AddHealthRecordDialog({ profileId, onSuccess, trigger }: AddHealthRecordDialogProps) {
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -47,13 +37,6 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger, open: ope
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<Record<string, unknown> | null>(null);
   const [analyzingImage, setAnalyzingImage] = useState(false);
-
-  // D.1: при открытии через deep-link подставляем нужный тип записи (mood/visit/...)
-  useEffect(() => {
-    if (open && defaultType) {
-      setFormData((prev) => ({ ...prev, type: defaultType }));
-    }
-  }, [open, defaultType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

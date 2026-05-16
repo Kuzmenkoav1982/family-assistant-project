@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { MoodDiary } from './MoodDiary';
@@ -20,15 +20,9 @@ interface ChildProfileProps {
     piggyBank?: number;
     [key: string]: unknown;
   };
-  /** D.1: deep-link из портфолио — стартовая вкладка (home/diary/...). */
-  initialTab?: string | null;
-  /** D.1: deep-link из портфолио — действие, например 'add-mood-entry'. */
-  initialAction?: string | null;
-  /** D.1: коллбэк, когда action отработал — Children.tsx чистит ?action из URL. */
-  onActionHandled?: () => void;
 }
 
-export function ChildProfile({ child, initialTab, initialAction, onActionHandled }: ChildProfileProps) {
+export function ChildProfile({ child }: ChildProfileProps) {
   const piggyBank = child.piggyBank || 0;
   // bug45: убраны хардкод-демо данные. Теперь карточка ребёнка пуста по умолчанию,
   // пользователь сам наполняет играми / книгами / мечтами.
@@ -54,23 +48,6 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
   const [moodDialog, setMoodDialog] = useState(false);
   const [selectedMood, setSelectedMood] = useState('😊');
   const [challengeCompleted, setChallengeCompleted] = useState(false);
-
-  // D.1: контролируемая вкладка + программное открытие диалога настроения по action.
-  const [tabValue, setTabValue] = useState<string>(initialTab || 'home');
-  const [moodDiaryOpen, setMoodDiaryOpen] = useState(false);
-
-  useEffect(() => {
-    if (initialTab) setTabValue(initialTab);
-  }, [initialTab]);
-
-  useEffect(() => {
-    if (initialAction === 'add-mood-entry') {
-      setTabValue('diary');
-      setMoodDiaryOpen(true);
-      onActionHandled?.();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialAction]);
 
   const currentStreak = 5;
   const todayChallenge = 'Прочитай 10 страниц любимой книги 📖';
@@ -172,7 +149,7 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
   };
 
   return (
-    <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-6">
+    <Tabs defaultValue="home" className="space-y-6">
       <TabsList className="grid grid-cols-2 sm:grid-cols-3 grid-rows-3 sm:grid-rows-2 h-auto w-full gap-1 bg-gray-100 p-1.5 rounded-xl">
         <TabsTrigger value="home" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
           <Icon name="Home" size={15} />
@@ -254,11 +231,7 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
       </TabsContent>
 
       <TabsContent value="diary">
-        <MoodDiary
-          childId={child.id}
-          openDialog={moodDiaryOpen}
-          onOpenDialogChange={setMoodDiaryOpen}
-        />
+        <MoodDiary childId={child.id} />
       </TabsContent>
 
       <TabsContent value="achievements">

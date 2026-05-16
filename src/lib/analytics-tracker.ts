@@ -42,34 +42,19 @@ class AnalyticsTracker {
   constructor() {
     this.apiUrl = func2url['page-views'] || '';
     this.hubApiUrl = (func2url as Record<string, string>)['analytics'] || '';
-    // SSR-safe: на prerender-фазе sessionStorage отсутствует. Откладываем
-    // создание session id до первого реального вызова (track*), который
-    // всегда происходит в браузере.
-    this.sessionId = '';
+    this.sessionId = this.getOrCreateSessionId();
   }
 
   private getOrCreateSessionId(): string {
-    if (typeof sessionStorage === 'undefined') {
-      // SSR/prerender — session id не нужен, возвращаем пустую строку.
-      return '';
-    }
     const storageKey = 'analytics_session_id';
     let sessionId = sessionStorage.getItem(storageKey);
-
+    
     if (!sessionId) {
       sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       sessionStorage.setItem(storageKey, sessionId);
     }
-
+    
     return sessionId;
-  }
-
-  /** Lazy-инициализация sessionId — вызывается из методов трекинга. */
-  private ensureSession(): string {
-    if (!this.sessionId) {
-      this.sessionId = this.getOrCreateSessionId();
-    }
-    return this.sessionId;
   }
 
   trackHub(path: string) {
@@ -88,7 +73,7 @@ class AnalyticsTracker {
     fetch(`${this.hubApiUrl}?action=hub`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hub, hub_label: label, family_id: familyId, session_id: this.ensureSession() }),
+      body: JSON.stringify({ hub, hub_label: label, family_id: familyId, session_id: this.sessionId }),
     }).catch(() => {});
   }
 
@@ -100,7 +85,7 @@ class AnalyticsTracker {
         page_path: path,
         page_title: title,
         referrer: document.referrer,
-        session_id: this.ensureSession(),
+        session_id: this.sessionId,
         user_agent: navigator.userAgent
       };
 
