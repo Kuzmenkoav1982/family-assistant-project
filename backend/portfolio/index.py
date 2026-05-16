@@ -1554,28 +1554,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     debug_mode = params.get('debug', '') in ('1', 'true', 'yes')
 
     try:
-        # ===== Диагностика заголовков (без auth) =====
-        if action == 'headers_dump':
-            raw_headers = event.get('headers') or {}
-            interesting = {k: v for k, v in raw_headers.items()
-                          if 'internal' in k.lower() or 'token' in k.lower()
-                          or 'auth' in k.lower() or 'cron' in k.lower()}
-            return {'statusCode': 200, 'headers': cors_headers(),
-                    'body': json.dumps({'headers': interesting,
-                                        'all_keys': sorted(raw_headers.keys())},
-                                       ensure_ascii=False)}
-
-        # ===== Internal worker path: aggregate по query-param токену =====
-        # Proxy платформы дропает X-* заголовки, поэтому токен в query param.
-        # portfolio-worker вызывает: ?action=aggregate&member_id=...&internal_token=<TOKEN>
-        _internal_token_param = params.get('internal_token', '')
+        # ===== Internal worker path: aggregate по Bearer-токену =====
+        # portfolio-worker шлёт Authorization: Bearer <PORTFOLIO_INTERNAL_TOKEN>
+        # Proxy платформы: Authorization → X-Authorization в функции.
+        _raw_auth = (
+            (event.get('headers') or {}).get('X-Authorization') or
+            (event.get('headers') or {}).get('x-authorization') or ''
+        ).strip()
+        if _raw_auth.lower().startswith('bearer '):
+            _raw_auth = _raw_auth[7:].strip()
         _expected_internal = os.environ.get('PORTFOLIO_INTERNAL_TOKEN', '')
-        if _internal_token_param and _expected_internal and _internal_token_param == _expected_internal:
+        if _raw_auth and _expected_internal and _raw_auth == _expected_internal:
             if action == 'aggregate' and member_id:
                 data = aggregate(member_id, debug=debug_mode)
                 return {'statusCode': 200, 'headers': cors_headers(),
                         'body': json.dumps(data, ensure_ascii=False, default=str)}
-            return _err(400, 'internal_token supports only action=aggregate with member_id')
+            return _err(400, 'internal token supports only action=aggregate with member_id')
 
         # ===== Системный action: cron =====
         if action == 'cron_snapshot':

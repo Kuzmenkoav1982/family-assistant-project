@@ -230,6 +230,14 @@
         "debug": {"available": true, "stale": false}
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "aggregate без auth = 401",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053",
+      "expectedStatus": 401,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
     }
   ]
 }
