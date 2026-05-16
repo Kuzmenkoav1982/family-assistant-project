@@ -260,6 +260,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         child_id = body.get('child_id')
         data_type = body.get('type')
         data = body.get('data')
+        # Failpoint: X-Debug-Force-Refresh-Fail: 1 — dirty выставляется, HTTP aggregate пропускается
+        _force_refresh_fail = event.get('headers', {}).get('X-Debug-Force-Refresh-Fail', '') == '1'
         
         if not all([action, child_id, data_type]):
             return {
@@ -648,7 +650,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             trigger_portfolio_aggregate(
                                 [child_id], actor_uid,
                                 reason=f'{data_type}_add',
-                                cur=cur,
+                                force_fail=_force_refresh_fail,
                             )
                     except Exception as _pe:
                         print(f'[PORTFOLIO_REFRESH] error: {_pe}')
@@ -822,7 +824,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             trigger_portfolio_aggregate(
                                 [child_id], actor_uid,
                                 reason=f'{data_type}_update',
-                                cur=cur,
+                                force_fail=_force_refresh_fail,
                             )
                     except Exception as _pe:
                         print(f'[PORTFOLIO_REFRESH] error: {_pe}')
@@ -879,7 +881,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             trigger_portfolio_aggregate(
                                 [child_id], actor_uid,
                                 reason=f'{data_type}_delete',
-                                cur=cur,
+                                force_fail=_force_refresh_fail,
                             )
                     except Exception as _pe:
                         print(f'[PORTFOLIO_REFRESH] error: {_pe}')

@@ -116,6 +116,30 @@
       "expectedStatus": 200,
       "expectedBody": {"success": true},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Failpoint: save succeeds even when aggregate HTTP is forced to fail",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "test-token",
+        "Content-Type": "application/json",
+        "X-Debug-Force-Refresh-Fail": "1"
+      },
+      "body": {
+        "action": "add",
+        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
+        "type": "dream",
+        "data": {
+          "title": "Failpoint тест — aggregate упал",
+          "description": "Dirty flag должен быть выставлен",
+          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9",
+          "achieved": false
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
     }
   ]
 }

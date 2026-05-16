@@ -1,24 +1,23 @@
 """
 Best-effort trigger для portfolio/aggregate после сохранения данных источника.
 
-Алгоритм:
-  1. mark_dirty_in_db() — UPSERT needs_refresh=true в member_portfolios (durable).
-     Даже если HTTP aggregate упадёт — get увидит stale=true.
-  2. trigger_portfolio_aggregate() — HTTP POST к portfolio/aggregate.
-     Если успешен — aggregate сам сбросит needs_refresh=false.
+Алгоритм (порядок операций):
+  1. source-data COMMIT (autocommit=True в family-traditions, происходит автоматически)
+  2. mark_dirty_in_db() — отдельное соединение + autocommit=True.
+     UPSERT needs_refresh=true немедленно коммитится.
+     Это durable dirty state: даже если HTTP aggregate упадёт — get увидит stale=true.
+  3. HTTP POST portfolio?action=aggregate (best-effort).
+     Если aggregate успешен — он сам сбросит needs_refresh=false.
 
 Ошибки не пробрасываются — только логируются.
-
-Использование:
-    from _portfolio_refresh import trigger_portfolio_aggregate
-    trigger_portfolio_aggregate([member_id], user_id, reason="traditions_sync", cur=cur)
 """
 
-import json
 import logging
 import os
 import urllib.parse
 import urllib.request
+
+import psycopg2
 
 PORTFOLIO_URL = os.environ.get(
     'PORTFOLIO_URL',
@@ -26,6 +25,7 @@ PORTFOLIO_URL = os.environ.get(
 )
 
 SCHEMA = 't_p5815085_family_assistant_pro'
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
 
 def _esc(value) -> str:
@@ -34,34 +34,47 @@ def _esc(value) -> str:
     return "'" + str(value).replace("'", "''") + "'"
 
 
-def mark_dirty_in_db(member_ids: list, cur) -> None:
-    """UPSERT needs_refresh=true для каждого member_id.
-    Вызывается ДО HTTP trigger — гарантирует durable dirty state.
-    """
+def mark_dirty_in_db(member_ids: list) -> None:
+    """UPSERT needs_refresh=true через отдельное соединение с autocommit=True."""
+    if not member_ids or not DATABASE_URL:
+        return
     seen: set = set()
-    for member_id in member_ids:
-        if not member_id or member_id in seen:
-            continue
-        seen.add(member_id)
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        conn.autocommit = True
+        cur = conn.cursor()
         try:
-            cur.execute(f"""
-                INSERT INTO {SCHEMA}.member_portfolios
-                    (member_id, family_id, age_group, current_scores, confidence_scores,
-                     strengths, growth_zones, next_actions, completeness,
-                     needs_refresh, marked_dirty_at)
-                VALUES (
-                    {_esc(member_id)}::uuid,
-                    '00000000-0000-0000-0000-000000000000'::uuid,
-                    'unknown', '{{}}'::jsonb, '{{}}'::jsonb,
-                    '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, 0,
-                    TRUE, CURRENT_TIMESTAMP
-                )
-                ON CONFLICT (member_id) DO UPDATE SET
-                    needs_refresh = TRUE,
-                    marked_dirty_at = CURRENT_TIMESTAMP
-            """)
-        except Exception as exc:
-            logging.warning('[portfolio_refresh] mark_dirty failed: member=%s error=%s', member_id, exc)
+            for member_id in member_ids:
+                if not member_id or member_id in seen:
+                    continue
+                seen.add(member_id)
+                try:
+                    cur.execute(f"""
+                        INSERT INTO {SCHEMA}.member_portfolios
+                            (member_id, family_id, age_group, current_scores, confidence_scores,
+                             strengths, growth_zones, next_actions, completeness,
+                             needs_refresh, marked_dirty_at)
+                        VALUES (
+                            {_esc(member_id)}::uuid,
+                            '00000000-0000-0000-0000-000000000000'::uuid,
+                            'unknown', '{{}}'::jsonb, '{{}}'::jsonb,
+                            '[]'::jsonb, '[]'::jsonb, '[]'::jsonb, 0,
+                            TRUE, CURRENT_TIMESTAMP
+                        )
+                        ON CONFLICT (member_id) DO UPDATE SET
+                            needs_refresh = TRUE,
+                            marked_dirty_at = CURRENT_TIMESTAMP
+                    """)
+                except Exception as exc:
+                    logging.warning(
+                        '[portfolio_refresh] mark_dirty failed: member=%s error=%s',
+                        member_id, exc,
+                    )
+        finally:
+            cur.close()
+            conn.close()
+    except Exception as exc:
+        logging.warning('[portfolio_refresh] mark_dirty connection failed: error=%s', exc)
 
 
 def trigger_portfolio_aggregate(
@@ -69,29 +82,27 @@ def trigger_portfolio_aggregate(
     user_id: str,
     reason: str,
     timeout_seconds: float = 5.0,
-    cur=None,
+    force_fail: bool = False,
+    cur=None,  # сохранён для совместимости подписи
 ) -> list:
     """
-    1. Выставляет needs_refresh=true в БД (если передан cur).
+    1. Ставит needs_refresh=true (autocommit, независимое соединение).
     2. Вызывает portfolio?action=aggregate по HTTP (best-effort).
 
-    Args:
-        member_ids: список member_id (str UUID)
-        user_id: X-User-Id (users.id) для auth в portfolio API
-        reason: строка-причина для логов (например "traditions_sync")
-        timeout_seconds: таймаут на один HTTP-запрос
-        cur: psycopg2 cursor (необязателен; если передан — ставит dirty flag)
-
-    Returns:
-        список результатов [{member_id, ok, status?, error?}]
+    force_fail=True: dirty выставляется, HTTP пропускается (failpoint для тестов).
     """
     if not user_id:
         logging.warning('[portfolio_refresh] skipped: no user_id, reason=%s', reason)
         return []
 
-    # Шаг 1: durable dirty flag — до HTTP-вызова
-    if cur is not None:
-        mark_dirty_in_db(member_ids, cur)
+    mark_dirty_in_db(member_ids)
+
+    if force_fail:
+        logging.warning(
+            '[portfolio_refresh] FAILPOINT: HTTP aggregate skipped: reason=%s members=%s',
+            reason, member_ids,
+        )
+        return [{'member_id': m, 'ok': False, 'error': 'failpoint'} for m in member_ids if m]
 
     results = []
     seen: set = set()

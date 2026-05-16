@@ -212,7 +212,16 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "get&debug=1 Миша после aggregate: stale=false (needs_refresh сброшен)",
+      "name": "aggregate resets needs_refresh (recovery step)",
+      "method": "GET",
+      "path": "/?action=aggregate&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {"age_group": "7-10"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "get&debug=1 Миша: stale=false после recovery aggregate",
       "method": "GET",
       "path": "/?action=get&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053&debug=1",
       "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
