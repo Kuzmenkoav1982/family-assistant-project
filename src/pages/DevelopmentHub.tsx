@@ -1,11 +1,57 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
+
+function CollapsibleBlock({
+  icon,
+  iconBg,
+  title,
+  borderColor,
+  bgGradient,
+  defaultOpen = false,
+  children,
+}: {
+  icon: string;
+  iconBg: string;
+  title: string;
+  borderColor: string;
+  bgGradient: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <Card className={`border-2 ${borderColor} ${bgGradient} overflow-hidden`}>
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center gap-3 p-4 md:p-5 text-left hover:bg-white/20 transition-colors"
+      >
+        <div className={`${iconBg} p-2 rounded-xl flex-shrink-0`}>
+          <Icon name={icon} size={18} className="text-inherit" />
+        </div>
+        <h3 className="font-bold text-sm flex-1">{title}</h3>
+        <Icon
+          name="ChevronDown"
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${
+          open ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}
+      >
+        <div className="px-4 pb-4 md:px-5 md:pb-5">{children}</div>
+      </div>
+    </Card>
+  );
+}
 
 interface SubSection {
   id: string;
@@ -208,6 +254,65 @@ export default function DevelopmentHub() {
           { label: 'Зеркало родителя', icon: 'HeartHandshake', path: '/pari-test' },
         ]}
       >
+        {/* Как это работает? */}
+        <CollapsibleBlock
+          icon="Info"
+          iconBg="bg-violet-100 text-violet-600"
+          title="Как это работает?"
+          borderColor="border-violet-200"
+          bgGradient="bg-gradient-to-br from-violet-50 via-fuchsia-50 to-purple-50"
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-violet-900/80 leading-relaxed">
+              «Развитие» — смысловой хаб личностного и семейного роста. Четыре слоя ведут вас от живой картины семьи к ежедневной практике, бережному диалогу и честной рефлексии. Без оценок и диагнозов — только наблюдение и осознанные шаги.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="bg-white/60 rounded-lg p-3 border border-violet-100">
+                <p className="text-xs font-semibold text-violet-900 mb-1.5 flex items-center gap-1.5">
+                  <Icon name="LayoutDashboard" size={14} className="text-violet-600" />
+                  Шаг 1. Панорама
+                </p>
+                <p className="text-[11px] text-violet-800/70 leading-relaxed">
+                  Откройте «Портфолио развития» — живую карту по 8 сферам для каждого члена семьи. Это отправная точка: видим картину целиком.
+                </p>
+              </div>
+              <div className="bg-white/60 rounded-lg p-3 border border-violet-100">
+                <p className="text-xs font-semibold text-violet-900 mb-1.5 flex items-center gap-1.5">
+                  <Icon name="Hammer" size={14} className="text-violet-600" />
+                  Шаг 2. Практика
+                </p>
+                <p className="text-[11px] text-violet-800/70 leading-relaxed">
+                  Превращайте картину в шаги: планы развития, навыки, достижения, мастерская жизни. Здесь рост становится привычкой.
+                </p>
+              </div>
+              <div className="bg-white/60 rounded-lg p-3 border border-violet-100">
+                <p className="text-xs font-semibold text-violet-900 mb-1.5 flex items-center gap-1.5">
+                  <Icon name="MessagesSquare" size={14} className="text-violet-600" />
+                  Шаг 3. Диалог
+                </p>
+                <p className="text-[11px] text-violet-800/70 leading-relaxed">
+                  ИИ-психолог, техники релаксации, упражнения для семьи и справочник кризисов. Бережный собеседник для тонких вопросов.
+                </p>
+              </div>
+              <div className="bg-white/60 rounded-lg p-3 border border-violet-100">
+                <p className="text-xs font-semibold text-violet-900 mb-1.5 flex items-center gap-1.5">
+                  <Icon name="HeartHandshake" size={14} className="text-violet-600" />
+                  Шаг 4. Рефлексия
+                </p>
+                <p className="text-[11px] text-violet-800/70 leading-relaxed">
+                  Зеркало родителя: научный тест PARI, радар-диаграмма установок, ИИ-разбор. Тихий взгляд внутрь — без оценок.
+                </p>
+              </div>
+            </div>
+            <div className="bg-white/60 rounded-lg p-3 border border-violet-100">
+              <p className="text-[11px] text-violet-800/80 leading-relaxed flex items-start gap-1.5">
+                <Icon name="Sparkles" size={13} className="text-violet-600 mt-0.5 flex-shrink-0" />
+                <span>Переключайте слои кнопками ниже — каждый открывает свои сервисы. Здесь рождаются смыслы, которые потом становятся договорённостями и действиями.</span>
+              </p>
+            </div>
+          </div>
+        </CollapsibleBlock>
+
         {/* Табы слоёв */}
         <div>
           <div className="text-[11px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 px-2">
