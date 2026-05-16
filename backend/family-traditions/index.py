@@ -137,11 +137,12 @@ def _refresh_portfolio_for_family(family_id: str, user_id: str, cur) -> None:
     """Запускает portfolio/aggregate для всех участников семьи.
     Best-effort: ошибки не пробрасываются. autocommit=True гарантирует,
     что sync-данные уже в БД к моменту вызова.
+    cur передаётся в helper для durable dirty-flag (needs_refresh=true).
     """
     member_ids = get_family_member_ids(family_id, cur)
     if not member_ids:
         return
-    trigger_portfolio_aggregate(member_ids, user_id, reason='traditions_sync')
+    trigger_portfolio_aggregate(member_ids, user_id, reason='traditions_sync', cur=cur)
 
 
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:

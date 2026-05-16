@@ -142,9 +142,9 @@
         "debug": {
           "age_group": "7-10",
           "sphere_details": {
-            "intellect": {"score": 4.0, "coverage": {"matched_groups": 1}},
-            "values": {"score": 1.4, "coverage": {"matched_groups": 2}},
-            "body": {"score": 3.0, "coverage": {"matched_groups": 1}}
+            "intellect": {"coverage": {"matched_groups": 1}},
+            "values": {"coverage": {"matched_groups": 2}},
+            "body": {"coverage": {"matched_groups": 2}}
           }
         }
       },
@@ -187,9 +187,8 @@
           "available": true,
           "age_group": "7-10",
           "sphere_details": {
-            "intellect": {"score": 4.0},
-            "values": {"score": 1.4},
-            "body": {"score": 3.0}
+            "intellect": {"coverage": {"matched_groups": 1}},
+            "values": {"coverage": {"matched_groups": 2}}
           }
         }
       },
@@ -209,6 +208,17 @@
             "values": {"coverage": {"matched_groups": 1}}
           }
         }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "get&debug=1 Миша после aggregate: stale=false (needs_refresh сброшен)",
+      "method": "GET",
+      "path": "/?action=get&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053&debug=1",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {
+        "debug": {"available": true, "stale": false}
       },
       "bodyMatcher": "partial"
     }

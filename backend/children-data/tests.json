@@ -64,6 +64,26 @@
       "bodyMatcher": "partial"
     },
     {
+      "name": "Add grade: school lookup + portfolio refresh best-effort",
+      "method": "POST",
+      "path": "/",
+      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
+      "body": {
+        "action": "add",
+        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
+        "type": "grade",
+        "data": {
+          "subject": "Биология",
+          "grade": 5,
+          "date": "2026-05-16",
+          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
       "name": "Add mood: save + portfolio refresh best-effort",
       "method": "POST",
       "path": "/",

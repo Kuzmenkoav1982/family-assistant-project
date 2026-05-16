@@ -544,7 +544,8 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
             INSERT INTO {SCHEMA}.member_portfolios
                 (member_id, family_id, age_group, current_scores, confidence_scores,
                  strengths, growth_zones, next_actions, completeness, last_aggregated_at,
-                 debug_snapshot, metrics_max_measured_at)
+                 debug_snapshot, metrics_max_measured_at,
+                 needs_refresh, marked_dirty_at)
             VALUES (
                 {esc(str(member['id']))}::uuid,
                 {esc(str(member['family_id']))}::uuid,
@@ -557,7 +558,9 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
                 {completeness},
                 CURRENT_TIMESTAMP,
                 {esc(debug_snapshot)}::jsonb,
-                {esc(metrics_max_measured_at) + '::timestamp' if metrics_max_measured_at else 'NULL'}
+                {esc(metrics_max_measured_at) + '::timestamp' if metrics_max_measured_at else 'NULL'},
+                FALSE,
+                NULL
             )
             ON CONFLICT (member_id) DO UPDATE SET
                 age_group = EXCLUDED.age_group,
@@ -570,6 +573,8 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
                 last_aggregated_at = CURRENT_TIMESTAMP,
                 debug_snapshot = EXCLUDED.debug_snapshot,
                 metrics_max_measured_at = EXCLUDED.metrics_max_measured_at,
+                needs_refresh = FALSE,
+                marked_dirty_at = NULL,
                 updated_at = CURRENT_TIMESTAMP
         """)
 
@@ -738,16 +743,20 @@ def get_portfolio(member_id: str, debug: bool = False) -> Dict[str, Any]:
                 result['debug'] = {'available': False, 'reason': 'debug_snapshot_not_found'}
             else:
                 # Stale detection: сравниваем metrics_max_measured_at из snapshot с текущим
-                stale = False
-                try:
-                    stored_max = portfolio.get('metrics_max_measured_at')
-                    if stored_max and recent_metrics:
-                        current_max = max(
-                            m['measured_at'] for m in recent_metrics if m.get('measured_at')
-                        )
-                        stale = current_max > stored_max
-                except Exception:
-                    pass
+                # Stale detection (два уровня):
+                # 1. needs_refresh=true — durable dirty flag, ставится при save source-данных.
+                # 2. metrics_max_measured_at < current — более свежие метрики не учтены.
+                stale = bool(portfolio.get('needs_refresh'))
+                if not stale:
+                    try:
+                        stored_max = portfolio.get('metrics_max_measured_at')
+                        if stored_max and recent_metrics:
+                            current_max = max(
+                                m['measured_at'] for m in recent_metrics if m.get('measured_at')
+                            )
+                            stale = current_max > stored_max
+                    except Exception:
+                        pass
                 result['debug'] = {
                     'available': True,
                     'stale': stale,

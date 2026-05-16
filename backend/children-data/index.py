@@ -503,10 +503,29 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         }
                     
                 elif data_type == 'grade':
+                    # Grades хранятся через school_id, не member_id.
+                    # Ищем запись школы; если нет — создаём с дефолтными данными.
                     cur.execute(f"""
-                        INSERT INTO {schema}.children_grades (member_id, subject, grade, date, notes)
-                        VALUES ({child_id_safe}, {escape_sql_string(data.get('subject'))}, 
-                                {escape_sql_string(data.get('grade'))}, {escape_sql_string(data.get('date'))}, 
+                        SELECT id FROM {schema}.children_school
+                        WHERE member_id = {child_id_safe} LIMIT 1
+                    """)
+                    school_row = cur.fetchone()
+                    if school_row:
+                        school_id = school_row['id']
+                    else:
+                        family_id_val = escape_sql_string(data.get('family_id', ''))
+                        cur.execute(f"""
+                            INSERT INTO {schema}.children_school (member_id, family_id)
+                            VALUES ({child_id_safe}, {family_id_val})
+                            RETURNING id
+                        """)
+                        school_id = cur.fetchone()['id']
+                    cur.execute(f"""
+                        INSERT INTO {schema}.children_grades (school_id, subject, grade, date, notes)
+                        VALUES ({escape_sql_string(school_id)},
+                                {escape_sql_string(data.get('subject'))}, 
+                                {escape_sql_string(data.get('grade'))},
+                                {escape_sql_string(data.get('date'))}, 
                                 {escape_sql_string(data.get('notes', ''))}) 
                         RETURNING id
                     """)
@@ -629,6 +648,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             trigger_portfolio_aggregate(
                                 [child_id], actor_uid,
                                 reason=f'{data_type}_add',
+                                cur=cur,
                             )
                     except Exception as _pe:
                         print(f'[PORTFOLIO_REFRESH] error: {_pe}')
@@ -802,6 +822,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             trigger_portfolio_aggregate(
                                 [child_id], actor_uid,
                                 reason=f'{data_type}_update',
+                                cur=cur,
                             )
                     except Exception as _pe:
                         print(f'[PORTFOLIO_REFRESH] error: {_pe}')
@@ -858,6 +879,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             trigger_portfolio_aggregate(
                                 [child_id], actor_uid,
                                 reason=f'{data_type}_delete',
+                                cur=cur,
                             )
                     except Exception as _pe:
                         print(f'[PORTFOLIO_REFRESH] error: {_pe}')
