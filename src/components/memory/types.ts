@@ -7,6 +7,8 @@ export interface MemoryAsset {
   mime_type: string | null;
 }
 
+export type MemoryEntryStatus = 'draft' | 'published' | 'archived';
+
 export interface MemoryEntry {
   id: string;
   title: string;
@@ -17,6 +19,7 @@ export interface MemoryEntry {
   location_label: string | null;
   event_id: string | null;
   cover_asset_id: string | null;
+  status?: MemoryEntryStatus;
   created_at: string | null;
   updated_at: string | null;
   assets: MemoryAsset[];

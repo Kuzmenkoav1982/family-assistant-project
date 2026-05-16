@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -63,6 +63,8 @@ export default function MemoryEntryDialog({
 
   const [saving, setSaving] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+  // флаг легитимного закрытия (через Сохранить) — чтобы handleClose не пытался discard'нуть только что опубликованный draft
+  const legitimateCloseRef = useRef(false);
 
   // Сброс при открытии: для новой памяти подставляем мягкие suggestions
   useEffect(() => {
@@ -101,7 +103,8 @@ export default function MemoryEntryDialog({
     return members.filter(m => m.name.toLowerCase().includes(q));
   }, [members, memberSearch]);
 
-  // Создание черновика карточки при первой загрузке фото
+  // Создание черновика карточки при первой загрузке фото.
+  // Статус draft — он не показывается ни в одном списке, пока пользователь явно не опубликует.
   async function ensureDraft(): Promise<MemoryEntry> {
     if (entry) return entry;
     if (!title.trim()) {
@@ -116,6 +119,7 @@ export default function MemoryEntryDialog({
       location_label: location || null,
       event_id: eventId,
       member_ids: memberIds,
+      status: 'draft',
     });
     setEntry(created);
     return created;
@@ -187,7 +191,8 @@ export default function MemoryEntryDialog({
     try {
       let saved: MemoryEntry;
       if (entry) {
-        saved = await memoryApi.updateEntry(entry.id, {
+        // обновляем поля
+        const updated = await memoryApi.updateEntry(entry.id, {
           title: title.trim(),
           caption: caption || null,
           story: story || null,
@@ -196,7 +201,14 @@ export default function MemoryEntryDialog({
           location_label: location || null,
           member_ids: memberIds,
         });
+        // если это был draft — публикуем
+        if (updated.status === 'draft') {
+          saved = await memoryApi.publishEntry(entry.id);
+        } else {
+          saved = updated;
+        }
       } else {
+        // создание сразу как published — без фото и без черновика
         saved = await memoryApi.createEntry({
           title: title.trim(),
           caption: caption || null,
@@ -206,10 +218,13 @@ export default function MemoryEntryDialog({
           location_label: location || null,
           event_id: eventId,
           member_ids: memberIds,
+          status: 'published',
         });
       }
       onSaved(saved);
       toast.success(isEdit ? 'Память обновлена' : 'Память сохранена');
+      // помечаем, что закрытие легитимное — discard не нужен
+      legitimateCloseRef.current = true;
       onOpenChange(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Не удалось сохранить');
@@ -218,8 +233,23 @@ export default function MemoryEntryDialog({
     }
   }
 
+  async function handleClose(nextOpen: boolean) {
+    if (!nextOpen && !legitimateCloseRef.current) {
+      // Cancel / X / клик вне диалога — если был создан незавершённый draft, гасим его.
+      if (entry && entry.status === 'draft') {
+        try {
+          await memoryApi.discardDraft(entry.id);
+        } catch {
+          // тихо — пользователь уже закрыл диалог
+        }
+      }
+    }
+    legitimateCloseRef.current = false;
+    onOpenChange(nextOpen);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-h-[92vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? 'Редактировать память' : 'Новая карточка памяти'}</DialogTitle>
@@ -414,7 +444,7 @@ export default function MemoryEntryDialog({
         </div>
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+          <Button variant="outline" onClick={() => handleClose(false)} disabled={saving}>
             Отмена
           </Button>
           <Button onClick={handleSave} disabled={saving || uploading}>

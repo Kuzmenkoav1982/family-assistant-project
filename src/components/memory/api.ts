@@ -57,7 +57,7 @@ export const memoryApi = {
   getEntry: (id: string) =>
     call<MemoryEntry>('GET', `?resource=entries&id=${encodeURIComponent(id)}`),
 
-  createEntry: (input: CreateMemoryEntryInput) =>
+  createEntry: (input: CreateMemoryEntryInput & { status?: 'draft' | 'published' }) =>
     call<MemoryEntry>('POST', '?resource=entries', input),
 
   updateEntry: (id: string, patch: UpdateMemoryEntryInput) =>
@@ -65,6 +65,15 @@ export const memoryApi = {
 
   archiveEntry: (id: string) =>
     call<{ ok: boolean }>('POST', `?resource=entries/archive&id=${encodeURIComponent(id)}`),
+
+  publishEntry: (id: string) =>
+    call<MemoryEntry>('POST', `?resource=entries/publish&id=${encodeURIComponent(id)}`),
+
+  discardDraft: (id: string) =>
+    call<{ ok: boolean; discarded: boolean }>(
+      'POST',
+      `?resource=entries/discard&id=${encodeURIComponent(id)}`,
+    ),
 
   // Assets
   addAsset: (

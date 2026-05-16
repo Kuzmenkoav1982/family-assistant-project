@@ -67,6 +67,10 @@ def handler(event: dict, context) -> dict:
             return _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body)
         if resource == 'entries/archive':
             return _archive_entry(cur, conn, family_id, item_id)
+        if resource == 'entries/publish':
+            return _publish_entry(cur, conn, family_id, item_id)
+        if resource == 'entries/discard':
+            return _discard_draft(cur, conn, family_id, item_id)
 
         if resource == 'albums':
             return _handle_albums(cur, conn, method, family_id, user_id, item_id, body)
@@ -101,29 +105,40 @@ def handler(event: dict, context) -> dict:
 
 def _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body):
     if method == 'GET':
+        # include_drafts=1 — режим для UI редактирования черновика
+        include_drafts = qp.get('include_drafts') in ('1', 'true', 'yes')
         if item_id:
-            entry = _entry_full(cur, family_id, item_id)
+            entry = _entry_full(cur, family_id, item_id, include_drafts=True)
             if not entry:
                 return _resp(404, {'error': 'not found'})
             return _resp(200, entry)
         event_id = qp.get('event_id')
         member_id = qp.get('member_id')
         album_id = qp.get('album_id')
-        return _resp(200, {'entries': _list_entries(cur, family_id, event_id, member_id, album_id)})
+        return _resp(
+            200,
+            {'entries': _list_entries(cur, family_id, event_id, member_id, album_id, include_drafts=include_drafts)},
+        )
 
     if method == 'POST':
         title = (body.get('title') or '').strip()
+        # Новый flow: статус по умолчанию draft (UI сам публикует через entries/publish при сохранении).
+        # Если явно указан status — используем его (для одношагового create+publish).
+        status = (body.get('status') or 'draft').strip()
+        if status not in ('draft', 'published'):
+            return _resp(400, {'error': 'invalid status'})
         if not title:
-            return _resp(400, {'error': 'title required'})
+            # для черновика разрешаем пустой/служебный title, но всё равно нужен какой-то текст
+            title = 'Черновик'
         cur.execute(
             '''INSERT INTO memory_entries
                (family_id, title, caption, story, memory_date, memory_period_label,
-                location_label, event_id, created_by)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                location_label, event_id, created_by, status)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                RETURNING id''',
             (family_id, title, body.get('caption'), body.get('story'),
              body.get('memory_date') or None, body.get('memory_period_label'),
-             body.get('location_label'), body.get('event_id') or None, user_id),
+             body.get('location_label'), body.get('event_id') or None, user_id, status),
         )
         new_id = cur.fetchone()[0]
         for mid in (body.get('member_ids') or []):
@@ -132,7 +147,7 @@ def _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body):
                 (new_id, int(mid)),
             )
         conn.commit()
-        return _resp(200, _entry_full(cur, family_id, str(new_id)))
+        return _resp(200, _entry_full(cur, family_id, str(new_id), include_drafts=True))
 
     if method == 'PUT':
         if not item_id:
@@ -161,17 +176,20 @@ def _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body):
                     (item_id, int(mid)),
                 )
         conn.commit()
-        return _resp(200, _entry_full(cur, family_id, item_id))
+        return _resp(200, _entry_full(cur, family_id, item_id, include_drafts=True))
 
     return _resp(405, {'error': 'method not allowed'})
 
 
-def _list_entries(cur, family_id, event_id=None, member_id=None, album_id=None):
+def _list_entries(cur, family_id, event_id=None, member_id=None, album_id=None, include_drafts=False):
     sql = '''SELECT e.id, e.title, e.caption, e.story, e.memory_date, e.memory_period_label,
-                    e.location_label, e.event_id, e.cover_asset_id, e.created_at, e.updated_at
+                    e.location_label, e.event_id, e.cover_asset_id, e.created_at, e.updated_at,
+                    e.status
              FROM memory_entries e'''
     where = ['e.family_id = %s', 'e.archived_at IS NULL']
     params = [family_id]
+    if not include_drafts:
+        where.append("e.status = 'published'")
     if event_id:
         where.append('e.event_id = %s')
         params.append(event_id)
@@ -202,22 +220,59 @@ def _row_to_entry(cur, r):
         'cover_asset_id': str(r[8]) if r[8] else None,
         'created_at': r[9].isoformat() if r[9] else None,
         'updated_at': r[10].isoformat() if r[10] else None,
+        'status': r[11] if len(r) > 11 else 'published',
         'assets': _assets_for(cur, r[0]),
         'member_ids': _member_ids_for(cur, r[0]),
     }
 
 
-def _entry_full(cur, family_id, entry_id):
-    cur.execute(
-        '''SELECT id, title, caption, story, memory_date, memory_period_label,
-                  location_label, event_id, cover_asset_id, created_at, updated_at
-           FROM memory_entries WHERE id = %s AND family_id = %s AND archived_at IS NULL''',
-        (entry_id, family_id),
-    )
+def _entry_full(cur, family_id, entry_id, include_drafts=False):
+    sql = '''SELECT id, title, caption, story, memory_date, memory_period_label,
+                    location_label, event_id, cover_asset_id, created_at, updated_at, status
+             FROM memory_entries
+             WHERE id = %s AND family_id = %s AND archived_at IS NULL'''
+    if not include_drafts:
+        sql += " AND status = 'published'"
+    cur.execute(sql, (entry_id, family_id))
     r = cur.fetchone()
     if not r:
         return None
     return _row_to_entry(cur, r)
+
+
+def _publish_entry(cur, conn, family_id, entry_id):
+    if not entry_id:
+        return _resp(400, {'error': 'id required'})
+    cur.execute(
+        '''UPDATE memory_entries
+           SET status = 'published', updated_at = CURRENT_TIMESTAMP
+           WHERE id = %s AND family_id = %s AND archived_at IS NULL''',
+        (entry_id, family_id),
+    )
+    conn.commit()
+    return _resp(200, _entry_full(cur, family_id, entry_id, include_drafts=True))
+
+
+def _discard_draft(cur, conn, family_id, entry_id):
+    """
+    Безопасно гасит черновик: переводит status='archived' и проставляет archived_at.
+    Сработает только если запись действительно draft (защита от случайного архива опубликованной).
+    Каскадно убирает связи с альбомами и людьми, чтобы не висели орфаны.
+    """
+    if not entry_id:
+        return _resp(400, {'error': 'id required'})
+    cur.execute(
+        '''UPDATE memory_entries
+           SET status = 'archived', archived_at = CURRENT_TIMESTAMP
+           WHERE id = %s AND family_id = %s AND status = 'draft' AND archived_at IS NULL''',
+        (entry_id, family_id),
+    )
+    affected = cur.rowcount
+    if affected > 0:
+        cur.execute('DELETE FROM memory_album_links WHERE memory_entry_id = %s', (entry_id,))
+        cur.execute('DELETE FROM memory_person_links WHERE memory_entry_id = %s', (entry_id,))
+    conn.commit()
+    return _resp(200, {'ok': True, 'discarded': bool(affected)})
 
 
 def _assets_for(cur, entry_id):
@@ -251,7 +306,9 @@ def _archive_entry(cur, conn, family_id, entry_id):
     if not entry_id:
         return _resp(400, {'error': 'id required'})
     cur.execute(
-        'UPDATE memory_entries SET archived_at = CURRENT_TIMESTAMP WHERE id = %s AND family_id = %s',
+        '''UPDATE memory_entries
+           SET archived_at = CURRENT_TIMESTAMP, status = 'archived'
+           WHERE id = %s AND family_id = %s''',
         (entry_id, family_id),
     )
     conn.commit()
@@ -395,7 +452,7 @@ def _handle_assets(cur, conn, method, family_id, item_id, qp, body):
             (new_id, entry_id),
         )
         conn.commit()
-        return _resp(200, {'id': str(new_id), 'entry': _entry_full(cur, family_id, entry_id)})
+        return _resp(200, {'id': str(new_id), 'entry': _entry_full(cur, family_id, entry_id, include_drafts=True)})
 
     if method == 'PUT':
         if not item_id:
@@ -434,7 +491,7 @@ def _remove_asset(cur, conn, family_id, asset_id):
     )
     cur.execute('DELETE FROM memory_assets WHERE id = %s', (asset_id,))
     conn.commit()
-    return _resp(200, {'ok': True, 'entry': _entry_full(cur, family_id, str(entry_id))})
+    return _resp(200, {'ok': True, 'entry': _entry_full(cur, family_id, str(entry_id), include_drafts=True)})
 
 
 # ============================================================
@@ -458,7 +515,7 @@ def _set_persons(cur, conn, family_id, entry_id, body):
             (entry_id, mid),
         )
     conn.commit()
-    return _resp(200, {'entry': _entry_full(cur, family_id, entry_id)})
+    return _resp(200, {'entry': _entry_full(cur, family_id, entry_id, include_drafts=True)})
 
 
 # ============================================================
