@@ -205,13 +205,21 @@ def mark_failed(cur, member_id: str, error_msg: str, attempts: int,
 
 
 def call_aggregate(member_id: str, timeout: float = 15.0) -> Dict[str, Any]:
+    """Вызывает portfolio?action=aggregate через internal_token в query param.
+
+    Proxy платформы дропает X-* заголовки — токен передаётся как ?internal_token=...
+    """
     if not PORTFOLIO_INTERNAL_TOKEN:
         raise RuntimeError('PORTFOLIO_INTERNAL_TOKEN not configured')
-    url = f"{PORTFOLIO_URL}?action=aggregate&member_id={urllib.parse.quote(member_id)}"
+    url = (
+        f"{PORTFOLIO_URL}"
+        f"?action=aggregate"
+        f"&member_id={urllib.parse.quote(member_id)}"
+        f"&internal_token={urllib.parse.quote(PORTFOLIO_INTERNAL_TOKEN)}"
+    )
     req = urllib.request.Request(
         url=url, method='POST',
-        headers={'X-Internal-Token': PORTFOLIO_INTERNAL_TOKEN,
-                 'Content-Type': 'application/json'},
+        headers={'Content-Type': 'application/json'},
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         raw = resp.read().decode('utf-8', errors='replace')
@@ -326,10 +334,28 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     cron_token = headers_lower.get('x-cron-secret', '')
     internal_token = headers_lower.get('x-internal-token', '')
 
+    params_pre = event.get('queryStringParameters') or {}
+
+    # Диагностика без auth — только preview токена, не сам токен
+    if params_pre.get('action') == 'token_check':
+        tok = PORTFOLIO_INTERNAL_TOKEN
+        return ok({
+            'configured': bool(tok),
+            'length': len(tok),
+            'preview': (tok[:3] + '...' + tok[-3:]) if len(tok) >= 6 else repr(tok),
+            'cron_configured': bool(CRON_SECRET),
+            'cron_length': len(CRON_SECRET),
+        })
+
+    # Auth: заголовок (внутренние вызовы) или query param (внешние, proxy режет заголовки)
+    internal_token_param = params_pre.get('internal_token', '')
+
     authed = False
     if CRON_SECRET and cron_token == CRON_SECRET:
         authed = True
     if PORTFOLIO_INTERNAL_TOKEN and internal_token == PORTFOLIO_INTERNAL_TOKEN:
+        authed = True
+    if PORTFOLIO_INTERNAL_TOKEN and internal_token_param == PORTFOLIO_INTERNAL_TOKEN:
         authed = True
 
     if not authed:
@@ -356,6 +382,14 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             finally:
                 cur.close()
                 conn.close()
+
+        if action == 'token_check':
+            tok = PORTFOLIO_INTERNAL_TOKEN
+            return ok({
+                'configured': bool(tok),
+                'length': len(tok),
+                'preview': (tok[:3] + '...' + tok[-3:]) if len(tok) >= 6 else '(short)',
+            })
 
         return err(400, f'Unknown action: {action}. Use: run | run_once | health')
 
