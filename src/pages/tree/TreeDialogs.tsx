@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import type { TreeMember, NewTreeMember } from '@/hooks/useFamilyTree';
 import { RELATION_OPTIONS, AVATAR_OPTIONS, MONTHS, calculateAge, getAgeText, isImageUrl } from './treeUtils';
+import MemberMemorySection from '@/components/memory/MemberMemorySection';
 
 export function MemberDetailDialog({
   selectedMember,
@@ -121,6 +122,8 @@ export function MemberDetailDialog({
               {selectedMember.bio}
             </div>
           )}
+
+          <MemberMemorySection memberId={selectedMember.id} memberName={selectedMember.name} />
 
           {selectedMember.photos && selectedMember.photos.length > 0 && (
             <div className="border-t pt-3 mt-3">
