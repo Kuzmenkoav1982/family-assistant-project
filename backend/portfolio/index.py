@@ -471,6 +471,22 @@ def collect_metrics_inline(cur, member_id: str) -> None:
     _shared_collect_all(cur, SCHEMA, member_id)
 
 
+def _build_debug_sphere_details(sphere_details: Dict[str, Any]) -> Dict[str, Any]:
+    """Собирает debug.sphere_details из результатов calc_sphere(debug=True)."""
+    out = {}
+    for sphere in SPHERE_KEYS:
+        sd = sphere_details.get(sphere, {})
+        out[sphere] = {
+            'score': sd.get('score', 0),
+            'confidence': sd.get('confidence', 0),
+            'coverage': sd.get('coverage', {'matched_groups': 0, 'total_groups': 0}),
+            'matched_metrics': sd.get('matched_metrics', []),
+            'missing_groups': sd.get('missing_groups', []),
+            'unused_metrics': sd.get('unused_metrics', []),
+        }
+    return out
+
+
 def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -489,11 +505,23 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
         rules = fetch_rules(cur, age_group)
         metrics = fetch_metrics(cur, member_id)
 
+        # MAX(measured_at) для stale-detection при get&debug=1
+        metrics_max_measured_at: Optional[str] = None
+        if metrics:
+            try:
+                metrics_max_measured_at = max(
+                    m['measured_at'].isoformat()
+                    for m in metrics if m.get('measured_at')
+                )
+            except Exception:
+                pass
+
+        # Всегда считаем с debug=True — результат сохраняется в debug_snapshot
         scores = {}
         confidences = {}
         sphere_details = {}
         for sphere in SPHERE_KEYS:
-            res = calc_sphere(sphere, rules, metrics, debug=debug)
+            res = calc_sphere(sphere, rules, metrics, debug=True)
             scores[sphere] = res['score']
             confidences[sphere] = res['confidence']
             sphere_details[sphere] = res
@@ -502,11 +530,21 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
         next_actions = gen_next_actions(cur, member_id, scores, confidences)
         completeness = calc_completeness(scores, confidences)
 
-        # Сохраняем агрегат
+        # Строим debug_snapshot — сохраняется в БД всегда
+        now_iso = datetime.now(timezone.utc).isoformat()
+        debug_snapshot = {
+            'age_group': age_group,
+            'generated_at': now_iso,
+            'metrics_max_measured_at': metrics_max_measured_at,
+            'sphere_details': _build_debug_sphere_details(sphere_details),
+        }
+
+        # Сохраняем агрегат (включая debug_snapshot и metrics_max_measured_at)
         cur.execute(f"""
             INSERT INTO {SCHEMA}.member_portfolios
                 (member_id, family_id, age_group, current_scores, confidence_scores,
-                 strengths, growth_zones, next_actions, completeness, last_aggregated_at)
+                 strengths, growth_zones, next_actions, completeness, last_aggregated_at,
+                 debug_snapshot, metrics_max_measured_at)
             VALUES (
                 {esc(str(member['id']))}::uuid,
                 {esc(str(member['family_id']))}::uuid,
@@ -517,7 +555,9 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
                 {esc(sg['growth_zones'])}::jsonb,
                 {esc(next_actions)}::jsonb,
                 {completeness},
-                CURRENT_TIMESTAMP
+                CURRENT_TIMESTAMP,
+                {esc(debug_snapshot)}::jsonb,
+                {esc(metrics_max_measured_at) + '::timestamp' if metrics_max_measured_at else 'NULL'}
             )
             ON CONFLICT (member_id) DO UPDATE SET
                 age_group = EXCLUDED.age_group,
@@ -528,6 +568,8 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
                 next_actions = EXCLUDED.next_actions,
                 completeness = EXCLUDED.completeness,
                 last_aggregated_at = CURRENT_TIMESTAMP,
+                debug_snapshot = EXCLUDED.debug_snapshot,
+                metrics_max_measured_at = EXCLUDED.metrics_max_measured_at,
                 updated_at = CURRENT_TIMESTAMP
         """)
 
@@ -544,30 +586,26 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
             'age_group': age_group,
             'scores': scores,
             'confidence': confidences,
-            'sphere_details': sphere_details,
+            'sphere_details': {
+                s: {'score': v['score'], 'confidence': v['confidence'],
+                    'metric_count': v['metric_count'], 'sources': v['sources']}
+                for s, v in sphere_details.items()
+            },
             'strengths': sg['strengths'],
             'growth_zones': sg['growth_zones'],
             'next_actions': next_actions,
             'completeness': completeness,
-            'aggregated_at': datetime.now(timezone.utc).isoformat(),
+            'aggregated_at': now_iso,
         }
 
-        # debug-блок: только при debug=True, не сохраняется в БД, не меняет обычный контракт
+        # В response debug добавляем только по флагу
         if debug:
-            debug_spheres = {}
-            for sphere in SPHERE_KEYS:
-                sd = sphere_details[sphere]
-                debug_spheres[sphere] = {
-                    'score': sd['score'],
-                    'confidence': sd['confidence'],
-                    'coverage': sd.get('coverage', {'matched_groups': 0, 'total_groups': 0}),
-                    'matched_metrics': sd.get('matched_metrics', []),
-                    'missing_groups': sd.get('missing_groups', []),
-                    'unused_metrics': sd.get('unused_metrics', []),
-                }
             result['debug'] = {
+                'available': True,
+                'stale': False,
+                'generated_at': now_iso,
                 'age_group': age_group,
-                'sphere_details': debug_spheres,
+                'sphere_details': debug_snapshot['sphere_details'],
             }
 
     finally:
@@ -581,8 +619,13 @@ def aggregate(member_id: str, debug: bool = False) -> Dict[str, Any]:
     return result
 
 
-def get_portfolio(member_id: str) -> Dict[str, Any]:
-    """Получить текущее портфолио + предыдущий snapshot для динамики."""
+def get_portfolio(member_id: str, debug: bool = False) -> Dict[str, Any]:
+    """Получить текущее портфолио + предыдущий snapshot для динамики.
+
+    При debug=True добавляет debug-блок из сохранённого debug_snapshot
+    (без пересчёта). Включает stale-marker если метрики обновились
+    после последнего aggregate.
+    """
     conn = get_conn()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     try:
@@ -597,11 +640,11 @@ def get_portfolio(member_id: str) -> Dict[str, Any]:
         """)
         portfolio_row = cur.fetchone()
 
-        # Если нет — пересчитываем
+        # Если нет — пересчитываем (bootstrap), debug прокидываем
         if not portfolio_row:
             cur.close()
             conn.close()
-            return aggregate(member_id)
+            return aggregate(member_id, debug=debug)
 
         # Предыдущий snapshot 60-120 дней назад
         cur.execute(f"""
@@ -654,7 +697,7 @@ def get_portfolio(member_id: str) -> Dict[str, Any]:
                 prev_v = float(prev_scores.get(s, 0))
                 deltas[s] = round(cur_v - prev_v, 1)
 
-        return {
+        result = {
             'member': {
                 'id': str(member['id']),
                 'name': member['name'],
@@ -687,6 +730,33 @@ def get_portfolio(member_id: str) -> Dict[str, Any]:
             'sphere_icons': SPHERE_ICONS,
             'last_aggregated_at': portfolio['last_aggregated_at'].isoformat(),
         }
+
+        # debug-блок из сохранённого snapshot (без пересчёта)
+        if debug:
+            stored_snapshot = portfolio.get('debug_snapshot')
+            if not stored_snapshot:
+                result['debug'] = {'available': False, 'reason': 'debug_snapshot_not_found'}
+            else:
+                # Stale detection: сравниваем metrics_max_measured_at из snapshot с текущим
+                stale = False
+                try:
+                    stored_max = portfolio.get('metrics_max_measured_at')
+                    if stored_max and recent_metrics:
+                        current_max = max(
+                            m['measured_at'] for m in recent_metrics if m.get('measured_at')
+                        )
+                        stale = current_max > stored_max
+                except Exception:
+                    pass
+                result['debug'] = {
+                    'available': True,
+                    'stale': stale,
+                    'generated_at': stored_snapshot.get('generated_at'),
+                    'age_group': stored_snapshot.get('age_group'),
+                    'sphere_details': stored_snapshot.get('sphere_details', {}),
+                }
+
+        return result
     finally:
         cur.close()
         conn.close()
@@ -1513,7 +1583,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif action == 'aggregate':
             data = aggregate(member_id, debug=debug_mode)
         elif action == 'get':
-            data = get_portfolio(member_id)
+            data = get_portfolio(member_id, debug=debug_mode)
         elif action == 'snapshot':
             trigger = params.get('trigger', 'manual')
             data = create_snapshot(member_id, trigger)

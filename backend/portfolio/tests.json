@@ -166,6 +166,51 @@
         }
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "get без debug=1: контракт не меняется (нет debug-поля)",
+      "method": "GET",
+      "path": "/?action=get&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {"age_group": "7-10", "last_aggregated_at": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "get&debug=1 Миша: debug.available=true из сохранённого snapshot",
+      "method": "GET",
+      "path": "/?action=get&member_id=3f1aa585-176f-4ec0-85d0-7973d36de053&debug=1",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {
+        "debug": {
+          "available": true,
+          "age_group": "7-10",
+          "sphere_details": {
+            "intellect": {"score": 4.0},
+            "values": {"score": 1.4},
+            "body": {"score": 3.0}
+          }
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "get&debug=1 Петя: values.score=0.5 из snapshot, intellect пустой",
+      "method": "GET",
+      "path": "/?action=get&member_id=aaaaaaaa-0000-4444-bbbb-cccccccccccc&debug=1",
+      "headers": {"X-User-Id": "251f3dbd-13a9-408d-b641-b2f21993fe17"},
+      "expectedStatus": 200,
+      "expectedBody": {
+        "debug": {
+          "available": true,
+          "sphere_details": {
+            "intellect": {"score": 0, "coverage": {"matched_groups": 0}},
+            "values": {"coverage": {"matched_groups": 1}}
+          }
+        }
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
