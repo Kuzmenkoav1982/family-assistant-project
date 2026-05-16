@@ -7,6 +7,9 @@ import type { MemoryEntry } from './types';
 interface MemoryCardProps {
   entry: MemoryEntry;
   onClick?: () => void;
+  /** Если true — отображается чекбокс-оверлей. Клик переключает выбор, не открывает view. */
+  selectable?: boolean;
+  selected?: boolean;
 }
 
 function formatDate(entry: MemoryEntry): string | null {
@@ -20,7 +23,7 @@ function formatDate(entry: MemoryEntry): string | null {
   return entry.memory_period_label || null;
 }
 
-export default function MemoryCard({ entry, onClick }: MemoryCardProps) {
+export default function MemoryCard({ entry, onClick, selectable, selected }: MemoryCardProps) {
   const cover =
     entry.assets.find(a => a.id === entry.cover_asset_id)?.file_url ||
     entry.assets[0]?.file_url;
@@ -31,7 +34,12 @@ export default function MemoryCard({ entry, onClick }: MemoryCardProps) {
     <button
       type="button"
       onClick={onClick}
-      className="group relative overflow-hidden rounded-xl border bg-card text-left transition-shadow hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary"
+      aria-pressed={selectable ? Boolean(selected) : undefined}
+      className={`group relative overflow-hidden rounded-xl border bg-card text-left transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary ${
+        selectable && selected
+          ? 'border-primary ring-2 ring-primary/40'
+          : ''
+      }`}
     >
       <div className="relative aspect-[4/5] w-full bg-muted">
         {cover ? (
@@ -44,6 +52,18 @@ export default function MemoryCard({ entry, onClick }: MemoryCardProps) {
         ) : (
           <div className="flex h-full w-full items-center justify-center text-muted-foreground">
             <Icon name="ImageOff" size={32} />
+          </div>
+        )}
+        {selectable && (
+          <div
+            className={`absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 shadow-md transition-colors ${
+              selected
+                ? 'border-primary bg-primary text-primary-foreground'
+                : 'border-white bg-white/90 text-transparent'
+            }`}
+            aria-hidden="true"
+          >
+            <Icon name="Check" size={14} />
           </div>
         )}
         {photosCount > 1 && (

@@ -56,6 +56,9 @@ export default function Memory() {
   const [editingAlbum, setEditingAlbum] = useState<MemoryAlbum | null>(null);
   const [bulkAddOpen, setBulkAddOpen] = useState(false);
   const [coverDialogOpen, setCoverDialogOpen] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkRemoving, setBulkRemoving] = useState(false);
 
   const filterMember = useMemo(
     () => (filterMemberId ? members.find(m => m.id === filterMemberId) : null),
@@ -128,6 +131,77 @@ export default function Memory() {
     if (!confirm(`Перенести альбом «${filterAlbum.title}» в архив? Сами карточки памяти не удалятся.`)) return;
     await archiveAlbum(filterAlbum.id);
     clearFilter();
+  };
+
+  // выход из selection mode при смене альбома или фильтра
+  useEffect(() => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  }, [filterAlbumId, filterMemberId, filterEventId]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const handleBulkRemove = async () => {
+    if (!filterAlbum || selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    if (
+      !confirm(
+        `Убрать ${count} ${count === 1 ? 'карточку' : count < 5 ? 'карточки' : 'карточек'} из альбома?\n\nКарточки останутся в общем архиве памяти и в других альбомах.`,
+      )
+    ) {
+      return;
+    }
+    setBulkRemoving(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const results = await Promise.allSettled(
+        ids.map(id => memoryApi.removeFromAlbum(filterAlbum.id, id)),
+      );
+      const ok = results.filter(r => r.status === 'fulfilled').length;
+      const failed = results.length - ok;
+
+      // Edge case: если убираем память с текущей ручной обложкой —
+      // сбрасываем cover_asset_id, чтобы не висел битый указатель.
+      if (filterAlbum.cover_asset_id && ok > 0) {
+        const removedEntries = entries.filter(e => ids.includes(e.id));
+        const coverInRemoved = removedEntries.some(e =>
+          e.assets.some(a => a.id === filterAlbum.cover_asset_id),
+        );
+        if (coverInRemoved) {
+          try {
+            await memoryApi.updateAlbum(filterAlbum.id, { cover_asset_id: null });
+          } catch {
+            // не критично
+          }
+        }
+      }
+
+      if (ok > 0) {
+        toast.success(
+          failed === 0 ? `Убрано из альбома: ${ok}` : `Убрано: ${ok}, ошибок: ${failed}`,
+        );
+      }
+      if (failed > 0 && ok === 0) {
+        toast.error('Не удалось убрать ни одной карточки');
+      }
+      reload();
+      reloadAlbums();
+      exitSelectionMode();
+    } finally {
+      setBulkRemoving(false);
+    }
   };
 
   const clearFilter = () => {
@@ -212,6 +286,7 @@ export default function Memory() {
         <AlbumHeader
           album={filterAlbum}
           coverUrl={resolveAlbumCover(filterAlbum, entries)}
+          canSelect={entries.length > 0}
           onClear={clearFilter}
           onEdit={() => {
             setEditingAlbum(filterAlbum);
@@ -220,6 +295,7 @@ export default function Memory() {
           onArchive={handleArchiveAlbum}
           onBulkAdd={() => setBulkAddOpen(true)}
           onPickCover={() => setCoverDialogOpen(true)}
+          onStartSelection={() => setSelectionMode(true)}
         />
       )}
 
@@ -249,9 +325,15 @@ export default function Memory() {
           onClearFilter={hasFilter ? clearFilter : undefined}
         />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 ${selectionMode ? 'pb-24' : ''}`}>
           {entries.map(entry => (
-            <MemoryCard key={entry.id} entry={entry} onClick={() => setViewEntry(entry)} />
+            <MemoryCard
+              key={entry.id}
+              entry={entry}
+              selectable={selectionMode}
+              selected={selectedIds.has(entry.id)}
+              onClick={() => (selectionMode ? toggleSelect(entry.id) : setViewEntry(entry))}
+            />
           ))}
         </div>
       )}
@@ -312,6 +394,42 @@ export default function Memory() {
         album={filterAlbum || null}
         onSaved={() => reloadAlbums()}
       />
+
+      {selectionMode && filterAlbum && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur-sm shadow-lg">
+          <div className="container mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+            <div className="text-sm">
+              <span className="font-medium">Выбрано: {selectedIds.size}</span>
+              <span className="ml-2 hidden text-muted-foreground sm:inline">
+                в альбоме «{filterAlbum.title}»
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={exitSelectionMode} disabled={bulkRemoving}>
+                Снять выбор
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkRemove}
+                disabled={selectedIds.size === 0 || bulkRemoving}
+              >
+                {bulkRemoving ? (
+                  <>
+                    <Icon name="Loader2" size={14} className="mr-1.5 animate-spin" />
+                    Убираем...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="FolderMinus" size={14} className="mr-1.5" />
+                    Убрать из альбома{selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -388,19 +506,23 @@ function AlbumShelf({
 function AlbumHeader({
   album,
   coverUrl,
+  canSelect,
   onClear,
   onEdit,
   onArchive,
   onBulkAdd,
   onPickCover,
+  onStartSelection,
 }: {
   album: MemoryAlbum;
   coverUrl: string | null;
+  canSelect: boolean;
   onClear: () => void;
   onEdit: () => void;
   onArchive: () => void;
   onBulkAdd: () => void;
   onPickCover: () => void;
+  onStartSelection: () => void;
 }) {
   return (
     <div className="mb-4 rounded-xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
@@ -474,6 +596,17 @@ function AlbumHeader({
           <Icon name="FolderPlus" size={14} className="mr-1.5" />
           Добавить существующие
         </Button>
+        {canSelect && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onStartSelection}
+            className="border-amber-300 bg-white text-amber-900 hover:bg-amber-50"
+          >
+            <Icon name="CheckSquare" size={14} className="mr-1.5" />
+            Выбрать
+          </Button>
+        )}
         <Badge variant="secondary" className="bg-white">
           <Icon name="Images" size={11} className="mr-1" />
           Новая память здесь автоматически попадёт в этот альбом
