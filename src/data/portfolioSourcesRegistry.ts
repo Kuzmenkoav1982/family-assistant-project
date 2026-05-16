@@ -34,6 +34,7 @@ export interface SourceRegistryEntry {
   /** D.1: какое действие запустить на целевой странице — обычно открыть форму добавления. */
   action?:
     | 'add-skill'
+    | 'add-area'
     | 'add-activity'
     | 'add-vaccination'
     | 'add-doctor-visit'
