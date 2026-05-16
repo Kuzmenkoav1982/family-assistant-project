@@ -109,6 +109,13 @@ export const memoryApi = {
       member_ids: memberIds,
     }),
 
+  /** Идемпотентная привязка одного человека (для bulk-link existing). */
+  addPerson: (entryId: string, memberId: number) =>
+    call<{ ok: boolean }>('POST', '?resource=persons/add', {
+      entry_id: entryId,
+      member_id: memberId,
+    }),
+
   // Albums
   listAlbums: () =>
     call<{ albums: MemoryAlbum[] }>('GET', '?resource=albums').then(r => r.albums),

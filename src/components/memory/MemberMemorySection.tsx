@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -7,6 +7,7 @@ import { memoryApi } from './api';
 import type { MemoryEntry } from './types';
 import MemoryEntryDialog from './MemoryEntryDialog';
 import MemoryEntryView from './MemoryEntryView';
+import LinkExistingMemoriesDialog from './LinkExistingMemoriesDialog';
 
 interface MemberMemorySectionProps {
   memberId: number;
@@ -40,6 +41,18 @@ export default function MemberMemorySection({
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewEntry, setViewEntry] = useState<MemoryEntry | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+
+  const reload = () => {
+    setLoading(true);
+    memoryApi
+      .listEntries({ member_id: memberId })
+      .then(list => setEntries(list))
+      .catch(err => setError(err instanceof Error ? err.message : 'Ошибка загрузки'))
+      .finally(() => setLoading(false));
+  };
+
+  const alreadyLinked = useMemo(() => new Set(entries.map(e => e.id)), [entries]);
 
   useEffect(() => {
     let cancelled = false;
@@ -82,15 +95,27 @@ export default function MemberMemorySection({
           )}
         </p>
         {entries.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1 px-2 text-xs"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Icon name="Plus" size={12} />
-            Добавить
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => setLinkOpen(true)}
+              title="Привязать существующие памяти"
+            >
+              <Icon name="Link2" size={12} />
+              Привязать
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Icon name="Plus" size={12} />
+              Добавить
+            </Button>
+          </div>
         )}
       </div>
 
@@ -107,15 +132,26 @@ export default function MemberMemorySection({
           <p className="text-xs text-muted-foreground">
             Пока нет воспоминаний{memberName ? `, связанных с ${memberName}` : ''}
           </p>
-          <Button
-            size="sm"
-            variant="link"
-            className="mt-1 h-auto p-0 text-xs text-amber-700"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Icon name="Plus" size={12} className="mr-1" />
-            Добавить первое
-          </Button>
+          <div className="mt-1 flex items-center justify-center gap-3">
+            <Button
+              size="sm"
+              variant="link"
+              className="h-auto p-0 text-xs text-amber-700"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Icon name="Plus" size={12} className="mr-1" />
+              Добавить первое
+            </Button>
+            <Button
+              size="sm"
+              variant="link"
+              className="h-auto p-0 text-xs text-amber-700"
+              onClick={() => setLinkOpen(true)}
+            >
+              <Icon name="Link2" size={12} className="mr-1" />
+              Привязать существующие
+            </Button>
+          </div>
         </div>
       ) : (
         <>
@@ -183,6 +219,16 @@ export default function MemberMemorySection({
         entry={viewEntry}
         open={Boolean(viewEntry)}
         onOpenChange={open => !open && setViewEntry(null)}
+      />
+
+      <LinkExistingMemoriesDialog
+        open={linkOpen}
+        onOpenChange={setLinkOpen}
+        mode="person"
+        targetId={memberId}
+        targetLabel={memberName || 'этому человеку'}
+        alreadyLinkedEntryIds={alreadyLinked}
+        onCompleted={() => reload()}
       />
     </div>
   );

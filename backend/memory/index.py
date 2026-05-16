@@ -84,6 +84,8 @@ def handler(event: dict, context) -> dict:
 
         if resource == 'persons':
             return _set_persons(cur, conn, family_id, qp.get('entry_id'), body)
+        if resource == 'persons/add':
+            return _add_person_link(cur, conn, family_id, body)
 
         if resource == 'album-links':
             return _add_album_link(cur, conn, family_id, body)
@@ -558,6 +560,35 @@ def _set_persons(cur, conn, family_id, entry_id, body):
         )
     conn.commit()
     return _resp(200, {'entry': _entry_full(cur, family_id, entry_id, include_drafts=True)})
+
+
+def _add_person_link(cur, conn, family_id, body):
+    """
+    Идемпотентно привязывает одного человека к памяти.
+    body: { entry_id, member_id }
+    Симметрично album-links. Защищён от lost update — ничего не пересоздаёт целиком.
+    """
+    entry_id = body.get('entry_id') or body.get('memory_entry_id')
+    raw_member = body.get('member_id')
+    if not entry_id or raw_member is None:
+        return _resp(400, {'error': 'entry_id and member_id required'})
+    try:
+        member_id = int(raw_member)
+    except (TypeError, ValueError):
+        return _resp(400, {'error': 'invalid member_id'})
+    cur.execute(
+        'SELECT 1 FROM memory_entries WHERE id = %s AND family_id = %s',
+        (entry_id, family_id),
+    )
+    if not cur.fetchone():
+        return _resp(404, {'error': 'entry not found'})
+    cur.execute(
+        '''INSERT INTO memory_person_links (memory_entry_id, member_id)
+           VALUES (%s, %s) ON CONFLICT DO NOTHING''',
+        (entry_id, member_id),
+    )
+    conn.commit()
+    return _resp(200, {'ok': True})
 
 
 # ============================================================

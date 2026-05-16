@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import Icon from '@/components/ui/icon';
 import { memoryApi } from './api';
+import { useLifeEvents } from '@/components/life-road/useLifeEvents';
 import type { MemoryEntry } from './types';
 import MemoryEntryDialog from './MemoryEntryDialog';
 import MemoryEntryView from './MemoryEntryView';
+import LinkExistingMemoriesDialog from './LinkExistingMemoriesDialog';
 
 interface EventMemorySectionProps {
   eventId: string;
@@ -42,6 +44,23 @@ export default function EventMemorySection({
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [viewEntry, setViewEntry] = useState<MemoryEntry | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const { events } = useLifeEvents();
+
+  const eventTitles = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const e of events) m.set(e.id, e.title);
+    return m;
+  }, [events]);
+
+  const reload = () => {
+    setLoading(true);
+    memoryApi
+      .listEntries({ event_id: eventId })
+      .then(list => setEntries(list))
+      .catch(err => setError(err instanceof Error ? err.message : 'Ошибка загрузки'))
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -83,15 +102,27 @@ export default function EventMemorySection({
           )}
         </p>
         {entries.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1 px-2 text-xs"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Icon name="Plus" size={12} />
-            Добавить
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => setLinkOpen(true)}
+              title="Привязать существующие памяти"
+            >
+              <Icon name="Link2" size={12} />
+              Привязать
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Icon name="Plus" size={12} />
+              Добавить
+            </Button>
+          </div>
         )}
       </div>
 
@@ -111,15 +142,26 @@ export default function EventMemorySection({
           <p className="mt-0.5 text-[11px] text-muted-foreground/80">
             Сохраните фото, подпись или семейную историю, связанную с этим событием.
           </p>
-          <Button
-            size="sm"
-            variant="link"
-            className="mt-1 h-auto p-0 text-xs text-purple-700"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Icon name="Plus" size={12} className="mr-1" />
-            Добавить первое
-          </Button>
+          <div className="mt-1 flex items-center justify-center gap-3">
+            <Button
+              size="sm"
+              variant="link"
+              className="h-auto p-0 text-xs text-purple-700"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Icon name="Plus" size={12} className="mr-1" />
+              Добавить первое
+            </Button>
+            <Button
+              size="sm"
+              variant="link"
+              className="h-auto p-0 text-xs text-purple-700"
+              onClick={() => setLinkOpen(true)}
+            >
+              <Icon name="Link2" size={12} className="mr-1" />
+              Привязать существующие
+            </Button>
+          </div>
         </div>
       ) : (
         <>
@@ -189,6 +231,16 @@ export default function EventMemorySection({
         entry={viewEntry}
         open={Boolean(viewEntry)}
         onOpenChange={open => !open && setViewEntry(null)}
+      />
+
+      <LinkExistingMemoriesDialog
+        open={linkOpen}
+        onOpenChange={setLinkOpen}
+        mode="event"
+        targetId={eventId}
+        targetLabel={eventTitle || 'этому событию'}
+        eventTitles={eventTitles}
+        onCompleted={() => reload()}
       />
     </div>
   );
