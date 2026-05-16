@@ -171,7 +171,7 @@ export default function Culture() {
                     <span className="text-3xl">{tradition.icon}</span>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <span>{tradition.name}</span>
+                        <span>{tradition.name ?? tradition.title}</span>
                         <div className="flex items-center gap-2">
                           <Badge className={`${getFrequencyColor(tradition.frequency)} text-white`}>
                             {getFrequencyLabel(tradition.frequency)}
