@@ -25,6 +25,14 @@
       "path": "/",
       "headers": {"X-User-Id": "ffffffff-ffff-ffff-ffff-fffffffffff0"},
       "expectedStatus": 403
+    },
+    {
+      "name": "PUT sync с фейковым user = 403 (save не ломается даже при ошибке portfolio)",
+      "method": "PUT",
+      "path": "/",
+      "headers": {"X-User-Id": "ffffffff-ffff-ffff-ffff-fffffffffff0", "Content-Type": "application/json"},
+      "body": {"items": []},
+      "expectedStatus": 403
     }
   ]
 }

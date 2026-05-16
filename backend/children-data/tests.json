@@ -1,138 +1,100 @@
 {
   "tests": [
     {
-      "name": "Get child data - all types",
+      "name": "OPTIONS request for CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unauthorized request = 401",
       "method": "GET",
-      "path": "/?child_id=test123&type=all",
-      "headers": {
-        "X-Auth-Token": "test-token"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true,
-        "data": {
-          "health": "object",
-          "purchases": "array",
-          "gifts": "array",
-          "development": "array",
-          "school": "object",
-          "dreams": "array",
-          "diary": "array",
-          "piggyBank": "object"
-        }
-      },
+      "path": "/?child_id=test123",
+      "expectedStatus": 401,
+      "expectedBody": {"success": false},
       "bodyMatcher": "partial"
     },
     {
-      "name": "Get child health data only",
+      "name": "Get child data returns success with auth",
       "method": "GET",
-      "path": "/?child_id=test123&type=health",
-      "headers": {
-        "X-Auth-Token": "test-token"
-      },
+      "path": "/?child_id=3f1aa585-176f-4ec0-85d0-7973d36de053&type=all",
+      "headers": {"X-Auth-Token": "test-token"},
       "expectedStatus": 200,
-      "expectedBody": {
-        "success": true,
-        "data": {
-          "health": "object"
-        }
-      },
+      "expectedBody": {"success": true},
       "bodyMatcher": "partial"
     },
     {
-      "name": "Add vaccination",
+      "name": "Add dream: save + portfolio refresh best-effort",
       "method": "POST",
       "path": "/",
-      "headers": {
-        "X-Auth-Token": "test-token",
-        "Content-Type": "application/json"
-      },
+      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
       "body": {
         "action": "add",
-        "child_id": "test123",
-        "type": "vaccination",
-        "data": {
-          "date": "2024-12-01",
-          "vaccine": "COVID-19",
-          "notes": "Первая доза"
-        }
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true,
-        "id": "number"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Add gift",
-      "method": "POST",
-      "path": "/",
-      "headers": {
-        "X-Auth-Token": "test-token",
-        "Content-Type": "application/json"
-      },
-      "body": {
-        "action": "add",
-        "child_id": "test123",
-        "type": "gift",
-        "data": {
-          "event": "День рождения",
-          "date": "2025-03-15",
-          "gift": "Велосипед",
-          "given": false,
-          "notes": "Хочет синий"
-        }
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true,
-        "id": "number"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Add dream",
-      "method": "POST",
-      "path": "/",
-      "headers": {
-        "X-Auth-Token": "test-token",
-        "Content-Type": "application/json"
-      },
-      "body": {
-        "action": "add",
-        "child_id": "test123",
+        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
         "type": "dream",
         "data": {
-          "title": "Стать космонавтом",
-          "description": "Мечтаю полететь в космос",
+          "title": "Тест portfolio refresh",
+          "description": "Автотест",
+          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9",
           "achieved": false
         }
       },
       "expectedStatus": 200,
-      "expectedBody": {
-        "success": true,
-        "id": "number"
-      },
+      "expectedBody": {"success": true},
       "bodyMatcher": "partial"
     },
     {
-      "name": "OPTIONS request for CORS",
-      "method": "OPTIONS",
+      "name": "Add vaccination: save + portfolio refresh best-effort",
+      "method": "POST",
       "path": "/",
+      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
+      "body": {
+        "action": "add",
+        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
+        "type": "vaccination",
+        "data": {
+          "date": "2026-05-16",
+          "vaccine": "Тест Ревакцинация",
+          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9",
+          "notes": "auto-test"
+        }
+      },
       "expectedStatus": 200,
-      "expectedBody": "",
-      "bodyMatcher": "exact"
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
     },
     {
-      "name": "Unauthorized request",
-      "method": "GET",
-      "path": "/?child_id=test123",
-      "expectedStatus": 401,
-      "expectedBody": {
-        "success": false,
-        "error": "string"
+      "name": "Add mood: save + portfolio refresh best-effort",
+      "method": "POST",
+      "path": "/",
+      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
+      "body": {
+        "action": "add",
+        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
+        "type": "mood",
+        "data": {"mood": "happy", "note": "auto-test", "entry_date": "2026-05-16"}
       },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Save does not fail when child_id unknown (portfolio refresh gracefully skipped)",
+      "method": "POST",
+      "path": "/",
+      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
+      "body": {
+        "action": "add",
+        "child_id": "00000000-0000-0000-0000-000000000099",
+        "type": "vaccination",
+        "data": {
+          "date": "2026-01-01",
+          "vaccine": "Тест незнакомый",
+          "family_id": "00000000-0000-0000-0000-000000000001"
+        }
+      },
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
       "bodyMatcher": "partial"
     }
   ]

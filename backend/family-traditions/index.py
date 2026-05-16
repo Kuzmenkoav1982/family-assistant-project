@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from _portfolio_refresh import trigger_portfolio_aggregate
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
@@ -132,40 +133,15 @@ def handle_sync(family_id: str, items: List[Dict], cur) -> Dict:
     return ok({'synced': synced, 'family_id': family_id})
 
 
-def trigger_portfolio_collect(family_id: str, cur):
+def _refresh_portfolio_for_family(family_id: str, user_id: str, cur) -> None:
+    """Запускает portfolio/aggregate для всех участников семьи.
+    Best-effort: ошибки не пробрасываются. autocommit=True гарантирует,
+    что sync-данные уже в БД к моменту вызова.
+    """
     member_ids = get_family_member_ids(family_id, cur)
-    cur.execute(f"""
-        SELECT id, created_at FROM {SCHEMA}.traditions
-        WHERE family_uuid = {esc(family_id)}::uuid AND is_active = TRUE
-    """)
-    rows = cur.fetchall()
-    count = len(rows)
-    if count == 0:
+    if not member_ids:
         return
-    last_date = max(
-        (r.get('created_at') for r in rows if r.get('created_at')),
-        default=datetime.now(timezone.utc)
-    )
-    for mid in member_ids:
-        try:
-            cur.execute(f"""
-                DELETE FROM {SCHEMA}.member_portfolio_metrics
-                WHERE member_id = {esc(mid)}::uuid
-                  AND source_type = 'traditions'
-                  AND source_id = {esc('agg_' + family_id)}
-                  AND metric_key = 'family_rituals'
-            """)
-            cur.execute(f"""
-                INSERT INTO {SCHEMA}.member_portfolio_metrics
-                    (member_id, sphere_key, metric_key, metric_value, metric_unit,
-                     source_type, source_id, measured_at, raw_value)
-                VALUES
-                    ({esc(mid)}::uuid, 'values', 'family_rituals', {float(count)}, 'count',
-                     'traditions', {esc('agg_' + family_id)},
-                     {esc(str(last_date))}::timestamp, {esc(str(count) + ' традиций')})
-            """)
-        except Exception:
-            pass
+    trigger_portfolio_aggregate(member_ids, user_id, reason='traditions_sync')
 
 
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
@@ -194,7 +170,8 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             body = json.loads(body_raw) if isinstance(body_raw, str) else body_raw
             items = body.get('items') or []
             result = handle_sync(family_id, items, cur)
-            trigger_portfolio_collect(family_id, cur)
+            # autocommit=True → данные уже в БД, можно сразу агрегировать
+            _refresh_portfolio_for_family(family_id, user_id, cur)
             return result
 
         return err(405, 'method not allowed')

@@ -2,12 +2,38 @@ import json
 import os
 import psycopg2
 import psycopg2.extras
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from encryption_helper import encrypt_medical_fields, decrypt_medical_fields
+from _portfolio_refresh import trigger_portfolio_aggregate
 
-# Version: 2025-01-17-01 - Added encryption for medical data
-VERSION = "2025-01-17-01"
+# Version: 2025-01-17-02 - Portfolio refresh triggers on grade/dream/medication save
+VERSION = "2025-01-17-02"
+
+SCHEMA = 't_p5815085_family_assistant_pro'
+
+
+def _get_actor_user_id(child_id: str, cur) -> Optional[str]:
+    """Находит users.id актора по member_id ребёнка — нужен для X-User-Id в portfolio API."""
+    try:
+        child_id_esc = escape_sql_string(child_id)
+        # Ищем владельца (full account) той же семьи
+        cur.execute(f"""
+            SELECT fm2.user_id
+            FROM {SCHEMA}.family_members fm1
+            JOIN {SCHEMA}.family_members fm2 ON fm2.family_id = fm1.family_id
+            WHERE fm1.id = {child_id_esc}
+              AND fm2.user_id IS NOT NULL
+            LIMIT 1
+        """)
+        row = cur.fetchone()
+        return str(row['user_id']) if row and row.get('user_id') else None
+    except Exception:
+        return None
+
+
+# Типы данных, которые влияют на портфолио
+_PORTFOLIO_TYPES = frozenset({'grade', 'dream', 'medication', 'vaccination', 'doctor_visit', 'mood'})
 
 def escape_sql_string(value: Any) -> str:
     '''Экранирование значений для Simple Query Protocol'''
@@ -595,6 +621,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'success': False, 'error': f'Неизвестный тип данных: {data_type}'})
                     }
                 
+                # Portfolio refresh — best-effort, после commit, не ломает save
+                if data_type in _PORTFOLIO_TYPES:
+                    try:
+                        actor_uid = _get_actor_user_id(child_id, cur)
+                        if actor_uid:
+                            trigger_portfolio_aggregate(
+                                [child_id], actor_uid,
+                                reason=f'{data_type}_add',
+                            )
+                    except Exception as _pe:
+                        print(f'[PORTFOLIO_REFRESH] error: {_pe}')
+
                 cur.close()
                 conn.close()
                 
@@ -755,6 +793,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     }
                 
                 conn.commit()
+
+                # Portfolio refresh — best-effort, после commit, не ломает save
+                if data_type in _PORTFOLIO_TYPES:
+                    try:
+                        actor_uid = _get_actor_user_id(child_id, cur)
+                        if actor_uid:
+                            trigger_portfolio_aggregate(
+                                [child_id], actor_uid,
+                                reason=f'{data_type}_update',
+                            )
+                    except Exception as _pe:
+                        print(f'[PORTFOLIO_REFRESH] error: {_pe}')
+
                 cur.close()
                 conn.close()
                 
@@ -798,6 +849,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 cur.execute(f"DELETE FROM {schema}.{table_map[data_type]} WHERE id = {record_id_safe}")
                 conn.commit()
+
+                # Portfolio refresh — best-effort, после commit, не ломает save
+                if data_type in _PORTFOLIO_TYPES:
+                    try:
+                        actor_uid = _get_actor_user_id(child_id, cur)
+                        if actor_uid:
+                            trigger_portfolio_aggregate(
+                                [child_id], actor_uid,
+                                reason=f'{data_type}_delete',
+                            )
+                    except Exception as _pe:
+                        print(f'[PORTFOLIO_REFRESH] error: {_pe}')
+
                 cur.close()
                 conn.close()
                 
