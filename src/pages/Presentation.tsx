@@ -15,12 +15,15 @@ import { SlidePlatformMetrics } from '@/components/presentation/SlidePlatformMet
 import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 import { SlidePortfolio } from '@/components/presentation/SlidePortfolio';
 import { SlideFamilyMemory } from '@/components/presentation/SlideFamilyMemory';
-import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
 import { SlideRoadmap } from '@/components/presentation/SlideRoadmap';
 import { SlideBusinessModel } from '@/components/presentation/SlideBusinessModel';
 import { SlideAIPricing } from '@/components/presentation/SlideAIPricing';
+import { SlideTraction } from '@/components/presentation/SlideTraction';
+import { SlideMarketGTM } from '@/components/presentation/SlideMarketGTM';
+import { SlideFounderExecution } from '@/components/presentation/SlideFounderExecution';
+import { SlideTheAsk } from '@/components/presentation/SlideTheAsk';
 import { StrategyDeckCTA } from '@/components/presentation/StrategyDeckCTA';
 
 async function captureSlides(
@@ -229,23 +232,35 @@ export default function Presentation() {
       `}</style>
 
       <div id="presentation-content" className="max-w-4xl mx-auto px-3 sm:px-6 pt-16 pb-8 sm:py-12 sm:pt-16">
+        {/* ============ БЛОК 1. КОНТЕКСТ И ТЕЗИС ============ */}
         <PresentationTitleSlide />
         <PresentationContentSections />
+
+        {/* ============ БЛОК 2. ПРОДУКТ ============ */}
         <SlideHubs />
-        <SlideOsArchitecture />
-        <SlideArchitectureCards />
-        <SlideDevAgentStudio />
         <SlideDomovoyAgent />
-        <SlidePlatformMetrics />
-        <SlideLiveLoops />
+        <SlideAIMap />
         <SlidePortfolio />
         <SlideFamilyMemory />
-        <SlideEcosystem />
-        <SlideAIMap />
+        <SlideLiveLoops />
+
+        {/* ============ БЛОК 3. ДОКАЗАТЕЛЬСТВО ============ */}
+        <SlideTraction />
+        <SlideMarketGTM />
         <SlideBusinessModel />
         <SlideAIPricing />
         <SlideBankShowcase />
+
+        {/* ============ БЛОК 4. ПОЧЕМУ МЫ СПОСОБНЫ ИСПОЛНИТЬ ============ */}
+        <SlideOsArchitecture />
+        <SlideArchitectureCards />
+        <SlideDevAgentStudio />
+        <SlidePlatformMetrics />
         <SlideRoadmap />
+        <SlideFounderExecution />
+
+        {/* ============ БЛОК 5. THE ASK + CTA ============ */}
+        <SlideTheAsk />
         <StrategyDeckCTA />
         <PresentationFooter />
       </div>

@@ -60,9 +60,10 @@ const streams = [
 ];
 
 const projections = [
-  { families: '10 000', wallet: '24 млн ₽', bank: '5 млн ₽', partners: '3 млн ₽', total: '~32 млн ₽', period: '1-й год' },
-  { families: '100 000', wallet: '240 млн ₽', bank: '50 млн ₽', partners: '30 млн ₽', total: '~320 млн ₽', period: '2-й год' },
-  { families: '1 000 000', wallet: '2.4 млрд ₽', bank: '500 млн ₽', partners: '300 млн ₽', total: '~3.2 млрд ₽', period: '3-й год' },
+  { families: '10 000', wallet: '24 млн ₽', bank: '5 млн ₽', partners: '3 млн ₽', total: '~32 млн ₽', period: 'Q3 2026 · публичный запуск' },
+  { families: '50 000', wallet: '120 млн ₽', bank: '25 млн ₽', partners: '15 млн ₽', total: '~160 млн ₽', period: 'Q4 2026 · первая выручка' },
+  { families: '150 000', wallet: '360 млн ₽', bank: '75 млн ₽', partners: '45 млн ₽', total: '~480 млн ₽', period: 'Q1 2027 · мобильное приложение' },
+  { families: '1 000 000', wallet: '2.4 млрд ₽', bank: '500 млн ₽', partners: '300 млн ₽', total: '~3.2 млрд ₽', period: '2027 · национальная платформа' },
 ];
 
 export function SlideBusinessModel() {

@@ -33,7 +33,7 @@ export function SlideAIMap() {
         </div>
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold">AI-карта «Домовой»</h2>
-          <p className="text-sm text-purple-300 mt-0.5">11 AI-функций в единой экосистеме семьи</p>
+          <p className="text-sm text-purple-300 mt-0.5">11 предметных AI-сценариев на орбите «Домового»</p>
         </div>
       </div>
 
