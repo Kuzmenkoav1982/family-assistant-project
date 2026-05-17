@@ -5,7 +5,7 @@ const formats = [
   {
     icon: 'Rocket' as const,
     title: 'Пилот / совместный запуск',
-    color: 'from-emerald-500 to-teal-600',
+    color: 'from-slate-600 to-slate-700',
     points: [
       'Быстрая проверка ценности',
       'Размещение под двумя брендами',
@@ -16,7 +16,7 @@ const formats = [
   {
     icon: 'Handshake' as const,
     title: 'Глубокое стратегическое партнёрство',
-    color: 'from-indigo-500 to-purple-600',
+    color: 'from-slate-700 to-slate-800',
     points: [
       'Эксклюзивный трек',
       'Глубокая интеграция в розничный контур',
@@ -27,7 +27,7 @@ const formats = [
   {
     icon: 'Building2' as const,
     title: 'Стратегическая интеграция в контур банка',
-    color: 'from-amber-500 to-orange-600',
+    color: 'from-slate-800 to-slate-900',
     points: [
       'Платформа становится частью банковской розницы',
       'Ускоренный выход в семейный сегмент без сборки с нуля',

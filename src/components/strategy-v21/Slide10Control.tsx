@@ -75,8 +75,8 @@ export default function Slide10Control() {
           ))}
         </div>
 
-        <div className="mt-10 border-t border-white/10 pt-6">
-          <p className="text-base sm:text-lg text-white leading-relaxed max-w-4xl">
+        <div className="mt-10 border-t border-white/10 pt-6 space-y-4 max-w-4xl">
+          <p className="text-base sm:text-lg text-white leading-relaxed">
             Поэтому смотреть на «Нашу Семью» можно не только как на партнёрский
             продукт, а как на{' '}
             <span className="text-amber-300 font-semibold">
@@ -84,6 +84,14 @@ export default function Slide10Control() {
             </span>
             .
           </p>
+          <div className="bg-white/5 border-l-2 border-amber-300/60 pl-4 py-2">
+            <p className="text-sm sm:text-base text-indigo-100 leading-relaxed">
+              <span className="text-amber-300 font-semibold">Для госбанка:</span>{' '}
+              контроль над семейным слоем — это не только коммерческая логика,
+              но и возможность встроиться в долгосрочный семейный контур страны
+              как системный игрок.
+            </p>
+          </div>
         </div>
       </div>
     </section>

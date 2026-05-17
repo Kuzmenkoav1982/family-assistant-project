@@ -4,18 +4,18 @@ import SlideFrame from './SlideFrame';
 const steps = [
   {
     icon: 'Landmark' as const,
-    title: 'Долгосрочный приоритет',
+    title: 'Долгосрочный государственный приоритет',
     text: 'Семья закреплена как приоритет страны до 2036 года',
   },
   {
     icon: 'Unplug' as const,
-    title: 'Цифровой разрыв',
-    text: 'Семейный цифровой слой остаётся фрагментированным',
+    title: 'Цифровой семейный слой остаётся фрагментированным',
+    text: 'Жизненные семейные сценарии по-прежнему разорваны между сервисами',
   },
   {
     icon: 'DoorOpen' as const,
-    title: 'Окно возможностей',
-    text: 'Возникает место для платформенного семейного решения',
+    title: 'Возникает место для платформенного решения',
+    text: 'Единый семейный контур может стать новой точкой координации и дистрибуции',
   },
 ];
 
@@ -25,7 +25,7 @@ export default function Slide02WhyNow() {
       id="slide-2"
       eyebrow="Почему именно сейчас"
       title="Семья закреплена как долгосрочный приоритет до 2036 года"
-      subtitle="Цифровой семейный слой по-прежнему остаётся фрагментированным"
+      subtitle="Для государственного банка это не внешняя социальная тема, а совпадение с долгосрочной рамкой страны и окном для цифрового семейного слоя"
       tone="accent"
       footnote="Источник: распоряжение Правительства РФ № 615-р"
     >
@@ -41,10 +41,25 @@ export default function Slide02WhyNow() {
             <div className="text-xs uppercase tracking-wider text-indigo-600 mb-1">
               Шаг {i + 1}
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">{step.title}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 leading-snug">
+              {step.title}
+            </h3>
             <p className="text-sm text-slate-600 leading-relaxed">{step.text}</p>
           </div>
         ))}
+      </div>
+
+      <div className="mt-6 bg-slate-900 text-white rounded-xl px-5 py-4 flex items-start gap-3">
+        <Icon
+          name="Landmark"
+          size={20}
+          className="text-amber-300 mt-0.5 shrink-0"
+        />
+        <p className="text-sm sm:text-base leading-relaxed">
+          <span className="text-amber-300 font-semibold">Для госбанка:</span> это
+          сочетание социальной значимости, клиентского контекста и
+          стратегической уместности.
+        </p>
       </div>
     </SlideFrame>
   );

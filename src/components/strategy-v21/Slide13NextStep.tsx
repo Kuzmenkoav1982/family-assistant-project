@@ -87,6 +87,10 @@ export default function Slide13NextStep() {
         </div>
 
         <div className="border-t border-white/10 pt-8">
+          <p className="text-sm sm:text-base text-indigo-200 mb-4 max-w-4xl leading-relaxed">
+            И с практической, и с институциональной точки зрения это
+            своевременный момент для разговора.
+          </p>
           <p className="text-xl sm:text-2xl md:text-3xl font-bold leading-tight text-white max-w-5xl">
             «Мы предлагаем банку не просто партнёрство в семейном сегменте, а
             возможность получить{' '}

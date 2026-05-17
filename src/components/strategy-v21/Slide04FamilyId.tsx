@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import NestedMatryoshka from './NestedMatryoshka';
 
 const surroundings = [
   { icon: 'Users' as const, label: 'Общие расходы' },
@@ -35,29 +36,40 @@ export default function Slide04FamilyId() {
           </span>
         </h2>
 
-        <blockquote className="border-l-4 border-amber-300 pl-5 sm:pl-7 py-2 mb-10 max-w-4xl">
-          <p className="text-lg sm:text-2xl leading-relaxed text-white font-medium">
-            «Единый цифровой профиль семьи открывает новое качество клиентского
-            опыта: общие расходы, совместные счета, единый ID для банков и
-            маркетплейсов.»
-          </p>
-        </blockquote>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-10 mb-10 items-center">
+          <div className="lg:col-span-3">
+            <blockquote className="border-l-4 border-amber-300 pl-5 sm:pl-7 py-2 mb-8">
+              <p className="text-lg sm:text-2xl leading-relaxed text-white font-medium">
+                «Единый цифровой профиль семьи открывает новое качество
+                клиентского опыта: общие расходы, совместные счета, единый ID
+                для банков и маркетплейсов.»
+              </p>
+            </blockquote>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-10">
-          {surroundings.map((item, i) => (
-            <div
-              key={i}
-              className="bg-white/10 backdrop-blur rounded-xl px-4 py-4 border border-white/20 text-center"
-            >
-              <Icon name={item.icon} size={22} className="mx-auto mb-2 text-amber-300" />
-              <div className="text-xs sm:text-sm font-medium text-white">
-                {item.label}
-              </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              {surroundings.map((item, i) => (
+                <div
+                  key={i}
+                  className="bg-white/10 backdrop-blur rounded-xl px-4 py-3 border border-white/20 flex items-center gap-3"
+                >
+                  <Icon name={item.icon} size={20} className="text-amber-300 shrink-0" />
+                  <div className="text-xs sm:text-sm font-medium text-white leading-snug">
+                    {item.label}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          <div className="lg:col-span-2 bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-5 sm:p-6">
+            <div className="text-xs uppercase tracking-wider text-amber-300 font-semibold mb-3 text-center">
+              Вложенный клиентский контур
+            </div>
+            <NestedMatryoshka />
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 max-w-5xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
           {tezisy.map((text, i) => (
             <div
               key={i}
