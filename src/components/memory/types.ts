@@ -33,6 +33,7 @@ export interface MemoryEntry {
   updated_at: string | null;
   assets: MemoryAsset[];
   member_ids: number[];
+  album_ids?: string[];
 }
 
 export interface MemoryAlbum {

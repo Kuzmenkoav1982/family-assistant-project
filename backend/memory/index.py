@@ -91,6 +91,8 @@ def handler(event: dict, context) -> dict:
             return _add_album_link(cur, conn, family_id, body)
         if resource == 'album-links/remove':
             return _remove_album_link(cur, conn, family_id, body)
+        if resource == 'album-links/set':
+            return _set_album_links(cur, conn, family_id, body)
 
         return _resp(400, {'error': f'Unknown resource: {resource}'})
     except Exception as exc:
@@ -267,6 +269,7 @@ def _row_to_entry(cur, r):
         'status': r[11] if len(r) > 11 else 'published',
         'assets': _assets_for(cur, r[0]),
         'member_ids': _member_ids_for(cur, r[0]),
+        'album_ids': _album_ids_for(cur, r[0]),
     }
 
 
@@ -344,6 +347,17 @@ def _member_ids_for(cur, entry_id):
         (entry_id,),
     )
     return [int(x[0]) for x in cur.fetchall()]
+
+
+def _album_ids_for(cur, entry_id):
+    cur.execute(
+        '''SELECT al.album_id FROM memory_album_links al
+           JOIN memory_albums a ON a.id = al.album_id
+           WHERE al.memory_entry_id = %s AND a.archived_at IS NULL
+           ORDER BY al.added_at''',
+        (entry_id,),
+    )
+    return [str(x[0]) for x in cur.fetchall()]
 
 
 def _archive_entry(cur, conn, family_id, entry_id):
@@ -634,6 +648,87 @@ def _remove_album_link(cur, conn, family_id, body):
     )
     conn.commit()
     return _resp(200, {'ok': True})
+
+
+def _set_album_links(cur, conn, family_id, body):
+    """
+    Полная синхронизация связей памяти с альбомами.
+    body: { entry_id, album_ids: [uuid, ...] }
+    Работает и для draft (entry проверяется только по family_id).
+
+    Edge: если из памяти удаляется связь с альбомом, у которого cover_asset_id
+    указывал на asset этой памяти — обложка альбома сбрасывается на null
+    (auto-fallback). Возвращает список затронутых album_ids в reset_covers.
+    """
+    entry_id = body.get('entry_id') or body.get('memory_entry_id')
+    raw_ids = body.get('album_ids')
+    if not entry_id or raw_ids is None:
+        return _resp(400, {'error': 'entry_id and album_ids required'})
+
+    cur.execute(
+        'SELECT 1 FROM memory_entries WHERE id = %s AND family_id = %s',
+        (entry_id, family_id),
+    )
+    if not cur.fetchone():
+        return _resp(404, {'error': 'entry not found'})
+
+    desired = set(str(a) for a in raw_ids if a)
+
+    # фильтруем — оставляем только альбомы этой семьи
+    if desired:
+        cur.execute(
+            'SELECT id FROM memory_albums WHERE family_id = %s AND id = ANY(%s) AND archived_at IS NULL',
+            (family_id, list(desired)),
+        )
+        desired = {str(r[0]) for r in cur.fetchall()}
+
+    # текущие
+    cur.execute(
+        '''SELECT al.album_id FROM memory_album_links al
+           JOIN memory_albums a ON a.id = al.album_id
+           WHERE al.memory_entry_id = %s AND a.family_id = %s''',
+        (entry_id, family_id),
+    )
+    current = {str(r[0]) for r in cur.fetchall()}
+
+    to_add = desired - current
+    to_remove = current - desired
+
+    # ассеты текущей памяти (для guard висячей обложки)
+    asset_ids: list[str] = []
+    if to_remove:
+        cur.execute('SELECT id FROM memory_assets WHERE memory_entry_id = %s', (entry_id,))
+        asset_ids = [str(r[0]) for r in cur.fetchall()]
+
+    reset_covers: list[str] = []
+    for album_id in to_remove:
+        cur.execute(
+            'DELETE FROM memory_album_links WHERE album_id = %s AND memory_entry_id = %s',
+            (album_id, entry_id),
+        )
+        if asset_ids:
+            cur.execute(
+                '''UPDATE memory_albums SET cover_asset_id = NULL
+                   WHERE id = %s AND family_id = %s AND cover_asset_id = ANY(%s)''',
+                (album_id, family_id, asset_ids),
+            )
+            if cur.rowcount > 0:
+                reset_covers.append(album_id)
+
+    for album_id in to_add:
+        cur.execute(
+            '''INSERT INTO memory_album_links (album_id, memory_entry_id, sort_order)
+               VALUES (%s, %s, 0) ON CONFLICT DO NOTHING''',
+            (album_id, entry_id),
+        )
+
+    conn.commit()
+    return _resp(200, {
+        'ok': True,
+        'added': sorted(to_add),
+        'removed': sorted(to_remove),
+        'reset_covers': reset_covers,
+    })
 
 
 # ============================================================

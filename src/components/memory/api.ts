@@ -145,6 +145,14 @@ export const memoryApi = {
       album_id: albumId,
       memory_entry_id: entryId,
     }),
+
+  /** Полная синхронизация набора альбомов для памяти (работает и для draft). */
+  setEntryAlbums: (entryId: string, albumIds: string[]) =>
+    call<{ ok: boolean; added: string[]; removed: string[]; reset_covers: string[] }>(
+      'POST',
+      '?resource=album-links/set',
+      { entry_id: entryId, album_ids: albumIds },
+    ),
 };
 
 export type { MemoryEntry, MemoryAlbum, MemoryAsset };

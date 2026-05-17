@@ -18,6 +18,15 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useFamilyTree } from '@/hooks/useFamilyTree';
+import { useLifeEvents } from '@/components/life-road/useLifeEvents';
+import { useMemoryAlbums } from './useMemoryAlbums';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { memoryApi } from './api';
 import { MAX_PHOTOS_PER_MEMORY, type MemoryEntry } from './types';
 
@@ -27,6 +36,8 @@ interface MemoryEntryDialogProps {
   initialEntry?: MemoryEntry | null;
   initialMemberId?: number;
   initialEventId?: string;
+  /** Альбом контекста (опционально предвыбирается для новой памяти). */
+  initialAlbumId?: string;
   /** Мягкие подсказки для новой памяти (заполняют только пустые поля). */
   suggestedTitle?: string;
   suggestedDate?: string;
@@ -40,6 +51,7 @@ export default function MemoryEntryDialog({
   initialEntry,
   initialMemberId,
   initialEventId,
+  initialAlbumId,
   suggestedTitle,
   suggestedDate,
   suggestedLocation,
@@ -48,6 +60,8 @@ export default function MemoryEntryDialog({
   const isEdit = Boolean(initialEntry);
   const { upload, uploading, progress } = useFileUpload();
   const { members } = useFamilyTree();
+  const { events } = useLifeEvents();
+  const { albums } = useMemoryAlbums();
 
   const [entry, setEntry] = useState<MemoryEntry | null>(initialEntry ?? null);
   const [title, setTitle] = useState(initialEntry?.title ?? '');
@@ -59,7 +73,12 @@ export default function MemoryEntryDialog({
   const [memberIds, setMemberIds] = useState<number[]>(
     initialEntry?.member_ids ?? (initialMemberId ? [initialMemberId] : []),
   );
-  const [eventId] = useState<string | null>(initialEntry?.event_id ?? initialEventId ?? null);
+  const [eventId, setEventId] = useState<string | null>(
+    initialEntry?.event_id ?? initialEventId ?? null,
+  );
+  const [albumIds, setAlbumIds] = useState<string[]>(
+    initialEntry?.album_ids ?? (initialAlbumId ? [initialAlbumId] : []),
+  );
 
   const [saving, setSaving] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
@@ -78,6 +97,8 @@ export default function MemoryEntryDialog({
       setPeriodLabel(initialEntry.memory_period_label ?? '');
       setLocation(initialEntry.location_label ?? '');
       setMemberIds(initialEntry.member_ids ?? []);
+      setEventId(initialEntry.event_id ?? null);
+      setAlbumIds(initialEntry.album_ids ?? []);
     } else {
       setTitle(suggestedTitle ?? '');
       setCaption('');
@@ -86,9 +107,11 @@ export default function MemoryEntryDialog({
       setPeriodLabel('');
       setLocation(suggestedLocation ?? '');
       setMemberIds(initialMemberId ? [initialMemberId] : []);
+      setEventId(initialEventId ?? null);
+      setAlbumIds(initialAlbumId ? [initialAlbumId] : []);
     }
     setMemberSearch('');
-  }, [open, initialEntry, initialMemberId, suggestedTitle, suggestedDate, suggestedLocation]);
+  }, [open, initialEntry, initialMemberId, initialEventId, initialAlbumId, suggestedTitle, suggestedDate, suggestedLocation]);
 
   const assets = useMemo(
     () => (entry ? [...entry.assets].sort((a, b) => a.sort_order - b.sort_order) : []),
@@ -188,44 +211,59 @@ export default function MemoryEntryDialog({
       return;
     }
     setSaving(true);
+
+    // Save-оркестратор: базовые поля → персоны+событие → альбомы → publish для draft
+    let partial = false;
     try {
-      let saved: MemoryEntry;
+      // 1) Подготовка entry: либо updated existing, либо новый
+      let workingEntry: MemoryEntry;
+      const basePayload = {
+        title: title.trim(),
+        caption: caption || null,
+        story: story || null,
+        memory_date: memoryDate || null,
+        memory_period_label: periodLabel || null,
+        location_label: location || null,
+        event_id: eventId,
+        member_ids: memberIds,
+      };
       if (entry) {
-        // обновляем поля
-        const updated = await memoryApi.updateEntry(entry.id, {
-          title: title.trim(),
-          caption: caption || null,
-          story: story || null,
-          memory_date: memoryDate || null,
-          memory_period_label: periodLabel || null,
-          location_label: location || null,
-          member_ids: memberIds,
-        });
-        // если это был draft — публикуем
-        if (updated.status === 'draft') {
-          saved = await memoryApi.publishEntry(entry.id);
-        } else {
-          saved = updated;
-        }
+        workingEntry = await memoryApi.updateEntry(entry.id, basePayload);
       } else {
-        // создание сразу как published — без фото и без черновика
-        saved = await memoryApi.createEntry({
-          title: title.trim(),
-          caption: caption || null,
-          story: story || null,
-          memory_date: memoryDate || null,
-          memory_period_label: periodLabel || null,
-          location_label: location || null,
-          event_id: eventId,
-          member_ids: memberIds,
-          status: 'published',
-        });
+        // создаём как draft, чтобы при ошибке альбомов он не "вылез" опубликованным
+        workingEntry = await memoryApi.createEntry({ ...basePayload, status: 'draft' });
       }
+
+      // 2) Альбомы (полная синхронизация). Работает и для draft, и для published.
+      try {
+        await memoryApi.setEntryAlbums(workingEntry.id, albumIds);
+      } catch (err) {
+        partial = true;
+        toast.error(
+          'Не удалось обновить альбомы: ' +
+            (err instanceof Error ? err.message : 'неизвестная ошибка'),
+        );
+      }
+
+      // 3) Publish: только если все связи доехали успешно и это draft.
+      let saved = workingEntry;
+      if (!partial && workingEntry.status === 'draft') {
+        saved = await memoryApi.publishEntry(workingEntry.id);
+      } else if (partial && workingEntry.status === 'draft') {
+        // оставляем как draft — пользователь увидит подсказку
+        toast('Сохранено как черновик — исправьте альбомы и попробуйте снова');
+      }
+
       onSaved(saved);
-      toast.success(isEdit ? 'Память обновлена' : 'Память сохранена');
-      // помечаем, что закрытие легитимное — discard не нужен
-      legitimateCloseRef.current = true;
-      onOpenChange(false);
+
+      if (!partial) {
+        toast.success(isEdit ? 'Память обновлена' : 'Память сохранена');
+        legitimateCloseRef.current = true;
+        onOpenChange(false);
+      } else {
+        // оставляем диалог открытым, чтобы пользователь мог поправить альбомы
+        setEntry(saved);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Не удалось сохранить');
     } finally {
@@ -440,6 +478,69 @@ export default function MemoryEntryDialog({
                 </div>
               )}
             </ScrollArea>
+          </div>
+
+          {/* Событие */}
+          <div>
+            <Label>Событие на Дороге жизни</Label>
+            <Select
+              value={eventId ?? '__none__'}
+              onValueChange={v => setEventId(v === '__none__' ? null : v)}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Не привязано" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">
+                  <span className="text-muted-foreground">Без события</span>
+                </SelectItem>
+                {events.map(ev => (
+                  <SelectItem key={ev.id} value={ev.id}>
+                    {ev.title}
+                    {ev.date && (
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        · {new Date(ev.date).toLocaleDateString('ru-RU')}
+                      </span>
+                    )}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Альбомы */}
+          <div>
+            <Label>Альбомы ({albumIds.length})</Label>
+            {albums.length === 0 ? (
+              <p className="mt-1 rounded-md border border-dashed bg-muted/30 p-3 text-center text-xs text-muted-foreground">
+                Альбомов пока нет. Создайте их в разделе «Альбом поколений».
+              </p>
+            ) : (
+              <ScrollArea className="mt-1 h-32 rounded-md border p-2">
+                <div className="space-y-1">
+                  {albums.map(a => {
+                    const checked = albumIds.includes(a.id);
+                    return (
+                      <label
+                        key={a.id}
+                        className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={() => {
+                            setAlbumIds(prev =>
+                              checked ? prev.filter(x => x !== a.id) : [...prev, a.id],
+                            );
+                          }}
+                        />
+                        <Icon name="BookHeart" size={14} className="text-amber-600" />
+                        <span className="text-sm">{a.title}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
           </div>
         </div>
 
