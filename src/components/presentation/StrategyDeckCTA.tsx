@@ -15,15 +15,26 @@ export function StrategyDeckCTA() {
           Государственная рамка по Распоряжению № 615-р, архитектура экосистемы,
           печатные карточки модулей и фокус первого этапа — семьи военнослужащих и участников СВО.
         </p>
-        <a
-          href="/strategy"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-white text-purple-700 hover:bg-purple-50 font-bold px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg transition-all hover:scale-105 text-sm sm:text-base"
-        >
-          Стратегия до 2036 года
-          <Icon name="ArrowRight" size={20} />
-        </a>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center flex-wrap">
+          <a
+            href="/strategy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-white text-purple-700 hover:bg-purple-50 font-bold px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg transition-all hover:scale-105 text-sm sm:text-base"
+          >
+            Стратегия до 2036 года
+            <Icon name="ArrowRight" size={20} />
+          </a>
+          <a
+            href="/strategy-legacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg backdrop-blur transition-all hover:scale-105 text-sm sm:text-base"
+          >
+            <Icon name="Archive" size={20} />
+            Архивная стратегия
+          </a>
+        </div>
         <p className="text-purple-200 text-xs mt-4 opacity-80">
           Откроется в новой вкладке
         </p>
