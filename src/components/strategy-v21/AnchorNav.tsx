@@ -1,47 +1,37 @@
-import { useEffect, useState } from 'react';
+import { STRATEGY_SECTIONS } from './sections';
 
-interface AnchorItem {
-  id: string;
-  label: string;
+interface AnchorNavProps {
+  activeId?: string;
 }
 
-const items: AnchorItem[] = [
-  { id: 'slide-2', label: 'Сейчас' },
-  { id: 'slide-3', label: 'Проблема' },
-  { id: 'slide-4', label: 'Семейный ID' },
-  { id: 'slide-5', label: 'Ценность банку' },
-  { id: 'slide-6', label: 'Платформа' },
-  { id: 'slide-7', label: 'Домовой' },
-  { id: 'slide-8', label: 'Готовность' },
-  { id: 'slide-10', label: 'Контроль' },
-  { id: 'slide-11', label: 'Форматы' },
-  { id: 'slide-13', label: 'Следующий шаг' },
+// Те же якоря, что и раньше (без титула и без слайдов 9/12 — в навигацию вынесены только ключевые).
+const NAV_IDS = [
+  'slide-2',
+  'slide-3',
+  'slide-4',
+  'slide-5',
+  'slide-6',
+  'slide-7',
+  'slide-8',
+  'slide-10',
+  'slide-11',
+  'slide-13',
 ];
 
-export default function AnchorNav() {
-  const [active, setActive] = useState<string>('slide-2');
+const items = NAV_IDS.map((id) => {
+  const s = STRATEGY_SECTIONS.find((x) => x.id === id);
+  return { id, label: s?.short ?? id };
+});
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const offset = 200;
-      for (let i = items.length - 1; i >= 0; i--) {
-        const el = document.getElementById(items[i].id);
-        if (el && el.getBoundingClientRect().top <= offset) {
-          setActive(items[i].id);
-          return;
-        }
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+export default function AnchorNav({ activeId }: AnchorNavProps) {
   return (
-    <div className="sticky top-14 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200 -mx-3 sm:-mx-6 px-3 sm:px-6 py-2 mb-6">
+    <div
+      data-strategy-nav
+      className="sticky top-14 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200 -mx-3 sm:-mx-6 px-3 sm:px-6 py-2 mb-6"
+    >
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
         {items.map((it) => {
-          const isActive = active === it.id;
+          const isActive = activeId === it.id;
           return (
             <a
               key={it.id}

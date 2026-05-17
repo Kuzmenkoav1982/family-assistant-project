@@ -1,10 +1,11 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PresentationHeader } from '@/components/presentation/PresentationHeader';
 import AnchorNav from '@/components/strategy-v21/AnchorNav';
+import MeetingIndicator from '@/components/strategy-v21/MeetingIndicator';
+import { useMeetingMode } from '@/components/strategy-v21/useMeetingMode';
 import Slide01Title from '@/components/strategy-v21/Slide01Title';
 import Slide02WhyNow from '@/components/strategy-v21/Slide02WhyNow';
 import Slide03Problem from '@/components/strategy-v21/Slide03Problem';
@@ -66,8 +67,15 @@ async function captureSlides(
 }
 
 export default function StrategyDeckV21() {
-  const [searchParams] = useSearchParams();
-  const isMeetingMode = searchParams.get('mode') === 'meeting';
+  const {
+    isMeetingMode,
+    activeId,
+    activeIndex,
+    total,
+    goNext,
+    goPrev,
+    exitMeeting,
+  } = useMeetingMode();
 
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState('');
@@ -223,7 +231,18 @@ export default function StrategyDeckV21() {
         pptxProgress={pptxProgress}
       />
 
+      {isMeetingMode && (
+        <MeetingIndicator
+          activeIndex={activeIndex}
+          total={total}
+          onPrev={goPrev}
+          onNext={goNext}
+          onExit={exitMeeting}
+        />
+      )}
+
       <style>{`
+        html { scroll-behavior: smooth; }
         .printing [data-pdf-slide] {
           break-inside: avoid !important;
           page-break-inside: avoid !important;
@@ -233,6 +252,65 @@ export default function StrategyDeckV21() {
         }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
+        /* ===== Режим встречи (?mode=meeting) — оболочка показа поверх /strategy ===== */
+        .meeting-mode {
+          background: linear-gradient(to bottom, #f8fafc, #ffffff, #f8fafc);
+        }
+        /* Скрываем шапку/футер сайта и общую навигацию */
+        .meeting-mode ~ * [data-global-topbar],
+        body:has(.meeting-mode) [data-global-topbar],
+        body:has(.meeting-mode) header.global-topbar,
+        body:has(.meeting-mode) nav.global-sidebar,
+        body:has(.meeting-mode) [data-global-sidebar],
+        body:has(.meeting-mode) [data-global-bottombar],
+        body:has(.meeting-mode) footer.global-footer {
+          display: none !important;
+        }
+        /* На случай если глобальные элементы рендерятся как .fixed top-bar */
+        body:has(.meeting-mode) > div > header,
+        body:has(.meeting-mode) > div > footer {
+          display: none !important;
+        }
+        /* Скрываем PresentationHeader (кнопки экспорта) и нашу якорную панель в режиме встречи */
+        .meeting-mode .fixed.top-0 { display: none !important; }
+        .meeting-mode [data-strategy-nav] { display: none !important; }
+
+        /* Крупная типографика и слайдовый ритм */
+        .meeting-mode #strategy-v21-content {
+          padding-top: 1.5rem !important;
+          padding-bottom: 4rem !important;
+          max-width: 80rem;
+        }
+        .meeting-mode [data-pdf-slide] {
+          min-height: calc(100vh - 4rem);
+          margin-bottom: 1.5rem !important;
+          padding: 3.5rem 3rem !important;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          scroll-margin-top: 1.5rem;
+        }
+        .meeting-mode [data-pdf-slide] h1 {
+          font-size: clamp(2.5rem, 5vw, 4.5rem) !important;
+          line-height: 1.05 !important;
+        }
+        .meeting-mode [data-pdf-slide] h2 {
+          font-size: clamp(2rem, 4vw, 3.5rem) !important;
+          line-height: 1.1 !important;
+        }
+        .meeting-mode [data-pdf-slide] h3 {
+          font-size: clamp(1.125rem, 1.6vw, 1.5rem) !important;
+        }
+        .meeting-mode [data-pdf-slide] p {
+          line-height: 1.65 !important;
+        }
+        @media (max-width: 768px) {
+          .meeting-mode [data-pdf-slide] {
+            padding: 2rem 1.25rem !important;
+            min-height: auto;
+          }
+        }
       `}</style>
 
       <div
@@ -240,7 +318,7 @@ export default function StrategyDeckV21() {
         className="max-w-5xl mx-auto px-3 sm:px-6 pt-16 pb-12 sm:pt-16"
       >
         <Slide01Title />
-        <AnchorNav />
+        <AnchorNav activeId={activeId} />
         <Slide02WhyNow />
         <Slide03Problem />
         <Slide04FamilyId />
