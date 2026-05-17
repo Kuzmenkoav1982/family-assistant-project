@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
+import PreflightChecklist from '@/components/strategy-hub/PreflightChecklist';
 
 interface RouteCard {
   group: string;
@@ -129,6 +130,8 @@ export default function StrategyHub() {
             запросу, куда возвращаться.
           </p>
         </header>
+
+        <PreflightChecklist />
 
         {/* Короткий сценарий встречи */}
         <section className="mb-6 border border-slate-200 rounded-xl bg-white p-5">
