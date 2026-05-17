@@ -14,6 +14,7 @@ import Proof06Data from '@/components/strategy-proof/Proof06Data';
 import Proof07Integration from '@/components/strategy-proof/Proof07Integration';
 import Proof08Asset from '@/components/strategy-proof/Proof08Asset';
 import Proof09Format from '@/components/strategy-proof/Proof09Format';
+import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -217,6 +218,8 @@ export default function ProofDeck() {
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
       />
+
+      <HubReturnLink variant="corner" topOffset="4rem" />
 
       <style>{`
         .printing [data-pdf-slide] {

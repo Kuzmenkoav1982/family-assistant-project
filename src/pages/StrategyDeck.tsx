@@ -14,6 +14,7 @@ import { SlidePlatformBeforeAfter } from '@/components/presentation/SlidePlatfor
 import { SlideOsArchitecture } from '@/components/presentation/SlideOsArchitecture';
 import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
 import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
+import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -244,6 +245,8 @@ export default function StrategyDeck() {
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
       />
+
+      <HubReturnLink variant="corner" topOffset="4rem" />
 
       <style>{`
         .printing [data-pdf-slide] {

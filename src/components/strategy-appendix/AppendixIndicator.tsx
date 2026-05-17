@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/icon';
+import HubReturnLink, { useOpsMode } from '@/components/strategy-shared/HubReturnLink';
 import { APPENDIX_SECTIONS } from './appendixSections';
 
 export default function AppendixIndicator() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const isOps = useOpsMode();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,6 +59,12 @@ export default function AppendixIndicator() {
       >
         <Icon name="ChevronRight" size={14} />
       </button>
+
+      {isOps && (
+        <span className="ml-1 pl-2 border-l border-slate-200">
+          <HubReturnLink variant="inline" tone="light" />
+        </span>
+      )}
     </div>
   );
 }

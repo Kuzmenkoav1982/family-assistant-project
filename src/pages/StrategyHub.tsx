@@ -1,7 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import PreflightChecklist from '@/components/strategy-hub/PreflightChecklist';
+
+/** Добавляет ops=1 к любому относительному href (сохраняя query и hash). */
+function withOps(href: string): string {
+  const [pathAndQuery, hash] = href.split('#');
+  const [path, query] = pathAndQuery.split('?');
+  const params = new URLSearchParams(query || '');
+  params.set('ops', '1');
+  const qs = params.toString();
+  return `${path}${qs ? `?${qs}` : ''}${hash ? `#${hash}` : ''}`;
+}
 
 interface RouteCard {
   group: string;
@@ -93,6 +104,20 @@ function useOrigin() {
 
 export default function StrategyHub() {
   const origin = useOrigin();
+  const [searchParams] = useSearchParams();
+  const fromUrl = searchParams.get('from');
+
+  // Декодируем from-URL для отображения. Игнорируем подозрительные значения (только относительные пути).
+  const fromSafe = useMemo(() => {
+    if (!fromUrl) return null;
+    try {
+      const decoded = decodeURIComponent(fromUrl);
+      if (decoded.startsWith('/') && !decoded.startsWith('//')) return decoded;
+      return null;
+    } catch {
+      return null;
+    }
+  }, [fromUrl]);
 
   // noindex — служебная страница, не для публичной индексации
   useEffect(() => {
@@ -131,6 +156,28 @@ export default function StrategyHub() {
           </p>
         </header>
 
+        {fromSafe && (
+          <section className="no-print mb-4">
+            <a
+              href={fromSafe}
+              className="flex items-center justify-between gap-3 border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 rounded-xl px-4 py-3 transition"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Icon name="ArrowLeft" size={16} className="text-indigo-700 shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[11px] uppercase tracking-wider text-indigo-700 font-semibold">
+                    Вернуться к материалу
+                  </div>
+                  <div className="text-xs font-mono text-slate-600 truncate">
+                    {fromSafe}
+                  </div>
+                </div>
+              </div>
+              <Icon name="ArrowRight" size={14} className="text-indigo-700 shrink-0" />
+            </a>
+          </section>
+        )}
+
         <PreflightChecklist />
 
         {/* Короткий сценарий встречи */}
@@ -149,7 +196,7 @@ export default function StrategyHub() {
                 </span>
                 <span className="text-slate-800 flex-1">{s.step}</span>
                 <a
-                  href={s.target}
+                  href={withOps(s.target)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-mono text-xs text-indigo-700 hover:underline shrink-0"
@@ -190,14 +237,14 @@ export default function StrategyHub() {
 
                 <div className="flex flex-wrap gap-2 mb-3">
                   <a
-                    href={c.href}
+                    href={withOps(c.href)}
                     className={`inline-flex items-center gap-2 ${tone.button} font-medium px-3.5 py-2 rounded-lg text-sm transition`}
                   >
                     <Icon name="ArrowRight" size={14} />
                     Открыть
                   </a>
                   <a
-                    href={c.href}
+                    href={withOps(c.href)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium px-3.5 py-2 rounded-lg text-sm transition"
@@ -207,7 +254,7 @@ export default function StrategyHub() {
                   </a>
                   <button
                     type="button"
-                    onClick={() => copyUrl(c.href)}
+                    onClick={() => copyUrl(withOps(c.href))}
                     className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium px-3.5 py-2 rounded-lg text-sm transition"
                   >
                     <Icon name="Copy" size={14} />
@@ -217,7 +264,7 @@ export default function StrategyHub() {
                   {c.extra?.map((ex, j) => (
                     <a
                       key={j}
-                      href={ex.href}
+                      href={withOps(ex.href)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium px-3.5 py-2 rounded-lg text-sm transition"

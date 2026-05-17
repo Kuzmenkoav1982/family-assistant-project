@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 
+/**
+ * Простой хук — есть ли в URL флаг ?ops=1 (служебный режим).
+ * Используется и в самой плашке, и в страницах, которые хотят
+ * показать дополнительные служебные блоки только для оператора.
+ */
+export function useOpsMode(): boolean {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  return params.get('ops') === '1';
+}
+
 interface HubReturnLinkProps {
   /**
    * Куда встраивается:
@@ -9,6 +20,10 @@ interface HubReturnLinkProps {
    *  - 'corner' — самостоятельная маленькая плашка в правом верхнем углу
    */
   variant?: 'inline' | 'corner';
+  /**
+   * Тон чипа inline-варианта. По умолчанию dark (для тёмных индикаторов).
+   */
+  tone?: 'dark' | 'light';
   /**
    * Если индикатор уже стоит сверху-справа, плашке нужно встать ниже.
    * topOffset задаёт top в rem для варианта 'corner'.
@@ -23,6 +38,7 @@ interface HubReturnLinkProps {
  */
 export default function HubReturnLink({
   variant = 'inline',
+  tone = 'dark',
   topOffset = '4rem',
 }: HubReturnLinkProps) {
   const location = useLocation();
@@ -49,11 +65,15 @@ export default function HubReturnLink({
   const hubHref = `/strategy/hub?from=${encodeURIComponent(from)}`;
 
   if (variant === 'inline') {
+    const inlineCls =
+      tone === 'light'
+        ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-700'
+        : 'border-white/20 bg-white/10 hover:bg-white/20 text-white/90';
     return (
       <a
         href={hubHref}
         data-hub-return
-        className="no-print inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full border border-white/20 bg-white/10 hover:bg-white/20 text-white/90 transition"
+        className={`no-print inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-full border transition ${inlineCls}`}
         title="К операторской панели"
       >
         <Icon name="LayoutGrid" size={11} />

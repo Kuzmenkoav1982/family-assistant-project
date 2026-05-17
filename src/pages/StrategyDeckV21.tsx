@@ -6,6 +6,7 @@ import { PresentationHeader } from '@/components/presentation/PresentationHeader
 import AnchorNav from '@/components/strategy-v21/AnchorNav';
 import MeetingIndicator from '@/components/strategy-v21/MeetingIndicator';
 import { useMeetingMode } from '@/components/strategy-v21/useMeetingMode';
+import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 import Slide01Title from '@/components/strategy-v21/Slide01Title';
 import Slide02WhyNow from '@/components/strategy-v21/Slide02WhyNow';
 import Slide03Problem from '@/components/strategy-v21/Slide03Problem';
@@ -240,6 +241,9 @@ export default function StrategyDeckV21() {
           onExit={exitMeeting}
         />
       )}
+
+      {/* Hub-возврат вне режима встречи — только при ?ops=1 */}
+      {!isMeetingMode && <HubReturnLink variant="corner" topOffset="4rem" />}
 
       <style>{`
         html { scroll-behavior: smooth; }

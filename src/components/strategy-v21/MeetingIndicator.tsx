@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 
 interface MeetingIndicatorProps {
   activeIndex: number;
@@ -48,6 +49,8 @@ export default function MeetingIndicator({
       >
         <Icon name="ChevronRight" size={16} />
       </button>
+
+      <HubReturnLink variant="inline" />
 
       <button
         type="button"
