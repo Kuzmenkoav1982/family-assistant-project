@@ -100,7 +100,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Boxes',
       label: 'разделов в хабах',
-      value: '72',
+      value: '73',
       hint: 'из паспорта платформы',
       color: 'from-amber-50 to-orange-50',
       border: 'border-amber-200',
@@ -110,7 +110,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Sparkles',
       label: 'сущностей данных',
-      value: '25',
+      value: '30+',
       hint: 'ключевые объекты домена',
       color: 'from-cyan-50 to-sky-50',
       border: 'border-cyan-200',

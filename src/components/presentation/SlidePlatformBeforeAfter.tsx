@@ -21,7 +21,7 @@ const beforeBlocks: Block[] = [
   { id: 'documents', icon: 'FileText', title: 'Документы', desc: 'Хранилище' },
   { id: 'places', icon: 'MapPin', title: 'Места', desc: 'Локации семьи' },
   { id: 'shopping', icon: 'ShoppingCart', title: 'Покупки', desc: 'Списки' },
-  { id: 'memories', icon: 'Image', title: 'Воспоминания', desc: 'Фото и события' },
+  { id: 'memories', icon: 'BookHeart', title: 'Альбом поколений', desc: 'Семейное наследие' },
 ];
 
 const afterAddedBlocks: Block[] = [

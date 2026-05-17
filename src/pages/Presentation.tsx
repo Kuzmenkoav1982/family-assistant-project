@@ -14,6 +14,7 @@ import { SlideDomovoyAgent } from '@/components/presentation/SlideDomovoyAgent';
 import { SlidePlatformMetrics } from '@/components/presentation/SlidePlatformMetrics';
 import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 import { SlidePortfolio } from '@/components/presentation/SlidePortfolio';
+import { SlideFamilyMemory } from '@/components/presentation/SlideFamilyMemory';
 import { SlideEcosystem } from '@/components/presentation/SlideEcosystem';
 import { SlideAIMap } from '@/components/presentation/SlideAIMap';
 import { SlideBankShowcase } from '@/components/presentation/SlideBankShowcase';
@@ -238,6 +239,7 @@ export default function Presentation() {
         <SlidePlatformMetrics />
         <SlideLiveLoops />
         <SlidePortfolio />
+        <SlideFamilyMemory />
         <SlideEcosystem />
         <SlideAIMap />
         <SlideBusinessModel />
