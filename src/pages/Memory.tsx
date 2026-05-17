@@ -99,20 +99,13 @@ export default function Memory() {
     return () => { document.title = prev; };
   }, [filterMember, filterEvent, filterAlbum]);
 
-  const handleSaved = async (entry: MemoryEntry) => {
+  const handleSaved = async (_entry: MemoryEntry) => {
     if (editEntry) {
-      replaceEntry(entry);
+      replaceEntry(_entry);
       setEditEntry(null);
-      return;
     }
-    // если мы в контексте альбома — авто-привязка новой памяти
-    if (filterAlbumId) {
-      try {
-        await memoryApi.addToAlbum(filterAlbumId, entry.id);
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Не удалось добавить в альбом');
-      }
-    }
+    // Контекст альбома теперь предзаполняется в диалоге через initialAlbumId,
+    // привязка к альбомам делается через setEntryAlbums в save-оркестраторе.
     reload();
     reloadAlbums();
   };
@@ -394,6 +387,7 @@ export default function Memory() {
         onOpenChange={setCreateOpen}
         initialMemberId={filterMemberId}
         initialEventId={filterEventId}
+        initialAlbumId={filterAlbumId}
         suggestedTitle={filterEvent?.title}
         suggestedDate={filterEvent?.date}
         onSaved={handleSaved}

@@ -36,6 +36,14 @@ export interface MemoryEntry {
   album_ids?: string[];
 }
 
+export interface AlbumPreviewAsset {
+  id: string;
+  file_url: string;
+  width: number | null;
+  height: number | null;
+  source: 'manual' | 'auto';
+}
+
 export interface MemoryAlbum {
   id: string;
   title: string;
@@ -45,6 +53,7 @@ export interface MemoryAlbum {
   updated_at: string | null;
   entries_count?: number;
   entries?: MemoryEntry[];
+  preview_asset?: AlbumPreviewAsset | null;
 }
 
 export interface CreateMemoryEntryInput {

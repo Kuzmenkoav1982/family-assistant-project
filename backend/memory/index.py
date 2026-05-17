@@ -391,21 +391,28 @@ def _handle_albums(cur, conn, method, family_id, user_id, item_id, body):
                ORDER BY updated_at DESC''',
             (family_id,),
         )
+        rows = cur.fetchall()
         albums = []
-        for r in cur.fetchall():
+        for r in rows:
+            album_id = r[0]
+            cover_asset_id = r[3]
             cur.execute(
-                'SELECT COUNT(*) FROM memory_album_links WHERE album_id = %s',
-                (r[0],),
+                "SELECT COUNT(*) FROM memory_album_links al "
+                "JOIN memory_entries e ON e.id = al.memory_entry_id "
+                "WHERE al.album_id = %s AND e.archived_at IS NULL AND e.status = 'published'",
+                (album_id,),
             )
             count = cur.fetchone()[0]
+            preview = _resolve_album_preview(cur, family_id, album_id, cover_asset_id)
             albums.append({
-                'id': str(r[0]),
+                'id': str(album_id),
                 'title': r[1],
                 'description': r[2],
-                'cover_asset_id': str(r[3]) if r[3] else None,
+                'cover_asset_id': str(cover_asset_id) if cover_asset_id else None,
                 'created_at': r[4].isoformat() if r[4] else None,
                 'updated_at': r[5].isoformat() if r[5] else None,
                 'entries_count': int(count),
+                'preview_asset': preview,
             })
         return _resp(200, {'albums': albums})
 
@@ -454,6 +461,7 @@ def _album_full(cur, family_id, album_id):
     r = cur.fetchone()
     if not r:
         return None
+    preview = _resolve_album_preview(cur, family_id, r[0], r[3])
     return {
         'id': str(r[0]),
         'title': r[1],
@@ -462,7 +470,68 @@ def _album_full(cur, family_id, album_id):
         'created_at': r[4].isoformat() if r[4] else None,
         'updated_at': r[5].isoformat() if r[5] else None,
         'entries': _list_entries(cur, family_id, album_id=album_id),
+        'preview_asset': preview,
     }
+
+
+def _resolve_album_preview(cur, family_id, album_id, cover_asset_id):
+    """
+    Возвращает {id, file_url, width, height, source: 'manual'|'auto'} или None.
+
+    Приоритет:
+      1) manual: cover_asset_id указан И asset существует И принадлежит published памяти этой семьи.
+      2) auto: самый свежий asset (по memory_date, created_at) из published памятей этого альбома.
+      3) None — обложки нет.
+
+    Защита от висячих ссылок: если manual cover указывает на удалённый/архивный asset,
+    падаем в auto.
+    """
+    # 1. Manual
+    if cover_asset_id:
+        cur.execute(
+            '''SELECT a.id, a.file_url, a.width, a.height
+               FROM memory_assets a
+               JOIN memory_entries e ON e.id = a.memory_entry_id
+               WHERE a.id = %s AND e.family_id = %s
+                 AND e.archived_at IS NULL AND e.status = 'published' ''',
+            (cover_asset_id, family_id),
+        )
+        row = cur.fetchone()
+        if row:
+            return {
+                'id': str(row[0]),
+                'file_url': row[1],
+                'width': row[2],
+                'height': row[3],
+                'source': 'manual',
+            }
+    # 2. Auto: самый свежий asset из самой свежей published памяти альбома
+    cur.execute(
+        '''SELECT a.id, a.file_url, a.width, a.height
+           FROM memory_album_links al
+           JOIN memory_entries e ON e.id = al.memory_entry_id
+           JOIN memory_assets a ON a.memory_entry_id = e.id
+           WHERE al.album_id = %s
+             AND e.family_id = %s
+             AND e.archived_at IS NULL
+             AND e.status = 'published'
+           ORDER BY COALESCE(e.memory_date, e.created_at::date) DESC,
+                    e.created_at DESC,
+                    a.sort_order ASC,
+                    a.created_at ASC
+           LIMIT 1''',
+        (album_id, family_id),
+    )
+    row = cur.fetchone()
+    if row:
+        return {
+            'id': str(row[0]),
+            'file_url': row[1],
+            'width': row[2],
+            'height': row[3],
+            'source': 'auto',
+        }
+    return None
 
 
 def _archive_album(cur, conn, family_id, album_id):

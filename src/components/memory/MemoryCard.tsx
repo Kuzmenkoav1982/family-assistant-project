@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import Icon from '@/components/ui/icon';
@@ -24,9 +25,11 @@ function formatDate(entry: MemoryEntry): string | null {
 }
 
 export default function MemoryCard({ entry, onClick, selectable, selected }: MemoryCardProps) {
-  const cover =
-    entry.assets.find(a => a.id === entry.cover_asset_id)?.file_url ||
-    entry.assets[0]?.file_url;
+  const [broken, setBroken] = useState(false);
+  const cover = !broken
+    ? entry.assets.find(a => a.id === entry.cover_asset_id)?.file_url ||
+      entry.assets[0]?.file_url
+    : null;
   const dateLabel = formatDate(entry);
   const photosCount = entry.assets.length;
 
@@ -47,6 +50,7 @@ export default function MemoryCard({ entry, onClick, selectable, selected }: Mem
             src={cover}
             alt={entry.title}
             loading="lazy"
+            onError={() => setBroken(true)}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
