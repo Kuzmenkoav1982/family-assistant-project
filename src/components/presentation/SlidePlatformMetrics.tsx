@@ -79,9 +79,9 @@ export const SlidePlatformMetrics = () => {
     },
     {
       icon: 'Database',
-      label: 'таблиц и сущностей данных',
+      label: 'таблиц данных',
       value: formatNumber(dbTablesCount, '151'),
-      hint: 'структура хранения семейных данных',
+      hint: 'физическая структура хранения',
       color: 'from-emerald-50 to-teal-50',
       border: 'border-emerald-200',
       accent: 'text-emerald-700',
@@ -100,7 +100,7 @@ export const SlidePlatformMetrics = () => {
     {
       icon: 'Boxes',
       label: 'разделов в хабах',
-      value: '73',
+      value: '74',
       hint: 'из паспорта платформы',
       color: 'from-amber-50 to-orange-50',
       border: 'border-amber-200',
@@ -109,9 +109,9 @@ export const SlidePlatformMetrics = () => {
     },
     {
       icon: 'Sparkles',
-      label: 'сущностей данных',
+      label: 'ключевых сущностей домена',
       value: '30+',
-      hint: 'ключевые объекты домена',
+      hint: 'смысловые объекты бизнес-логики',
       color: 'from-cyan-50 to-sky-50',
       border: 'border-cyan-200',
       accent: 'text-cyan-700',

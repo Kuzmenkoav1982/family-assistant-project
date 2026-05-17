@@ -70,6 +70,17 @@ export function ModuleDetailDialog({ module, open, onOpenChange }: Props) {
             <p className="text-xs text-gray-700 leading-relaxed">{module.fullDesc}</p>
           </div>
 
+          {/* Мостик к Стратегии — что именно операционализирует */}
+          {module.operationalizes && (
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-3 border border-indigo-200">
+              <p className="text-xs font-bold text-indigo-900 mb-1.5 flex items-center gap-1.5">
+                <Icon name="Link2" size={12} />
+                Что операционализирует в Стратегии
+              </p>
+              <p className="text-xs text-indigo-900 leading-relaxed">{module.operationalizes}</p>
+            </div>
+          )}
+
           {/* Цитата из Стратегии */}
           {module.citation && (
             <div className="bg-purple-50 rounded-lg p-3 border-l-4 border-purple-500">

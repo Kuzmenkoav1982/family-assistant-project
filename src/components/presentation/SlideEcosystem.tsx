@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Icon from '@/components/ui/icon';
 
 const segments = [
-  { id: 1, label: 'Семья', color: '#ec4899', lightColor: '#fce7f3', icon: 'Users', items: ['Профили семьи', 'Семейное древо', 'Альбом поколений', 'Дети', 'Семейный маячок', 'Чат семьи'] },
+  { id: 1, label: 'Семья', color: '#ec4899', lightColor: '#fce7f3', icon: 'Users', items: ['Профили семьи', 'Семейное древо', 'Дорога жизни', 'Альбом поколений', 'Дети', 'Семейный маячок', 'Чат семьи'] },
   { id: 2, label: 'Здоровье', color: '#ef4444', lightColor: '#fee2e2', icon: 'Heart', items: ['Здоровье семьи'] },
   { id: 3, label: 'Питание', color: '#f97316', lightColor: '#ffedd5', icon: 'Apple', items: ['ИИ-Диета', 'Готовые режимы', 'Рецепт из продуктов', 'Счётчик БЖУ', 'Меню на неделю', 'Рецепты'] },
   { id: 4, label: 'Ценности', color: '#f59e0b', lightColor: '#fef3c7', icon: 'Sparkles', items: ['Вера', 'Традиции', 'Мудрость народа', 'Правила дома'] },

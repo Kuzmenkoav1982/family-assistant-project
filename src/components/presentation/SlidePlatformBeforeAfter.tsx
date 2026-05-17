@@ -124,7 +124,7 @@ export function SlidePlatformBeforeAfter() {
             <div className="mt-3 pt-3 border-t border-gray-200 grid grid-cols-3 gap-2">
               <div className="text-center">
                 <p className="text-lg font-bold text-emerald-600">11</p>
-                <p className="text-[8px] text-gray-500 leading-tight">модулей</p>
+                <p className="text-[8px] text-gray-500 leading-tight">ключевых модулей в схеме</p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold text-emerald-600">B2C</p>
