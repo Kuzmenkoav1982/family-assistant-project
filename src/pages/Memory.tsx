@@ -25,6 +25,7 @@ import BulkAddToAlbumDialog from '@/components/memory/BulkAddToAlbumDialog';
 import SelectAlbumCoverDialog from '@/components/memory/SelectAlbumCoverDialog';
 import MemoryFiltersBar from '@/components/memory/MemoryFiltersBar';
 import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import SectionHero from '@/components/ui/section-hero';
 import { resolveAlbumCover } from '@/components/memory/coverResolver';
 import type { MemoryAlbum, MemoryEntry, MemorySort } from '@/components/memory/types';
 
@@ -274,19 +275,22 @@ export default function Memory() {
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
-      <header className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold sm:text-3xl">Альбом поколений</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Не свалка фотографий — а осмысленная семейная память. Сохраняйте важные моменты с
-            подписью и людьми, чтобы передать их детям и внукам.
-          </p>
-        </div>
-        <Button onClick={() => setCreateOpen(true)} size="lg" className="shrink-0">
-          <Icon name="Plus" size={18} className="mr-1.5" />
-          Добавить память
-        </Button>
-      </header>
+      <SectionHero
+        title="Альбом поколений"
+        subtitle="Не свалка фотографий — а осмысленная семейная память. Сохраняйте важные моменты с подписью и людьми, чтобы передать их детям и внукам."
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7caf5914-dd0e-49ba-830b-c44b378c04ae.jpg"
+        backPath="/family-hub"
+        rightAction={
+          <Button
+            onClick={() => setCreateOpen(true)}
+            size="sm"
+            className="bg-white text-violet-700 hover:bg-white/90 shadow-lg"
+          >
+            <Icon name="Plus" size={16} className="mr-1.5" />
+            Добавить
+          </Button>
+        }
+      />
 
       <div className="mb-4">
         <HowItWorksBlock
@@ -320,19 +324,40 @@ export default function Memory() {
       </div>
 
       {showAlbumShelf && (
-        <AlbumShelf
-          albums={albums}
-          entries={entries}
-          loading={albumsLoading}
-          onOpen={openAlbum}
-          onCreate={() => {
-            setEditingAlbum(null);
-            setAlbumDialogOpen(true);
-          }}
-        />
+        <div className="mb-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/60 via-white to-fuchsia-50/40 dark:from-violet-950/20 dark:via-gray-900 dark:to-fuchsia-950/20 dark:border-violet-900/40 p-4 sm:p-5 shadow-sm">
+          <div className="mb-3 flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+              <Icon name="FolderHeart" size={16} className="text-violet-600 dark:text-violet-300" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-violet-900 dark:text-violet-100">Альбомы</h2>
+              <p className="text-[11px] text-violet-700/70 dark:text-violet-300/70">Тематические подборки воспоминаний</p>
+            </div>
+          </div>
+          <AlbumShelf
+            albums={albums}
+            entries={entries}
+            loading={albumsLoading}
+            onOpen={openAlbum}
+            onCreate={() => {
+              setEditingAlbum(null);
+              setAlbumDialogOpen(true);
+            }}
+          />
+        </div>
       )}
 
-      <MemoryFiltersBar
+      <div className="mb-4 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 sm:p-4 shadow-sm">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+            <Icon name="SlidersHorizontal" size={16} className="text-sky-600 dark:text-sky-300" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Поиск и фильтры</h2>
+            <p className="text-[11px] text-muted-foreground">Найдите момент по человеку, событию или году</p>
+          </div>
+        </div>
+        <MemoryFiltersBar
         q={filterQ ?? ''}
         memberId={filterMemberId}
         eventId={filterEventId}
@@ -348,7 +373,8 @@ export default function Memory() {
         onChangeYear={v => updateParam('year', v != null ? String(v) : undefined)}
         onChangeSort={v => updateParam('sort', v === DEFAULT_SORT ? undefined : v)}
         onResetAll={resetAllFilters}
-      />
+        />
+      </div>
 
       {filterAlbum && (
         <AlbumHeader
@@ -376,43 +402,59 @@ export default function Memory() {
         </div>
       )}
 
-      {loading ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[4/5] w-full rounded-xl" />
-          ))}
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 sm:p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-900/40 flex items-center justify-center">
+              <Icon name="Images" size={16} className="text-pink-600 dark:text-pink-300" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-gray-900 dark:text-gray-100">Воспоминания</h2>
+              <p className="text-[11px] text-muted-foreground">
+                {loading ? 'Загружаем…' : `Всего карточек: ${entries.length}`}
+              </p>
+            </div>
+          </div>
         </div>
-      ) : entries.length === 0 ? (
-        <EmptyState
-          filterKind={
-            hasAnyFilter
-              ? 'search'
-              : filterMember
-                ? 'member'
-                : filterEvent
-                  ? 'event'
-                  : filterAlbum
-                    ? 'album'
-                    : null
-          }
-          filterLabel={filterMember?.name || filterEvent?.title || filterAlbum?.title}
-          onAdd={() => setCreateOpen(true)}
-          onBulkAdd={filterAlbum ? () => setBulkAddOpen(true) : undefined}
-          onClearFilter={hasFilter || hasAnyFilter ? resetAllFilters : undefined}
-        />
-      ) : (
-        <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 ${selectionMode ? 'pb-24' : ''}`}>
-          {entries.map(entry => (
-            <MemoryCard
-              key={entry.id}
-              entry={entry}
-              selectable={selectionMode}
-              selected={selectedIds.has(entry.id)}
-              onClick={() => (selectionMode ? toggleSelect(entry.id) : setViewEntry(entry))}
-            />
-          ))}
-        </div>
-      )}
+
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="aspect-[4/5] w-full rounded-xl" />
+            ))}
+          </div>
+        ) : entries.length === 0 ? (
+          <EmptyState
+            filterKind={
+              hasAnyFilter
+                ? 'search'
+                : filterMember
+                  ? 'member'
+                  : filterEvent
+                    ? 'event'
+                    : filterAlbum
+                      ? 'album'
+                      : null
+            }
+            filterLabel={filterMember?.name || filterEvent?.title || filterAlbum?.title}
+            onAdd={() => setCreateOpen(true)}
+            onBulkAdd={filterAlbum ? () => setBulkAddOpen(true) : undefined}
+            onClearFilter={hasFilter || hasAnyFilter ? resetAllFilters : undefined}
+          />
+        ) : (
+          <div className={`grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 ${selectionMode ? 'pb-24' : ''}`}>
+            {entries.map(entry => (
+              <MemoryCard
+                key={entry.id}
+                entry={entry}
+                selectable={selectionMode}
+                selected={selectedIds.has(entry.id)}
+                onClick={() => (selectionMode ? toggleSelect(entry.id) : setViewEntry(entry))}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <MemoryEntryDialog
         open={createOpen}
