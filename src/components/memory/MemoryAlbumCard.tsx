@@ -31,9 +31,19 @@ export default function MemoryAlbumCard({ album, coverUrl, onClick }: MemoryAlbu
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-amber-600/60">
-            <Icon name="BookHeart" size={48} />
-          </div>
+          <>
+            <img
+              src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a55c5cf6-8112-4305-accd-bb133edf0a83.jpg"
+              alt={album.title}
+              loading="lazy"
+              className="h-full w-full object-cover opacity-70 transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-amber-50/30 via-transparent to-amber-100/40">
+              <div className="rounded-full bg-white/80 p-3 shadow-md backdrop-blur-sm">
+                <Icon name="BookHeart" size={28} className="text-amber-600" />
+              </div>
+            </div>
+          </>
         )}
         <div className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-medium text-amber-900 shadow-sm">
           {count === 0 ? 'Пусто' : count === 1 ? '1 память' : `${count} памятей`}
