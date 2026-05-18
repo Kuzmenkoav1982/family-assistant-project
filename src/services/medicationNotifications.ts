@@ -7,6 +7,7 @@
  */
 
 import { healthApi } from '@/services/healthApi';
+import { readActorMemberId } from '@/lib/identity';
 
 interface MedicationReminder {
   id: string;
@@ -92,6 +93,8 @@ class MedicationNotificationService {
 
   private async checkReminders() {
     try {
+      if (!readActorMemberId()) return;
+
       const settings = this.getSettings();
       if (!settings.enabled) {
         

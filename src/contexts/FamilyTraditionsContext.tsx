@@ -11,6 +11,7 @@ import {
   syncTraditions,
   type TraditionItem,
 } from '@/lib/familyTraditions/api';
+import { readActorUserId } from '@/lib/identity';
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -88,6 +89,14 @@ export function FamilyTraditionsProvider({
 
     setLoading(true);
     setError(null);
+
+    if (!readActorUserId()) {
+      const local = readLocalStorage();
+      applyTraditions(local.length > 0 ? local : (defaultItems ?? []));
+      setIsRemote(false);
+      setLoading(false);
+      return;
+    }
 
     fetchTraditions()
       .then((remote) => {
