@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -331,6 +331,66 @@ export default function Memory() {
           ]}
           footer="Память хранится приватно и доступна только членам вашей семьи. Архив не удаляет карточку — он скрывает её из ленты, но связи с Древом и Дорогой жизни сохраняются навсегда."
         />
+
+        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Link
+            to="/tree"
+            className="group relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-green-950/30 p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Icon name="GitBranch" size={22} className="text-emerald-600 dark:text-emerald-300" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                    Связанный раздел
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-50 leading-tight">
+                  Древо семьи
+                </h3>
+                <p className="text-xs text-emerald-800/80 dark:text-emerald-200/80 leading-relaxed mt-1">
+                  Отметьте людей на фото — и память появится в карточке каждого из них.
+                </p>
+              </div>
+              <Icon
+                name="ArrowRight"
+                size={18}
+                className="text-emerald-600 dark:text-emerald-300 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1"
+              />
+            </div>
+          </Link>
+
+          <Link
+            to="/life-road"
+            className="group relative overflow-hidden rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-red-950/30 p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Icon name="Milestone" size={22} className="text-amber-600 dark:text-amber-300" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">
+                    Связанный раздел
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-amber-900 dark:text-amber-50 leading-tight">
+                  Дорога жизни
+                </h3>
+                <p className="text-xs text-amber-800/80 dark:text-amber-200/80 leading-relaxed mt-1">
+                  Привяжите фото к событию — и оно встанет на свою точку семейной хроники.
+                </p>
+              </div>
+              <Icon
+                name="ArrowRight"
+                size={18}
+                className="text-amber-600 dark:text-amber-300 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1"
+              />
+            </div>
+          </Link>
+        </div>
       </div>
 
       {showAlbumShelf && (
