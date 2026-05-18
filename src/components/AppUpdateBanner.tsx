@@ -11,7 +11,17 @@ export function AppUpdateBanner() {
     return () => window.removeEventListener('app-update-available', onUpdate);
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration?.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          window.location.reload();
+        }, { once: true });
+        return;
+      }
+    }
     window.location.reload();
   };
 

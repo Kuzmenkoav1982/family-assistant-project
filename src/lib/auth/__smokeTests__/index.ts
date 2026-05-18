@@ -6,16 +6,20 @@
 import * as identity from './identityResolver.smoke';
 import * as session from './sessionDecisions.smoke';
 import * as runtime from './runtimeBoundaries.smoke';
+import * as swUpdate from './swUpdateFlow.smoke';
+import * as regression from './regressionPack.smoke';
 
 export async function runAllAuthSmokeTests(): Promise<void> {
-  console.group('🔑 Auth/Session — All smoke tests (H1+I3)');
+  console.group('🔑 Auth/Session — All smoke tests (H1+I3+J1+J2)');
   const t0 = performance.now();
   await identity.runAll();
   await session.runAll();
   await runtime.runAll();
+  await swUpdate.runAll();
+  await regression.runAll();
   const dt = Math.round(performance.now() - t0);
   console.log(`✅ Auth прогон завершён за ${dt} мс`);
   console.groupEnd();
 }
 
-export { identity, session, runtime };
+export { identity, session, runtime, swUpdate, regression };
