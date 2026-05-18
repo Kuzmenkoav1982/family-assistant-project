@@ -5,15 +5,17 @@
 
 import * as identity from './identityResolver.smoke';
 import * as session from './sessionDecisions.smoke';
+import * as runtime from './runtimeBoundaries.smoke';
 
 export async function runAllAuthSmokeTests(): Promise<void> {
-  console.group('🔑 Auth/Session — All smoke tests (H1)');
+  console.group('🔑 Auth/Session — All smoke tests (H1+I3)');
   const t0 = performance.now();
   await identity.runAll();
   await session.runAll();
+  await runtime.runAll();
   const dt = Math.round(performance.now() - t0);
   console.log(`✅ Auth прогон завершён за ${dt} мс`);
   console.groupEnd();
 }
 
-export { identity, session };
+export { identity, session, runtime };

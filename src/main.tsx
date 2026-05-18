@@ -21,7 +21,7 @@ if ('serviceWorker' in navigator) {
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New version available
+                window.dispatchEvent(new CustomEvent('app-update-available'));
               }
             });
           }

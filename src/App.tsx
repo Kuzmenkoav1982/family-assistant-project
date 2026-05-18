@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import Welcome from "./pages/Welcome";
 import NotFound404 from "./pages/NotFound404";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
@@ -326,6 +327,7 @@ const App = () => {
                   <Sonner />
                   <BrowserRouter>
                     <PWAInstallPrompt />
+                    <AppUpdateBanner />
                     <AIAssistantWidget />
                     <DemoModeIndicator />
                     <BlogCoverJobIndicator />

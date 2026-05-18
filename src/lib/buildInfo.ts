@@ -49,6 +49,7 @@ declare global {
 
 export function initBuildInfo(): void {
   if (typeof window === 'undefined') return;
+  if (window.__APP_BUILD__) return;
 
   try {
     Object.defineProperty(window, '__APP_BUILD__', {
