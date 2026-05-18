@@ -24,6 +24,7 @@ import MemoryEntryView from '@/components/memory/MemoryEntryView';
 import BulkAddToAlbumDialog from '@/components/memory/BulkAddToAlbumDialog';
 import SelectAlbumCoverDialog from '@/components/memory/SelectAlbumCoverDialog';
 import MemoryFiltersBar from '@/components/memory/MemoryFiltersBar';
+import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
 import { resolveAlbumCover } from '@/components/memory/coverResolver';
 import type { MemoryAlbum, MemoryEntry, MemorySort } from '@/components/memory/types';
 
@@ -286,6 +287,37 @@ export default function Memory() {
           Добавить память
         </Button>
       </header>
+
+      <div className="mb-4">
+        <HowItWorksBlock
+          accent="violet"
+          title="Как устроен Альбом поколений?"
+          intro="Это не просто фотогалерея — это живая летопись семьи. Каждая карточка памяти содержит фото, подпись, дату, место и людей, чтобы спустя годы дети и внуки понимали, что было важно."
+          steps={[
+            {
+              icon: 'Plus',
+              title: 'Шаг 1. Добавьте память',
+              description: 'Нажмите «Добавить память». Загрузите до 10 фото, напишите короткую историю, поставьте дату и место.',
+            },
+            {
+              icon: 'Users',
+              title: 'Шаг 2. Отметьте людей',
+              description: 'Привяжите членов семьи из древа — память появится в их профиле и в семейной хронике.',
+            },
+            {
+              icon: 'FolderHeart',
+              title: 'Шаг 3. Соберите альбом',
+              description: 'Группируйте памяти в тематические альбомы: «Лето на даче», «Свадьба», «Первый класс». Выбирайте обложку.',
+            },
+            {
+              icon: 'Search',
+              title: 'Шаг 4. Находите быстро',
+              description: 'Фильтры по человеку, событию, году и поиск по тексту — даже через 20 лет найдёте нужный момент.',
+            },
+          ]}
+          footer="Память хранится приватно и доступна только членам вашей семьи. Архив не удаляет — он скрывает карточку из ленты."
+        />
+      </div>
 
       {showAlbumShelf && (
         <AlbumShelf

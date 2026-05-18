@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
 import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import GlobalSearchDialog from '@/components/GlobalSearchDialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ export default function GlobalTopBar() {
   });
 
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { unreadCount } = useNotificationCenter();
   const familyCtx = useContext(FamilyMembersContext);
   const activeMember = familyCtx?.members?.find(
@@ -198,6 +200,13 @@ export default function GlobalTopBar() {
           </div>
 
           <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setSearchOpen(true)}
+              title="Поиск по сайту (Ctrl/⌘ + K)"
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <Icon name="Search" size={18} className="text-gray-500" />
+            </button>
             {isAuthenticated && (
               <button
                 onClick={() => navigate('/notifications')}
@@ -302,6 +311,8 @@ export default function GlobalTopBar() {
           />
         </div>
       </button>
+
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
