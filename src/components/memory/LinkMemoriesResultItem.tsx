@@ -3,21 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import type { LinkMode } from './LinkExistingMemoriesDialog';
 import type { MemoryEntry } from './types';
-
-function formatShortDate(entry: MemoryEntry): string | null {
-  if (entry.memory_date) {
-    try {
-      return new Date(entry.memory_date).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return entry.memory_date;
-    }
-  }
-  return entry.memory_period_label || null;
-}
+import { formatMemoryShortDate } from './formatMemoryDate';
 
 interface LinkMemoriesResultItemProps {
   entry: MemoryEntry;
@@ -39,7 +25,7 @@ export default function LinkMemoriesResultItem({
   const cover =
     entry.assets.find(a => a.id === entry.cover_asset_id)?.file_url ||
     entry.assets[0]?.file_url;
-  const date = formatShortDate(entry);
+  const date = formatMemoryShortDate(entry);
   const otherEventTitle =
     mode === 'event' && entry.event_id && String(entry.event_id) !== String(targetId)
       ? eventTitles?.get(String(entry.event_id))

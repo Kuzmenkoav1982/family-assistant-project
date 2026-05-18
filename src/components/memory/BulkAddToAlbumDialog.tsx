@@ -15,6 +15,7 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { memoryApi } from './api';
 import type { MemoryAlbum, MemoryEntry } from './types';
+import { formatMemoryShortDate } from './formatMemoryDate';
 
 interface BulkAddToAlbumDialogProps {
   open: boolean;
@@ -25,20 +26,7 @@ interface BulkAddToAlbumDialogProps {
   onAdded?: (count: number) => void;
 }
 
-function formatShortDate(entry: MemoryEntry): string | null {
-  if (entry.memory_date) {
-    try {
-      return new Date(entry.memory_date).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return entry.memory_date;
-    }
-  }
-  return entry.memory_period_label || null;
-}
+
 
 export default function BulkAddToAlbumDialog({
   open,
@@ -184,7 +172,7 @@ export default function BulkAddToAlbumDialog({
                 const cover =
                   entry.assets.find(a => a.id === entry.cover_asset_id)?.file_url ||
                   entry.assets[0]?.file_url;
-                const date = formatShortDate(entry);
+                const date = formatMemoryShortDate(entry);
                 const isSelected = selected.has(entry.id);
                 return (
                   <label

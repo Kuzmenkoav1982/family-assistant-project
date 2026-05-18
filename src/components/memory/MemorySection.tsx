@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Icon from '@/components/ui/icon';
 import { memoryApi } from './api';
 import type { MemoryEntry } from './types';
+import { formatMemoryShortDate } from './formatMemoryDate';
 import MemoryEntryDialog from './MemoryEntryDialog';
 import MemoryEntryView from './MemoryEntryView';
 import LinkExistingMemoriesDialog from './LinkExistingMemoriesDialog';
@@ -27,21 +28,6 @@ export interface MemorySectionConfig {
 interface MemorySectionProps {
   config: MemorySectionConfig;
   previewLimit?: number;
-}
-
-function formatShortDate(entry: MemoryEntry): string | null {
-  if (entry.memory_date) {
-    try {
-      return new Date(entry.memory_date).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return entry.memory_date;
-    }
-  }
-  return entry.memory_period_label || null;
 }
 
 export default function MemorySection({ config, previewLimit = 4 }: MemorySectionProps) {
@@ -182,7 +168,7 @@ export default function MemorySection({ config, previewLimit = 4 }: MemorySectio
               const cover =
                 entry.assets.find(a => a.id === entry.cover_asset_id)?.file_url ||
                 entry.assets[0]?.file_url;
-              const date = formatShortDate(entry);
+              const date = formatMemoryShortDate(entry);
               return (
                 <button
                   key={entry.id}
