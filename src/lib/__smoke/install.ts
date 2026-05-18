@@ -17,6 +17,7 @@ type SmokeApi = {
   help: () => void;
   portfolio: () => Promise<void>;
   development: () => Promise<void>;
+  memory: () => Promise<void>;
   all: () => Promise<void>;
 };
 
@@ -24,6 +25,11 @@ declare global {
   interface Window {
     __smoke?: SmokeApi;
   }
+}
+
+async function runMemory(): Promise<void> {
+  const mod = await import('@/lib/memory/__smokeTests__');
+  await mod.runAllMemorySmokeTests();
 }
 
 function printHelp(): void {
@@ -36,7 +42,9 @@ function printHelp(): void {
    
   console.log('await window.__smoke.development() — раздел «Развитие» (Goals V1 + Portfolio V1)');
    
-  console.log('await window.__smoke.all()         — portfolio() + development() подряд');
+  console.log('await window.__smoke.memory()      — Memory guardrails (create/edit/link/section)');
+   
+  console.log('await window.__smoke.all()         — portfolio() + development() + memory() подряд');
    
   console.groupEnd();
 }
@@ -57,6 +65,7 @@ async function runAll(): Promise<void> {
   const t0 = performance.now();
   await runPortfolio();
   await runDevelopment();
+  await runMemory();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ window.__smoke.all завершён за ${dt} мс`);
@@ -69,6 +78,7 @@ if (typeof window !== 'undefined' && !window.__smoke) {
     help: printHelp,
     portfolio: runPortfolio,
     development: runDevelopment,
+    memory: runMemory,
     all: runAll,
   };
 
