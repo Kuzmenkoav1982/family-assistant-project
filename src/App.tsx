@@ -25,7 +25,7 @@ import { BlogCoverJobProvider } from "@/contexts/BlogCoverJobContext";
 import BlogCoverJobIndicator from "@/components/admin/blog/BlogCoverJobIndicator";
 import { FamilyTraditionsProvider } from "@/contexts/FamilyTraditionsContext";
 import { DEFAULT_TRADITIONS } from "@/data/defaultTraditions";
-import { clearAuthSession } from "@/lib/authStorage";
+import { clearAuthSession, AUTH_SESSION_EVENT } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
 import { medicationNotificationService } from "@/services/medicationNotifications";
@@ -295,10 +295,16 @@ const App = () => {
 
     medicationNotificationService.start();
 
+    const onAuthChanged = () => medicationNotificationService.onAuthChanged();
+    window.addEventListener(AUTH_SESSION_EVENT, onAuthChanged);
+    window.addEventListener('storage', onAuthChanged);
+
     return () => {
       window.history.pushState = originalPushState;
       window.history.replaceState = originalReplaceState;
       window.removeEventListener('popstate', trackPageChange);
+      window.removeEventListener(AUTH_SESSION_EVENT, onAuthChanged);
+      window.removeEventListener('storage', onAuthChanged);
       medicationNotificationService.stop();
     };
   }, []);

@@ -12,6 +12,7 @@ import {
   type TraditionItem,
 } from '@/lib/familyTraditions/api';
 import { readActorUserId } from '@/lib/identity';
+import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
@@ -83,8 +84,8 @@ export function FamilyTraditionsProvider({
     setTraditions(next);
   }, []);
 
-  // ─── начальная загрузка ────────────────────────────────────────────────────
-  useEffect(() => {
+  // ─── начальная загрузка + re-fetch после логина ───────────────────────────
+  const loadFromServer = useCallback(() => {
     let cancelled = false;
 
     setLoading(true);
@@ -95,7 +96,7 @@ export function FamilyTraditionsProvider({
       applyTraditions(local.length > 0 ? local : (defaultItems ?? []));
       setIsRemote(false);
       setLoading(false);
-      return;
+      return () => { cancelled = true; };
     }
 
     fetchTraditions()
@@ -111,7 +112,6 @@ export function FamilyTraditionsProvider({
           applyTraditions(fallback);
           setIsRemote(false);
           if (fallback.length > 0) {
-            // миграция из LS → сервер (fire-and-forget)
             syncTraditions(fallback).catch(() => null);
             localStorage.removeItem(LS_KEY);
           }
@@ -128,11 +128,26 @@ export function FamilyTraditionsProvider({
         if (!cancelled) setLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
+  }, [applyTraditions, defaultItems]);
+
+  useEffect(() => {
+    const cleanup = loadFromServer();
+    return cleanup;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally empty — запускаем единожды при монтировании провайдера
+  }, []); // первичная загрузка при монтировании
+
+  useEffect(() => {
+    const onAuthChange = () => {
+      if (readActorUserId()) loadFromServer();
+    };
+    window.addEventListener(AUTH_SESSION_EVENT, onAuthChange);
+    window.addEventListener('storage', onAuthChange);
+    return () => {
+      window.removeEventListener(AUTH_SESSION_EVENT, onAuthChange);
+      window.removeEventListener('storage', onAuthChange);
+    };
+  }, [loadFromServer]);
 
   // ─── debounce-sync при каждом изменении ───────────────────────────────────
   const persistTraditions = useCallback(

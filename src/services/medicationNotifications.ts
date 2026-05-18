@@ -91,6 +91,11 @@ class MedicationNotificationService {
     }
   }
 
+  onAuthChanged() {
+    this.lastCheck = '';
+    this.checkReminders();
+  }
+
   private async checkReminders() {
     try {
       if (!readActorMemberId()) return;
