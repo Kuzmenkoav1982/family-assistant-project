@@ -99,7 +99,8 @@ export const menuSections: MenuSection[] = [
       { id: 'tree', label: 'Семейное древо', icon: 'GitBranch', path: '/tree' },
       { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
       { id: 'family-tracker', label: 'Семейный маячок', icon: 'MapPin', path: '/family-tracker' },
-      { id: 'family-chat', label: 'Чат семьи', icon: 'MessagesSquare', path: '/family-chat', badge: 'Новое' }
+      { id: 'family-chat', label: 'Чат семьи', icon: 'MessagesSquare', path: '/family-chat', badge: 'Новое' },
+      { id: 'memory-album', label: 'Альбом поколений', icon: 'Images', path: '/memory', badge: 'Новое' }
     ]
   },
   {
