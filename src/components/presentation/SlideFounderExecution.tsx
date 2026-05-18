@@ -118,7 +118,7 @@ export function SlideFounderExecution() {
             <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
               Основатель
             </p>
-            <p className="text-lg font-bold text-gray-900">Кузьменко Александр</p>
+            <p className="text-lg font-bold text-gray-900">Кузьменко Алексей</p>
             <p className="text-xs text-gray-600 mt-0.5">
               Ведёт продукт, архитектуру и AI-исполнение платформы
             </p>
