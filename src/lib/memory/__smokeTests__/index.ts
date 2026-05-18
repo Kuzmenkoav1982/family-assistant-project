@@ -9,6 +9,7 @@ import * as create from './memoryCreate.smoke';
 import * as edit from './memoryEdit.smoke';
 import * as link from './memoryLink.smoke';
 import * as section from './memorySection.smoke';
+import type { SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 export async function runAllMemorySmokeTests(): Promise<void> {
   console.group('🧠 Memory — All smoke tests (G2)');
@@ -20,6 +21,15 @@ export async function runAllMemorySmokeTests(): Promise<void> {
   const dt = Math.round(performance.now() - t0);
   console.log(`✅ Memory прогон завершён за ${dt} мс`);
   console.groupEnd();
+}
+
+export async function collectMemorySmokeResults(): Promise<SmokeSuiteResult[]> {
+  return Promise.all([
+    create.runAllCollect(),
+    edit.runAllCollect(),
+    link.runAllCollect(),
+    section.runAllCollect(),
+  ]);
 }
 
 export { create, edit, link, section };

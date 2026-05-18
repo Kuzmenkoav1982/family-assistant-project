@@ -6,6 +6,7 @@
 // Без DOM и HTTP.
 
 import type { UpdateMemoryEntryInput } from '@/components/memory/types';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 
@@ -135,8 +136,8 @@ export function testPayloadWithValues(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'memory-edit: toggleMember add', results: testToggleMemberAdd() },
     { title: 'memory-edit: toggleMember remove', results: testToggleMemberRemove() },
     { title: 'memory-edit: toggleMember idempotent', results: testToggleMemberIdempotent() },
@@ -144,6 +145,14 @@ export async function runAll(): Promise<void> {
     { title: 'memory-edit: payload nullable fields', results: testPayloadNullableFields() },
     { title: 'memory-edit: payload with values', results: testPayloadWithValues() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('memory-edit', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

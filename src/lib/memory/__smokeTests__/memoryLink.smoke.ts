@@ -8,6 +8,7 @@
 // Без DOM и HTTP.
 
 import type { MemoryEntry } from '@/components/memory/types';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 type LinkMode = 'person' | 'event';
@@ -168,14 +169,22 @@ export function testToggleAll(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'memory-link: candidates person mode', results: testCandidatesPersonMode() },
     { title: 'memory-link: candidates event mode', results: testCandidatesEventMode() },
     { title: 'memory-link: search filter', results: testCandidatesSearch() },
     { title: 'memory-link: relinkCount', results: testRelinkCount() },
     { title: 'memory-link: toggleAll', results: testToggleAll() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('memory-link', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

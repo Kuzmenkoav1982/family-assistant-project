@@ -7,6 +7,7 @@
 import { formatMemoryShortDate } from '@/components/memory/formatMemoryDate';
 import { resolveAlbumCover } from '@/components/memory/coverResolver';
 import type { MemoryEntry, MemoryAlbum, MemoryAsset } from '@/components/memory/types';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 
@@ -133,8 +134,8 @@ export function testCoverEmptyEntries(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'memory-section: formatDate with date', results: testFormatWithDate() },
     { title: 'memory-section: formatDate period_label', results: testFormatWithPeriodLabel() },
     { title: 'memory-section: formatDate empty', results: testFormatEmpty() },
@@ -145,6 +146,14 @@ export async function runAll(): Promise<void> {
     { title: 'memory-section: cover not found → auto', results: testCoverManualNotFound() },
     { title: 'memory-section: cover empty entries', results: testCoverEmptyEntries() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('memory-section', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

@@ -7,6 +7,8 @@
 //   - controllerchange → reload (once listener)
 // Pure state-machine тесты без DOM-рендеринга и SW API.
 
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
+
 type TestResult = { name: string; ok: boolean; details?: string };
 
 function assert(ok: boolean, name: string, details?: string): TestResult {
@@ -141,13 +143,21 @@ export function testBannerStateMachine(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'sw-update: first-install guard', results: testFirstInstallGuard() },
     { title: 'sw-update: refresh path decision', results: testRefreshPath() },
     { title: 'sw-update: controllerchange once semantics', results: testOnceListener() },
     { title: 'sw-update: banner state machine', results: testBannerStateMachine() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('sw-update-flow', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

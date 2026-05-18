@@ -8,6 +8,7 @@
 // Без DOM, без React, без localStorage.
 
 import { readNormalizedIdentityFromStorage } from '@/lib/identity';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 
@@ -182,8 +183,8 @@ export function testGuardAllowsAfterLogin(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'session: health guard (member_id)', results: testHealthGuard() },
     { title: 'session: traditions guard (user_id)', results: testTraditionsGuard() },
     { title: 'session: onAuthChanged сбрасывает lastCheck', results: testOnAuthChangedResetsLastCheck() },
@@ -192,6 +193,14 @@ export async function runAll(): Promise<void> {
     { title: 'session: guard блокирует без memberId', results: testGuardBlocksWhenNoMemberId() },
     { title: 'session: guard пропускает после логина', results: testGuardAllowsAfterLogin() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('session-decisions', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

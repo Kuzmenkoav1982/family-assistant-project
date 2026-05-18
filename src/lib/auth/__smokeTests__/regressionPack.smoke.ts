@@ -17,6 +17,7 @@ import {
   type AuthSession,
 } from '@/lib/authStorage';
 import { readNormalizedIdentityFromStorage } from '@/lib/identity';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 
@@ -247,8 +248,8 @@ export function testMemberEventSectionGuard(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'regression: login flow', results: testLoginFlow() },
     { title: 'regression: logout flow', results: testLogoutFlow() },
     { title: 'regression: saveSession writes all keys', results: testSaveSessionWritesAllKeys() },
@@ -260,6 +261,14 @@ export async function runAll(): Promise<void> {
     { title: 'regression: medications polling', results: testMedicationsPollingRegression() },
     { title: 'regression: member/event section guard', results: testMemberEventSectionGuard() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('regression-pack', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

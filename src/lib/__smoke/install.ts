@@ -13,6 +13,8 @@
 //   - non-enumerable, чтобы не светиться в Object.keys(window)
 //   - все методы возвращают Promise — можно await
 
+import type { SmokeReport } from './smokeReport';
+
 type SmokeApi = {
   help: () => void;
   portfolio: () => Promise<void>;
@@ -20,12 +22,34 @@ type SmokeApi = {
   memory: () => Promise<void>;
   auth: () => Promise<void>;
   all: () => Promise<void>;
+  report: () => Promise<SmokeReport>;
+  release: () => Promise<{ ok: boolean; failed: number }>;
 };
 
 declare global {
   interface Window {
     __smoke?: SmokeApi;
   }
+}
+
+async function runReport(): Promise<SmokeReport> {
+  const { buildReport, printReport } = await import('./smokeReport');
+  const [memMod, authMod] = await Promise.all([
+    import('@/lib/memory/__smokeTests__'),
+    import('@/lib/auth/__smokeTests__'),
+  ]);
+  const suites = [
+    ...(await memMod.collectMemorySmokeResults()),
+    ...(await authMod.collectAuthSmokeResults()),
+  ];
+  const report = buildReport(suites);
+  printReport(report);
+  return report;
+}
+
+async function runRelease(): Promise<{ ok: boolean; failed: number }> {
+  const mod = await import('./releaseChecklist');
+  return mod.runReleaseChecklist();
 }
 
 async function runMemory(): Promise<void> {
@@ -53,6 +77,10 @@ function printHelp(): void {
   console.log('await window.__smoke.auth()        — Auth/session guardrails (identity, session decisions)');
    
   console.log('await window.__smoke.all()         — portfolio() + development() + memory() + auth() подряд');
+   
+  console.log('await window.__smoke.report()      — machine-readable JSON report (K1)');
+   
+  console.log('await window.__smoke.release()     — release checklist / canary discipline (K2)');
    
   console.groupEnd();
 }
@@ -90,6 +118,8 @@ if (typeof window !== 'undefined' && !window.__smoke) {
     memory: runMemory,
     auth: runAuth,
     all: runAll,
+    report: runReport,
+    release: runRelease,
   };
 
   try {

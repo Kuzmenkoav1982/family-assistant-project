@@ -14,6 +14,7 @@
 //   - приоритет ключей (userData первым, если оба есть)
 
 import { readNormalizedIdentityFromStorage } from '@/lib/identity';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 
@@ -236,8 +237,8 @@ export function testUserWithoutFamily(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'identity: пустой storage', results: testEmptyStorage() },
     { title: 'identity: canonical keys', results: testCanonicalKeys() },
     { title: 'identity: legacy user_data key', results: testLegacyUserDataKey() },
@@ -252,21 +253,22 @@ export async function runAll(): Promise<void> {
     { title: 'identity: JSON-строка вместо объекта', results: testNonObjectJson() },
     { title: 'identity: пользователь без семьи', results: testUserWithoutFamily() },
   ];
+}
 
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('identity-resolver', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
   let passed = 0;
   let failed = 0;
-
   console.group('🔑 Auth — identity resolver smoke');
   for (const g of groups) {
     console.group(g.title);
     for (const r of g.results) {
-      if (r.ok) {
-        passed++;
-        console.log(`  ✓ ${r.name}`);
-      } else {
-        failed++;
-        console.error(`  ✗ ${r.name}${r.details ? ' — ' + r.details : ''}`);
-      }
+      if (r.ok) { passed++; console.log(`  ✓ ${r.name}`); }
+      else { failed++; console.error(`  ✗ ${r.name}${r.details ? ' — ' + r.details : ''}`); }
     }
     console.groupEnd();
   }

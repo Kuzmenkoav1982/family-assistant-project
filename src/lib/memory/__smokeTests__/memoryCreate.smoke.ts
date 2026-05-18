@@ -5,6 +5,8 @@
 //   - минимально валидный набор полей → ok
 // Только pure-logic, без DOM и HTTP.
 
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
+
 type TestResult = { name: string; ok: boolean; details?: string };
 
 function assert(ok: boolean, name: string, details?: string): TestResult {
@@ -85,13 +87,21 @@ export function testWithBinding(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'memory-create: пустой title', results: testEmptyTitle() },
     { title: 'memory-create: валидный title', results: testValidTitle() },
     { title: 'memory-create: нет привязки', results: testNoBinding() },
     { title: 'memory-create: есть привязка', results: testWithBinding() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('memory-create', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;

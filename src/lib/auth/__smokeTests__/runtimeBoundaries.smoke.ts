@@ -8,6 +8,7 @@
 // Pure + browser-context (нужен window, но без HTTP и React).
 
 import { BUILD_INFO, initBuildInfo, type AppBuildInfo } from '@/lib/buildInfo';
+import { runSuite, type SmokeSuiteResult } from '@/lib/__smoke/smokeReport';
 
 type TestResult = { name: string; ok: boolean; details?: string };
 
@@ -112,14 +113,22 @@ export function testSmokeApiShape(): TestResult[] {
 
 // ─── runner ───────────────────────────────────────────────────────────────────
 
-export async function runAll(): Promise<void> {
-  const groups = [
+function buildGroups() {
+  return [
     { title: 'runtime: BUILD_INFO shape', results: testBuildInfoShape() },
     { title: 'runtime: startedAt ISO timestamp', results: testStartedAtIsIso() },
     { title: 'runtime: window.__APP_BUILD__', results: testWindowAppBuild() },
     { title: 'runtime: initBuildInfo идемпотентен', results: testInitBuildInfoIdempotent() },
     { title: 'runtime: window.__smoke API shape', results: testSmokeApiShape() },
   ];
+}
+
+export async function runAllCollect(): Promise<SmokeSuiteResult> {
+  return runSuite('runtime-boundaries', buildGroups());
+}
+
+export async function runAll(): Promise<void> {
+  const groups = buildGroups();
 
   let passed = 0;
   let failed = 0;
