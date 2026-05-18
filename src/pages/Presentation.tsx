@@ -23,7 +23,6 @@ import { SlideAIPricing } from '@/components/presentation/SlideAIPricing';
 import { SlideTraction } from '@/components/presentation/SlideTraction';
 import { SlideMarketGTM } from '@/components/presentation/SlideMarketGTM';
 import { SlideFounderExecution } from '@/components/presentation/SlideFounderExecution';
-import { SlideTheAsk } from '@/components/presentation/SlideTheAsk';
 import { StrategyDeckCTA } from '@/components/presentation/StrategyDeckCTA';
 
 async function captureSlides(
@@ -259,8 +258,7 @@ export default function Presentation() {
         <SlideRoadmap />
         <SlideFounderExecution />
 
-        {/* ============ БЛОК 5. THE ASK + CTA ============ */}
-        <SlideTheAsk />
+        {/* ============ БЛОК 5. CTA ============ */}
         <StrategyDeckCTA />
         <PresentationFooter />
       </div>
