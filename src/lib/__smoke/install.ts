@@ -18,6 +18,7 @@ type SmokeApi = {
   portfolio: () => Promise<void>;
   development: () => Promise<void>;
   memory: () => Promise<void>;
+  auth: () => Promise<void>;
   all: () => Promise<void>;
 };
 
@@ -32,6 +33,11 @@ async function runMemory(): Promise<void> {
   await mod.runAllMemorySmokeTests();
 }
 
+async function runAuth(): Promise<void> {
+  const mod = await import('@/lib/auth/__smokeTests__');
+  await mod.runAllAuthSmokeTests();
+}
+
 function printHelp(): void {
    
   console.group('🧪 window.__smoke — доступные команды');
@@ -44,7 +50,9 @@ function printHelp(): void {
    
   console.log('await window.__smoke.memory()      — Memory guardrails (create/edit/link/section)');
    
-  console.log('await window.__smoke.all()         — portfolio() + development() + memory() подряд');
+  console.log('await window.__smoke.auth()        — Auth/session guardrails (identity, session decisions)');
+   
+  console.log('await window.__smoke.all()         — portfolio() + development() + memory() + auth() подряд');
    
   console.groupEnd();
 }
@@ -66,6 +74,7 @@ async function runAll(): Promise<void> {
   await runPortfolio();
   await runDevelopment();
   await runMemory();
+  await runAuth();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ window.__smoke.all завершён за ${dt} мс`);
@@ -79,6 +88,7 @@ if (typeof window !== 'undefined' && !window.__smoke) {
     portfolio: runPortfolio,
     development: runDevelopment,
     memory: runMemory,
+    auth: runAuth,
     all: runAll,
   };
 

@@ -28,6 +28,7 @@ import { DEFAULT_TRADITIONS } from "@/data/defaultTraditions";
 import { clearAuthSession, AUTH_SESSION_EVENT } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";
+import { initBuildInfo } from "@/lib/buildInfo";
 import { medicationNotificationService } from "@/services/medicationNotifications";
 import CookieConsent from "@/components/CookieConsent";
 import PageLoader from "@/components/PageLoader";
@@ -40,6 +41,7 @@ import { ProtectedRoute, AdminRoute } from "@/components/RouteGuards";
 // при гидрации, см. AuthProvider).
 if (typeof window !== 'undefined') {
   installFetchInterceptor();
+  initBuildInfo();
 }
 
 // ─── Core / Index ──────────────────────────────────────────────────────────
