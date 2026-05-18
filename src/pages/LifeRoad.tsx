@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import LifeRoadInstructions from '@/components/life-road/LifeRoadInstructions';
+import MemoryAlbumBanner from '@/components/memory/MemoryAlbumBanner';
 import LifeFiltersBar from '@/components/life-road/LifeFiltersBar';
 import LifeTimeline from '@/components/life-road/LifeTimeline';
 import LifeEventDialog from '@/components/life-road/LifeEventDialog';
@@ -156,6 +157,8 @@ export default function LifeRoad() {
           />
 
           <LifeRoadInstructions />
+
+          <MemoryAlbumBanner variant="life-road" />
 
           <div className="flex gap-2 bg-white/60 backdrop-blur-md rounded-2xl p-2 border border-white/60 shadow-sm overflow-x-auto scrollbar-hide">
             {TABS.map((t) => {

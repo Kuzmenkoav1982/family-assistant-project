@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import SectionHero from '@/components/ui/section-hero';
+import MemoryAlbumBanner from '@/components/memory/MemoryAlbumBanner';
 import { useFamilyTree, type TreeMember, type NewTreeMember } from '@/hooks/useFamilyTree';
 import { useClanTree } from '@/hooks/useClanTree';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -229,6 +230,9 @@ export default function Tree() {
           imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
           backPath="/family"
         />
+        <div className="mt-3">
+          <MemoryAlbumBanner variant="tree" />
+        </div>
       </div>
 
       <div className="px-4 space-y-4 max-w-4xl mx-auto">
