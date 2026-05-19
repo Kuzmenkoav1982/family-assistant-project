@@ -7,30 +7,37 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET without admin token → 401",
+      "name": "GET without any token → 401",
       "method": "GET",
       "path": "/",
       "expectedStatus": 401
     },
     {
-      "name": "GET list with admin token returns 200",
+      "name": "GET with CI seed session token → 200 (positive-path, session auth)",
       "method": "GET",
       "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
+      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
       "expectedStatus": 200
     },
     {
-      "name": "POST create without admin → 401",
+      "name": "GET with fake session token → 401 (negative-path)",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Admin-Session-Token": "fake_session_definitely_not_valid" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST create without any auth → 401",
       "method": "POST",
       "path": "/",
       "body": { "type": "info", "title": "x", "message": "y" },
       "expectedStatus": 401
     },
     {
-      "name": "POST create with invalid type → 400",
+      "name": "POST create with invalid type → 400 (validates after auth)",
       "method": "POST",
       "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
+      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
       "body": { "type": "bogus", "title": "x", "message": "y" },
       "expectedStatus": 400
     },
@@ -38,7 +45,7 @@
       "name": "POST create with empty title → 400",
       "method": "POST",
       "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
+      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
       "body": { "type": "info", "title": "", "message": "y" },
       "expectedStatus": 400
     },
@@ -46,7 +53,7 @@
       "name": "POST create with broken cta pair → 400",
       "method": "POST",
       "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
+      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
       "body": { "type": "info", "title": "t", "message": "m", "ctaLabel": "click", "ctaHref": "" },
       "expectedStatus": 400
     },
@@ -54,7 +61,7 @@
       "name": "POST create with ends before starts → 400",
       "method": "POST",
       "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
+      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
       "body": { "type": "info", "title": "t", "message": "m", "startsAt": "2026-06-01T00:00:00Z", "endsAt": "2026-05-01T00:00:00Z" },
       "expectedStatus": 400
     }

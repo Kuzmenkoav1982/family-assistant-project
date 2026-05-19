@@ -7,23 +7,23 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET ?action=health → 200",
+      "name": "GET ?action=health → 200 (admin configured)",
       "method": "GET",
       "path": "/?action=health",
       "expectedStatus": 200
     },
     {
-      "name": "POST login без body → 400",
+      "name": "POST verify с CI seed session → 200 (positive-path)",
       "method": "POST",
-      "path": "/?action=login",
-      "body": {},
-      "expectedStatus": 400
+      "path": "/?action=verify",
+      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
+      "expectedStatus": 200
     },
     {
-      "name": "POST login с неверным email → 401 (generic)",
+      "name": "POST verify с fake token → 401 (negative-path: invalid)",
       "method": "POST",
-      "path": "/?action=login",
-      "body": { "email": "wrong@example.com", "password": "wrong" },
+      "path": "/?action=verify",
+      "headers": { "X-Admin-Session-Token": "definitely_fake_token_xyz_not_in_db" },
       "expectedStatus": 401
     },
     {
@@ -37,6 +37,20 @@
       "method": "POST",
       "path": "/?action=logout",
       "expectedStatus": 200
+    },
+    {
+      "name": "POST login без body → 400",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST login с неверным email → 401 (generic, не раскрывает причину)",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": { "email": "wrong@example.com", "password": "wrong" },
+      "expectedStatus": 401
     },
     {
       "name": "POST unknown action → 400",

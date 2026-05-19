@@ -257,9 +257,11 @@ def do_logout(event: Dict[str, Any]) -> Dict[str, Any]:
     token_hash = _hash_token(token)
     conn = _conn()
     cur = conn.cursor()
+    # CI seed session (ci-test@admin.local) не ревокируем — иначе backend tests
+    # поломаются при следующем sync_backend. В real logout реальный токен (не seed).
     cur.execute(
         f"UPDATE {SCHEMA}.admin_sessions SET revoked_at = now() "
-        f"WHERE token_hash = %s AND revoked_at IS NULL",
+        f"WHERE token_hash = %s AND revoked_at IS NULL AND admin_email != 'ci-test@admin.local'",
         (token_hash,),
     )
     conn.commit()

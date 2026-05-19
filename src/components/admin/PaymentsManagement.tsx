@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { readAdminSessionToken } from '@/lib/adminAuth';
+
+// SEC-1.3c: admin_secret_key_2024 удалён. Backend payments-tbank/payments-sber
+// не проверяли этот токен — он не давал реальной защиты и при этом утекал
+// в JS-bundle браузера. Запросы теперь идут с X-Admin-Session-Token (server-verified).
 
 const TBANK_API = 'https://functions.poehali.dev/e25d60ac-d0c8-428d-92bf-18126183f140';
 const SBER_API = 'https://functions.poehali.dev/eb5ffd1e-ee56-4d89-b112-ba5bace6f64a';
@@ -21,7 +24,7 @@ interface PendingPayment {
   payment_provider: 'tbank' | 'sber';
   status: 'pending' | 'active' | 'rejected';
   created_at: string;
-  payment_instructions?: any;
+  payment_instructions?: Record<string, unknown>;
 }
 
 export default function PaymentsManagement() {
@@ -39,17 +42,16 @@ export default function PaymentsManagement() {
   }, []);
 
   const fetchPendingPayments = async () => {
-    const adminToken = localStorage.getItem('adminToken');
-    if (adminToken !== 'admin_authenticated') return;
+    // SEC-1.3c: проверяем наличие session token (не legacy-флаг)
+    if (!readAdminSessionToken()) return;
 
     try {
       setLoading(true);
       
       // Получаем pending подписки из T-Bank
+      const sessionToken = readAdminSessionToken() || '';
       const tbankResponse = await fetch(`${TBANK_API}?action=admin_pending`, {
-        headers: {
-          'X-Admin-Token': 'admin_secret_key_2024'
-        }
+        headers: { 'X-Admin-Session-Token': sessionToken },
       });
       
       const tbankData = await tbankResponse.json();
@@ -57,9 +59,7 @@ export default function PaymentsManagement() {
 
       // Получаем pending донаты из Sber
       const sberResponse = await fetch(`${SBER_API}?action=admin_pending`, {
-        headers: {
-          'X-Admin-Token': 'admin_secret_key_2024'
-        }
+        headers: { 'X-Admin-Session-Token': sessionToken },
       });
       
       const sberData = await sberResponse.json();
@@ -83,13 +83,13 @@ export default function PaymentsManagement() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_secret_key_2024'
+          'X-Admin-Session-Token': readAdminSessionToken() || '',
         },
         body: JSON.stringify({
           action: 'admin_approve',
           payment_id: selectedPayment.id,
-          admin_email: localStorage.getItem('adminEmail') || 'admin@nasha-semiya.ru'
-        })
+          admin_email: localStorage.getItem('adminSessionEmail') || '',
+        }),
       });
 
       const data = await response.json();
@@ -105,12 +105,9 @@ export default function PaymentsManagement() {
       } else {
         throw new Error(data.error || 'Ошибка подтверждения');
       }
-    } catch (error: any) {
-      toast({
-        title: 'Ошибка',
-        description: error.message || 'Не удалось подтвердить платёж',
-        variant: 'destructive'
-      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Не удалось подтвердить платёж';
+      toast({ title: 'Ошибка', description: msg, variant: 'destructive' });
     }
   };
 
@@ -124,13 +121,13 @@ export default function PaymentsManagement() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_secret_key_2024'
+          'X-Admin-Session-Token': readAdminSessionToken() || '',
         },
         body: JSON.stringify({
           action: 'admin_reject',
           payment_id: selectedPayment.id,
-          admin_email: localStorage.getItem('adminEmail') || 'admin@nasha-semiya.ru'
-        })
+          admin_email: localStorage.getItem('adminSessionEmail') || '',
+        }),
       });
 
       const data = await response.json();
@@ -146,10 +143,11 @@ export default function PaymentsManagement() {
       } else {
         throw new Error(data.error || 'Ошибка отклонения');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Не удалось отклонить платёж';
       toast({
         title: 'Ошибка',
-        description: error.message || 'Не удалось отклонить платёж',
+        description: msg,
         variant: 'destructive'
       });
     }
