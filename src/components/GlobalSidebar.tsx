@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from '@/components/layout/Sidebar';
-
-const HIDDEN_ROUTES = [
-  '/welcome', '/login', '/register', '/reset-password', '/presentation',
-  '/onboarding', '/demo-mode', '/admin-login', '/investor-deck',
-];
+import { isShellHiddenRoute } from '@/lib/shellRoutes';
 
 export default function GlobalSidebar() {
   const location = useLocation();
@@ -31,8 +27,7 @@ export default function GlobalSidebar() {
     return () => window.removeEventListener('toggleGlobalSidebar', handler);
   }, []);
 
-  const shouldHide = HIDDEN_ROUTES.some(r => location.pathname.startsWith(r));
-  if (shouldHide) return null;
+  if (isShellHiddenRoute(location.pathname)) return null;
 
   return (
     <Sidebar isVisible={isVisible} onVisibilityChange={setIsVisible} />

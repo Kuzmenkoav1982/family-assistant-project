@@ -12,10 +12,9 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 
-const HIDDEN_ROUTES = [
-  '/welcome', '/login', '/register', '/reset-password', '/presentation',
-  '/onboarding', '/demo-mode', '/admin-login', '/investor-deck',
-];
+// Список скрываемых маршрутов вынесен в src/lib/shellRoutes.ts (B3.5),
+// чтобы все 5 shell-компонентов жили на одном источнике правды.
+import { isShellHiddenRoute } from '@/lib/shellRoutes';
 
 const WALLET_API = 'https://functions.poehali.dev/26de1854-01bd-4700-bb2d-6e59cebab238';
 
@@ -66,8 +65,7 @@ export default function GlobalTopBar() {
     return () => clearInterval(iv);
   }, [fetchBalance]);
 
-  const shouldHide = HIDDEN_ROUTES.some(r => location.pathname.startsWith(r));
-  if (shouldHide) return null;
+  if (isShellHiddenRoute(location.pathname)) return null;
 
   const getUserName = () => {
     if (activeMember?.name) {

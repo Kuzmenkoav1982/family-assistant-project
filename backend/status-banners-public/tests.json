@@ -7,9 +7,23 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET returns 200 (banners list, possibly empty)",
+      "name": "GET anon returns 200",
       "method": "GET",
       "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET with X-Auth-Token returns 200",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "fake-but-present" },
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET with X-Admin-Token returns 200",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Admin-Token": "admin_authenticated" },
       "expectedStatus": 200
     },
     {

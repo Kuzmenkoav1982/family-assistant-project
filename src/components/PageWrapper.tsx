@@ -1,10 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-
-const NO_PADDING_ROUTES = [
-  '/welcome', '/login', '/register', '/reset-password', '/presentation',
-  '/onboarding', '/demo-mode', '/admin-login', '/investor-deck',
-];
+import { isShellHiddenRoute } from '@/lib/shellRoutes';
 
 function PullToRefreshWrapper({ children }: { children: React.ReactNode }) {
   const [pullDistance, setPullDistance] = useState(0);
@@ -112,9 +108,8 @@ function PullToRefreshWrapper({ children }: { children: React.ReactNode }) {
 
 export default function PageWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const noPadding = NO_PADDING_ROUTES.some(r => location.pathname.startsWith(r));
-
-  if (noPadding) return <>{children}</>;
+  // Список «безшелловых» маршрутов вынесен в src/lib/shellRoutes.ts (B3.5).
+  if (isShellHiddenRoute(location.pathname)) return <>{children}</>;
 
   return <PullToRefreshWrapper>{children}</PullToRefreshWrapper>;
 }

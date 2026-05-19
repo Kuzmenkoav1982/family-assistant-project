@@ -9,7 +9,7 @@
 //   - dismissible: при критичных не показываем кнопку закрытия
 //   - a11y: role=alert для critical, role=status для остальных
 //   - визуал: тип передаётся не только цветом — каждому tipу своя lucide-иконка
-//   - не показывается на HIDDEN_ROUTES (auth/presentation страницы)
+//   - не показывается на shellHiddenRoutes (auth/presentation страницы)
 //
 // Встраивается ОДИН раз в App.tsx, между GlobalTopBar и GlobalSidebar.
 
@@ -21,33 +21,7 @@ import { useBannerSource } from '@/lib/statusBanner/useBannerSource';
 import { useViewer } from '@/lib/statusBanner/useViewer';
 import { useDismissedBanners } from '@/lib/statusBanner/useDismissedBanners';
 import type { BannerType } from '@/lib/statusBanner/types';
-
-// Маршруты, на которых баннер НЕ показывается:
-//   - auth/onboarding flow (пользователь ещё не «в приложении»)
-//   - presentational decks (investor / matryoshka / presentation)
-//   - admin auth screen
-//   - debug-страницы
-//
-// ВАЖНО: список выверен по реальным путям из App.tsx (commit 5486aaa).
-// В прежней версии были опечатки '/demo-mode' и '/admin-login', которые
-// никогда не матчились. Реальные пути: '/demo' и '/admin/login'.
-const HIDDEN_ROUTES = [
-  '/welcome',
-  '/login',
-  '/register',
-  '/reset-password',
-  '/onboarding',
-  '/join',
-  '/activate',
-  '/activate-callback',
-  '/oauth-debug',
-  '/debug-auth',
-  '/demo',
-  '/admin/login',
-  '/presentation',
-  '/investor-deck',
-  '/matryoshka',
-];
+import { isShellHiddenRoute } from '@/lib/shellRoutes';
 
 type ToneStyle = {
   container: string;
@@ -120,9 +94,7 @@ export default function GlobalStatusBanner() {
   const { dismissed, dismiss } = useDismissedBanners();
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const shouldHide = HIDDEN_ROUTES.some(
-    (r) => location.pathname === r || location.pathname.startsWith(r + '/'),
-  );
+  const shouldHide = isShellHiddenRoute(location.pathname);
 
   const resolved = useMemo(() => {
     if (shouldHide) return null;

@@ -9,6 +9,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { isShellHiddenRoute } from '@/lib/shellRoutes';
 
 type NavItem = { id: string; path?: string; icon: string; label: string; type?: 'nav' | 'domovoy' };
 
@@ -37,11 +38,6 @@ const DEFAULT_IDS = ['home', 'dashboard', 'family', 'chat', 'health', 'nutrition
 const STORAGE_KEY = 'bottomBarItems';
 const CHAT_MIGRATION_KEY = 'bottomBarChatMigrated_v1';
 const MAX_MIDDLE = 8;
-
-const HIDDEN_ROUTES = [
-  '/welcome', '/login', '/register', '/reset-password', '/presentation',
-  '/onboarding', '/demo-mode', '/admin-login', '/investor-deck',
-];
 
 export default function GlobalBottomBar() {
   const navigate = useNavigate();
@@ -172,8 +168,7 @@ export default function GlobalBottomBar() {
     [selectedIds]
   );
 
-  const shouldHide = HIDDEN_ROUTES.some(r => location.pathname.startsWith(r));
-  if (shouldHide) return null;
+  if (isShellHiddenRoute(location.pathname)) return null;
 
   const currentPath = location.pathname;
 

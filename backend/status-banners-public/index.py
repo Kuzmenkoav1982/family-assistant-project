@@ -1,37 +1,45 @@
 """
-Business: Public read API для системного StatusBanner (info/maintenance/
-warning/critical/update). Возвращает массив включённых баннеров с базовой
-фильтрацией по серверному времени; финальную селекцию (priority/route/
-audience/dismissed) делает клиент через resolveActiveBanner().
+Business: Public read API для системного StatusBanner. Отдаёт только те
+баннеры, на которые имеет право текущий viewer (определяется по headers).
+Это закрывает audience-leakage: контент authenticated/admins-баннеров не
+уезжает анониму.
 
-Args: event с httpMethod GET (или OPTIONS для CORS preflight),
-    queryStringParameters игнорируются. context: object с request_id.
+Viewer determination (server-side):
+  - X-Admin-Token == 'admin_authenticated'   → viewer='admin'
+  - X-Auth-Token присутствует и непустой      → viewer='authenticated'
+  - иначе                                     → viewer='public' (только audience=all)
 
-Returns: { banners: StatusBanner[], server_time: ISO-string }.
+Args: event с httpMethod GET (или OPTIONS для CORS preflight);
+    headers: X-Admin-Token, X-Auth-Token (опциональные).
+    context: object с request_id.
+
+Returns: { banners: StatusBanner[], server_time: ISO, viewer }.
     HTTP 200 для всех нормальных ответов (пустой список — тоже 200).
 """
 
 import json
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
+ADMIN_TOKEN_EXPECTED = 'admin_authenticated'
 
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token, X-Auth-Token, X-Authorization, Authorization',
     'Access-Control-Max-Age': '86400',
     'Content-Type': 'application/json',
-    # Public кэш на 30 секунд — баннеры не критичны к мгновенному обновлению,
-    # но и зависать надолго не должны. Клиент дополнительно сам поллит каждые
-    # 60 секунд (см. useBannerSource в B3+).
-    'Cache-Control': 'public, max-age=30, must-revalidate',
+    # ВАЖНО: ответ может зависеть от заголовков, поэтому кеш — private (только в
+    # браузере пользователя, не на CDN, иначе одному пользователю улетит ответ
+    # другого audience). Vary помогает любому промежуточному кешу различать.
+    'Cache-Control': 'private, max-age=15, must-revalidate',
+    'Vary': 'X-Admin-Token, X-Auth-Token, X-Authorization, Authorization',
 }
 
 
@@ -60,6 +68,50 @@ def _row_to_banner(r: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _resolve_viewer(event: Dict[str, Any]) -> str:
+    """
+    Безопасный default — 'public'. Любая ошибка/неоднозначность → public.
+    Возвращает: 'public' | 'authenticated' | 'admin'.
+    """
+    headers = event.get('headers') or {}
+    # case-insensitive read
+    norm: Dict[str, str] = {}
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str):
+            norm[k.lower()] = v
+
+    if norm.get('x-admin-token') == ADMIN_TOKEN_EXPECTED:
+        return 'admin'
+
+    # Auth-token проксируется как X-Auth-Token / X-Authorization / Authorization
+    # (cloud provider убирает Authorization/Cookie, поэтому фронт обычно шлёт
+    # X-Auth-Token). Принимаем любой из них.
+    auth_candidates = [
+        norm.get('x-auth-token'),
+        norm.get('x-authorization'),
+        norm.get('authorization'),
+    ]
+    for token in auth_candidates:
+        if token and str(token).strip():
+            return 'authenticated'
+
+    return 'public'
+
+
+def _allowed_audiences(viewer: str) -> Tuple[str, ...]:
+    """
+    Какие audience может видеть viewer.
+    public        → ('all',)
+    authenticated → ('all', 'authenticated')
+    admin         → ('all', 'authenticated', 'admins')
+    """
+    if viewer == 'admin':
+        return ('all', 'authenticated', 'admins')
+    if viewer == 'authenticated':
+        return ('all', 'authenticated')
+    return ('all',)
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
 
@@ -74,19 +126,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
 
     now = datetime.now(timezone.utc)
+    viewer = _resolve_viewer(event)
+    allowed = _allowed_audiences(viewer)
 
     if not DATABASE_URL:
         return {
             'statusCode': 200,
             'headers': CORS_HEADERS,
-            'body': json.dumps({'banners': [], 'server_time': now.isoformat()}),
+            'body': json.dumps(
+                {'banners': [], 'server_time': now.isoformat(), 'viewer': viewer}
+            ),
         }
 
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        # Серверная фильтрация по enabled/окну. Тонкая селекция (audience/route
-        # /priority/dismissed) — на клиенте через resolveActiveBanner.
+        # IN-clause безопасен: значения из whitelist выше, не из user-input.
+        in_list = ', '.join(f"'{a}'" for a in allowed)
         cur.execute(f"""
             SELECT id, type, title, message, cta_label, cta_href,
                    enabled, dismissible, starts_at, ends_at, audience,
@@ -96,6 +152,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             WHERE enabled = TRUE
               AND (starts_at IS NULL OR starts_at <= now())
               AND (ends_at IS NULL OR ends_at > now())
+              AND audience IN ({in_list})
             ORDER BY priority DESC, COALESCE(published_at, updated_at, created_at) DESC
             LIMIT 50
         """)
@@ -108,7 +165,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': CORS_HEADERS,
             'body': json.dumps(
-                {'banners': banners, 'server_time': now.isoformat()},
+                {'banners': banners, 'server_time': now.isoformat(), 'viewer': viewer},
                 ensure_ascii=False,
                 default=str,
             ),
@@ -124,6 +181,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 {
                     'banners': [],
                     'server_time': now.isoformat(),
+                    'viewer': viewer,
                     'error': 'db_unavailable',
                     'detail': str(e)[:200],
                 },
