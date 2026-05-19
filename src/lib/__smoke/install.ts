@@ -21,6 +21,7 @@ type SmokeApi = {
   development: () => Promise<void>;
   memory: () => Promise<void>;
   auth: () => Promise<void>;
+  statusBanner: () => Promise<void>;
   all: () => Promise<void>;
   report: () => Promise<SmokeReport>;
   release: () => Promise<{ ok: boolean; failed: number }>;
@@ -62,6 +63,11 @@ async function runAuth(): Promise<void> {
   await mod.runAllAuthSmokeTests();
 }
 
+async function runStatusBanner(): Promise<void> {
+  const mod = await import('@/lib/statusBanner/__smokeTests__');
+  await mod.runAllStatusBannerSmokeTests();
+}
+
 function printHelp(): void {
    
   console.group('🧪 window.__smoke — доступные команды');
@@ -76,7 +82,9 @@ function printHelp(): void {
    
   console.log('await window.__smoke.auth()        — Auth/session guardrails (identity, session decisions)');
    
-  console.log('await window.__smoke.all()         — portfolio() + development() + memory() + auth() подряд');
+  console.log('await window.__smoke.statusBanner()— Status Banner resolver (B1)');
+   
+  console.log('await window.__smoke.all()         — portfolio() + development() + memory() + auth() + statusBanner() подряд');
    
   console.log('await window.__smoke.report()      — machine-readable JSON report (K1)');
    
@@ -103,6 +111,7 @@ async function runAll(): Promise<void> {
   await runDevelopment();
   await runMemory();
   await runAuth();
+  await runStatusBanner();
   const dt = Math.round(performance.now() - t0);
    
   console.log(`✅ window.__smoke.all завершён за ${dt} мс`);
@@ -117,6 +126,7 @@ if (typeof window !== 'undefined' && !window.__smoke) {
     development: runDevelopment,
     memory: runMemory,
     auth: runAuth,
+    statusBanner: runStatusBanner,
     all: runAll,
     report: runReport,
     release: runRelease,

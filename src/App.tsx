@@ -10,6 +10,7 @@ import Welcome from "./pages/Welcome";
 import NotFound404 from "./pages/NotFound404";
 import AIAssistantWidget from "@/components/AIAssistantWidget";
 import GlobalTopBar from "@/components/GlobalTopBar";
+import GlobalStatusBanner from "@/components/GlobalStatusBanner";
 import GlobalSidebar from "@/components/GlobalSidebar";
 import GlobalBottomBar from "@/components/GlobalBottomBar";
 import RecentHubsTracker from "@/components/RecentHubsTracker";
@@ -332,6 +333,7 @@ const App = () => {
                     <DemoModeIndicator />
                     <BlogCoverJobIndicator />
                     <GlobalTopBar />
+                    <GlobalStatusBanner />
                     <GlobalSidebar />
                     <GlobalBottomBar />
                     <RecentHubsTracker />
