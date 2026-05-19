@@ -120,13 +120,17 @@ export default function SphereDetail() {
   if (loading) {
     return (
       <div className={GRADIENT}>
-        <div
-          className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+        <main
+          id="main"
+          role="main"
           aria-busy="true"
           aria-live="polite"
+          aria-label="Загрузка сферы развития"
+          className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
         >
-          <div className="h-6 w-2/3 rounded bg-slate-200 animate-pulse" />
-          <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm">
+          <span className="sr-only">Загружаем данные сферы развития…</span>
+          <div className="h-6 w-2/3 rounded bg-slate-200 animate-pulse" aria-hidden="true" />
+          <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm" aria-hidden="true">
             <div className="flex items-start gap-3">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse shrink-0" />
               <div className="flex-1 space-y-2">
@@ -139,10 +143,49 @@ export default function SphereDetail() {
           {[0, 1, 2, 3].map((i) => (
             <div
               key={i}
+              aria-hidden="true"
               className="h-28 rounded-2xl border border-white/60 bg-white/60 shadow-sm animate-pulse"
             />
           ))}
-        </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ─── Missing memberId (deep-link защита) ─────────────────────────────────
+  if (!memberId) {
+    return (
+      <div className={GRADIENT}>
+        <SEOHead title="Сфера развития" description="Sphere detail" />
+        <main
+          id="main"
+          role="main"
+          className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+        >
+          <BackBar memberId={undefined} />
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-6 sm:p-8 text-center space-y-3">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100"
+                aria-hidden="true"
+              >
+                <Icon name="UserX" size={20} className="text-slate-500" />
+              </div>
+              <h1 className="text-base font-semibold text-slate-800">
+                Не указан участник
+              </h1>
+              <p className="text-sm text-slate-600 max-w-md mx-auto">
+                Чтобы открыть сферу, нужно сначала выбрать участника на главной
+                странице портфолио.
+              </p>
+              <div className="pt-2">
+                <Button asChild variant="default" size="sm" className="min-h-[40px]">
+                  <Link to="/portfolio">К списку участников</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </main>
       </div>
     );
   }
@@ -151,39 +194,45 @@ export default function SphereDetail() {
   if (error || !data) {
     return (
       <div className={GRADIENT}>
-        <div className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+        <main
+          id="main"
+          role="main"
+          className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+        >
           <BackBar memberId={memberId} />
           <div
             role="alert"
+            aria-live="assertive"
             className="rounded-2xl border border-rose-200 bg-rose-50 p-4 flex items-start gap-2.5"
           >
             <Icon
               name="AlertCircle"
               size={16}
+              aria-hidden="true"
               className="text-rose-600 mt-0.5 shrink-0"
             />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-rose-800 mb-0.5">
+              <h1 className="text-sm font-semibold text-rose-800 mb-0.5">
                 Не удалось загрузить сферу
-              </div>
-              <div className="text-xs text-rose-700 mb-2 break-words">
+              </h1>
+              <p className="text-xs text-rose-700 mb-2 break-words">
                 {error || 'Данные не пришли. Попробуйте ещё раз.'}
-              </div>
+              </p>
               <div className="flex items-center gap-2 flex-wrap">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={load}
-                  className="h-7 text-xs border-rose-300 text-rose-700 hover:bg-rose-100"
+                  className="min-h-[40px] text-xs border-rose-300 text-rose-700 hover:bg-rose-100"
                 >
-                  <Icon name="RefreshCw" size={12} className="mr-1" />
+                  <Icon name="RefreshCw" size={12} aria-hidden="true" className="mr-1" />
                   Повторить
                 </Button>
                 <Button
                   asChild
                   size="sm"
                   variant="ghost"
-                  className="h-7 text-xs text-rose-700 hover:bg-rose-100"
+                  className="min-h-[40px] text-xs text-rose-700 hover:bg-rose-100"
                 >
                   <Link to={memberId ? `/portfolio/${memberId}` : '/portfolio'}>
                     Назад к портфолио
@@ -192,7 +241,7 @@ export default function SphereDetail() {
               </div>
             </div>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -202,23 +251,30 @@ export default function SphereDetail() {
     return (
       <div className={GRADIENT}>
         <SEOHead title="Сфера не найдена" description="Sphere not found" />
-        <div className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+        <main
+          id="main"
+          role="main"
+          className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+        >
           <BackBar memberId={memberId} />
           <Breadcrumbs memberId={memberId} memberName={memberName} sphereLabel="—" />
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6 sm:p-8 text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100"
+                aria-hidden="true"
+              >
                 <Icon name="Compass" size={20} className="text-slate-500" />
               </div>
-              <div className="text-base font-semibold text-slate-800">
+              <h1 className="text-base font-semibold text-slate-800">
                 Эта сфера не найдена
-              </div>
-              <div className="text-sm text-slate-600 max-w-md mx-auto">
+              </h1>
+              <p className="text-sm text-slate-600 max-w-md mx-auto">
                 Возможно, ссылка устарела или в адресе опечатка. Вернитесь
                 к портфолио и выберите сферу из радара.
-              </div>
+              </p>
               <div className="pt-2">
-                <Button asChild variant="default" size="sm">
+                <Button asChild variant="default" size="sm" className="min-h-[40px]">
                   <Link to={memberId ? `/portfolio/${memberId}` : '/portfolio'}>
                     Назад к портфолио
                   </Link>
@@ -226,7 +282,7 @@ export default function SphereDetail() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </main>
       </div>
     );
   }
@@ -236,24 +292,31 @@ export default function SphereDetail() {
     return (
       <div className={GRADIENT}>
         <SEOHead title={`${meta.label} · ${memberName}`} description="Sphere detail" />
-        <div className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+        <main
+          id="main"
+          role="main"
+          className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+        >
           <BackBar memberId={memberId} />
           <Breadcrumbs memberId={memberId} memberName={memberName} sphereLabel={meta.label} />
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6 sm:p-8 text-center space-y-3">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100">
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100"
+                aria-hidden="true"
+              >
                 <Icon name={meta.icon} size={20} className="text-purple-600" fallback="Circle" />
               </div>
-              <div className="text-base font-semibold text-slate-800">
+              <h1 className="text-base font-semibold text-slate-800">
                 {meta.label}
-              </div>
-              <div className="text-sm text-slate-600 max-w-md mx-auto">
+              </h1>
+              <p className="text-sm text-slate-600 max-w-md mx-auto">
                 Для этой сферы пока недостаточно данных. Добавьте наблюдения,
                 пройдите тесты или зафиксируйте достижения — и здесь появится
                 полная карта развития.
-              </div>
+              </p>
               <div className="pt-2">
-                <Button asChild variant="default" size="sm">
+                <Button asChild variant="default" size="sm" className="min-h-[40px]">
                   <Link to={memberId ? `/portfolio/${memberId}` : '/portfolio'}>
                     Назад к портфолио
                   </Link>
@@ -261,35 +324,66 @@ export default function SphereDetail() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </main>
       </div>
     );
   }
 
   // ─── Success ─────────────────────────────────────────────────────────────
+  const deltaIconName =
+    deltaFmt.tone === 'positive'
+      ? 'TrendingUp'
+      : deltaFmt.tone === 'attention'
+        ? 'TrendingDown'
+        : 'Minus';
+  const deltaSrLabel =
+    deltaFmt.tone === 'positive'
+      ? `Динамика: рост на ${deltaFmt.label}`
+      : deltaFmt.tone === 'attention'
+        ? `Динамика: снижение на ${deltaFmt.label}`
+        : `Динамика: ${deltaFmt.label}`;
+
   return (
     <div className={GRADIENT}>
       <SEOHead title={`${meta.label} · ${memberName}`} description="Sphere detail" />
-      <div className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+      <main
+        id="main"
+        role="main"
+        aria-labelledby="sphere-title"
+        className="container mx-auto max-w-3xl px-3 sm:px-4 py-4 sm:py-6 space-y-4"
+      >
         <BackBar memberId={memberId} />
         <Breadcrumbs memberId={memberId} memberName={memberName} sphereLabel={meta.label} />
 
         {/* Hero */}
-        <section className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm">
+        <section
+          aria-labelledby="sphere-title"
+          className="bg-white/80 backdrop-blur-md rounded-2xl border border-white/60 p-4 sm:p-5 shadow-sm"
+        >
           <div className="flex items-start gap-3">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 shrink-0">
+            <div
+              aria-hidden="true"
+              className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 shrink-0"
+            >
               <Icon name={meta.icon} size={22} className="text-purple-600" fallback="Circle" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-lg sm:text-xl font-bold text-slate-900 truncate">
+              <h1
+                id="sphere-title"
+                title={meta.label}
+                className="text-lg sm:text-xl font-bold text-slate-900 break-words"
+              >
                 {meta.label}
-              </div>
+              </h1>
               <div className="text-sm text-slate-600 mt-0.5">
                 {hero.trendLabel}
                 {hero.score !== null && (
                   <>
                     {' · '}
-                    <span className="font-semibold text-slate-800">{hero.score}</span>
+                    <span className="font-semibold text-slate-800">
+                      <span className="sr-only">Текущий показатель: </span>
+                      {hero.score}
+                    </span>
                     <span className="text-xs text-slate-500"> / 100</span>
                   </>
                 )}
@@ -297,12 +391,18 @@ export default function SphereDetail() {
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {hero.confidence !== null && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
-                    <Icon name="Activity" size={11} className="text-slate-500" />
+                    <Icon
+                      name="Activity"
+                      size={11}
+                      aria-hidden="true"
+                      className="text-slate-500"
+                    />
                     Полнота {hero.confidence}%
                   </span>
                 )}
                 {deltaFmt.label !== '—' && (
                   <span
+                    aria-label={deltaSrLabel}
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
                       deltaFmt.tone === 'positive'
                         ? 'bg-emerald-50 text-emerald-700'
@@ -311,11 +411,18 @@ export default function SphereDetail() {
                           : 'bg-slate-100 text-slate-600'
                     }`}
                   >
-                    {deltaFmt.label}
+                    <Icon
+                      name={deltaIconName}
+                      size={11}
+                      aria-hidden="true"
+                      fallback="Minus"
+                    />
+                    <span aria-hidden="true">{deltaFmt.label}</span>
                   </span>
                 )}
                 {updatedHuman && (
                   <span className="text-xs text-slate-500">
+                    <span className="sr-only">Дата обновления: </span>
                     Обновлено: {updatedHuman}
                   </span>
                 )}
@@ -343,16 +450,19 @@ export default function SphereDetail() {
           <PortfolioSection id="sphere-strengths" label="Сильные сигналы" icon="Sparkles">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 sm:p-5">
-                <ul className="space-y-2">
+                <ul role="list" className="space-y-2">
                   {strengths.map((s, i) => (
                     <li key={`${s.label}-${i}`} className="flex items-start gap-2">
                       <Icon
                         name={s.icon || 'Star'}
                         size={14}
+                        aria-hidden="true"
                         className="text-emerald-600 mt-0.5 shrink-0"
                         fallback="Star"
                       />
-                      <span className="text-sm text-slate-700">{s.label}</span>
+                      <span className="text-sm text-slate-700 break-words min-w-0 flex-1">
+                        {s.label}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -366,16 +476,19 @@ export default function SphereDetail() {
           <PortfolioSection id="sphere-growth" label="Зоны роста" icon="TrendingUp">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 sm:p-5">
-                <ul className="space-y-2">
+                <ul role="list" className="space-y-2">
                   {growthZones.map((g, i) => (
                     <li key={`${g.label}-${i}`} className="flex items-start gap-2">
                       <Icon
                         name={g.icon || 'Target'}
                         size={14}
+                        aria-hidden="true"
                         className="text-amber-600 mt-0.5 shrink-0"
                         fallback="Target"
                       />
-                      <span className="text-sm text-slate-700">{g.label}</span>
+                      <span className="text-sm text-slate-700 break-words min-w-0 flex-1">
+                        {g.label}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -389,7 +502,7 @@ export default function SphereDetail() {
           <PortfolioSection id="sphere-sources" label="Что повлияло" icon="Search">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 sm:p-5">
-                <ul className="space-y-2">
+                <ul role="list" className="space-y-2">
                   {sources.map((s, i) => (
                     <li
                       key={`${s.source_type}-${s.source_id ?? s.measured_at}-${i}`}
@@ -398,6 +511,7 @@ export default function SphereDetail() {
                       <Icon
                         name="Dot"
                         size={14}
+                        aria-hidden="true"
                         className="text-slate-400 mt-0.5 shrink-0"
                         fallback="Circle"
                       />
@@ -405,7 +519,7 @@ export default function SphereDetail() {
                         <div className="text-sm text-slate-700 break-words">
                           {s.raw_value || s.metric_key}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-500 break-words">
                           {s.source_type} · {formatLastAggregated(s.measured_at) || s.measured_at}
                         </div>
                       </div>
@@ -424,11 +538,13 @@ export default function SphereDetail() {
               {goalsState.status === 'error' ? (
                 <div
                   role="status"
+                  aria-live="polite"
                   className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-2.5"
                 >
                   <Icon
                     name="AlertTriangle"
                     size={14}
+                    aria-hidden="true"
                     className="text-amber-600 mt-0.5 shrink-0"
                   />
                   <div className="text-xs text-amber-800 min-w-0">
@@ -437,16 +553,17 @@ export default function SphereDetail() {
                   </div>
                 </div>
               ) : relatedGoals.length === 0 ? (
-                <div className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500">
                   Пока нет целей, связанных с этой сферой.
-                </div>
+                </p>
               ) : (
-                <ul className="space-y-2">
+                <ul role="list" className="space-y-2">
                   {relatedGoals.map((g) => (
                     <li key={g.id} className="flex items-start gap-2">
                       <Icon
                         name={g.status === 'paused' ? 'Pause' : 'Target'}
                         size={14}
+                        aria-hidden="true"
                         className={
                           g.status === 'paused'
                             ? 'text-slate-400 mt-0.5 shrink-0'
@@ -456,7 +573,8 @@ export default function SphereDetail() {
                       />
                       <Link
                         to={`/workshop/goal/${g.id}`}
-                        className="text-sm text-slate-700 hover:text-purple-700 hover:underline min-w-0 truncate"
+                        title={g.title}
+                        className="text-sm text-slate-700 hover:text-purple-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 rounded min-w-0 flex-1 break-words"
                       >
                         {g.title}
                         {g.status === 'paused' && (
@@ -478,12 +596,13 @@ export default function SphereDetail() {
           <PortfolioSection id="sphere-achievements" label="Достижения" icon="Award">
             <Card className="border-0 shadow-sm">
               <CardContent className="p-4 sm:p-5">
-                <ul className="space-y-2">
+                <ul role="list" className="space-y-2">
                   {achievements.map((a) => (
                     <li key={a.id} className="flex items-start gap-2">
                       <Icon
                         name={a.icon || 'Trophy'}
                         size={14}
+                        aria-hidden="true"
                         className="text-amber-500 mt-0.5 shrink-0"
                         fallback="Trophy"
                       />
@@ -491,7 +610,7 @@ export default function SphereDetail() {
                         <div className="text-sm text-slate-700 break-words">
                           {a.title}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-slate-500 break-words">
                           {formatLastAggregated(a.earned_at) || a.earned_at}
                         </div>
                       </div>
@@ -507,12 +626,13 @@ export default function SphereDetail() {
         <PortfolioSection id="sphere-next-steps" label="Следующий шаг" icon="ArrowRight">
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 sm:p-5">
-              <ul className="space-y-2">
+              <ul role="list" className="space-y-2">
                 {nextSteps.map((s, i) => (
                   <li key={`${s.origin}-${i}`} className="flex items-start gap-2">
                     <Icon
                       name={s.origin === 'plan' ? 'ClipboardList' : s.origin === 'next_action' ? 'Zap' : 'Hourglass'}
                       size={14}
+                      aria-hidden="true"
                       className={
                         s.origin === 'fallback'
                           ? 'text-slate-400 mt-0.5 shrink-0'
@@ -520,7 +640,9 @@ export default function SphereDetail() {
                       }
                       fallback="ArrowRight"
                     />
-                    <span className="text-sm text-slate-700 break-words">{s.text}</span>
+                    <span className="text-sm text-slate-700 break-words min-w-0 flex-1">
+                      {s.text}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -534,13 +656,13 @@ export default function SphereDetail() {
             variant="ghost"
             size="sm"
             onClick={() => navigate(memberId ? `/portfolio/${memberId}` : '/portfolio')}
-            className="text-slate-600"
+            className="min-h-[40px] text-slate-600"
           >
-            <Icon name="ArrowLeft" size={14} className="mr-1" />
+            <Icon name="ArrowLeft" size={14} aria-hidden="true" className="mr-1" />
             Назад к портфолио
           </Button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
@@ -550,9 +672,17 @@ export default function SphereDetail() {
 function BackBar({ memberId }: { memberId?: string }) {
   return (
     <div className="flex items-center gap-2">
-      <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-gray-600">
-        <Link to={memberId ? `/portfolio/${memberId}` : '/portfolio'}>
-          <Icon name="ArrowLeft" size={14} className="mr-1" />
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="min-h-[40px] px-2 text-gray-600"
+      >
+        <Link
+          to={memberId ? `/portfolio/${memberId}` : '/portfolio'}
+          aria-label={memberId ? 'Вернуться к портфолио участника' : 'Вернуться к списку портфолио'}
+        >
+          <Icon name="ArrowLeft" size={14} aria-hidden="true" className="mr-1" />
           Назад
         </Link>
       </Button>
@@ -574,22 +704,34 @@ function Breadcrumbs({
       aria-label="Хлебные крошки"
       className="text-xs text-slate-500 flex items-center gap-1 flex-wrap"
     >
-      <Link to="/portfolio" className="hover:text-purple-700 hover:underline">
+      <Link
+        to="/portfolio"
+        className="hover:text-purple-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 rounded"
+      >
         Портфолио
       </Link>
       <span aria-hidden="true">/</span>
       {memberId && memberName ? (
         <Link
           to={`/portfolio/${memberId}`}
-          className="hover:text-purple-700 hover:underline truncate max-w-[40%]"
+          title={memberName}
+          className="hover:text-purple-700 hover:underline truncate max-w-[35%] sm:max-w-[40%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400/50 rounded"
         >
           {memberName}
         </Link>
       ) : (
-        <span className="text-slate-400">…</span>
+        <span className="text-slate-400" aria-hidden="true">
+          …
+        </span>
       )}
       <span aria-hidden="true">/</span>
-      <span className="text-slate-700 font-medium truncate">{sphereLabel}</span>
+      <span
+        aria-current="page"
+        title={sphereLabel}
+        className="text-slate-700 font-medium truncate max-w-[55%] sm:max-w-[50%]"
+      >
+        {sphereLabel}
+      </span>
     </nav>
   );
 }

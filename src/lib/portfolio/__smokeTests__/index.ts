@@ -8,11 +8,13 @@
 //   - portfolioMemberHelpers     (Sprint B.1: refresh-toast форматтер + trimOneLine)
 //   - portfolioSectionContract   (Sprint B.2: invariant'ы обёртки секций)
 //   - sphereDetail               (Sprint C: helpers страницы Sphere Detail)
+//   - sphereDetailA11y           (Sprint D: a11y/polish инварианты Sphere Detail)
 
 import * as hubHelpers from './portfolioHubHelpers.smoke';
 import * as memberHelpers from './portfolioMemberHelpers.smoke';
 import * as sectionContract from './portfolioSectionContract.smoke';
 import * as sphereDetail from './sphereDetail.smoke';
+import * as sphereDetailA11y from './sphereDetailA11y.smoke';
 import * as recommendationTarget from './recommendationTarget.smoke';
 
 export async function runAllPortfolioSmokeTests(): Promise<void> {
@@ -23,6 +25,7 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   await memberHelpers.runAll();
   await sectionContract.runAll();
   await sphereDetail.runAll();
+  await sphereDetailA11y.runAll();
   await recommendationTarget.runAll();
   const dt = Math.round(performance.now() - t0);
    
@@ -31,4 +34,11 @@ export async function runAllPortfolioSmokeTests(): Promise<void> {
   console.groupEnd();
 }
 
-export { hubHelpers, memberHelpers, sectionContract, sphereDetail, recommendationTarget };
+export {
+  hubHelpers,
+  memberHelpers,
+  sectionContract,
+  sphereDetail,
+  sphereDetailA11y,
+  recommendationTarget,
+};
