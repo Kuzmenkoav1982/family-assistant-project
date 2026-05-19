@@ -16,7 +16,6 @@ function withOps(href: string): string {
 
 interface RouteCard {
   group: string;
-  groupNote: string;
   title: string;
   description: string;
   href: string;
@@ -27,7 +26,6 @@ interface RouteCard {
 const cards: RouteCard[] = [
   {
     group: 'Открывать первым',
-    groupNote: 'Для живого прохода по 13 экранам',
     title: 'Стратегическая логика',
     description:
       'Основная браузерная презентация v2.2 — 13 экранов, центральный тезис «Семейный ID», три формата.',
@@ -37,7 +35,6 @@ const cards: RouteCard[] = [
   },
   {
     group: 'Если просят показать, что уже собрано',
-    groupNote: 'Открывать после основного разговора',
     title: 'Доказательная логика',
     description:
       'Продуктовый контур и подтверждение собранности — 9 экранов: карта, маршруты, Домовой, готовность, данные, актив, формат.',
@@ -46,7 +43,6 @@ const cards: RouteCard[] = [
   },
   {
     group: 'Если ушли в детали',
-    groupNote: 'Только для уточняющих вопросов',
     title: 'Внутренний резерв',
     description:
       'Архитектура, данные, безопасность, форматы, актив, команда, пилот, метрики — 8 секций. Не для отправки в открытом виде.',
@@ -55,7 +51,6 @@ const cards: RouteCard[] = [
   },
   {
     group: 'Архив',
-    groupNote: 'Не для первого прохода',
     title: 'Legacy',
     description:
       'Старый образный контур: матрёшка 809 ценностей, госрамка, военный фокус. Только если нужен исторический материал.',
@@ -150,10 +145,7 @@ export default function StrategyHub() {
           <h1 className="text-2xl sm:text-3xl font-semibold text-slate-900 leading-tight">
             Стратегический хаб
           </h1>
-          <p className="text-sm text-slate-500 mt-1.5 max-w-3xl">
-            Операторская панель перед встречей. Что открывать первым, что — по
-            запросу, куда возвращаться.
-          </p>
+
         </header>
 
         {fromSafe && (
@@ -218,14 +210,17 @@ export default function StrategyHub() {
                 className={`bg-white border ${tone.border} rounded-xl p-5 sm:p-6`}
               >
                 <div className="flex flex-wrap items-baseline gap-2 mb-2">
-                  <span
-                    className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded ${tone.chip}`}
-                  >
-                    {c.group}
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    {c.groupNote}
-                  </span>
+                  {c.tone === 'primary' ? (
+                    <span
+                      className={`text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded ${tone.chip}`}
+                    >
+                      {c.group}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] uppercase tracking-wider text-slate-500 font-medium">
+                      {c.group}
+                    </span>
+                  )}
                 </div>
 
                 <h2 className="text-lg sm:text-xl font-semibold text-slate-900 leading-tight mb-1.5">
