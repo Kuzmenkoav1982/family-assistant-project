@@ -118,8 +118,14 @@ export default function GlobalTopBar() {
   const emojiAvatar = getEmojiAvatar();
   const initial = getInitial();
 
+  const canGoBack = window.history.length > 1 && location.pathname !== '/';
+
   const handleMenuClick = () => {
     window.dispatchEvent(new Event('toggleGlobalSidebar'));
+  };
+
+  const handleGoBack = () => {
+    navigate(-1);
   };
 
   const handleLogout = () => {
@@ -143,7 +149,15 @@ export default function GlobalTopBar() {
         }`}
       >
         <div className="px-4 h-16 flex items-center justify-between max-w-screen-2xl mx-auto">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            {canGoBack && (
+              <button
+                onClick={handleGoBack}
+                className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <Icon name="ChevronLeft" size={22} className="text-gray-600 dark:text-gray-400" />
+              </button>
+            )}
             <div className="relative">
               <button
                 onClick={handleMenuClick}
