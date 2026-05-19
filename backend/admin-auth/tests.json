@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET ?action=health → 200",
+      "method": "GET",
+      "path": "/?action=health",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST login без body → 400",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": {},
+      "expectedStatus": 400
+    },
+    {
+      "name": "POST login с неверным email → 401 (generic)",
+      "method": "POST",
+      "path": "/?action=login",
+      "body": { "email": "wrong@example.com", "password": "wrong" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST verify без токена → 401",
+      "method": "POST",
+      "path": "/?action=verify",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST logout без токена → 200 (idempotent)",
+      "method": "POST",
+      "path": "/?action=logout",
+      "expectedStatus": 200
+    },
+    {
+      "name": "POST unknown action → 400",
+      "method": "POST",
+      "path": "/?action=bogus",
+      "expectedStatus": 400
+    },
+    {
+      "name": "GET без action → 405",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 405
+    }
+  ]
+}

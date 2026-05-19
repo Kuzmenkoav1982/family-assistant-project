@@ -352,7 +352,10 @@ const App = () => {
                       <Route path="/join" element={<JoinFamily />} />
                       <Route path="/activate/:inviteToken" element={<ActivateChild />} />
                       <Route path="/activate-callback" element={<ActivateCallback />} />
-                      <Route path="/oauth-debug" element={<OAuthDebug />} />
+                      {/* SEC-1.4: debug routes только в dev-сборке, не попадают в prod bundle. */}
+                      {import.meta.env.DEV && (
+                        <Route path="/oauth-debug" element={<OAuthDebug />} />
+                      )}
                       <Route path="/" element={
                         <ProtectedRoute>
                           <Index onLogout={handleLogout} />
@@ -370,20 +373,21 @@ const App = () => {
                       } />
                       <Route path="/instructions" element={<Instructions />} />
                       <Route path="/garage" element={<Garage />} />
-                      <Route path="/health" element={<Health />} />
-                      <Route path="/finance" element={<FinanceHub />} />
-                      <Route path="/finance/budget" element={<FinanceBudget />} />
-                      <Route path="/finance/debts" element={<FinanceDebts />} />
-                      <Route path="/finance/accounts" element={<FinanceAccounts />} />
-                      <Route path="/finance/goals" element={<FinanceGoals />} />
-                      <Route path="/finance/literacy" element={<FinanceLiteracy />} />
-                      <Route path="/finance/recurring" element={<FinanceRecurring />} />
-                      <Route path="/finance/assets" element={<FinanceAssets />} />
-                      <Route path="/finance/loyalty" element={<FinanceLoyalty />} />
-                      <Route path="/finance/antiscam" element={<AntiScam />} />
-                      <Route path="/finance/analytics" element={<FinanceAnalytics />} />
-                      <Route path="/finance/strategy" element={<FinanceStrategy />} />
-                      <Route path="/finance/cashflow" element={<FinanceCashflow />} />
+                      {/* SEC-1.2a: HIGH-risk routes (медицина, финансы) обёрнуты в ProtectedRoute. */}
+                      <Route path="/health" element={<ProtectedRoute><Health /></ProtectedRoute>} />
+                      <Route path="/finance" element={<ProtectedRoute><FinanceHub /></ProtectedRoute>} />
+                      <Route path="/finance/budget" element={<ProtectedRoute><FinanceBudget /></ProtectedRoute>} />
+                      <Route path="/finance/debts" element={<ProtectedRoute><FinanceDebts /></ProtectedRoute>} />
+                      <Route path="/finance/accounts" element={<ProtectedRoute><FinanceAccounts /></ProtectedRoute>} />
+                      <Route path="/finance/goals" element={<ProtectedRoute><FinanceGoals /></ProtectedRoute>} />
+                      <Route path="/finance/literacy" element={<ProtectedRoute><FinanceLiteracy /></ProtectedRoute>} />
+                      <Route path="/finance/recurring" element={<ProtectedRoute><FinanceRecurring /></ProtectedRoute>} />
+                      <Route path="/finance/assets" element={<ProtectedRoute><FinanceAssets /></ProtectedRoute>} />
+                      <Route path="/finance/loyalty" element={<ProtectedRoute><FinanceLoyalty /></ProtectedRoute>} />
+                      <Route path="/finance/antiscam" element={<ProtectedRoute><AntiScam /></ProtectedRoute>} />
+                      <Route path="/finance/analytics" element={<ProtectedRoute><FinanceAnalytics /></ProtectedRoute>} />
+                      <Route path="/finance/strategy" element={<ProtectedRoute><FinanceStrategy /></ProtectedRoute>} />
+                      <Route path="/finance/cashflow" element={<ProtectedRoute><FinanceCashflow /></ProtectedRoute>} />
                       <Route path="/education" element={<Education />} />
                       <Route path="/events" element={<EventsPage />} />
                       <Route path="/events/create" element={<CreateEventPage />} />
@@ -401,9 +405,9 @@ const App = () => {
                       <Route path="/meals" element={<Meals />} />
                       <Route path="/calendar" element={<Calendar />} />
                       <Route path="/purchases" element={<Purchases />} />
-                      <Route path="/permissions" element={<PermissionsManagement />} />
+                      <Route path="/permissions" element={<ProtectedRoute><PermissionsManagement /></ProtectedRoute>} />
                       <Route path="/community" element={<Community />} />
-                      <Route path="/member/:memberId" element={<MemberProfile />} />
+                      <Route path="/member/:memberId" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
                       <Route path="/portfolio" element={
                         <ProtectedRoute>
                           <FamilyPortfolio />
@@ -484,10 +488,11 @@ const App = () => {
                       <Route path="/nationalities/:id" element={<NationalityDetailPage />} />
                       <Route path="/children" element={<Children />} />
                       <Route path="/children/assessment-report" element={<AssessmentReport />} />
-                      <Route path="/family-tracker" element={<FamilyTracker />} />
-                      <Route path="/location-history" element={<LocationHistory />} />
-                      <Route path="/analytics" element={<Analytics />} />
-                      <Route path="/settings" element={<Settings />} />
+                      {/* SEC-1.2a: HIGH-risk (геолокация, личная аналитика, настройки). */}
+                      <Route path="/family-tracker" element={<ProtectedRoute><FamilyTracker /></ProtectedRoute>} />
+                      <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
+                      <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                       <Route path="/recipes" element={<Recipes />} />
                       <Route path="/nutrition" element={<NutritionHub />} />
                       <Route path="/nutrition/tracker" element={<Nutrition />} />
@@ -496,7 +501,7 @@ const App = () => {
                       <Route path="/nutrition/programs/:slug/quiz" element={<DietMiniQuiz />} />
                       <Route path="/nutrition/recipe-from-products" element={<RecipeFromProducts />} />
                       <Route path="/nutrition/progress" element={<DietProgress />} />
-                      <Route path="/wallet" element={<FamilyWallet />} />
+                      <Route path="/wallet" element={<ProtectedRoute><FamilyWallet /></ProtectedRoute>} />
                       <Route path="/trips" element={<Trips />} />
                       <Route path="/trips/:id" element={<TripDetails />} />
                       <Route path="/trips/wishlist" element={<TripWishlist />} />
@@ -511,7 +516,7 @@ const App = () => {
                         <Route path="/dev/goals-qa" element={<DevGoalsQa />} />
                       )}
                       <Route path="/in-development" element={<InDevelopmentList />} />
-                      <Route path="/family-management" element={<FamilyManagement />} />
+                      <Route path="/family-management" element={<ProtectedRoute><FamilyManagement /></ProtectedRoute>} />
                       <Route path="/launch-plan" element={<LaunchPlan />} />
                       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                       <Route path="/terms-of-service" element={<TermsOfService />} />
@@ -527,9 +532,10 @@ const App = () => {
                       <Route path="/videos" element={<Videos />} />
                       {/* Подписки временно скрыты — используется кошелёк */}
                       <Route path="/admin/subscriptions" element={<Navigate to="/" replace />} />
-                      <Route path="/admin/domovoy" element={<AdminDomovoy />} />
-                      <Route path="/admin/domovoy/studio" element={<DomovoyStudio />} />
-                      <Route path="/admin/dev-agent" element={<DevAgentStudio />} />
+                      {/* SEC-1.2a: admin-роуты без guard'а — закрываем AdminRoute. */}
+                      <Route path="/admin/domovoy" element={<AdminRoute><AdminDomovoy /></AdminRoute>} />
+                      <Route path="/admin/domovoy/studio" element={<AdminRoute><DomovoyStudio /></AdminRoute>} />
+                      <Route path="/admin/dev-agent" element={<AdminRoute><DevAgentStudio /></AdminRoute>} />
                       <Route path="/admin/status-banner" element={
                         <AdminRoute>
                           <AdminStatusBanners />
@@ -537,7 +543,10 @@ const App = () => {
                       } />
                       <Route path="/domovoy" element={<DomovoyPage />} />
                       <Route path="/services" element={<TelegramServices />} />
-                      <Route path="/debug-auth" element={<DebugAuth />} />
+                      {/* SEC-1.4: debug routes только в dev-сборке. */}
+                      {import.meta.env.DEV && (
+                        <Route path="/debug-auth" element={<DebugAuth />} />
+                      )}
                       <Route path="/family-hub" element={<FamilyHub />} />
                       <Route path="/values-hub" element={<ValuesHub />} />
                       <Route path="/planning-hub" element={<PlanningHub />} />
@@ -547,7 +556,7 @@ const App = () => {
                       <Route path="/pari-test" element={<PariTest />} />
                       <Route path="/pari-results/:id" element={<PariResults />} />
                       <Route path="/state-hub" element={<StateHub />} />
-                      <Route path="/health-hub" element={<HealthHub />} />
+                      <Route path="/health-hub" element={<ProtectedRoute><HealthHub /></ProtectedRoute>} />
                       <Route path="/leisure-hub" element={<LeisureHub />} />
                       <Route path="/values" element={<Values />} />
                       <Route path="/culture" element={<Culture />} />

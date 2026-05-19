@@ -45,6 +45,14 @@ import { Navigate } from 'react-router-dom';
 import { storage } from '@/lib/storage';
 import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
 import Welcome from '@/pages/Welcome';
+import {
+  ADMIN_SESSION_EVENT,
+  ADMIN_SESSION_TOKEN_KEY,
+  ADMIN_SESSION_EXPIRES_KEY,
+  LEGACY_ADMIN_TOKEN_KEY,
+  hasValidLocalAdminSession,
+  hasLegacyAdminFlag,
+} from '@/lib/adminAuth';
 
 type GuardProps = { children: React.ReactNode };
 
@@ -110,8 +118,19 @@ export function ProtectedRoute({ children }: GuardProps) {
 }
 
 /**
- * AdminRoute — пускает только при `adminToken === 'admin_authenticated'`.
- * При отсутствии — редиректит на /admin/login.
+ * AdminRoute — пускает только админа с валидной серверной сессией.
+ *
+ * SEC-1.3 (после freeze hardcoded creds):
+ *   - основной путь — adminSessionToken + expires_at в localStorage,
+ *     получены через backend.admin-auth (bcrypt verify);
+ *   - legacy fallback — старый `adminToken === 'admin_authenticated'` флаг,
+ *     оставлен для grace-period; будет удалён после SEC-1 checkpoint.
+ *   - подписки: native 'storage' (другие вкладки), кастомное
+ *     ADMIN_SESSION_EVENT (login/logout в этой вкладке), 'focus' (возврат
+ *     на вкладку — переcверим протух ли expires_at).
+ *
+ * Окончательное доверие — у backend: каждая admin-функция проверяет
+ * X-Admin-Session-Token в БД (token_hash + expires_at + revoked_at).
  */
 export function AdminRoute({ children }: GuardProps) {
   const [isChecking, setIsChecking] = useState(true);
@@ -120,10 +139,14 @@ export function AdminRoute({ children }: GuardProps) {
   useEffect(() => {
     const checkAdmin = () => {
       try {
-        const adminToken = localStorage.getItem('adminToken');
-        setIsAdmin(adminToken === 'admin_authenticated');
+        // Основной путь: валидная локальная сессия (token + не истёкший expires)
+        if (hasValidLocalAdminSession()) {
+          setIsAdmin(true);
+          return;
+        }
+        // Legacy fallback на время grace-period
+        setIsAdmin(hasLegacyAdminFlag());
       } catch (error) {
-        // Аналогично ProtectedRoute: при недоступном storage — нет admin-доступа.
         console.warn('[AdminRoute] storage unavailable, denying admin:', error);
         setIsAdmin(false);
       } finally {
@@ -134,19 +157,24 @@ export function AdminRoute({ children }: GuardProps) {
     checkAdmin();
 
     const onStorage = (e: StorageEvent) => {
-      if (!e.key || e.key === 'adminToken') {
+      if (
+        !e.key ||
+        e.key === ADMIN_SESSION_TOKEN_KEY ||
+        e.key === ADMIN_SESSION_EXPIRES_KEY ||
+        e.key === LEGACY_ADMIN_TOKEN_KEY
+      ) {
         checkAdmin();
       }
     };
-    // focus — компромисс: AdminLogin не использует authStorage helper, поэтому
-    // в текущей вкладке узнаём об изменении adminToken при возврате на вкладку.
     const onFocus = () => checkAdmin();
 
     window.addEventListener('storage', onStorage);
     window.addEventListener('focus', onFocus);
+    window.addEventListener(ADMIN_SESSION_EVENT, checkAdmin);
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('focus', onFocus);
+      window.removeEventListener(ADMIN_SESSION_EVENT, checkAdmin);
     };
   }, []);
 

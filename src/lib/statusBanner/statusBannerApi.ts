@@ -58,8 +58,20 @@ export async function fetchPublicBanners(signal?: AbortSignal): Promise<StatusBa
 function adminHeaders(actor?: string): HeadersInit {
   const h: Record<string, string> = {
     'Content-Type': 'application/json',
-    'X-Admin-Token': ADMIN_TOKEN,
   };
+  // SEC-1.3: предпочитаем server-issued session token; legacy ADMIN_TOKEN
+  // отправляем как fallback на grace-period, пока backend поддерживает оба.
+  let sessionToken: string | null = null;
+  try {
+    sessionToken = localStorage.getItem('adminSessionToken');
+  } catch {
+    sessionToken = null;
+  }
+  if (sessionToken) {
+    h['X-Admin-Session-Token'] = sessionToken;
+  } else {
+    h['X-Admin-Token'] = ADMIN_TOKEN;
+  }
   if (actor) h['X-Admin-Actor'] = actor;
   return h;
 }

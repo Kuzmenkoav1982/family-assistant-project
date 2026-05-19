@@ -1,47 +1,77 @@
 # Security gaps registry
 
-> Зафиксированные находки по итогам карты платформы (build `032c5c5`).
-> Это **не план работ** текущего трека Status Banner, а отдельный backlog,
-> который надо обработать самостоятельной задачей.
->
-> Цель документа — чтобы находки не потерялись между спринтами и можно
-> было приоритезировать их отдельно от продуктового scope.
+> Реестр security-находок и их статус.
+> Обновлён в Security Mini-Sprint (commit после `72127d5`).
 
 ---
 
-## Категории
+## Статусы
 
-| # | Категория | Описание | Серьёзность |
-|---|---|---|---|
-| S1 | Admin auth weakness | Admin-доступ определяется флагом `localStorage.adminToken === 'admin_authenticated'`. Нет проверки серверной сессии, нет ротации, нет expiration. | 🔴 high |
-| S2 | Unguarded admin routes | `/admin/domovoy/studio` и `/admin/dev-agent` объявлены без `AdminRoute`. Доступны любому, кто знает URL. | 🔴 high |
-| S3 | Unprotected sensitive pages | Большинство domain pages не имеют `ProtectedRoute`: `/health`, `/permissions`, `/finance/*`, `/nutrition/*`, `/family-tracker`, `/location-history`, `/analytics`, `/settings`, `/wallet`. Открываются у анонима — UI просто показывает пустоту/ошибку, но логика хождения в API может срабатывать. | 🔴 high |
-| S4 | Health data exposure surface | `/health` (медицинские данные) без guard — потенциально PII/PHI. | 🔴 high |
-| S5 | Debug routes in prod | `/oauth-debug`, `/debug-auth`, `/dev/goals-qa` всегда доступны. Должны быть feature-flag в проде. | 🟠 medium |
-| S6 | Dead pages in repo | 17 неиспользуемых страниц в `src/pages/webapp/` (включая `Index.tsx.backup`). Поверхность атаки шире, чем должна быть; повышает риск случайной регистрации в App.tsx. | 🟡 low |
-| S7 | Hardcoded admin login | `AdminLogin.tsx` — emailpassword hardcoded в исходнике (проверить). | 🔴 high (если подтвердится) |
-| S8 | localStorage as security boundary | Identity adapter, demo flag, admin flag — всё в `localStorage`. Доступно для XSS. CSP / sanitization — отдельная проверка. | 🟠 medium |
-| S9 | Permissions page open to all | `/permissions` (`PermissionsManagement`) без guard. Управление правами членов семьи доступно любому посетителю. | 🔴 high |
-
----
-
-## Не закрываем в треке Status Banner
-
-Этот документ зафиксирован, чтобы:
-- security-задачи **не смешивались** с продуктовой работой над Status Banner;
-- при следующем планировании можно было выделить отдельный security-sprint.
-
-Рекомендация: после закрытия Wave 2 (Portfolio V1) запустить **«Security Sweep» как отдельный трек**, не дожидаясь Wave 3.
+| # | Категория | Описание | Серьёзность | Статус |
+|---|---|---|---|---|
+| S1 | Admin auth weakness | Admin-доступ через `localStorage.adminToken === 'admin_authenticated'` — без серверной проверки, ротации, expiration. | 🔴 high | ✅ **Закрыто в SEC-1.3.** Backend `admin-auth` с bcrypt-хешем в secret. Server-issued session token (TTL 12h), хеш в таблице `admin_sessions`. Frontend `AdminRoute` использует session. Legacy `adminToken` остаётся как grace-period fallback. |
+| S2 | Unguarded admin routes | `/admin/domovoy/studio`, `/admin/dev-agent`, `/admin/domovoy` без AdminRoute. | 🔴 high | ✅ **Закрыто в SEC-1.2a.** Все три обёрнуты в `<AdminRoute>`. |
+| S3 | Unprotected sensitive pages | `/health`, `/permissions`, `/finance/*`, `/wallet`, `/settings`, `/family-tracker`, `/location-history`, `/analytics`, `/member/:id`, `/family-management`, `/health-hub` | 🔴 high | ✅ **Закрыто в SEC-1.2a (HIGH-risk).** Все обёрнуты в `<ProtectedRoute>`. |
+| S4 | Health data exposure | `/health` (PII/PHI) без guard. | 🔴 high | ✅ **Закрыто в SEC-1.2a.** |
+| S5 | Debug routes in prod | `/oauth-debug`, `/debug-auth` всегда доступны. | 🟠 medium | ✅ **Закрыто в SEC-1.4.** За `import.meta.env.DEV` — выпиливаются из prod bundle. `/dev/goals-qa` уже был защищён. |
+| S6 | Dead pages in repo | 17 неиспользуемых страниц в `src/pages/webapp/`. | 🟡 low | ⏳ Открыто. Закроем в отдельном cleanup-треке. |
+| S7 | Hardcoded admin login | `AdminLogin.tsx` хардкодил email/password в исходниках. | 🔴 critical | ✅ **Закрыто в SEC-1.3.** Hardcoded creds полностью удалены из фронта, проверка идёт через backend bcrypt. **Старый пароль утёк в git-историю — админ должен использовать новый.** |
+| S8 | localStorage as security boundary | Identity adapter, demo flag, admin session — всё в localStorage. | 🟠 medium | ⏳ Частично смягчено: admin session теперь верифицируется на backend; XSS-аудит — отдельный трек. |
+| S9 | Permissions page open to all | `/permissions` без guard. | 🔴 high | ✅ **Закрыто в SEC-1.2a.** |
 
 ---
 
-## Минимальный план security-sprint (когда возьмёмся отдельно)
+## Открытые пункты (MEDIUM-risk routes, ждут SEC-1.2b)
 
-1. **Шаг 1.** Audit `AdminLogin` + перевести admin auth с localStorage flag на backend session с expiration + refresh (S1, S7, S8).
-2. **Шаг 2.** Добавить `AdminRoute` к `/admin/domovoy/studio`, `/admin/dev-agent` (S2).
-3. **Шаг 3.** Обернуть в `ProtectedRoute` все sensitive pages: `/health`, `/permissions`, `/finance/*`, `/nutrition/*`, `/family-tracker`, `/location-history`, `/settings`, `/wallet`, `/analytics` (S3, S4, S9).
-4. **Шаг 4.** Спрятать `/oauth-debug`, `/debug-auth`, `/dev/goals-qa` за environment-flag (S5).
-5. **Шаг 5.** Удалить мёртвые pages из `src/pages/webapp/` (S6).
-6. **Шаг 6.** CSP-аудит + XSS surface review (S8).
+После checkpoint планируется второй проход для MEDIUM-risk:
+- `/chat`, `/family-chat`, `/calendar`, `/notifications`
+- `/nutrition`, `/nutrition/*` (личные пищевые привычки)
+- `/trips/*`, `/events/*`
+- `/tasks`, `/planning-hub`, `/life-road`, `/workshop`, `/workshop/goal/:id`
+- `/garage`, `/pets`
+- `/family-hub`, `/values-hub`, `/home-hub`, `/household-hub`, `/development-hub`, `/state-hub`, `/leisure-hub`
+- `/voting`, `/feedback`, `/suggestions`, `/support`
+- `/family-news`, `/tree`
+- `/ai-assistant`, `/domovoy`, `/psychologist`, `/alice`
+- `/community`, `/purchases`, `/meals`, `/shopping`, `/recipes`
+- `/referral` — уже под ProtectedRoute
 
-Каждый шаг — отдельный коммит, отдельный smoke на guard'ы.
+---
+
+## Технический долг — legacy `X-Admin-Token`
+
+Сейчас все admin backend-функции и многие admin-страницы используют legacy `X-Admin-Token: admin_authenticated`. Это рабочий grace-period:
+- backend admin-функций принимают **либо** `X-Admin-Session-Token` (new), **либо** `X-Admin-Token: admin_authenticated` (legacy);
+- после SEC-1 checkpoint и массовой замены admin-страниц на session — legacy header убираем из backend.
+
+**Файлы с legacy header'ом** (нужны массовая замена):
+- `src/pages/AdminUsers.tsx`
+- `src/pages/AdminSubscriptions.tsx`
+- `src/pages/AdminPortfolioHealth.tsx`
+- `src/pages/AdminTraffic.tsx`
+- `src/pages/AdminDomovoy.tsx`
+- `src/pages/AdminSupport.tsx`
+- `src/pages/AdminMAX.tsx`
+- `src/pages/AdminPanel.tsx`
+- `src/components/admin/*` (12 файлов)
+- backend `admin-users/index.py` — добавить проверку session header (сейчас может не проверяться вообще, см. SEC-1.1)
+
+---
+
+## Что осталось до конца Security Mini-Sprint
+
+- [x] SEC-1.1 — Route access matrix
+- [x] SEC-1.2a — HIGH-risk routes
+- [x] SEC-1.3 — Admin auth с bcrypt
+- [x] SEC-1.4 — Debug routes за DEV
+- [ ] SEC-1.5 — Auth verification foundation документ (после checkpoint)
+- [ ] SEC-1.2b — MEDIUM-risk routes (после checkpoint)
+- [ ] SEC-1.6 — Security smoke + финальный registry update
+
+---
+
+## Action items для пользователя/админа
+
+1. **Сменить admin-пароль** — старый утёк в git-историю с момента создания репо. Сгенерировать новый bcrypt-хеш и обновить секрет `ADMIN_PASSWORD_HASH`.
+2. **Сделать первый login** через `/admin/login` (после смены пароля) — это создаст server-side session и подтвердит, что весь flow работает.
+3. **Проверить страницы**, которыми реально пользуешься — теперь sensitive разделы у анонимов покажут Welcome вместо контента. Это правильно.

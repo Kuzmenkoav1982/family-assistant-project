@@ -38,7 +38,7 @@ DEFAULT_DISMISSIBLE = {
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token, X-Admin-Session-Token, X-Admin-Actor',
     'Access-Control-Max-Age': '86400',
     'Content-Type': 'application/json',
     'Cache-Control': 'no-store',
@@ -56,12 +56,59 @@ def _resp(status: int, body: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _admin_authorized(event: Dict[str, Any]) -> bool:
+    """
+    SEC-1.3: основной путь — X-Admin-Session-Token (verified в БД через
+    backend.admin-auth). Legacy X-Admin-Token остаётся для grace-period,
+    пока фронт переходит на сессии. Уберём после SEC-1 checkpoint.
+    """
     headers = event.get('headers') or {}
-    # case-insensitive
+    session_token = None
+    legacy_token = None
     for k, v in headers.items():
-        if k.lower() == 'x-admin-token' and v == ADMIN_TOKEN_EXPECTED:
-            return True
+        if not isinstance(k, str) or not isinstance(v, str):
+            continue
+        k_lower = k.lower()
+        if k_lower == 'x-admin-session-token':
+            session_token = v
+        elif k_lower == 'x-admin-token':
+            legacy_token = v
+
+    # 1) New session-based auth — БД проверяет TTL/revoked
+    if session_token and _verify_session_in_db(session_token):
+        return True
+
+    # 2) Legacy fallback — будет удалён после SEC-1 checkpoint
+    if legacy_token == ADMIN_TOKEN_EXPECTED:
+        return True
+
     return False
+
+
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
+        return False
+    try:
+        import hashlib
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
 
 
 def _row_to_banner(r: Dict[str, Any]) -> Dict[str, Any]:
