@@ -95,7 +95,17 @@ function PullToRefreshWrapper({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       )}
-      <div className="pt-16 pb-14">{children}</div>
+      <div
+        className="pb-14"
+        style={{
+          // Базовый top-pad под GlobalTopBar (h-16 = 64px) + динамическая высота
+          // активного StatusBanner (CSS var, обновляется самим баннером через
+          // ResizeObserver; по умолчанию 0px).
+          paddingTop: 'calc(4rem + var(--status-banner-h, 0px))',
+        }}
+      >
+        {children}
+      </div>
     </>
   );
 }

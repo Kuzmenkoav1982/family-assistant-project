@@ -260,6 +260,7 @@ const AdminAlice = lazy(() => import("./pages/AdminAlice"));
 const AdminMAX = lazy(() => import("./pages/AdminMAX"));
 const AdminMaxInstructions = lazy(() => import("./pages/AdminMaxInstructions"));
 const AdminDomovoy = lazy(() => import("./pages/AdminDomovoy"));
+const AdminStatusBanners = lazy(() => import("./pages/AdminStatusBanners"));
 
 const App = () => {
   const handleLogout = () => {
@@ -529,6 +530,11 @@ const App = () => {
                       <Route path="/admin/domovoy" element={<AdminDomovoy />} />
                       <Route path="/admin/domovoy/studio" element={<DomovoyStudio />} />
                       <Route path="/admin/dev-agent" element={<DevAgentStudio />} />
+                      <Route path="/admin/status-banner" element={
+                        <AdminRoute>
+                          <AdminStatusBanners />
+                        </AdminRoute>
+                      } />
                       <Route path="/domovoy" element={<DomovoyPage />} />
                       <Route path="/services" element={<TelegramServices />} />
                       <Route path="/debug-auth" element={<DebugAuth />} />

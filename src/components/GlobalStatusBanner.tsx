@@ -13,7 +13,7 @@
 //
 // Встраивается ОДИН раз в App.tsx, между GlobalTopBar и GlobalSidebar.
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { resolveActiveBanner } from '@/lib/statusBanner/resolveActiveBanner';
@@ -22,16 +22,31 @@ import { useViewer } from '@/lib/statusBanner/useViewer';
 import { useDismissedBanners } from '@/lib/statusBanner/useDismissedBanners';
 import type { BannerType } from '@/lib/statusBanner/types';
 
+// Маршруты, на которых баннер НЕ показывается:
+//   - auth/onboarding flow (пользователь ещё не «в приложении»)
+//   - presentational decks (investor / matryoshka / presentation)
+//   - admin auth screen
+//   - debug-страницы
+//
+// ВАЖНО: список выверен по реальным путям из App.tsx (commit 5486aaa).
+// В прежней версии были опечатки '/demo-mode' и '/admin-login', которые
+// никогда не матчились. Реальные пути: '/demo' и '/admin/login'.
 const HIDDEN_ROUTES = [
   '/welcome',
   '/login',
   '/register',
   '/reset-password',
-  '/presentation',
   '/onboarding',
-  '/demo-mode',
-  '/admin-login',
+  '/join',
+  '/activate',
+  '/activate-callback',
+  '/oauth-debug',
+  '/debug-auth',
+  '/demo',
+  '/admin/login',
+  '/presentation',
   '/investor-deck',
+  '/matryoshka',
 ];
 
 type ToneStyle = {
@@ -82,11 +97,28 @@ const TYPE_SR_LABEL: Record<BannerType, string> = {
   critical: 'Критичное сообщение',
 };
 
+// Имя CSS-переменной, через которую баннер сообщает свою высоту layout'у.
+// PageWrapper.tsx учитывает её в padding-top контейнера.
+const HEIGHT_VAR = '--status-banner-h';
+
+function setBannerHeightVar(h: number): void {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  const value = h > 0 ? `${Math.round(h)}px` : '0px';
+  root.style.setProperty(HEIGHT_VAR, value);
+}
+
+function clearBannerHeightVar(): void {
+  if (typeof document === 'undefined') return;
+  document.documentElement.style.setProperty(HEIGHT_VAR, '0px');
+}
+
 export default function GlobalStatusBanner() {
   const location = useLocation();
   const banners = useBannerSource();
   const viewer = useViewer();
   const { dismissed, dismiss } = useDismissedBanners();
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const shouldHide = HIDDEN_ROUTES.some(
     (r) => location.pathname === r || location.pathname.startsWith(r + '/'),
@@ -102,6 +134,42 @@ export default function GlobalStatusBanner() {
     return r.active;
   }, [banners, location.pathname, viewer, dismissed, shouldHide]);
 
+  // Меряем фактическую высоту баннера и пишем в CSS-переменную, чтобы
+  // PageWrapper мог сдвинуть контент. Чистим переменную, когда баннер
+  // снят/скрыт.
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!resolved || !node) {
+      clearBannerHeightVar();
+      return;
+    }
+
+    // Initial measurement (после первого layout)
+    setBannerHeightVar(node.getBoundingClientRect().height);
+
+    if (typeof ResizeObserver === 'undefined') {
+      // Old browser fallback: используем resize window
+      const onWindowResize = () =>
+        setBannerHeightVar(node.getBoundingClientRect().height);
+      window.addEventListener('resize', onWindowResize);
+      return () => {
+        window.removeEventListener('resize', onWindowResize);
+        clearBannerHeightVar();
+      };
+    }
+
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setBannerHeightVar(entry.contentRect.height);
+      }
+    });
+    ro.observe(node);
+    return () => {
+      ro.disconnect();
+      clearBannerHeightVar();
+    };
+  }, [resolved]);
+
   if (!resolved) return null;
 
   const { banner, effectiveDismissible } = resolved;
@@ -112,6 +180,7 @@ export default function GlobalStatusBanner() {
 
   return (
     <div
+      ref={containerRef}
       role={role}
       aria-live={ariaLive}
       aria-atomic="true"
@@ -153,7 +222,7 @@ export default function GlobalStatusBanner() {
           {effectiveDismissible && (
             <button
               type="button"
-              onClick={() => dismiss(banner.id)}
+              onClick={() => dismiss(banner.id, banner.endsAt)}
               aria-label="Закрыть сообщение"
               className={`min-h-[32px] min-w-[32px] inline-flex items-center justify-center rounded-md ${style.closeBtn} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/40 shrink-0`}
             >
