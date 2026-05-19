@@ -84,15 +84,29 @@
 
 ---
 
-## 4. Audience leakage (B3.5 hardening)
+## 4. Audience policy v1 (B3.6 hardening · all_only_v1)
 
-Это критичный security-блок. Проверять в **incognito**:
+В v1 публично выдаётся **только** `audience='all'`. Это критичная гарантия.
 
-- [ ] Аноним (без login): создать `audience=authenticated` баннер → **incognito видит пусто**. В network tab `status-banners-public` возвращает `banners: []`.
-- [ ] Аноним: создать `audience=admins` баннер → incognito пусто.
-- [ ] Залогиниться (не admin): `audience=admins` баннер → пусто.
-- [ ] Залогиниться (не admin): `audience=authenticated` баннер → видно.
-- [ ] Залогиниться как admin → все три (all / authenticated / admins) → видно.
+### Что должно быть видно
+
+- [ ] Создать `audience=all` enabled-баннер → виден всем (аноним, залогиненный, admin).
+- [ ] Создать `audience=authenticated` enabled-баннер → виден **только в админ-предпросмотре** локально; через public API **не отдаётся никому**, включая залогиненного и админа.
+- [ ] Создать `audience=admins` enabled-баннер → то же.
+
+### Проверка backend ответа
+
+В DevTools → Network → `status-banners-public`:
+
+- [ ] Без заголовков: `viewer: "public"`, `audience_policy: "all_only_v1"`. В `banners` — только `audience='all'`.
+- [ ] С фейковым `X-Auth-Token: garbage`: `viewer: "public"` (не upgrade), список тот же.
+- [ ] С `X-Admin-Token: admin_authenticated`: `viewer: "public"` (gated v1), список тот же.
+
+### UI-уведомления
+
+- [ ] В `/admin/status-banner` сверху — амбер-баннер «v1 policy» с пояснением.
+- [ ] В форме при выборе `authenticated`/`admins` — амбер-пометка прямо под select.
+- [ ] При сохранении enabled-баннера с `authenticated` или `admins` — warning toast «Баннер не показывается пользователям».
 
 ---
 

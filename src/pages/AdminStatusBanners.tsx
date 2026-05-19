@@ -55,6 +55,8 @@ import {
   classifyBanner,
   type BannerLifecycle,
 } from '@/lib/statusBanner/classifyBanner';
+import { useSuggestions } from '@/lib/statusBanner/suggestions/useSuggestions';
+import type { BannerSuggestion } from '@/lib/statusBanner/suggestions/types';
 import { toast } from 'sonner';
 
 // ---------- form state ----------
@@ -241,6 +243,39 @@ export default function AdminStatusBanners() {
     setDialogOpen(true);
   };
 
+  // ─── Suggestions (B4) ──────────────────────────────────────────────────
+  const { suggestions, refresh: refreshSuggestions, reject: rejectSuggestion } = useSuggestions();
+
+  /**
+   * Принять suggestion → открыть форму с предзаполненными полями (enabled=false).
+   * НИКАКОЙ автопубликации: админ должен сам нажать «Включить баннер» в форме.
+   */
+  const acceptSuggestion = (s: BannerSuggestion) => {
+    clearPreview();
+    const draft = s.draft;
+    setForm({
+      type: draft.type,
+      title: draft.title,
+      message: draft.message,
+      ctaLabel: draft.ctaLabel ?? '',
+      ctaHref: draft.ctaHref ?? '',
+      enabled: false, // ← guard: даже если draft.enabled был true, форс false
+      dismissible:
+        typeof draft.dismissible === 'boolean'
+          ? draft.dismissible
+          : DEFAULT_DISMISSIBLE_BY_TYPE[draft.type],
+      startsAt: draft.startsAt ?? '',
+      endsAt: draft.endsAt ?? '',
+      audience: draft.audience ?? 'all',
+      routeScopeRaw: (draft.routeScope ?? []).join('\n'),
+      priority: draft.priority ?? DEFAULT_PRIORITY_BY_TYPE[draft.type],
+    });
+    setDialogOpen(true);
+    toast.info('Suggestion открыт как черновик', {
+      description: 'Это только заготовка — отредактируйте и сами решите, включать ли баннер.',
+    });
+  };
+
   const onTypeChange = (t: BannerType) => {
     setForm((f) => ({
       ...f,
@@ -265,6 +300,14 @@ export default function AdminStatusBanners() {
       } else {
         await adminCreateBanner(draft);
         toast.success('Баннер создан');
+      }
+      // v1 gated audience warning: если включаешь баннер на non-all, он не
+      // дойдёт до пользователей. Предупреждаем явно, чтобы админ не думал,
+      // что сообщение ушло.
+      if (form.enabled && form.audience !== 'all') {
+        toast.warning('Баннер не показывается пользователям', {
+          description: `Аудитория "${form.audience}" gated в v1 — заработает после security mini-sprint.`,
+        });
       }
       setDialogOpen(false);
       clearPreview();
@@ -325,6 +368,31 @@ export default function AdminStatusBanners() {
             </Button>
           </div>
         </div>
+
+        {/* v1 audience-policy notice */}
+        <div
+          role="note"
+          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3"
+        >
+          <Icon name="ShieldAlert" size={16} aria-hidden="true" className="text-amber-700 mt-0.5 shrink-0" />
+          <div className="text-xs text-amber-900 leading-snug">
+            <b>v1 policy:</b> публично доставляются только баннеры с аудиторией <b>all</b>.
+            Аудитории <b>authenticated</b> и <b>admins</b> можно сохранить как заготовку
+            (они существуют в БД), но пользователям пока не показываются — это закроется
+            после security mini-sprint с верифицированной серверной авторизацией.
+          </div>
+        </div>
+
+        {/* B4: Suggestions */}
+        <SuggestionsSection
+          suggestions={suggestions}
+          onAccept={acceptSuggestion}
+          onReject={(id) => {
+            rejectSuggestion(id);
+            toast.message('Предложение отклонено');
+          }}
+          onRefresh={refreshSuggestions}
+        />
 
         {/* Error */}
         {error && (
@@ -437,11 +505,20 @@ export default function AdminStatusBanners() {
                     <SelectContent>
                       {BANNER_AUDIENCES.map((a) => (
                         <SelectItem key={a} value={a}>
-                          {a}
+                          {a === 'all' ? a : `${a} (gated v1)`}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {form.audience !== 'all' && (
+                    <p className="mt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+                      <Icon name="ShieldAlert" size={11} className="inline mr-1" aria-hidden="true" />
+                      В v1 баннеры с аудиторией <b>{form.audience}</b> сохраняются в БД, но
+                      <b> не отдаются пользователям</b> через публичный API. Доставка вернётся
+                      после security mini-sprint с верифицированной серверной авторизацией.
+                      Для общего объявления выбирайте <b>all</b>.
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -596,6 +673,105 @@ export default function AdminStatusBanners() {
 }
 
 // ---------- subcomponents ----------
+
+const SUGGESTION_TYPE_TONE: Record<string, string> = {
+  info: 'bg-blue-100 text-blue-800',
+  update: 'bg-violet-100 text-violet-800',
+  maintenance: 'bg-amber-100 text-amber-800',
+  warning: 'bg-orange-100 text-orange-800',
+  critical: 'bg-rose-100 text-rose-800',
+};
+
+function SuggestionsSection({
+  suggestions,
+  onAccept,
+  onReject,
+  onRefresh,
+}: {
+  suggestions: BannerSuggestion[];
+  onAccept: (s: BannerSuggestion) => void;
+  onReject: (id: string) => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <section aria-label="Предложения системы" className="space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon name="Sparkles" size={14} aria-hidden="true" className="text-violet-600" />
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+            Предложения системы
+          </h2>
+          {suggestions.length > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-800">
+              {suggestions.length}
+            </span>
+          )}
+        </div>
+        <Button variant="ghost" size="sm" onClick={onRefresh}>
+          <Icon name="RefreshCw" size={12} className="mr-1" aria-hidden="true" />
+          Обновить
+        </Button>
+      </div>
+
+      {suggestions.length === 0 ? (
+        <Card className="border-dashed border-slate-300">
+          <CardContent className="p-3 text-xs text-slate-500">
+            Нет активных сигналов. Когда система зафиксирует деградацию
+            или critical-алерт, здесь появятся черновики для админа.
+            Ничего не публикуется автоматически.
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {suggestions.map((s) => (
+            <Card key={s.id} className="border-violet-200">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-start gap-3 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`text-[10px] uppercase font-semibold tracking-wide px-2 py-0.5 rounded-full ${
+                          SUGGESTION_TYPE_TONE[s.draft.type] ?? 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {s.draft.type}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                        source: {s.sourceKind}
+                      </span>
+                      <span className="text-[10px] text-slate-500">
+                        confidence {(s.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold text-slate-900 mt-1 break-words">
+                      {s.draft.title}
+                    </div>
+                    <div className="text-xs text-slate-600 mt-0.5 break-words leading-snug">
+                      {s.draft.message}
+                    </div>
+                    <div className="text-[11px] text-violet-700 mt-2 break-words leading-snug">
+                      <Icon name="Info" size={10} className="inline mr-1" aria-hidden="true" />
+                      {s.reason}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" onClick={() => onAccept(s)}>
+                      <Icon name="PencilLine" size={12} className="mr-1" aria-hidden="true" />
+                      Открыть как черновик
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => onReject(s.id)}>
+                      Отклонить
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function BannerGroup({
   title,

@@ -7,24 +7,30 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET anon returns 200",
+      "name": "GET anon returns 200 with audience_policy=all_only_v1",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200
+      "expectedStatus": 200,
+      "expectedBody": { "audience_policy": "all_only_v1", "viewer": "public" },
+      "bodyMatcher": "partial"
     },
     {
-      "name": "GET with X-Auth-Token returns 200",
+      "name": "GET with fake X-Auth-Token: viewer ВСЕ ЕЩЁ public (no upgrade)",
       "method": "GET",
       "path": "/",
       "headers": { "X-Auth-Token": "fake-but-present" },
-      "expectedStatus": 200
+      "expectedStatus": 200,
+      "expectedBody": { "audience_policy": "all_only_v1", "viewer": "public" },
+      "bodyMatcher": "partial"
     },
     {
-      "name": "GET with X-Admin-Token returns 200",
+      "name": "GET with X-Admin-Token: viewer ВСЕ ЕЩЁ public (gated v1)",
       "method": "GET",
       "path": "/",
       "headers": { "X-Admin-Token": "admin_authenticated" },
-      "expectedStatus": 200
+      "expectedStatus": 200,
+      "expectedBody": { "audience_policy": "all_only_v1", "viewer": "public" },
+      "bodyMatcher": "partial"
     },
     {
       "name": "POST is rejected",

@@ -11,17 +11,22 @@
 `https://functions.poehali.dev/386b715a-41ad-4dbc-bfbd-a814d91d23ca` (имя в func2url: **`status-banners-public`**)
 
 ```
-GET / [+ X-Auth-Token | X-Admin-Token]
+GET /
 → 200 {
-    banners: StatusBanner[],
+    banners: StatusBanner[],        // ТОЛЬКО audience='all' в v1
     server_time: ISO,
-    viewer: 'public' | 'authenticated' | 'admin'
+    viewer: 'public',
+    audience_policy: 'all_only_v1'
   }
 ```
 
-**Audience-leakage защита (B3.5):** backend сам определяет viewer по заголовкам и фильтрует `audience IN (...)` соответственно. Без токенов → видны только `audience='all'`. С `X-Auth-Token` → +`authenticated`. С `X-Admin-Token=admin_authenticated` → +`admins`.
+**Audience policy `all_only_v1` (B3.6 hardening, вариант A):** endpoint жёстко отдаёт только баннеры с `audience='all'`. Заголовки `X-Auth-Token` и `X-Admin-Token` принимаются (CORS), но **игнорируются** для фильтрации. Защита от audience-leakage: пока в проекте не появится верифицированная серверная auth-валидация, фейковый токен не сможет «прокачать» viewer.
 
-**Кеш:** `Cache-Control: private, max-age=15` + `Vary: X-Admin-Token, X-Auth-Token, …`. Кеш только в браузере, не на CDN — иначе один viewer мог бы получить ответ другого.
+В коде helper для viewer-aware фильтрации сохранён в git-истории (commit B3.5) — вернётся обратно одной строкой после security mini-sprint.
+
+Дополнительная defense-in-depth: после WHERE-фильтра в SQL результат повторно фильтруется на Python (`if r.get('audience') == 'all'`).
+
+**Кеш:** `Cache-Control: public, max-age=30, must-revalidate` — ответ не зависит от заголовков, CDN-friendly.
 
 ### Admin write
 
@@ -186,7 +191,7 @@ Backend tests (`status-banners-public` + `admin-status-banners`): прогоня
 |---|---|---|
 | 1 | `dismissible` в БД — `boolean NOT NULL DEFAULT TRUE`. Сейчас нельзя отличить «явно true» от «дефолт». Helper применяет правило для `critical` со страховкой. | Если потребуется тонкая разница — добавить `dismissible` nullable, helper уже готов учитывать `DEFAULT_DISMISSIBLE_BY_TYPE`. |
 | 2 | Поллинг 60s. Изменения админа доезжают до пользователей за минуту. | Если нужен real-time — WebSocket / SSE; для v1 баннер не требует мгновенной доставки. |
-| 3 | `X-Auth-Token` принимается **без верификации** (любой непустой). Backend трактует наличие как «authenticated». | Когда будет полноценная JWT-валидация на cloud functions — заменить `if token` на реальную проверку. Это часть security mini-sprint. |
+| 3 | **audience='authenticated'/'admins' gated в v1.** Public endpoint жёстко возвращает только `audience='all'` (`audience_policy: all_only_v1`). Заголовки игнорируются для фильтрации. | Снять gating после security mini-sprint с верифицированной серверной auth-валидацией — viewer-aware helper уже есть в git-истории (commit B3.5). |
 | 4 | Нет аудита (impressions, clicks, dismissals). | После B4. Отдельный аналитический трек. |
 | 5 | Preview работает только локально у админа. Невозможно поделиться «вот так это будет выглядеть» с другим человеком. | После B4. |
 | 6 | Нет внешнего status page и нет email/SMS/push. | Не входит в трек v1 — сознательно. |
