@@ -283,6 +283,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if action == 'health' and method == 'GET':
         return _resp(200, {'ok': True, 'admin_configured': bool(ADMIN_EMAIL and ADMIN_PASSWORD_HASH)})
 
+    if action == 'debug-hash' and method == 'GET':
+        h = ADMIN_PASSWORD_HASH
+        return _resp(200, {
+            'len': len(h),
+            'prefix': h[:20],
+            'suffix': h[-10:],
+            'starts_with_2b': h.startswith('$2b$'),
+        })
+
     if method == 'POST':
         if action == 'login':
             return do_login(event)
