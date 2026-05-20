@@ -25,6 +25,7 @@ SCHEMA = 't_p5815085_family_assistant_pro'
 
 ALLOWED_TYPES = {'info', 'maintenance', 'warning', 'critical', 'update'}
 ALLOWED_AUDIENCES = {'public', 'authenticated', 'admin'}
+ALLOWED_SEGMENTS = {None, 'registered_last_7d'}
 # Соответствует DEFAULT_DISMISSIBLE_BY_TYPE из src/lib/statusBanner/types.ts
 DEFAULT_DISMISSIBLE = {
     'critical': False,
@@ -125,6 +126,7 @@ def _row_to_banner(r: Dict[str, Any]) -> Dict[str, Any]:
         'startsAt': r['starts_at'].isoformat() if r['starts_at'] else None,
         'endsAt': r['ends_at'].isoformat() if r['ends_at'] else None,
         'audience': r['audience'],
+        'segment': r['segment'],
         'routeScope': r['route_scope'] if isinstance(r['route_scope'], list) else [],
         'priority': int(r['priority']),
         'createdBy': r['created_by'],
@@ -152,6 +154,12 @@ def _validate_payload(p: Dict[str, Any]) -> Optional[str]:
     audience = p.get('audience', 'public')
     if audience not in ALLOWED_AUDIENCES:
         return f'invalid_audience: {audience}'
+
+    # segment: None / '' → None, иначе whitelist
+    raw_segment = p.get('segment', None)
+    segment = None if (raw_segment is None or raw_segment == '') else raw_segment
+    if segment not in ALLOWED_SEGMENTS:
+        return f'invalid_segment: {segment}'
 
     # CTA pair
     cta_label = p.get('ctaLabel')
@@ -223,7 +231,7 @@ def list_all() -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute(f"""
         SELECT id, type, title, message, cta_label, cta_href,
-               enabled, dismissible, starts_at, ends_at, audience,
+               enabled, dismissible, starts_at, ends_at, audience, segment,
                route_scope, priority, created_by, updated_by,
                created_at, updated_at, published_at, unpublished_at
         FROM {SCHEMA}.status_banners
@@ -266,6 +274,8 @@ def create(payload: Dict[str, Any], actor: str) -> Tuple[int, Dict[str, Any]]:
     starts_at = payload.get('startsAt')
     ends_at = payload.get('endsAt')
     audience = payload.get('audience', 'public')
+    raw_segment = payload.get('segment', None)
+    segment = None if (raw_segment is None or raw_segment == '') else raw_segment
     route_scope = payload.get('routeScope') or []
     priority = int(payload.get('priority') or 0)
 
@@ -274,14 +284,14 @@ def create(payload: Dict[str, Any], actor: str) -> Tuple[int, Dict[str, Any]]:
     cur.execute(f"""
         INSERT INTO {SCHEMA}.status_banners
             (type, title, message, cta_label, cta_href, enabled, dismissible,
-             starts_at, ends_at, audience, route_scope, priority,
+             starts_at, ends_at, audience, segment, route_scope, priority,
              created_by, updated_by, published_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s,
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s, %s,
                 CASE WHEN %s THEN now() ELSE NULL END)
         RETURNING *
     """, (
         type_, title, message, cta_label, cta_href, enabled, dismissible,
-        starts_at, ends_at, audience, json.dumps(route_scope), priority,
+        starts_at, ends_at, audience, segment, json.dumps(route_scope), priority,
         actor, actor, enabled,
     ))
     row = cur.fetchone()
@@ -311,6 +321,7 @@ def update(banner_id: str, payload: Dict[str, Any], actor: str) -> Tuple[int, Di
             starts_at = %s,
             ends_at = %s,
             audience = %s,
+            segment = %s,
             route_scope = %s::jsonb,
             priority = %s,
             updated_by = %s,
@@ -332,6 +343,7 @@ def update(banner_id: str, payload: Dict[str, Any], actor: str) -> Tuple[int, Di
         bool(payload.get('enabled', False)), dismissible,
         payload.get('startsAt'), payload.get('endsAt'),
         payload.get('audience', 'public'),
+        None if (payload.get('segment') is None or payload.get('segment') == '') else payload.get('segment'),
         json.dumps(payload.get('routeScope') or []),
         int(payload.get('priority') or 0),
         actor,

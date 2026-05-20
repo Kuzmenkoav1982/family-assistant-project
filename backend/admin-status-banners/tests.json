@@ -72,6 +72,13 @@
       "expectedStatus": 401
     },
     {
+      "name": "SEG-1.6: invalid segment → 401 (нет auth, не 400)",
+      "method": "POST",
+      "path": "/",
+      "body": { "type": "info", "title": "x", "message": "y", "segment": "unknown_segment" },
+      "expectedStatus": 401
+    },
+    {
       "name": "VALIDATION: POST create с неверным type → 401 (нет auth, не 400)",
       "method": "POST",
       "path": "/",

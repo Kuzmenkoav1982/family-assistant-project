@@ -27,6 +27,9 @@ export const BANNER_AUDIENCES = [
 ] as const;
 export type BannerAudience = (typeof BANNER_AUDIENCES)[number];
 
+export const BANNER_SEGMENTS = ['registered_last_7d'] as const;
+export type BannerSegment = (typeof BANNER_SEGMENTS)[number] | null;
+
 // ---------- entity ----------
 
 /**
@@ -45,6 +48,7 @@ export interface StatusBanner {
   startsAt: string | null;
   endsAt: string | null;
   audience: BannerAudience;
+  segment: BannerSegment;
   /** Пустой массив = global. Иначе массив URL-префиксов, например ["/portfolio"]. */
   routeScope: string[];
   priority: number;
@@ -72,6 +76,7 @@ export interface StatusBannerDraft {
   startsAt?: string | null;
   endsAt?: string | null;
   audience?: BannerAudience;
+  segment?: BannerSegment;
   routeScope?: string[];
   priority?: number;
 }

@@ -45,6 +45,7 @@ import {
   DEFAULT_DISMISSIBLE_BY_TYPE,
   DEFAULT_PRIORITY_BY_TYPE,
   type BannerAudience,
+  type BannerSegment,
   type BannerType,
   type StatusBanner,
   type StatusBannerDraft,
@@ -73,6 +74,7 @@ interface FormState {
   startsAt: string;
   endsAt: string;
   audience: BannerAudience;
+  segment: BannerSegment;
   routeScopeRaw: string;
   priority: number;
 }
@@ -89,6 +91,7 @@ function emptyForm(): FormState {
     startsAt: '',
     endsAt: '',
     audience: 'public',
+    segment: null,
     routeScopeRaw: '',
     priority: DEFAULT_PRIORITY_BY_TYPE.info,
   };
@@ -107,6 +110,7 @@ function bannerToForm(b: StatusBanner): FormState {
     startsAt: b.startsAt ?? '',
     endsAt: b.endsAt ?? '',
     audience: b.audience,
+    segment: b.segment ?? null,
     routeScopeRaw: (b.routeScope ?? []).join('\n'),
     priority: b.priority,
   };
@@ -131,6 +135,7 @@ function formToDraft(f: FormState): StatusBannerDraft {
     startsAt: f.startsAt ? new Date(f.startsAt).toISOString() : null,
     endsAt: f.endsAt ? new Date(f.endsAt).toISOString() : null,
     audience: f.audience,
+    segment: f.segment,
     routeScope: parseRouteScope(f.routeScopeRaw),
     priority: Number.isFinite(f.priority) ? f.priority : 0,
   };
@@ -506,6 +511,28 @@ export default function AdminStatusBanners() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <Label htmlFor="segment">Сегмент</Label>
+                  <Select
+                    value={form.segment ?? '__none__'}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, segment: v === '__none__' ? null : (v as BannerSegment) }))
+                    }
+                  >
+                    <SelectTrigger id="segment">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Без сегмента</SelectItem>
+                      <SelectItem value="registered_last_7d">Новые за 7 дней</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {form.segment && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Сегмент применяется дополнительно к audience. Например, authenticated + Новые 7д покажет баннер только новым авторизованным пользователям.
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -835,6 +862,11 @@ function BannerRow({
               }`}>
                 {banner.audience === 'admin' ? 'Admin' : banner.audience === 'authenticated' ? 'Auth' : 'Public'}
               </span>
+              {banner.segment && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-violet-100 text-violet-700">
+                  Новые 7д
+                </span>
+              )}
               <span className="text-[10px] text-slate-500">prio {banner.priority}</span>
             </div>
             <div className="text-sm font-semibold text-slate-900 mt-1 break-words">

@@ -37,7 +37,7 @@ Returns: {
 import hashlib
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -113,46 +113,96 @@ def _is_valid_admin_session(token: str) -> bool:
         return False
 
 
-def _is_valid_user_session(token: str) -> bool:
-    """Верифицирует X-Auth-Token в таблице sessions."""
+def _get_user_created_at(token: str):
+    """
+    Верифицирует X-Auth-Token и возвращает users.created_at (datetime) или None.
+    SEG-1.6: created_at нужен для segment=registered_last_7d.
+    Fail-closed: если данных нет — возвращаем None, сегмент не матчится.
+    """
     if not token or not DATABASE_URL:
-        return False
+        return None
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
         cur.execute(
-            f"SELECT 1 FROM {SCHEMA}.sessions "
-            f"WHERE token = %s AND expires_at > now() LIMIT 1",
+            f"SELECT u.created_at FROM {SCHEMA}.sessions s "
+            f"JOIN {SCHEMA}.users u ON u.id = s.user_id "
+            f"WHERE s.token = %s AND s.expires_at > now() LIMIT 1",
             (token,),
         )
         row = cur.fetchone()
         cur.close()
         conn.close()
-        return bool(row)
+        return row[0] if row else None
     except Exception:
-        return False
+        return None
 
 
-def _resolve_viewer(event: Dict[str, Any]) -> str:
+def _get_admin_created_at(token: str):
     """
-    SEC-1.5: единственный источник истины для viewer.
-    Клиентские query/body/localStorage/legacy-headers игнорируются.
+    Верифицирует X-Admin-Session-Token и возвращает users.created_at или None.
+    SEG-1.6: для segment-фильтрации admin-сессий.
+    """
+    if not token or not DATABASE_URL:
+        return None
+    try:
+        token_hash = _sha256(token)
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT u.created_at FROM {SCHEMA}.admin_sessions a "
+            f"JOIN {SCHEMA}.users u ON u.email = a.admin_email "
+            f"WHERE a.token_hash = %s AND a.revoked_at IS NULL AND a.expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return row[0] if row else None
+    except Exception:
+        return None
 
-    Truth table:
-      valid admin session  → 'admin'
-      valid user session   → 'authenticated'
-      иначе                → 'public'
-    Expired/revoked/invalid токены не повышают viewer.
+
+def _resolve_viewer_and_created_at(event: Dict[str, Any]):
+    """
+    SEC-1.5 + SEG-1.6: возвращает (viewer, user_created_at).
+    viewer: 'public' | 'authenticated' | 'admin'
+    user_created_at: datetime | None — из БД, для segment matching.
     """
     admin_token = _get_header(event, 'X-Admin-Session-Token')
-    if admin_token and _is_valid_admin_session(admin_token):
-        return 'admin'
+    if admin_token:
+        created_at = _get_admin_created_at(admin_token)
+        if created_at is not None:
+            return 'admin', created_at
 
     user_token = _get_header(event, 'X-Auth-Token')
-    if user_token and _is_valid_user_session(user_token):
-        return 'authenticated'
+    if user_token:
+        created_at = _get_user_created_at(user_token)
+        if created_at is not None:
+            return 'authenticated', created_at
 
-    return 'public'
+    return 'public', None
+
+
+def _matches_segment(segment, viewer: str, user_created_at, now_utc) -> bool:
+    """
+    SEG-1.6: серверная сегментная фильтрация.
+    Fail-closed: неизвестный сегмент → False.
+    """
+    if segment is None:
+        return True
+    if segment == 'registered_last_7d':
+        if viewer == 'public':
+            return False
+        if user_created_at is None:
+            return False
+        cutoff = now_utc - timedelta(days=7)
+        # created_at может быть naive (без tzinfo) — нормализуем к UTC
+        ca = user_created_at
+        if hasattr(ca, 'tzinfo') and ca.tzinfo is None:
+            ca = ca.replace(tzinfo=timezone.utc)
+        return ca >= cutoff
+    return False
 
 
 # ─── db helpers ──────────────────────────────────────────────────────────────
@@ -170,6 +220,7 @@ def _row_to_banner(r: Dict[str, Any]) -> Dict[str, Any]:
         'startsAt': r['starts_at'].isoformat() if r['starts_at'] else None,
         'endsAt': r['ends_at'].isoformat() if r['ends_at'] else None,
         'audience': r['audience'],
+        'segment': r['segment'],
         'routeScope': r['route_scope'] if isinstance(r['route_scope'], list) else [],
         'priority': int(r['priority']),
         'createdBy': r['created_by'],
@@ -185,6 +236,7 @@ def _fetch_banners(allowed_audiences: List[str]) -> List[Dict[str, Any]]:
     """
     Строит SQL-фильтр ТОЛЬКО из серверного allowed_audiences.
     Клиентский input не влияет на этот список.
+    SEG-1.6: segment-фильтрация выполняется в Python после выборки (_matches_segment).
     """
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -193,7 +245,7 @@ def _fetch_banners(allowed_audiences: List[str]) -> List[Dict[str, Any]]:
     cur.execute(
         f"""
         SELECT id, type, title, message, cta_label, cta_href,
-               enabled, dismissible, starts_at, ends_at, audience,
+               enabled, dismissible, starts_at, ends_at, audience, segment,
                route_scope, priority, created_by, updated_by,
                created_at, updated_at, published_at, unpublished_at
         FROM {SCHEMA}.status_banners
@@ -210,7 +262,7 @@ def _fetch_banners(allowed_audiences: List[str]) -> List[Dict[str, Any]]:
     cur.close()
     conn.close()
 
-    # Defense-in-depth: дополнительная Python-фильтрация
+    # Defense-in-depth: Python-фильтр по audience (segment фильтруется в handler)
     allowed_set = set(allowed_audiences)
     return [_row_to_banner(r) for r in rows if r.get('audience') in allowed_set]
 
@@ -232,9 +284,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     now = datetime.now(timezone.utc)
 
-    # SEC-1.5: viewer определяется СЕРВЕРОМ по валидным сессиям.
+    # SEC-1.5 + SEG-1.6: viewer и created_at определяются СЕРВЕРОМ по валидным сессиям.
     # query params / body / localStorage / X-Admin-Token полностью игнорируются.
-    viewer = _resolve_viewer(event)
+    viewer, user_created_at = _resolve_viewer_and_created_at(event)
     allowed_audiences = ALLOWED_AUDIENCES_BY_VIEWER[viewer]
 
     # Cache policy: audience-sensitive ответы не должны кешироваться shared-кешем
@@ -254,6 +306,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     try:
         banners = _fetch_banners(allowed_audiences)
+        # SEG-1.6: segment-фильтрация только на backend, fail-closed
+        banners = [
+            b for b in banners
+            if _matches_segment(b.get('segment'), viewer, user_created_at, now)
+        ]
         return {
             'statusCode': 200,
             'headers': cors_headers,
