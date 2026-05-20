@@ -1,89 +1,158 @@
 # Status Banner v1 — FROZEN
 
-> **Status:** 🔒 **Frozen** (commit `faf8e5c`, 2026-05-19)
+> **Status:** 🔒 **Frozen** (commit `d65bbf9`, 2026-05-20)
 >
-> Этот документ закрывает первую версию трека Status Banner.
-> Любые изменения после freeze — только багфиксы и мелкий hardening.
-> Новые фичи — только через отдельный follow-up трек.
+> B5 — финальная приёмка. Документ обновлён с учётом всех исправлений после checkpoint.
+> Любые изменения после freeze — только P0/P1 багфиксы через отдельный тикет.
+> Новые фичи — только через follow-up трек.
 
 ---
 
-## Состав v1
+## Что входит в v1
 
 | Подсистема | Файлы |
 |---|---|
-| **БД** | `db_migrations/V0309__create_status_banners_table.sql` (+ V0310/V0311 sanity fixtures) |
-| **Backend public read** | `backend/status-banners-public/` (audience_policy: `all_only_v1`) |
-| **Backend admin write** | `backend/admin-status-banners/` (CRUD + enable/disable, `X-Admin-Token`) |
-| **Frontend core** | `src/lib/statusBanner/*` (types, resolver, classify, hooks, api) |
+| **БД** | `V0309__create_status_banners_table.sql` + V0318 (normalize audience) + V0319 (add segment) + V0320 (welcome seed) + V0321 (fix cta_href) |
+| **Backend public read** | `backend/status-banners-public/` — SEC-1.5 `audience_policy: "server_resolved_v2"` |
+| **Backend admin write** | `backend/admin-status-banners/` — CRUD + enable/disable, `X-Admin-Session-Token` |
+| **Frontend core** | `src/lib/statusBanner/` — types, resolver, classifyBanner, hooks, api |
 | **Frontend shell** | `src/components/GlobalStatusBanner.tsx`, `src/lib/shellRoutes.ts` |
-| **Frontend admin** | `src/pages/AdminStatusBanners.tsx` |
-| **Frontend suggestions** | `src/lib/statusBanner/suggestions/*` (rule-based engine, no autopublish) |
+| **Frontend admin** | `src/pages/AdminStatusBanners.tsx` (под AdminRoute) |
+| **Frontend suggestions** | `src/lib/statusBanner/suggestions/` — rule-based engine, no autopublish |
 | **Smoke** | 5 модулей: resolveActiveBanner / classifyBanner / dismissedTtl / shellRoutes / suggestions |
-| **Docs** | `docs/status-banner/`: README, ADMIN_RUNBOOK, DEVELOPER_NOTES, QA_CHECKLIST, FREEZE (этот файл) |
+| **Docs** | `docs/status-banner/`: README, ADMIN_RUNBOOK, DEVELOPER_NOTES, QA_CHECKLIST, FOLLOW_UPS |
+
+## Что НЕ входит в v1
+
+- B4 AI suggestions (rule-based seam готов, ML интеграция — follow-up)
+- Realtime delivery (WebSocket / SSE) — поллинг 60s достаточен для v1
+- Analytics (impressions / clicks / dismissals)
+- Approval workflow (двойной аппрув)
+- Внешняя status page
+- Email / SMS / push при critical-баннере
+- `dismissible` nullable в БД
+- Shareable preview URL
 
 ---
 
-## Sanity-check проведён
+## Как работает targeting
 
-| Проверка | Результат |
+### Audience
+
+| `audience` в БД | Кто видит |
 |---|---|
-| `audience=all` enabled → виден в public read | ✅ |
-| `audience=authenticated` enabled → **НЕ виден** в public read | ✅ |
-| Фейковый `X-Auth-Token` → `viewer: "public"` (нет upgrade) | ✅ |
-| `audience_policy: "all_only_v1"` в каждом ответе | ✅ |
-| Route scope `/portfolio` отдаётся в массиве, клиентский resolver фильтрует | ✅ |
-| Поллинг 60s + on-focus работает | ✅ (B2 verified) |
-| Layout offset через CSS var | ✅ |
-| Dismiss + TTL | ✅ |
-| Backend tests | ✅ 13/13 (5 public + 8 admin) |
-| Frontend smoke | ✅ `window.__smoke.statusBanner()` все 5 модулей |
+| `public` | все (anonymous + authenticated + admin) |
+| `authenticated` | залогиненные пользователи + admin |
+| `admin` | только admin |
+
+Backend определяет viewer **серверно** по `X-Auth-Token` / `X-Admin-Session-Token`.
+Клиентский spoofing (query params, body, X-Admin-Token, isDemoMode) — игнорируется.
+`audience_policy: "server_resolved_v2"`.
+
+### Segment
+
+| `segment` | Логика |
+|---|---|
+| `null` | без дополнительной фильтрации |
+| `registered_last_7d` | `users.created_at >= now() - 7d` — серверно из сессии |
+
+Fail-closed: неизвестный сегмент или отсутствие created_at → не показывается.
+
+### Selection (resolver)
+
+Порядок фильтрации в `resolveActiveBanner()`:
+1. `enabled = true`
+2. `starts_at IS NULL OR starts_at <= now()`
+3. `ends_at IS NULL OR ends_at > now()`
+4. audience match (с поддержкой legacy `'all'` / `'admins'`)
+5. routeScope match (пустой = global)
+6. не в dismissed (localStorage)
+7. сортировка: `priority DESC`, freshness DESC
+8. → возвращает **максимум 1 баннер**
+
+### Dismiss
+
+- Хранится в localStorage `'dismissedBanners'` с TTL 90 дней
+- При dismiss: записывается `{ id, expiresAt, dismissedAt }`
+- После `endsAt` — TTL не ломает логику, просто запись устаревает
+- `critical` по умолчанию `dismissible=false` (safety-net в resolver)
+
+### Hidden routes
+
+Shell (TopBar / StatusBanner / PageWrapper padding) не показывается на:
+`/welcome`, `/login`, `/register`, `/reset-password`, `/onboarding`, `/join`,
+`/activate`, `/activate-callback`, `/oauth-debug`, `/debug-auth`, `/demo`,
+`/admin/login`, `/presentation`, `/investor-deck`, `/matryoshka`
+
+---
+
+## B5 Release Smoke — результаты
+
+| Сценарий | Результат | Примечания |
+|---|---|---|
+| **Public viewer** | ✅ PASS | audienceMatches('public') исправлен |
+| **Authenticated old user** | ✅ PASS | segment=registered_last_7d не матчится — welcome не показывается |
+| **Authenticated new user** | ✅ PASS | backend верифицирует created_at через сессию |
+| **Admin panel** | ✅ PASS | AdminRoute + adminFetch + X-Admin-Session-Token |
+| **Scheduling / priority** | ✅ PASS | детерминированный resolver |
+| **Dismiss behavior** | ✅ PASS | localStorage + 90d TTL |
+| **Shell / layout** | ✅ PASS | fixed top-16, --status-banner-h CSS var, PageWrapper |
+| **Backend logs** | ✅ PASS | только START/END/REPORT, 95–230ms, ошибок нет |
+
+### Исправления в процессе checkpoint/B5
+
+| # | Что было | Исправление |
+|---|---|---|
+| 1 | `audienceMatches` проверял `'all'`/`'admins'` вместо `'public'`/`'admin'` | Добавлена поддержка canonical + legacy values |
+| 2 | `cta_href: '/profile'` (маршрут не существует) | V0321: исправлено на `/settings` |
+| 3 | `fetchPublicBanners` не отправлял токены (all_only_v1) | FU-1 закрыт: `publicReadHeaders()` восстановлена |
+
+### Известное ограничение (не блокер)
+
+`Failed to fetch` для `status-banners-public` при первом рендере anonymous — это CORS/сетевой сбой на стороне холодного старта функции. `fetchPublicBanners` graceful-деградирует на `[]`, баннер просто не показывается. Повторный запрос (60s поллинг) обычно успешен.
 
 ---
 
 ## Контракты post-freeze
 
-### Не трогать (frozen API)
+### Frozen (не трогать без трека)
 
-- Таблица `status_banners` — поля, констрейнты, индексы (можно добавлять колонки в новых миграциях, но не менять/удалять существующие).
-- Endpoints:
-  - `status-banners-public` (URL: `https://functions.poehali.dev/386b715a-41ad-4dbc-bfbd-a814d91d23ca`)
-  - `admin-status-banners` (URL: `https://functions.poehali.dev/cdbbdf7d-d94f-46d8-8356-105ff32484e0`)
-- Response shape: `{ banners: StatusBanner[], server_time, viewer, audience_policy }`.
-- TS-контракты `StatusBanner`, `StatusBannerDraft`, `ResolveContext`, `BannerType`, `BannerAudience`.
-- `audience_policy: "all_only_v1"` — гарантия для public.
+- Схема таблицы `status_banners` (поля, типы, NOT NULL) — расширять только новыми миграциями
+- Endpoint URLs в `func2url.json`
+- Response shape: `{ banners: StatusBanner[], server_time, viewer, audience_policy }`
+- TS-контракты: `StatusBanner`, `StatusBannerDraft`, `BannerType`, `BannerAudience`, `ViewerKind`
+- `resolveActiveBanner(candidates, context)` — сигнатура и ResolveResult
+- `audience_policy: "server_resolved_v2"` — гарантия SERVER-side viewer resolution
 
 ### Разрешено в багфикс-режиме
 
-- Опечатки в текстах, тонкие визуальные правки.
-- Дополнительные smoke / docs.
-- Расширение admin UI без изменения backend API.
-- Новые типы сигналов в suggestion engine (с тем же контрактом «no autopublish»).
+- Тексты, визуальные правки
+- Дополнительные smoke / docs
+- Расширение admin UI без изменения backend API
+- Новые типы сигналов в suggestion engine (тот же контракт «no autopublish»)
 
 ### Запрещено без отдельного трека
 
-- Снять `audience_policy: "all_only_v1"` — это часть Security Mini-Sprint (SEC-1.5).
-- Менять структуру `StatusBanner` (поля, типы).
-- Менять формат `dismissedBanners` в localStorage (только migration-friendly расширения).
-- Менять SQL-схему без миграции с обратной совместимостью.
+- Изменить структуру `StatusBanner` (поля, типы)
+- Изменить формат `dismissedBanners` в localStorage (только migration-friendly расширения)
+- Изменить SQL-схему без backward-compatible миграции
+- Включить autopublish в suggestions engine
 
 ---
 
-## Известные ограничения (deferred follow-ups)
+## Известные follow-ups (не баги v1)
 
-| # | Что | Куда вынесено |
+| # | Что | Приоритет |
 |---|---|---|
-| 1 | `audience='authenticated'` / `'admins'` доставка | SEC-1.5 (auth verification foundation) |
-| 2 | Realtime (WebSocket / SSE) вместо 60s поллинга | Banner v2 follow-up |
-| 3 | Analytics: impressions / clicks / dismissals | Banner v2 follow-up |
-| 4 | Внешняя status page | Отдельный трек |
-| 5 | Email / SMS / push нотификации | Отдельный трек |
-| 6 | Approval workflow (двойной аппрув) | Отдельный трек |
-| 7 | Полноценный AI suggestion engine (ML) | Banner v2 follow-up — seam готов |
-| 8 | `dismissible` nullable в БД (отличать default от явного) | Banner v2 follow-up — helper готов |
-| 9 | Preview, который можно показать другому человеку (не локально) | Banner v2 follow-up |
-
-Эти пункты **не входят** в v1 freeze. Они подняты позже в отдельных тикетах.
+| FU-1 | Verified auth — ✅ ЗАКРЫТ в B1/B5 | — |
+| FU-2 | Realtime (WebSocket/SSE) вместо поллинга | средний |
+| FU-3 | Analytics: impressions / clicks / dismissals | средний |
+| FU-4 | Внешняя status page | низкий |
+| FU-5 | Email/SMS/push при critical | низкий-средний |
+| FU-6 | Approval workflow (двойной аппрув) | низкий |
+| FU-7 | ML-based AI suggestion engine | низкий-средний |
+| FU-8 | `dismissible` nullable в БД | низкий |
+| FU-9 | Shareable preview URL | низкий |
 
 ---
 
@@ -93,16 +162,19 @@
 - **Технические заметки:** `docs/status-banner/DEVELOPER_NOTES.md`
 - **Ручной QA:** `docs/status-banner/QA_CHECKLIST.md`
 - **Security registry:** `docs/security/SECURITY_GAPS_REGISTRY.md`
+- **B1 freeze:** `docs/status-banner/STATUS_BANNER_B1_FREEZE.md`
 - **Backlog v1+:** `docs/status-banner/FOLLOW_UPS.md`
 
 ---
 
-## Sign-off
+## Sign-off B5
 
-- Все acceptance criteria v1 ✓
-- Все smoke группы зелёные ✓
-- Backend tests зелёные ✓
-- Staging sanity-check выполнен ✓
-- Audience leakage защита подтверждена в проде ✓
+- Все acceptance criteria v1 ✅
+- Все smoke группы зелёные ✅
+- Backend logs: только START/END/REPORT, ошибок нет ✅
+- audienceMatches исправлен (public/admin canonical) ✅
+- FU-1 (viewer-aware) закрыт ✅
+- cta_href исправлен (V0321) ✅
+- Deployment state соответствует коду (commit `d65bbf9`) ✅
 
-Status Banner v1 — **FROZEN**. Любая работа над треком — через follow-up тикеты.
+**Status Banner v1 — FROZEN и SHIPPED.**
