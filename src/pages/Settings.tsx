@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useState, useEffect } from 'react';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
 import { NotificationsSettings } from '@/components/NotificationsSettings';
@@ -279,21 +280,21 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 pb-20">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent flex items-center gap-2">
-              <Icon name="Settings" size={24} className="sm:w-9 sm:h-9" />
-              Настройки
-            </h1>
-            <p className="text-gray-600 mt-1 text-sm sm:text-base">Управление приложением и уведомлениями</p>
-          </div>
-          <Button onClick={() => navigate('/')} variant="outline" className="gap-2 self-start sm:self-auto shrink-0">
-            <Icon name="ArrowLeft" size={18} />
-            На главную
-          </Button>
-        </div>
+    <SectionPageFrame
+      title="Настройки"
+      subtitle="Управление приложением и уведомлениями"
+      backPath="/"
+      variant="light"
+      width="wide"
+      backgroundClass="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      rightAction={
+        <Button onClick={() => navigate('/')} variant="outline" className="gap-2 shrink-0">
+          <Icon name="ArrowLeft" size={18} />
+          На главную
+        </Button>
+      }
+    >
+      <div className="space-y-6">
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <Card className="lg:col-span-1 h-fit">
@@ -682,6 +683,6 @@ export default function Settings() {
           onCropComplete={handleCropComplete}
         />
       </div>
-    </div>
+    </SectionPageFrame>
   );
 }

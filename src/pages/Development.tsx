@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { toast } from 'sonner';
@@ -257,7 +257,7 @@ export default function Development() {
   };
 
   const getTestConfig = (testId: string) => {
-    const configs: Record<string, { questions: any[]; getResults: (answers: any[]) => TestResult }> = {
+    const configs: Record<string, { questions: unknown[]; getResults: (answers: unknown[]) => TestResult }> = {
       'emotional-intelligence': {
         questions: emotionalIntelligenceQuestions,
         getResults: getEmotionalIntelligenceResults
@@ -300,21 +300,24 @@ export default function Development() {
 
   if (activeTest && testConfig && activeTestInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-4 lg:p-8">
-        <div className="max-w-4xl mx-auto">
-          <Card className="p-6">
-            <InteractiveTest
-              testId={activeTest}
-              testName={activeTestInfo.name}
-              questions={testConfig.questions}
-              getResults={testConfig.getResults}
-              onComplete={(result) => handleTestComplete(activeTest, result)}
-              onCancel={() => setActiveTest(null)}
-              isSaving={savingResult}
-            />
-          </Card>
-        </div>
-      </div>
+      <SectionPageFrame
+        title={activeTestInfo.name}
+        backPath="/development"
+        variant="light"
+        backgroundClass="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      >
+        <Card className="p-6">
+          <InteractiveTest
+            testId={activeTest}
+            testName={activeTestInfo.name}
+            questions={testConfig.questions}
+            getResults={testConfig.getResults}
+            onComplete={(result) => handleTestComplete(activeTest, result)}
+            onCancel={() => setActiveTest(null)}
+            isSaving={savingResult}
+          />
+        </Card>
+      </SectionPageFrame>
     );
   }
 
@@ -330,14 +333,13 @@ export default function Development() {
   return (
     <>
     <SEOHead title="Развитие — психологические тесты и рост" description="Психологические тесты для семьи: эмоциональный интеллект, стиль общения, разрешение конфликтов, управление стрессом. Отслеживайте прогресс развития." path="/development" breadcrumbs={[{ name: "Развитие", path: "/development-hub" }, { name: "Тесты", path: "/development" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-purple-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Развитие"
-          subtitle="Тесты и аналитика семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e4667014-5724-4d78-990b-c7d187f4618d.jpg"
-          backPath="/development-hub"
-        />
+    <SectionPageFrame
+      title="Развитие"
+      subtitle="Тесты и аналитика семьи"
+      backPath="/development-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e4667014-5724-4d78-990b-c7d187f4618d.jpg"
+      backgroundClass="bg-gradient-to-b from-purple-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
         <DevelopmentHeader
           onNavigateBack={() => navigate('/')}
           testsCount={DEVELOPMENT_TESTS.length}
@@ -417,8 +419,7 @@ export default function Development() {
           getMemberProgress={getMemberProgress}
           getMaxScoreForTest={getMaxScoreForTest}
         />
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
