@@ -112,11 +112,13 @@ export function isValidBanner(input: unknown): input is StatusBanner {
 // ---------- audience matching ----------
 
 function audienceMatches(banner: StatusBanner, viewer: ViewerKind): boolean {
-  if (banner.audience === 'all') return true;
+  // 'public' (canonical) и 'all' (legacy) — видят все
+  if (banner.audience === 'public' || (banner.audience as string) === 'all') return true;
   if (banner.audience === 'authenticated') {
     return viewer === 'authenticated' || viewer === 'admin';
   }
-  if (banner.audience === 'admins') {
+  // 'admin' (canonical) и 'admins' (legacy)
+  if (banner.audience === 'admin' || (banner.audience as string) === 'admins') {
     return viewer === 'admin';
   }
   return false;
