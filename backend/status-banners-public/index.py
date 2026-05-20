@@ -65,7 +65,9 @@ CORS_BASE = {
 
 CORS_PUBLIC = {
     **CORS_BASE,
-    'Cache-Control': 'public, max-age=30, must-revalidate',
+    # SEC-1.5: endpoint audience-sensitive (единый URL, разные ответы по сессии).
+    # private, no-store для всех — исключаем shared-cache leakage.
+    'Cache-Control': 'private, no-store',
 }
 
 CORS_PRIVATE = {
@@ -112,15 +114,14 @@ def _is_valid_admin_session(token: str) -> bool:
 
 
 def _is_valid_user_session(token: str) -> bool:
-    """Верифицирует X-Auth-Token в таблице user_sessions (или users.token)."""
+    """Верифицирует X-Auth-Token в таблице sessions."""
     if not token or not DATABASE_URL:
         return False
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
-        # Проверяем в таблице сессий: токен не истёк и не отозван
         cur.execute(
-            f"SELECT 1 FROM {SCHEMA}.user_sessions "
+            f"SELECT 1 FROM {SCHEMA}.sessions "
             f"WHERE token = %s AND expires_at > now() LIMIT 1",
             (token,),
         )
