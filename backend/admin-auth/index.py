@@ -285,11 +285,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     if action == 'debug-hash' and method == 'GET':
         h = ADMIN_PASSWORD_HASH
+        e = ADMIN_EMAIL
         return _resp(200, {
-            'len': len(h),
-            'prefix': h[:20],
-            'suffix': h[-10:],
+            'hash_len': len(h),
+            'hash_prefix': h[:20],
+            'hash_suffix': h[-10:],
             'starts_with_2b': h.startswith('$2b$'),
+            'email_len': len(e),
+            'email_prefix': e[:5],
+            'email_suffix': e[-8:],
         })
 
     if method == 'POST':
