@@ -37,7 +37,7 @@ DEFAULT_DISMISSIBLE = {
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token, X-Admin-Actor',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token',
     'Access-Control-Max-Age': '86400',
     'Content-Type': 'application/json',
     'Cache-Control': 'no-store',
@@ -54,25 +54,37 @@ def _resp(status: int, body: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def _get_header(event: Dict[str, Any], name: str) -> str:
+    """Case-insensitive header lookup."""
+    headers = event.get('headers') or {}
+    target = name.lower()
+    for k, v in headers.items():
+        if isinstance(k, str) and k.lower() == target and isinstance(v, str):
+            return v
+    return ''
+
+
 def _admin_authorized(event: Dict[str, Any]) -> bool:
     """SEC-1.3: единственный путь — X-Admin-Session-Token, verified в БД."""
-    headers = event.get('headers') or {}
-    for k, v in headers.items():
-        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
-            return _verify_session_in_db(v)
-    return False
+    token = _get_header(event, 'X-Admin-Session-Token')
+    return bool(_verify_session_in_db(token))
 
 
-def _verify_session_in_db(token: str) -> bool:
+def _verify_session_in_db(token: str) -> Optional[str]:
+    """
+    Верифицирует токен в БД.
+    Возвращает admin_email (actor) если сессия валидна, иначе None.
+    SEC-1.5: actor берётся только отсюда — X-Admin-Actor игнорируется.
+    """
     if not token or not DATABASE_URL:
-        return False
+        return None
     try:
         import hashlib
         token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
         cur.execute(
-            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"SELECT admin_email FROM {SCHEMA}.admin_sessions "
             f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
             (token_hash,),
         )
@@ -85,9 +97,19 @@ def _verify_session_in_db(token: str) -> bool:
             conn.commit()
         cur.close()
         conn.close()
-        return bool(row)
+        return row[0] if row else None
     except Exception:
-        return False
+        return None
+
+
+def _resolve_admin_actor(event: Dict[str, Any]) -> str:
+    """
+    SEC-1.5: actor для audit log берётся ТОЛЬКО из верифицированной сессии.
+    X-Admin-Actor из запроса полностью игнорируется.
+    """
+    token = _get_header(event, 'X-Admin-Session-Token')
+    email = _verify_session_in_db(token)
+    return email or ''
 
 
 def _row_to_banner(r: Dict[str, Any]) -> Dict[str, Any]:
@@ -382,7 +404,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
-    if not _admin_authorized(event):
+    # SEC-1.5: actor берётся из сессии, X-Admin-Actor из запроса игнорируется
+    actor = _resolve_admin_actor(event)
+    if not actor:
         return _resp(401, {'error': 'unauthorized'})
 
     if not DATABASE_URL:
@@ -391,13 +415,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     params = event.get('queryStringParameters') or {}
     action = (params.get('action') or '').lower()
     banner_id = params.get('id') or ''
-
-    actor = ''
-    headers = event.get('headers') or {}
-    for k, v in headers.items():
-        if k.lower() == 'x-admin-actor':
-            actor = str(v)[:200]
-            break
 
     try:
         # ─── GET ───

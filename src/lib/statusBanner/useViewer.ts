@@ -17,11 +17,13 @@ import { hasValidLocalAdminSession } from '@/lib/adminAuth';
 import type { ViewerKind } from './types';
 
 function readViewer(): ViewerKind {
+  // SEC-1.5: viewer для UX-целей — определяется только по реальным сессиям.
+  // isDemoMode убран — был spoofable через localStorage.setItem('isDemoMode','true').
+  // Security decisions принимает backend; здесь только UX-state.
   try {
     if (hasValidLocalAdminSession()) return 'admin';
     const token = storage.getItem('authToken');
-    const isDemo = localStorage.getItem('isDemoMode') === 'true';
-    if (token || isDemo) return 'authenticated';
+    if (token) return 'authenticated';
     return 'public';
   } catch {
     return 'public';

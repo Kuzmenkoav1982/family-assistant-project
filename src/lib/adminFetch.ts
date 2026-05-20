@@ -66,8 +66,8 @@ export function forceAdminReauth(): void {
 export interface AdminFetchOptions extends Omit<RequestInit, 'headers'> {
   /** Дополнительные заголовки. X-Admin-Session-Token проставляется автоматически. */
   headers?: Record<string, string>;
-  /** Опциональная подпись действия — кладётся в X-Admin-Actor. */
-  actor?: string;
+  // actor убран (SEC-1.5): backend берёт actor из верифицированной сессии,
+  // клиентский X-Admin-Actor игнорируется.
   /** Не делать auto-reauth при 401 (например, для health-check). По умолчанию делает. */
   skipAutoReauth?: boolean;
 }
@@ -89,9 +89,6 @@ export async function adminFetch(
   };
   if (token) {
     headers['X-Admin-Session-Token'] = token;
-  }
-  if (options.actor) {
-    headers['X-Admin-Actor'] = options.actor;
   }
   if (
     options.body &&

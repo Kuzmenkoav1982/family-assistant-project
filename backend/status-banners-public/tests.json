@@ -7,36 +7,80 @@
       "expectedStatus": 200
     },
     {
-      "name": "GET anon returns 200 with audience_policy=all_only_v1",
+      "name": "POST is rejected → 405",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 405
+    },
+
+    {
+      "name": "TRUTH TABLE: anonymous → viewer=public, policy=server_resolved_v2",
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,
-      "expectedBody": { "audience_policy": "all_only_v1", "viewer": "public" },
+      "expectedBody": { "viewer": "public", "audience_policy": "server_resolved_v2" },
       "bodyMatcher": "partial"
     },
     {
-      "name": "GET with fake X-Auth-Token: viewer ВСЕ ЕЩЁ public (no upgrade)",
+      "name": "TRUTH TABLE: invalid X-Auth-Token → viewer=public (no privilege bump)",
       "method": "GET",
       "path": "/",
-      "headers": { "X-Auth-Token": "fake-but-present" },
+      "headers": { "X-Auth-Token": "invalid_token_not_in_db" },
       "expectedStatus": 200,
-      "expectedBody": { "audience_policy": "all_only_v1", "viewer": "public" },
+      "expectedBody": { "viewer": "public" },
       "bodyMatcher": "partial"
     },
     {
-      "name": "GET with X-Admin-Token: viewer ВСЕ ЕЩЁ public (gated v1)",
+      "name": "TRUTH TABLE: invalid X-Admin-Session-Token → viewer=public (no privilege bump)",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Admin-Session-Token": "invalid_admin_token_not_in_db" },
+      "expectedStatus": 200,
+      "expectedBody": { "viewer": "public" },
+      "bodyMatcher": "partial"
+    },
+
+    {
+      "name": "SPOOFING: ?viewer=admin → viewer=public (ignored)",
+      "method": "GET",
+      "path": "/?viewer=admin",
+      "expectedStatus": 200,
+      "expectedBody": { "viewer": "public" },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "SPOOFING: ?actor=admin → viewer=public (ignored)",
+      "method": "GET",
+      "path": "/?actor=admin",
+      "expectedStatus": 200,
+      "expectedBody": { "viewer": "public" },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "SPOOFING: X-Admin-Token: admin_authenticated → viewer=public (legacy header ignored)",
       "method": "GET",
       "path": "/",
       "headers": { "X-Admin-Token": "admin_authenticated" },
       "expectedStatus": 200,
-      "expectedBody": { "audience_policy": "all_only_v1", "viewer": "public" },
+      "expectedBody": { "viewer": "public" },
       "bodyMatcher": "partial"
     },
     {
-      "name": "POST is rejected",
-      "method": "POST",
+      "name": "SPOOFING: both ?viewer=admin + X-Admin-Token → viewer=public",
+      "method": "GET",
+      "path": "/?viewer=admin&actor=admin",
+      "headers": { "X-Admin-Token": "admin_authenticated" },
+      "expectedStatus": 200,
+      "expectedBody": { "viewer": "public" },
+      "bodyMatcher": "partial"
+    },
+
+    {
+      "name": "CACHE: anonymous → Cache-Control: public",
+      "method": "GET",
       "path": "/",
-      "expectedStatus": 405
+      "expectedStatus": 200,
+      "expectedHeaders": { "Cache-Control": "public, max-age=30, must-revalidate" }
     }
   ]
 }

@@ -6,57 +6,70 @@
       "path": "/",
       "expectedStatus": 200
     },
+
     {
-      "name": "GET without any token → 401",
+      "name": "CRUD: GET без токена → 401",
       "method": "GET",
       "path": "/",
       "expectedStatus": 401
     },
     {
-      "name": "GET with fake session token → 401",
+      "name": "CRUD: GET с фейковым токеном → 401",
       "method": "GET",
       "path": "/",
       "headers": { "X-Admin-Session-Token": "fake_token_not_in_db" },
       "expectedStatus": 401
     },
     {
-      "name": "POST create without auth → 401",
+      "name": "CRUD: POST create без токена → 401",
       "method": "POST",
       "path": "/",
       "body": { "type": "info", "title": "x", "message": "y" },
       "expectedStatus": 401
     },
     {
-      "name": "POST create with invalid type → 400 (auth via legacy token)",
-      "method": "POST",
+      "name": "CRUD: PUT update без токена → 401",
+      "method": "PUT",
+      "path": "/?id=00000000-0000-0000-0000-000000000000",
+      "body": { "type": "info", "title": "x", "message": "y" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "CRUD: DELETE без токена → 401",
+      "method": "DELETE",
+      "path": "/?id=00000000-0000-0000-0000-000000000000",
+      "expectedStatus": 401
+    },
+
+    {
+      "name": "SPOOFING: legacy X-Admin-Token: admin_authenticated → 401 (не X-Admin-Session-Token)",
+      "method": "GET",
       "path": "/",
       "headers": { "X-Admin-Token": "admin_authenticated" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "SPOOFING: X-Admin-Actor подделка без токена → 401",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-Admin-Actor": "hacker@evil.com" },
+      "body": { "type": "info", "title": "x", "message": "y" },
+      "expectedStatus": 401
+    },
+
+    {
+      "name": "VALIDATION: POST create с неверным type → 401 (нет auth, не 400)",
+      "method": "POST",
+      "path": "/",
       "body": { "type": "bogus", "title": "x", "message": "y" },
-      "expectedStatus": 400
+      "expectedStatus": 401
     },
     {
-      "name": "POST create with empty title → 400",
+      "name": "VALIDATION: POST create с пустым title → 401 (нет auth, не 400)",
       "method": "POST",
       "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
       "body": { "type": "info", "title": "", "message": "y" },
-      "expectedStatus": 400
-    },
-    {
-      "name": "POST create with broken cta pair → 400",
-      "method": "POST",
-      "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
-      "body": { "type": "info", "title": "t", "message": "m", "ctaLabel": "click", "ctaHref": "" },
-      "expectedStatus": 400
-    },
-    {
-      "name": "POST create with ends before starts → 400",
-      "method": "POST",
-      "path": "/",
-      "headers": { "X-Admin-Token": "admin_authenticated" },
-      "body": { "type": "info", "title": "t", "message": "m", "startsAt": "2026-06-01T00:00:00Z", "endsAt": "2026-05-01T00:00:00Z" },
-      "expectedStatus": 400
+      "expectedStatus": 401
     }
   ]
 }

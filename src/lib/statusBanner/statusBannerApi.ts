@@ -64,12 +64,11 @@ export async function adminListBanners(): Promise<StatusBanner[]> {
 
 export async function adminCreateBanner(
   draft: StatusBannerDraft,
-  actor?: string,
 ): Promise<StatusBanner> {
+  // SEC-1.5: actor не принимается от клиента — backend берёт из сессии.
   const res = await adminFetch(ADMIN_URL, {
     method: 'POST',
     body: JSON.stringify(draft),
-    ...(actor ? { actor } : {}),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -82,13 +81,12 @@ export async function adminCreateBanner(
 export async function adminUpdateBanner(
   id: string,
   draft: StatusBannerDraft,
-  actor?: string,
 ): Promise<StatusBanner> {
+  // SEC-1.5: actor не принимается от клиента — backend берёт из сессии.
   const url = `${ADMIN_URL}?id=${encodeURIComponent(id)}`;
   const res = await adminFetch(url, {
     method: 'PUT',
     body: JSON.stringify(draft),
-    ...(actor ? { actor } : {}),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -101,14 +99,11 @@ export async function adminUpdateBanner(
 export async function adminSetEnabled(
   id: string,
   enabled: boolean,
-  actor?: string,
 ): Promise<StatusBanner> {
+  // SEC-1.5: actor не принимается от клиента — backend берёт из сессии.
   const action = enabled ? 'enable' : 'disable';
   const url = `${ADMIN_URL}?id=${encodeURIComponent(id)}&action=${action}`;
-  const res = await adminFetch(url, {
-    method: 'POST',
-    ...(actor ? { actor } : {}),
-  });
+  const res = await adminFetch(url, { method: 'POST' });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || body.error || `HTTP ${res.status}`);
