@@ -33,6 +33,15 @@ export interface HubRelatedLink {
   path: string;
 }
 
+/** Контролируемая ширина контейнера. */
+export type HubWidth = 'standard' | 'wide' | 'narrow';
+
+const WIDTH_CLASS: Record<HubWidth, string> = {
+  standard: 'max-w-5xl',
+  wide:     'max-w-7xl',
+  narrow:   'max-w-3xl',
+};
+
 export interface HubLayoutV2Props {
   // Зона 1: Контекстный хедер
   title: string;
@@ -44,8 +53,11 @@ export interface HubLayoutV2Props {
   modalities?: Modality[];
   quickFacts?: HubQuickFact[];
   primaryAction?: { label: string; icon?: string; onClick?: () => void };
+  /** CSS-классы кнопки primaryAction. По умолчанию — нейтральный blue-violet градиент. */
+  primaryActionClassName?: string;
   secondaryAction?: { label: string; icon?: string; onClick?: () => void };
-  cycleHint?: string; // например, «Цикл: Сбор» или «Цикл: Исполнение»
+  cycleHint?: string;
+  /** Путь для кнопки «Назад». Для top-level hub'ов обычно не нужен. */
   backPath?: string;
 
   // Зона 2: Что важно сейчас (опционально)
@@ -60,8 +72,10 @@ export interface HubLayoutV2Props {
   // Зона 5: Связанные хабы (опционально)
   relatedLinks?: HubRelatedLink[];
 
-  // Кастомизация фона
+  // Кастомизация
   backgroundClass?: string;
+  /** Ширина контейнера. По умолчанию standard = max-w-5xl. */
+  width?: HubWidth;
 }
 
 const HubLayoutV2 = ({
@@ -74,6 +88,7 @@ const HubLayoutV2 = ({
   modalities = [],
   quickFacts = [],
   primaryAction,
+  primaryActionClassName,
   secondaryAction,
   cycleHint,
   backPath,
@@ -82,12 +97,17 @@ const HubLayoutV2 = ({
   nextStep,
   relatedLinks = [],
   backgroundClass = 'bg-gradient-to-br from-gray-50 via-white to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900',
+  width = 'standard',
 }: HubLayoutV2Props) => {
   const navigate = useNavigate();
+  const containerWidth = WIDTH_CLASS[width];
+  // primaryAction цвет: передан явно → используем, иначе нейтральный акцент
+  const primaryCls = primaryActionClassName
+    ?? 'inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[13px] font-semibold hover:opacity-90 transition-opacity';
 
   return (
     <div className={`min-h-screen ${backgroundClass}`}>
-      <div className="max-w-5xl mx-auto px-3 sm:px-4 pt-4 pb-24">
+      <div className={`${containerWidth} mx-auto px-3 sm:px-4 pt-4`}>
         {/* ───────── Зона 1. Контекстный хедер ───────── */}
         <div className="rounded-3xl border bg-white dark:bg-gray-900 p-4 sm:p-6 mb-4">
           {backPath && (
@@ -162,7 +182,7 @@ const HubLayoutV2 = ({
               {primaryAction && (
                 <button
                   onClick={primaryAction.onClick}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 text-white text-[13px] font-semibold hover:opacity-90 transition-opacity"
+                  className={primaryCls}
                 >
                   {primaryAction.icon && <Icon name={primaryAction.icon} size={14} />}
                   {primaryAction.label}
