@@ -1,7 +1,7 @@
 import SEOHead from '@/components/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import MemoryAlbumBanner from '@/components/memory/MemoryAlbumBanner';
 import { getGeneration } from './tree/treeUtils';
 import { FamilyTreeCanvas } from './tree/FamilyTreeCanvas';
@@ -32,14 +32,23 @@ export default function Tree() {
   });
   const sortedGenerations = Array.from(generations.entries()).sort(([a], [b]) => a - b);
 
+  const BG = 'bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
+
   if (s.loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 flex items-center justify-center">
-        <div className="text-center">
-          <Icon name="TreePine" size={48} className="text-amber-400 mx-auto mb-3 animate-pulse" />
-          <p className="text-amber-700">Загрузка древа...</p>
+      <SectionPageFrame
+        title="Семейное древо"
+        backPath="/family-hub"
+        variant="light"
+        backgroundClass={BG}
+      >
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center">
+            <Icon name="TreePine" size={48} className="text-amber-400 mx-auto mb-3 animate-pulse" />
+            <p className="text-amber-700">Загрузка древа...</p>
+          </div>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
@@ -51,18 +60,14 @@ export default function Tree() {
         path="/tree"
         breadcrumbs={[{ name: 'Семья', path: '/family-hub' }, { name: 'Семейное древо', path: '/tree' }]}
       />
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50 pb-24">
-        <div className="max-w-5xl mx-auto p-4">
-          <SectionHero
-            title="Семейное древо"
-            subtitle={`${s.members.length} чел. · История вашего рода`}
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
-            backPath="/family"
-          />
-          <div className="mt-3">
-            <MemoryAlbumBanner variant="tree" />
-          </div>
-        </div>
+      <SectionPageFrame
+        title="Семейное древо"
+        subtitle={`${s.members.length} чел. · История вашего рода`}
+        backPath="/family-hub"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
+        backgroundClass={BG}
+      >
+      <MemoryAlbumBanner variant="tree" />
 
         <div className="px-4 space-y-4 max-w-4xl mx-auto">
           <TreeToolbar
@@ -182,7 +187,7 @@ export default function Tree() {
             onSubmit={s.showEditForm ? s.handleEdit : s.handleAdd}
           />
         </div>
-      </div>
+      </SectionPageFrame>
     </>
   );
 }

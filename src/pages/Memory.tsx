@@ -14,30 +14,30 @@ import MemoryAlbumShelf from '@/components/memory/MemoryAlbumShelf';
 import MemoryAlbumHeader from '@/components/memory/MemoryAlbumHeader';
 import MemoryEmptyState from '@/components/memory/MemoryEmptyState';
 import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { resolveAlbumCover } from '@/components/memory/coverResolver';
 
 export default function Memory() {
   const p = useMemoryPageState();
 
   return (
-    <div className="container mx-auto max-w-6xl px-4 py-6">
-      <SectionHero
-        title="Альбом поколений"
-        subtitle="Не свалка фотографий — а осмысленная семейная память. Сохраняйте важные моменты с подписью и людьми, чтобы передать их детям и внукам."
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7caf5914-dd0e-49ba-830b-c44b378c04ae.jpg"
-        backPath="/family-hub"
-        rightAction={
-          <Button
-            onClick={() => p.setCreateOpen(true)}
-            size="sm"
-            className="bg-white text-violet-700 hover:bg-white/90 shadow-lg"
-          >
-            <Icon name="Plus" size={16} className="mr-1.5" />
-            Добавить
-          </Button>
-        }
-      />
+    <SectionPageFrame
+      title="Альбом поколений"
+      subtitle="Осмысленная семейная память для детей и внуков"
+      backPath="/family-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7caf5914-dd0e-49ba-830b-c44b378c04ae.jpg"
+      backgroundClass="bg-gradient-to-b from-violet-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      rightAction={
+        <Button
+          onClick={() => p.setCreateOpen(true)}
+          size="sm"
+          className="bg-white text-violet-700 hover:bg-white/90 shadow-lg"
+        >
+          <Icon name="Plus" size={16} className="mr-1.5" />
+          Добавить
+        </Button>
+      }
+    >
 
       <div className="mb-4">
         <HowItWorksBlock
@@ -297,6 +297,6 @@ export default function Memory() {
           </div>
         </div>
       )}
-    </div>
+    </SectionPageFrame>
   );
 }

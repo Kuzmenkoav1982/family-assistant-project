@@ -93,6 +93,8 @@
 | Batch 2 | Dashboard, Settings, Development | ✅ Done |
 | **W3-G1** | guardrails + baseline | ✅ Done |
 | Batch 3 | Calendar, Trips, Pets, Analytics, VotingPage | ✅ Done |
+| Batch 4 | FamilyNews, Articles, Values, Memory, Tree | ✅ Done |
+| **Tech debt** | Analytics.tsx — 22 pre-existing `any` TS errors | ⏳ Отдельный трек |
 
 ---
 

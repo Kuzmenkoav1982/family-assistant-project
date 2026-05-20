@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import type { FamilyValue } from '@/types/family.types';
 import { initialFamilyValues } from '@/data/mockData';
 
@@ -47,14 +47,13 @@ export default function Values() {
   return (
     <>
     <SEOHead title="Семейные ценности — основа крепкой семьи" description="Определите и укрепите семейные ценности: любовь, доверие, уважение, традиции. Создайте фундамент счастливой семьи." path="/values" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Семейные ценности", path: "/values" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 via-pink-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Ценности семьи"
-          subtitle="Определите и храните главные ценности вашей семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/df85b066-cf22-4568-b389-dc1784223582.jpg"
-          backPath="/values-hub"
-        />
+    <SectionPageFrame
+      title="Ценности семьи"
+      subtitle="Определите и храните главные ценности вашей семьи"
+      backPath="/values-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/df85b066-cf22-4568-b389-dc1784223582.jpg"
+      backgroundClass="bg-gradient-to-b from-rose-50 via-pink-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
 
         <Card className="border-2 border-rose-200 bg-rose-50/50">
           <CardContent className="pt-6">
@@ -185,8 +184,7 @@ export default function Values() {
             </Card>
           )}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

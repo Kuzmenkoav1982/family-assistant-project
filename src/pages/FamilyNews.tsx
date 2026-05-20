@@ -1,5 +1,5 @@
 import SEOHead from "@/components/SEOHead";
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -23,47 +23,45 @@ export default function FamilyNews() {
         description="Актуальные новости семейной политики: новые законы, выплаты, льготы, программы поддержки семей в России."
         path="/family-news"
       />
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <SectionHero
-            title="Новости и инициативы"
-            subtitle="Актуальные новости семейного законодательства и политики"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d5779686-8c50-4133-926f-a8290f3fab9b.jpg"
-            backPath="/"
-          />
+      <SectionPageFrame
+        title="Новости и инициативы"
+        subtitle="Актуальные новости семейного законодательства и политики"
+        backPath="/family-hub"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d5779686-8c50-4133-926f-a8290f3fab9b.jpg"
+        width="wide"
+        backgroundClass="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      >
+        <NewsCategoryFilter
+          categories={categories}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
 
-          <NewsCategoryFilter
-            categories={categories}
-            selected={selectedCategory}
-            onSelect={setSelectedCategory}
-          />
-
-          <div className="space-y-4">
-            {filteredNews.map(item => (
-              <NewsCard
-                key={item.id}
-                item={item}
-                isExpanded={expandedNews === item.id}
-                categoryColor={getCategoryColor(item.category)}
-                formattedDate={formatDate(item.date)}
-                onToggle={toggleExpanded}
-              />
-            ))}
-          </div>
-
-          {filteredNews.length === 0 && (
-            <Card className="text-center p-12">
-              <Icon name="Newspaper" size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 mb-4">Новостей в этой категории пока нет</p>
-              <Button variant="ghost" onClick={() => setSelectedCategory('all')}>
-                Показать все новости
-              </Button>
-            </Card>
-          )}
-
-          <NewsSubscriptionCard />
+        <div className="space-y-4">
+          {filteredNews.map(item => (
+            <NewsCard
+              key={item.id}
+              item={item}
+              isExpanded={expandedNews === item.id}
+              categoryColor={getCategoryColor(item.category)}
+              formattedDate={formatDate(item.date)}
+              onToggle={toggleExpanded}
+            />
+          ))}
         </div>
-      </div>
+
+        {filteredNews.length === 0 && (
+          <Card className="text-center p-12">
+            <Icon name="Newspaper" size={48} className="mx-auto text-gray-300 mb-4" />
+            <p className="text-gray-500 mb-4">Новостей в этой категории пока нет</p>
+            <Button variant="ghost" onClick={() => setSelectedCategory('all')}>
+              Показать все новости
+            </Button>
+          </Card>
+        )}
+
+        <NewsSubscriptionCard />
+      </SectionPageFrame>
     </>
   );
 }

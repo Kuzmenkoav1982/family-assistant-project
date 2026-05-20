@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Helmet } from '@/lib/helmet';
 import { articles, articleCategories } from '@/data/articles';
 
@@ -82,14 +82,14 @@ export default function Articles() {
         </script>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <SectionHero
-            title="Полезные статьи"
-            subtitle="Экспертные советы для счастливой семейной жизни"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fe98fb-bcd0-45d1-b08b-60dad7fd867a.jpg"
-            backPath="/"
-          />
+      <SectionPageFrame
+        title="Полезные статьи"
+        subtitle="Экспертные советы для счастливой семейной жизни"
+        backPath="/"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fe98fb-bcd0-45d1-b08b-60dad7fd867a.jpg"
+        width="wide"
+        backgroundClass="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      >
 
           <Card className="bg-gradient-to-r from-amber-50 to-orange-50">
             <CardContent className="pt-6">
@@ -159,8 +159,7 @@ export default function Articles() {
               <p>В этой категории пока нет статей</p>
             </div>
           )}
-        </div>
-      </div>
+      </SectionPageFrame>
     </>
   );
 }
