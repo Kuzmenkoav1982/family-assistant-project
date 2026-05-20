@@ -19,18 +19,39 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Send message without admin token",
+      "name": "Send message without admin token → 401",
       "method": "POST",
       "path": "/?action=send",
       "headers": {},
-      "body": {
-        "text": "Тестовое сообщение"
-      },
+      "body": { "text": "Тестовое сообщение" },
       "expectedStatus": 401,
-      "expectedBody": {
-        "error": "string"
-      },
+      "expectedBody": { "error": "string" },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "poll-channel: только X-Cron без X-Internal-Token → 401",
+      "method": "POST",
+      "path": "/?action=poll-channel",
+      "headers": { "X-Cron": "1" },
+      "expectedStatus": 401,
+      "expectedBody": { "error": "invalid_internal_token" },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "poll-channel: X-Cron + неверный X-Internal-Token → 401",
+      "method": "POST",
+      "path": "/?action=poll-channel",
+      "headers": { "X-Cron": "1", "X-Internal-Token": "wrong_token_definitely_invalid" },
+      "expectedStatus": 401,
+      "expectedBody": { "error": "invalid_internal_token" },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "poll-channel: без заголовков → 401",
+      "method": "POST",
+      "path": "/?action=poll-channel",
+      "headers": {},
+      "expectedStatus": 401
     }
   ]
 }

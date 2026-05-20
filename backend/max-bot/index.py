@@ -773,13 +773,27 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if (method == 'POST' or method == 'GET') and action == 'poll-channel':
-        is_cron = (event.get('headers') or {}).get('X-Cron') or (event.get('headers') or {}).get('x-cron')
-        if not is_cron and not _admin_authorized(event):
+        hdrs = event.get('headers') or {}
+        is_cron = hdrs.get('X-Cron') or hdrs.get('x-cron')
+        internal_token = hdrs.get('X-Internal-Token') or hdrs.get('x-internal-token')
+        expected_internal = os.environ.get('INTERNAL_CRON_TOKEN', '')
+
+        if is_cron:
+            # Cron-путь: требуем оба — X-Cron и валидный X-Internal-Token
+            if not expected_internal or internal_token != expected_internal:
+                return {
+                    'statusCode': 401,
+                    'headers': CORS_HEADERS,
+                    'body': json.dumps({'error': 'invalid_internal_token'}),
+                    'isBase64Encoded': False,
+                }
+        elif not _admin_authorized(event):
+            # Browser-admin путь: требуем X-Admin-Session-Token
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
                 'body': json.dumps({'error': 'Требуются права администратора'}),
-                'isBase64Encoded': False
+                'isBase64Encoded': False,
             }
         params_qs = event.get('queryStringParameters') or {}
         chat_id_param = params_qs.get('chat_id') or os.environ.get('MAX_CHANNEL_CHAT_ID') or '-70410824040551'

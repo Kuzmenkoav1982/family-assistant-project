@@ -44,6 +44,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if qs.get('limit'):
         limit = qs.get('limit')
 
+    internal_token = os.environ.get('INTERNAL_CRON_TOKEN', '')
+    if not internal_token:
+        return _resp(500, {'ok': False, 'error': 'INTERNAL_CRON_TOKEN not configured'})
+
     try:
         url = f"{MAX_BOT_FUNCTION_URL}?action=poll-channel&chat_id={chat_id}&limit={limit}"
         r = requests.post(
@@ -51,6 +55,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             headers={
                 'Content-Type': 'application/json',
                 'X-Cron': '1',
+                'X-Internal-Token': internal_token,
             },
             timeout=25,
         )
