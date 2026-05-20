@@ -44,15 +44,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if qs.get('limit'):
         limit = qs.get('limit')
 
-    admin_token = os.environ.get('ADMIN_TOKEN') or 'admin_authenticated'
-
     try:
         url = f"{MAX_BOT_FUNCTION_URL}?action=poll-channel&chat_id={chat_id}&limit={limit}"
         r = requests.post(
             url,
             headers={
                 'Content-Type': 'application/json',
-                'X-Admin-Token': admin_token,
                 'X-Cron': '1',
             },
             timeout=25,

@@ -23,7 +23,8 @@ DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 CORS_HEADERS = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token',
 }
 
 

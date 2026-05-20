@@ -25,6 +25,7 @@ YANDEX_OPERATION_URL = 'https://llm.api.cloud.yandex.net/operations/'
 CORS = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token',
 }
 
 
