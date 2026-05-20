@@ -1,10 +1,9 @@
 // statusBannerApi — тонкий клиент над public read и admin write endpoints.
 //
 // Public read:   status-banners-public  (GET only)
-//                v1 (B3.6 hardening, вариант A): возвращает ТОЛЬКО audience='all'
-//                независимо от заголовков. authenticated/admins audiences
-//                considered gated до security mini-sprint с верифицированной
-//                серверной auth-валидацией.
+//                SEC-1.5 / FU-1: viewer определяется сервером по X-Auth-Token
+//                и X-Admin-Session-Token. Клиент шлёт токены — backend
+//                возвращает баннеры для соответствующей audience.
 // Admin write:   admin-status-banners   (CRUD, требует X-Admin-Session-Token)
 //
 // URL'ы — через @/../backend/func2url.json (генерируется при sync_backend).
@@ -12,18 +11,32 @@
 import func2url from '../../../backend/func2url.json';
 import type { StatusBanner, StatusBannerDraft } from './types';
 import { adminFetch } from '@/lib/adminFetch';
+import { storage } from '@/lib/storage';
+import { readAdminSessionToken } from '@/lib/adminAuth';
 
 const PUBLIC_URL = (func2url as Record<string, string>)['status-banners-public'] ?? '';
 const ADMIN_URL = (func2url as Record<string, string>)['admin-status-banners'] ?? '';
 
-/** Политика audience public endpoint в v1 (B3.6, вариант A). */
-export const AUDIENCE_POLICY_V1 = 'all_only_v1' as const;
+/** Собирает auth-заголовки для public read endpoint (SEC-1.5 viewer resolution). */
+function publicReadHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const adminToken = readAdminSessionToken();
+  if (adminToken) {
+    headers['X-Admin-Session-Token'] = adminToken;
+    return headers;
+  }
+  const userToken = storage.getItem('authToken');
+  if (userToken) {
+    headers['X-Auth-Token'] = userToken;
+  }
+  return headers;
+}
 
 interface PublicResponse {
   banners: StatusBanner[];
   server_time?: string;
-  viewer?: 'public';
-  audience_policy?: typeof AUDIENCE_POLICY_V1;
+  viewer?: 'public' | 'authenticated' | 'admin';
+  audience_policy?: string;
   error?: string;
 }
 
@@ -40,10 +53,13 @@ interface AdminOneResponse {
 export async function fetchPublicBanners(signal?: AbortSignal): Promise<StatusBanner[]> {
   if (!PUBLIC_URL) return [];
   try {
-    // v1: токены НЕ шлём — backend всё равно их игнорирует и отдаёт только
-    // audience='all'. Когда вернёмся к viewer-aware фильтрации (после
-    // security mini-sprint), сюда вернутся publicReadHeaders().
-    const res = await fetch(PUBLIC_URL, { method: 'GET', signal });
+    // SEC-1.5 / FU-1: шлём токены — backend определяет viewer серверно
+    // и возвращает баннеры для соответствующей audience.
+    const res = await fetch(PUBLIC_URL, {
+      method: 'GET',
+      headers: publicReadHeaders(),
+      signal,
+    });
     if (!res.ok) return [];
     const data = (await res.json()) as PublicResponse;
     return Array.isArray(data.banners) ? data.banners : [];

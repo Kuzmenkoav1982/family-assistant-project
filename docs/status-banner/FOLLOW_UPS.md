@@ -7,20 +7,9 @@
 
 ## FU-1 · Verified auth для `authenticated` / `admins` баннеров
 
-**Что:** снять `audience_policy: "all_only_v1"`, вернуть viewer-aware фильтрацию в `status-banners-public`.
+**Статус:** ✅ **Закрыто** (B1 / после Security Mini-Sprint, commit после `579eee7`)
 
-**Зависит от:** SEC-1.5 (Auth verification foundation в Security Mini-Sprint).
-
-**Как:**
-1. Backend научится **верифицировать** auth-token серверно (JWT verify или session introspection — будет решено в SEC-1.5).
-2. В `status-banners-public/index.py` восстановить функцию `_resolve_viewer()` из git-истории (commit B3.5).
-3. Заменить `WHERE audience = 'all'` на `WHERE audience IN (whitelist)` + Python defense-in-depth (whitelist по viewer).
-4. Cache-Control обратно на `private, max-age=15` + `Vary` на auth-headers.
-5. Frontend `statusBannerApi.publicReadHeaders()` восстановить из git-истории.
-6. Tests: фейковый токен → `viewer: "public"` (gracefully rejected), валидный auth → `authenticated`.
-7. В админке убрать «(gated v1)» из Select и warning-баннер; обновить `ADMIN_RUNBOOK.md`.
-
-**Приоритет:** высокий (закрывает один из ключевых «known limitations»).
+Backend `status-banners-public` уже содержит `_resolve_viewer_and_created_at()` с серверной верификацией (`audience_policy: "server_resolved_v2"`). Frontend `statusBannerApi.ts` восстановил `publicReadHeaders()` — `fetchPublicBanners()` теперь отправляет `X-Admin-Session-Token` или `X-Auth-Token`, backend фильтрует по реальному viewer.
 
 ---
 
