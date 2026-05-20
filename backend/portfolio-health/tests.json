@@ -15,10 +15,17 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Forbidden with invalid token",
+      "name": "Forbidden with invalid user token",
       "method": "GET",
       "path": "/",
       "headers": { "X-Auth-Token": "totally-fake-token" },
+      "expectedStatus": 403
+    },
+    {
+      "name": "Forbidden with invalid admin session token",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Admin-Session-Token": "fake-admin-session" },
       "expectedStatus": 403
     },
     {

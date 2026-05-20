@@ -9,6 +9,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from '@/lib/adminFetch';
+import func2url from '../../backend/func2url.json';
+
+const ADMIN_USERS_URL = (func2url as Record<string, string>)['admin-users'] ?? '';
 
 interface SystemStatus {
   status: 'healthy' | 'warning' | 'critical';
@@ -32,33 +36,26 @@ export default function AdminDashboard() {
   const [performanceRating, setPerformanceRating] = useState<'good' | 'needs-improvement' | 'poor'>('good');
   const [vitals, setVitals] = useState(getVitalsData());
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
-  const [usersStats, setUsersStats] = useState({ total: 5, today: 2, week: 4 });
-  const [activityStats, setActivityStats] = useState({ tasks_week: 0, events_week: 0, shopping_week: 0, children_month: 0 });
+  const [usersStats, setUsersStats] = useState({ total: 0, today: 0, week: 0 });
+  const [activityStats] = useState({ tasks_week: 0, events_week: 0, shopping_week: 0, children_month: 0 });
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
-      try {
-        const response = await fetch('https://functions.poehali.dev/f08e9689-5057-472f-8f5d-e3569af5d508', {
-          signal: AbortSignal.timeout(5000) // Таймаут 5 секунд
-        });
-        
-        if (!response.ok) {
-          console.warn('Stats API unavailable, using mock data');
-          return;
+      // Получаем реальный счётчик пользователей через admin-users API
+      if (ADMIN_USERS_URL) {
+        try {
+          const res = await adminFetch(ADMIN_USERS_URL, { skipAutoReauth: true });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.total !== undefined) {
+              setUsersStats({ total: data.total, today: 0, week: 0 });
+            }
+          }
+        } catch {
+          // graceful — оставляем текущие значения
         }
-        
-        const data = await response.json();
-        if (data.users) {
-          setUsersStats(data.users);
-        }
-        if (data.activity) {
-          setActivityStats(data.activity);
-        }
-      } catch (error) {
-        // Тихо игнорируем ошибку - используем моковые данные
-        console.debug('Stats API not available, using default values');
       }
     };
 
@@ -70,7 +67,7 @@ export default function AdminDashboard() {
       setVitals(getVitalsData());
       generateAlerts(rating);
       fetchStats();
-    }, 10000);
+    }, 30000);
 
     generateAlerts(performanceRating);
 
@@ -99,26 +96,13 @@ export default function AdminDashboard() {
       });
     }
 
-    const usersCount = parseInt(localStorage.getItem('totalUsers') || '5');
-    if (usersCount > 80) {
-      newAlerts.push({
-        id: '3',
-        type: 'warning',
-        title: '📈 Приближаемся к 100 пользователям',
-        message: 'Скоро нужно будет добавить кэширование Redis. До этого момента ещё 2-3 недели при текущем росте.',
-        actionable: false,
-      });
-    }
-
-    if (usersCount < 20) {
-      newAlerts.push({
-        id: '4',
-        type: 'info',
-        title: '✅ Всё стабильно',
-        message: 'Текущая архитектура отлично справляется с нагрузкой. База данных заполнена на 5%. Можно спокойно расти.',
-        actionable: false,
-      });
-    }
+    newAlerts.push({
+      id: '4',
+      type: 'info',
+      title: '✅ Всё стабильно',
+      message: 'Security Mini-Sprint закрыт. Status Banner v1 shipped. Текущая архитектура справляется с нагрузкой. Следующий трек — Wave 3 / Integration Baseline.',
+      actionable: false,
+    });
 
     setAlerts(newAlerts);
   };

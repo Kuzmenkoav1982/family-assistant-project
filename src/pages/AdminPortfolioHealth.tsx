@@ -58,7 +58,7 @@ export default function AdminPortfolioHealth() {
     }
     setLoading(true);
     setError(null);
-    adminFetch(`${HEALTH_API}?range=${range}`)
+    adminFetch(`${HEALTH_API}?range=${range}`, { skipAutoReauth: true })
       .then(async (res) => {
         if (res.status === 403) {
           setForbidden(true);
@@ -72,7 +72,14 @@ export default function AdminPortfolioHealth() {
       .then((d: HealthData | null) => {
         if (d) setData(d);
       })
-      .catch((e) => setError(String(e)))
+      .catch((e: unknown) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (msg.includes('403') || msg.includes('Unauthorized') || msg.includes('forbidden')) {
+          setForbidden(true);
+        } else {
+          setError(msg);
+        }
+      })
       .finally(() => setLoading(false));
   }, [range]);
 

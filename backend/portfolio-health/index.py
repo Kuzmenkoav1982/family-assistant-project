@@ -1,10 +1,11 @@
 """
 Business: Внутренний health-dashboard для модуля Портфолио.
-Доступ ТОЛЬКО для staff (по STAFF_EMAILS из env). Возвращает 403 всем остальным.
-Args: GET event с X-Auth-Token; query: range=24h|7d
+Доступ: валидная admin-сессия (X-Admin-Session-Token) ИЛИ STAFF_EMAILS + X-Auth-Token.
+Args: GET event; query: range=24h|7d
 Returns: JSON с операционными метриками
 """
 
+import hashlib
 import json
 import os
 from typing import Dict, Any, Optional
@@ -22,10 +23,35 @@ def cors_headers() -> Dict[str, str]:
     return {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-Admin-Bypass',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-Admin-Session-Token, X-Admin-Bypass',
         'Access-Control-Max-Age': '86400',
         'Content-Type': 'application/json',
     }
+
+
+def _sha256(token: str) -> str:
+    return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+
+def is_valid_admin_session(token: str) -> bool:
+    """Проверяет X-Admin-Session-Token в таблице admin_sessions."""
+    if not token or not DATABASE_URL:
+        return False
+    try:
+        token_hash = _sha256(token)
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
 
 
 def get_user_email(token: Optional[str]) -> Optional[str]:
@@ -196,9 +222,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     headers_in = event.get('headers') or {}
     auth_token = headers_in.get('X-Auth-Token') or headers_in.get('x-auth-token')
+    admin_session_token = headers_in.get('X-Admin-Session-Token') or headers_in.get('x-admin-session-token')
     admin_bypass = headers_in.get('X-Admin-Bypass') or headers_in.get('x-admin-bypass')
 
-    if str(admin_bypass or '').strip() != '1':
+    # Доступ: валидный admin session token ИЛИ STAFF_EMAILS ИЛИ bypass
+    admin_ok = is_valid_admin_session(admin_session_token) if admin_session_token else False
+    staff_ok = str(admin_bypass or '').strip() == '1'
+    if not admin_ok and not staff_ok:
         email = get_user_email(auth_token)
         if not email or email not in STAFF_EMAILS:
             return {

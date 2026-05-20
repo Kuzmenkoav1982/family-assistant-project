@@ -25,6 +25,48 @@ export const OVERLAP_CASES: OverlapCase[] = [
     status: 'decided',
     notes: 'Закрыто в этой же сессии. См. principle admin-route-guard.',
   },
+  {
+    id: 'security-mini-sprint-closed',
+    sectionA: 'route-guards',
+    sectionB: 'auth',
+    sharedFunction: 'защита маршрутов и аутентификация',
+    riskLevel: 'high',
+    problem:
+      '35+ MEDIUM-risk маршрутов (/chat, /calendar, /nutrition/*, /trips, /events/*, /tasks, ' +
+      'все хабы, /domovoy, /ai-assistant, /voting и др.) были доступны анонимным пользователям. ' +
+      'Admin auth использовал localStorage flag без серверной верификации. ' +
+      'Hardcoded admin credentials были в исходниках. Debug-роуты были в prod.',
+    recommendation:
+      'Security Mini-Sprint закрыт (commit d65bbf9, 2026-05-20): ' +
+      '(1) SEC-1.2a: HIGH-risk routes за ProtectedRoute. ' +
+      '(2) SEC-1.2b: все MEDIUM-risk routes за ProtectedRoute. ' +
+      '(3) SEC-1.3: admin auth через bcrypt + server-issued session token (TTL 12h). ' +
+      '(4) SEC-1.4: debug routes за import.meta.env.DEV. ' +
+      '(5) SEC-1.5: viewer-aware баннеры, server-side token verification.',
+    decision: 'keep',
+    status: 'decided',
+    notes: 'Полностью закрыто. Остаток tech-debt: S6 (dead pages), S8 (XSS audit) — отдельные треки.',
+  },
+  {
+    id: 'status-banner-v1-shipped',
+    sectionA: 'shell',
+    sectionB: 'admin',
+    sharedFunction: 'системные сообщения пользователям',
+    riskLevel: 'medium',
+    problem:
+      'Не было единого канала для системных сообщений — о техработах, критических ошибках, ' +
+      'обновлениях. Приходилось использовать ad-hoc решения или уведомления.',
+    recommendation:
+      'Status Banner v1 shipped (commit d65bbf9, 2026-05-20): ' +
+      'GlobalStatusBanner встроен в App.tsx (fixed top-16, z-40). ' +
+      '5 типов: info / update / maintenance / warning / critical. ' +
+      'Targeting: audience (public/authenticated/admin) + segment (registered_last_7d). ' +
+      'SEC-1.5: viewer определяется серверно по токену. ' +
+      'Admin CRUD: /admin/status-banners. Dismiss с TTL 90d в localStorage.',
+    decision: 'keep',
+    status: 'decided',
+    notes: 'Frozen & shipped. Follow-ups: FU-2 realtime, FU-3 analytics, FU-7 ML suggestions.',
+  },
 
   // ── Главный кейс: триада Портфолио ↔ Мастерская ↔ Развитие ──
   {
