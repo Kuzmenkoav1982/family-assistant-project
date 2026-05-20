@@ -294,13 +294,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             checkpw_result = bcrypt.checkpw(test_pw.encode('utf-8'), h.encode('utf-8'))
         except Exception as ex:
             checkpw_error = str(ex)
+        test_email = 'kuzmenkoav1982@yandex.ru'
         return _resp(200, {
             'hash_len': len(h),
             'hash_prefix': h[:20],
             'hash_suffix': h[-10:],
             'starts_with_2b': h.startswith('$2b$'),
             'email_len': len(e),
-            'email_suffix': e[-8:],
+            'email_repr': repr(e),
+            'test_email_repr': repr(test_email),
+            'email_match': (e == test_email),
             'checkpw_result': checkpw_result,
             'checkpw_error': checkpw_error,
         })
