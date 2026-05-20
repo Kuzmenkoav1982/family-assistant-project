@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import func2url from '@/../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface NamedCount {
   name: string;
@@ -80,9 +81,7 @@ export default function AdminTraffic() {
     try {
       const apiUrl = (func2url as Record<string, string>)['admin-users'] || '';
       if (!apiUrl) return;
-      const response = await fetch(apiUrl, {
-        headers: { 'X-Admin-Token': 'admin_authenticated' },
-      });
+      const response = await adminFetch(apiUrl);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {

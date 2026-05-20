@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import func2url from '../../../../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 const MAX_BOT_URL = (func2url as Record<string, string>)['max-bot'];
 
@@ -23,10 +24,8 @@ export default function ChannelPoller() {
   const handlePoll = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${MAX_BOT_URL}?action=poll-channel&limit=50`, {
+      const res = await adminFetch(`${MAX_BOT_URL}?action=poll-channel&limit=50`, {
         method: 'POST',
-        headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' },
       });
       const data = await res.json();
       if (data.ok) {

@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from '@/lib/adminFetch';
 
 const API = 'https://functions.poehali.dev/e6ccd99c-a165-48c7-83cf-946941114931';
 
@@ -83,9 +84,7 @@ const initialForm: CampaignFormState = {
   prizes: [],
 };
 
-interface Props {
-  adminToken: string;
-}
+
 
 function toLocalInput(iso?: string): string {
   if (!iso) return '';
@@ -99,7 +98,7 @@ function toLocalInput(iso?: string): string {
   }
 }
 
-export default function AdminRatingCampaigns({ adminToken }: Props) {
+export default function AdminRatingCampaigns() {
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,17 +106,10 @@ export default function AdminRatingCampaigns({ adminToken }: Props) {
   const [form, setForm] = useState<CampaignFormState>(initialForm);
   const [saving, setSaving] = useState(false);
 
-  const headers = {
-    'X-Admin-Token': adminToken,
-    'Content-Type': 'application/json',
-  };
-
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${API}?action=campaigns`, {
-        headers: { 'X-Admin-Token': adminToken },
-      });
+      const r = await adminFetch(`${API}?action=campaigns`);
       if (!r.ok) throw new Error('error');
       const j = await r.json();
       setCampaigns(j.campaigns || j || []);
@@ -126,7 +118,7 @@ export default function AdminRatingCampaigns({ adminToken }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [adminToken]);
+  }, []);
 
   useEffect(() => {
     load();
@@ -190,9 +182,8 @@ export default function AdminRatingCampaigns({ adminToken }: Props) {
     };
 
     try {
-      const r = await fetch(`${API}?action=${action}`, {
+      const r = await adminFetch(`${API}?action=${action}`, {
         method: 'POST',
-        headers,
         body: JSON.stringify(body),
       });
       const j = await r.json().catch(() => ({}));
@@ -213,9 +204,8 @@ export default function AdminRatingCampaigns({ adminToken }: Props) {
   const recalculate = async (c: Campaign) => {
     if (!confirm(`Пересчитать рейтинг для "${c.title}"?`)) return;
     try {
-      const r = await fetch(`${API}?action=recalculate`, {
+      const r = await adminFetch(`${API}?action=recalculate`, {
         method: 'POST',
-        headers,
         body: JSON.stringify({ campaign_id: c.id }),
       });
       const j = await r.json().catch(() => ({}));
@@ -233,9 +223,8 @@ export default function AdminRatingCampaigns({ adminToken }: Props) {
   const payout = async (c: Campaign) => {
     if (!confirm(`Выплатить призы для "${c.title}"? Это действие нельзя отменить.`)) return;
     try {
-      const r = await fetch(`${API}?action=payout`, {
+      const r = await adminFetch(`${API}?action=payout`, {
         method: 'POST',
-        headers,
         body: JSON.stringify({ campaign_id: c.id }),
       });
       const j = await r.json().catch(() => ({}));
@@ -255,9 +244,8 @@ export default function AdminRatingCampaigns({ adminToken }: Props) {
     if (!familyId) return;
     const reason = prompt('Причина:') || '';
     try {
-      const r = await fetch(`${API}?action=disqualify`, {
+      const r = await adminFetch(`${API}?action=disqualify`, {
         method: 'POST',
-        headers,
         body: JSON.stringify({ campaign_id: c.id, family_id: familyId, reason }),
       });
       const j = await r.json().catch(() => ({}));

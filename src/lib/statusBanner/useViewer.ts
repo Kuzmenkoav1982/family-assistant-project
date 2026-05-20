@@ -3,22 +3,22 @@
 //
 // Источники:
 //   - authToken через storage (как ProtectedRoute)
-//   - adminToken через localStorage (как AdminRoute)
+//   - adminSessionToken через hasValidLocalAdminSession (как AdminRoute)
 //   - AUTH_SESSION_EVENT — реагирует на login/logout в этой же вкладке
 //   - window 'storage' event — реагирует на изменения в других вкладках
 //
 // Не дёргает api, не делает network — только чтение локальных ключей.
-// Деpa нагрузка на main thread минимальна (3 листенера, без интервалов).
+// Нагрузка на main thread минимальна (3 листенера, без интервалов).
 
 import { useEffect, useState } from 'react';
 import { storage } from '@/lib/storage';
 import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
+import { hasValidLocalAdminSession } from '@/lib/adminAuth';
 import type { ViewerKind } from './types';
 
 function readViewer(): ViewerKind {
   try {
-    const isAdmin = localStorage.getItem('adminToken') === 'admin_authenticated';
-    if (isAdmin) return 'admin';
+    if (hasValidLocalAdminSession()) return 'admin';
     const token = storage.getItem('authToken');
     const isDemo = localStorage.getItem('isDemoMode') === 'true';
     if (token || isDemo) return 'authenticated';

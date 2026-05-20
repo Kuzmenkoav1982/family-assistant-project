@@ -18,6 +18,7 @@ import Icon from '@/components/ui/icon';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { adminFetch } from '@/lib/adminFetch';
 
 const ADMIN_API = 'https://functions.poehali.dev/d881b99a-9341-4b0b-9e54-0cfb6f7de905';
 const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b'];
@@ -39,9 +40,7 @@ export default function AdminDomovoy() {
 
   const loadDashboard = async () => {
     try {
-      const response = await fetch(`${ADMIN_API}?action=dashboard`, {
-        headers: { 'X-Admin-Token': 'admin_authenticated' }
-      });
+      const response = await adminFetch(`${ADMIN_API}?action=dashboard`);
       const data = await response.json();
       if (data.success) {
         setStats(data);
@@ -55,9 +54,7 @@ export default function AdminDomovoy() {
 
   const loadDonations = async () => {
     try {
-      const response = await fetch(`${ADMIN_API}?action=donations&limit=50`, {
-        headers: { 'X-Admin-Token': 'admin_authenticated' }
-      });
+      const response = await adminFetch(`${ADMIN_API}?action=donations&limit=50`);
       const data = await response.json();
       if (data.success) {
         setDonations(data.donations);
@@ -69,9 +66,7 @@ export default function AdminDomovoy() {
 
   const loadPaymentSettings = async () => {
     try {
-      const response = await fetch(`${ADMIN_API}?action=payment-settings`, {
-        headers: { 'X-Admin-Token': 'admin_authenticated' }
-      });
+      const response = await adminFetch(`${ADMIN_API}?action=payment-settings`);
       const data = await response.json();
       if (data.success) {
         setPaymentSettings(data.settings);
@@ -83,12 +78,8 @@ export default function AdminDomovoy() {
 
   const updatePaymentSetting = async (method: string, updates: any) => {
     try {
-      const response = await fetch(`${ADMIN_API}?action=update-payment-settings`, {
+      const response = await adminFetch(`${ADMIN_API}?action=update-payment-settings`, {
         method: 'POST',
-        headers: {
-          'X-Admin-Token': 'admin_authenticated',
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({ payment_method: method, ...updates })
       });
       
@@ -105,9 +96,7 @@ export default function AdminDomovoy() {
 
   const exportData = async () => {
     try {
-      const response = await fetch(`${ADMIN_API}?action=export`, {
-        headers: { 'X-Admin-Token': 'admin_authenticated' }
-      });
+      const response = await adminFetch(`${ADMIN_API}?action=export`);
       const csv = await response.text();
       
       const blob = new Blob([csv], { type: 'text/csv' });

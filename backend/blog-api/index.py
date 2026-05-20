@@ -7,7 +7,7 @@ GET /?action=tags — популярные теги
 GET /?action=sitemap — данные для sitemap.xml
 GET /?action=feed — последние N постов для главной
 
-Admin (требуют X-Admin-Token):
+Admin (требуют X-Admin-Session-Token):
 GET /?action=admin-list — все посты (включая drafts/archived) с full-data
 GET /?action=admin-stats — общая аналитика блога
 GET /?action=admin-post&id=N — один пост целиком для редактирования
@@ -30,7 +30,7 @@ except ImportError:
     requests = None
 
 SCHEMA = 't_p5815085_family_assistant_pro'
-ADMIN_TOKEN_DEFAULT = 'admin_authenticated'
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 CORS_HEADERS = {
     'Content-Type': 'application/json',
@@ -45,15 +45,39 @@ ADMIN_HEADERS = {
 }
 
 
-def check_admin(event: Dict) -> bool:
-    headers = event.get('headers', {}) or {}
-    token = headers.get('x-admin-token') or headers.get('X-Admin-Token')
-    if not token:
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
         return False
-    if token == ADMIN_TOKEN_DEFAULT:
-        return True
-    secret = os.environ.get('ADMIN_TOKEN')
-    return bool(secret) and token == secret
+    try:
+        import hashlib
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
+
+
+def _admin_authorized(event: Dict) -> bool:
+    headers = event.get('headers') or {}
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
+    return False
 
 
 def admin_response(data: Any, status: int = 200) -> Dict:
@@ -88,12 +112,10 @@ def _fire_poll_request() -> None:
     if requests is None:
         return
     try:
-        admin_token = os.environ.get('ADMIN_TOKEN') or 'admin_authenticated'
         requests.post(
             f"{MAX_BOT_FUNCTION_URL}?action=poll-channel&limit=30",
             headers={
                 'Content-Type': 'application/json',
-                'X-Admin-Token': admin_token,
                 'X-Cron': '1',
             },
             timeout=20,
@@ -661,7 +683,7 @@ def admin_toggle_status(body: Dict) -> Dict:
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     """
     Публичный API SEO-блога «Наша Семья» — лента, посты, категории, теги, sitemap.
-    Admin endpoints требуют заголовок X-Admin-Token.
+    Admin endpoints требуют заголовок X-Admin-Session-Token.
     """
     method = event.get('httpMethod', 'GET')
 
@@ -671,7 +693,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token, X-Admin-Actor',
                 'Access-Control-Max-Age': '86400',
             },
             'body': '',
@@ -705,7 +727,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             return post_reaction(body, source_ip)
 
         if action.startswith('admin-'):
-            if not check_admin(event):
+            if not _admin_authorized(event):
                 return admin_response({'error': 'unauthorized'}, 401)
 
             if action == 'admin-list':

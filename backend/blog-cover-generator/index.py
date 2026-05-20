@@ -3,7 +3,7 @@
 POST /?action=generate — сгенерировать обложку для одного поста по id
 POST /?action=generate-all — сгенерировать обложки для всех постов без cover_image_url
 
-Требует X-Admin-Token. Сохраняет картинки в S3, обновляет cover_image_url у поста.
+Требует X-Admin-Session-Token. Сохраняет картинки в S3, обновляет cover_image_url у поста.
 """
 
 import json
@@ -17,7 +17,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 SCHEMA = 't_p5815085_family_assistant_pro'
-ADMIN_TOKEN_DEFAULT = 'admin_authenticated'
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 YANDEX_API_URL = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
 YANDEX_OPERATION_URL = 'https://llm.api.cloud.yandex.net/operations/'
@@ -37,15 +37,39 @@ def respond(data: Any, status: int = 200) -> Dict:
     }
 
 
-def check_admin(event: Dict) -> bool:
-    h = event.get('headers', {}) or {}
-    token = h.get('x-admin-token') or h.get('X-Admin-Token')
-    if not token:
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
         return False
-    if token == ADMIN_TOKEN_DEFAULT:
-        return True
-    secret = os.environ.get('ADMIN_TOKEN')
-    return bool(secret) and token == secret
+    try:
+        import hashlib
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
+
+
+def _admin_authorized(event: dict) -> bool:
+    headers = event.get('headers') or {}
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
+    return False
 
 
 def db_conn():
@@ -219,14 +243,14 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token, X-Admin-Actor',
                 'Access-Control-Max-Age': '86400',
             },
             'body': '',
             'isBase64Encoded': False,
         }
 
-    if not check_admin(event):
+    if not _admin_authorized(event):
         return respond({'error': 'unauthorized'}, 401)
 
     params = event.get('queryStringParameters', {}) or {}

@@ -9,11 +9,11 @@
  * 1. Поведение и UI спиннеров — оставлены БЕЗ изменений (тот же градиент,
  *    тот же текст "Проверка авторизации..." / "Проверка админ-доступа…").
  *
- * 2. Источник истины — оставлен прежний:
+ * 2. Источник истины:
  *    - ProtectedRoute смотрит на `storage.getItem('authToken')`
  *      + `localStorage.getItem('isDemoMode') === 'true'` (demo-режим).
- *    - AdminRoute смотрит на `localStorage.getItem('adminToken') ===
- *      'admin_authenticated'`.
+ *    - AdminRoute смотрит на `hasValidLocalAdminSession()` (adminSessionToken
+ *      + expires_at, выданные backend.admin-auth).
  *    Identity adapter (readAuthToken и т.п.) сюда сознательно НЕ
  *    подключён — это бы поменяло поведение в edge cases с legacy ключами,
  *    что выходит за scope текущего косметического рефакторинга.
@@ -31,11 +31,10 @@
  *    Profit: вместо 3-4 проверок storage в секунду — события "по делу",
  *    меньше работы основного потока, лучше для батареи на мобилке.
  *
- * 4. Для admin-полей кастомный event пока не диспатчится (мы не пишем
- *    adminToken через authStorage helper — это отдельный flow в AdminLogin).
- *    Поэтому AdminRoute полагается на native 'storage' event + одну
- *    оптимизацию: focus listener (когда юзер возвращается на вкладку —
- *    переcверяем admin-доступ). Это компромисс между UX и нагрузкой.
+ * 4. Для admin-полей диспатчится кастомный ADMIN_SESSION_EVENT (из adminAuth
+ *    при login/logout). AdminRoute полагается на него + native 'storage'
+ *    event + focus listener (когда юзер возвращается на вкладку —
+ *    переcверяем протух ли expires_at). Это компромисс между UX и нагрузкой.
  *
  * ────────────────────────────────────────────────────────────────────────────
  */
@@ -51,7 +50,6 @@ import {
   ADMIN_SESSION_EXPIRES_KEY,
   LEGACY_ADMIN_TOKEN_KEY,
   hasValidLocalAdminSession,
-  hasLegacyAdminFlag,
 } from '@/lib/adminAuth';
 
 type GuardProps = { children: React.ReactNode };
@@ -120,11 +118,9 @@ export function ProtectedRoute({ children }: GuardProps) {
 /**
  * AdminRoute — пускает только админа с валидной серверной сессией.
  *
- * SEC-1.3 (после freeze hardcoded creds):
- *   - основной путь — adminSessionToken + expires_at в localStorage,
+ * SEC-1.3:
+ *   - единственный путь — adminSessionToken + expires_at в localStorage,
  *     получены через backend.admin-auth (bcrypt verify);
- *   - legacy fallback — старый `adminToken === 'admin_authenticated'` флаг,
- *     оставлен для grace-period; будет удалён после SEC-1 checkpoint.
  *   - подписки: native 'storage' (другие вкладки), кастомное
  *     ADMIN_SESSION_EVENT (login/logout в этой вкладке), 'focus' (возврат
  *     на вкладку — переcверим протух ли expires_at).
@@ -139,13 +135,7 @@ export function AdminRoute({ children }: GuardProps) {
   useEffect(() => {
     const checkAdmin = () => {
       try {
-        // Основной путь: валидная локальная сессия (token + не истёкший expires)
-        if (hasValidLocalAdminSession()) {
-          setIsAdmin(true);
-          return;
-        }
-        // Legacy fallback на время grace-period
-        setIsAdmin(hasLegacyAdminFlag());
+        setIsAdmin(hasValidLocalAdminSession());
       } catch (error) {
         console.warn('[AdminRoute] storage unavailable, denying admin:', error);
         setIsAdmin(false);

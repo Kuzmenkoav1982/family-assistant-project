@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface DashboardStats {
   subscription_stats: {
@@ -62,11 +63,7 @@ export default function SubscriptionsDashboard({ apiUrl }: Props) {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${apiUrl}?action=dashboard`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(`${apiUrl}?action=dashboard`);
 
       if (!response.ok) throw new Error('Failed to fetch stats');
 

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import func2url from '../../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
+import { hasValidLocalAdminSession } from '@/lib/adminAuth';
 
 const HEALTH_API = (func2url as Record<string, string>)['portfolio-health'];
 
@@ -48,19 +50,15 @@ export default function AdminPortfolioHealth() {
   const [range, setRange] = useState<'24h' | '7d'>('24h');
 
   useEffect(() => {
-    const token = localStorage.getItem('authToken') || '';
-    const isAdmin = localStorage.getItem('adminToken') === 'admin_authenticated';
-    if (!token && !isAdmin) {
+    const isAdmin = hasValidLocalAdminSession();
+    if (!isAdmin) {
       setForbidden(true);
       setLoading(false);
       return;
     }
     setLoading(true);
     setError(null);
-    const headers: Record<string, string> = {};
-    if (token) headers['X-Auth-Token'] = token;
-    if (isAdmin) headers['X-Admin-Bypass'] = '1';
-    fetch(`${HEALTH_API}?range=${range}`, { headers })
+    adminFetch(`${HEALTH_API}?range=${range}`)
       .then(async (res) => {
         if (res.status === 403) {
           setForbidden(true);

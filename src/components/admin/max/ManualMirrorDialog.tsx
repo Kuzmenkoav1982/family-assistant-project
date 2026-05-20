@@ -13,6 +13,7 @@ import {
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import func2url from '../../../../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 const MAX_BOT_URL = (func2url as Record<string, string>)['max-bot'];
 
@@ -60,10 +61,8 @@ export default function ManualMirrorDialog({ open, onOpenChange, onSuccess }: Pr
     }
     updateEntry(i, { loading: true, result: undefined });
     try {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${MAX_BOT_URL}?action=mirror`, {
+      const res = await adminFetch(`${MAX_BOT_URL}?action=mirror`, {
         method: 'POST',
-        headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text: entry.text.trim(),
           image_url: entry.imageUrl.trim() || undefined,

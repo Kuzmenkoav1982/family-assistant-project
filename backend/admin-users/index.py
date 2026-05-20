@@ -22,8 +22,43 @@ from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
+
+
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
+        return False
+    try:
+        import hashlib
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
+
+
+def _admin_authorized(event: dict) -> bool:
+    headers = event.get('headers') or {}
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
+    return False
 
 
 def _conn():
@@ -571,7 +606,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token, X-Admin-Actor',
         'Access-Control-Max-Age': '86400',
     }
 
@@ -593,9 +628,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         if resource == 'public_flags' and method == 'GET':
             return _ok(flags_list(), headers)
 
-        admin_token = (event.get('headers') or {}).get('x-admin-token') or \
-                      (event.get('headers') or {}).get('X-Admin-Token')
-        if admin_token != 'admin_authenticated':
+        if not _admin_authorized(event):
             return _err(401, 'Требуются права администратора', headers)
 
         if not DATABASE_URL:

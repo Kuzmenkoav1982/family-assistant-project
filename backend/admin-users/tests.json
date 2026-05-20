@@ -9,7 +9,7 @@
       "bodyMatcher": "exact"
     },
     {
-      "name": "Users (legacy) without token rejected",
+      "name": "No token → 401",
       "method": "GET",
       "path": "/",
       "expectedStatus": 401,
@@ -17,93 +17,27 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Users (legacy) with token",
+      "name": "X-Admin-Token legacy header → 401",
       "method": "GET",
       "path": "/",
       "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Public flags (no auth required)",
+      "method": "GET",
+      "path": "/?resource=public_flags",
+      "expectedStatus": 200,
+      "expectedBody": {},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Client error submission (no auth required)",
+      "method": "POST",
+      "path": "/?resource=errors",
+      "body": {"message": "test error", "path": "/test"},
       "expectedStatus": 200,
       "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Families list",
-      "method": "GET",
-      "path": "/?resource=families",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {"summary": {}},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Finance summary",
-      "method": "GET",
-      "path": "/?resource=finance",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Promo list",
-      "method": "GET",
-      "path": "/?resource=promo",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Funnel",
-      "method": "GET",
-      "path": "/?resource=funnel",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {"period_days": 30},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Feature flags",
-      "method": "GET",
-      "path": "/?resource=flags",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Top families",
-      "method": "GET",
-      "path": "/?resource=top",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Broadcasts list",
-      "method": "GET",
-      "path": "/?resource=broadcasts",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Errors list",
-      "method": "GET",
-      "path": "/?resource=errors",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Tickets list",
-      "method": "GET",
-      "path": "/?resource=tickets",
-      "headers": {"X-Admin-Token": "admin_authenticated"},
-      "expectedStatus": 200,
-      "expectedBody": {},
       "bodyMatcher": "partial"
     }
   ]

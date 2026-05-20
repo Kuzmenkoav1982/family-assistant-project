@@ -3,8 +3,7 @@
 // Контракт:
 //   - login(email, password) → server verify → server-issued session token
 //   - token хранится в localStorage под ключом ADMIN_SESSION_TOKEN_KEY
-//   - старый ключ 'adminToken' = 'admin_authenticated' оставлен как legacy
-//     fallback для grace-period; будет удалён после SEC-1 checkpoint
+//   - legacy ключ 'adminToken' зачищается при login/logout для clean migration
 //   - logout → revoke на сервере + локальная очистка
 //   - verify → POST /verify, возвращает {valid, admin_email, expires_at}
 
@@ -16,7 +15,7 @@ const ADMIN_AUTH_URL =
 export const ADMIN_SESSION_TOKEN_KEY = 'adminSessionToken';
 export const ADMIN_SESSION_EXPIRES_KEY = 'adminSessionExpires';
 export const ADMIN_SESSION_EMAIL_KEY = 'adminSessionEmail';
-/** Legacy ключ — оставлен для grace-period, не пишется новой логикой. */
+/** Legacy ключ — зачищается при login/logout, не пишется новой логикой. */
 export const LEGACY_ADMIN_TOKEN_KEY = 'adminToken';
 /** Event-имя, на которое подписаны AdminRoute и UI компоненты. */
 export const ADMIN_SESSION_EVENT = 'admin-session-changed';
@@ -140,11 +139,3 @@ export function hasValidLocalAdminSession(): boolean {
   return true;
 }
 
-/** Legacy hatch: проверка старого флага. Будет удалена после checkpoint. */
-export function hasLegacyAdminFlag(): boolean {
-  try {
-    return localStorage.getItem(LEGACY_ADMIN_TOKEN_KEY) === 'admin_authenticated';
-  } catch {
-    return false;
-  }
-}

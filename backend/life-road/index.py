@@ -1,10 +1,48 @@
 import json
 import os
 import base64
+import hashlib
 from datetime import datetime
 import psycopg2
 import boto3
 import requests
+
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+SCHEMA = 't_p5815085_family_assistant_pro'
+
+
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
+        return False
+    try:
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
+
+
+def _admin_authorized(event: dict) -> bool:
+    headers = event.get('headers') or {}
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
+    return False
 
 YANDEX_FOLDER_ID = 'b1gaglg8i7v2i32nvism'
 
@@ -32,19 +70,37 @@ def handler(event: dict, context) -> dict:
     cors_headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization',
+        'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization, X-Admin-Session-Token',
     }
 
     if method == 'OPTIONS':
         return {'statusCode': 200, 'headers': cors_headers, 'body': '', 'isBase64Encoded': False}
+
+    qp = event.get('queryStringParameters') or {}
+    resource = (qp.get('resource') or 'events').lower()
+
+    # cache-backfill — admin-only, не требует X-User-Id
+    if resource == 'cache-backfill':
+        if not _admin_authorized(event):
+            return _resp(403, {'error': 'admin_only'})
+        dsn = os.environ.get('DATABASE_URL')
+        conn = psycopg2.connect(dsn)
+        cur = conn.cursor()
+        try:
+            family_id = (qp.get('family_id') or '').strip() or None
+            return _handle_cache_backfill(method, cur, conn, family_id)
+        finally:
+            try:
+                cur.close()
+                conn.close()
+            except Exception:
+                pass
 
     headers = event.get('headers', {}) or {}
     user_id = headers.get('X-User-Id') or headers.get('x-user-id')
     if not user_id:
         return _resp(401, {'error': 'User ID required'})
 
-    qp = event.get('queryStringParameters') or {}
-    resource = (qp.get('resource') or 'events').lower()
     item_id = qp.get('id')
 
     dsn = os.environ.get('DATABASE_URL')
@@ -74,13 +130,6 @@ def handler(event: dict, context) -> dict:
             return _handle_portfolio_links(method, cur, conn, family_id, user_id, item_id, event)
         if resource == 'portfolio-picker':
             return _handle_portfolio_picker(method, cur, conn, family_id, event)
-        if resource == 'cache-backfill':
-            # Защита: backfill — служебная операция, требует X-Admin-Token.
-            admin_token = headers.get('X-Admin-Token') or headers.get('x-admin-token')
-            expected = os.environ.get('ADMIN_TOKEN') or ''
-            if not expected or admin_token != expected:
-                return _resp(403, {'error': 'admin_only'})
-            return _handle_cache_backfill(method, cur, conn, family_id)
         if resource == 'balance':
             return _handle_balance(method, cur, conn, family_id, user_id, event)
         if resource == 'photo':

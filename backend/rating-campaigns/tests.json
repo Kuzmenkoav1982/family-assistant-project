@@ -1,6 +1,12 @@
 {
   "tests": [
     {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
       "name": "Overview без user — отдаёт активную кампанию",
       "method": "GET",
       "path": "/?action=overview",
@@ -15,15 +21,23 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "OPTIONS preflight",
-      "method": "OPTIONS",
-      "path": "/",
-      "expectedStatus": 200
-    },
-    {
-      "name": "Recalculate без админ-токена — 403",
+      "name": "Recalculate без токена → 403",
       "method": "POST",
       "path": "/?action=recalculate",
+      "expectedStatus": 403
+    },
+    {
+      "name": "X-Admin-Token legacy header → 403 (admin action)",
+      "method": "POST",
+      "path": "/?action=recalculate",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "X-Admin-Token legacy header on campaigns list → 403",
+      "method": "GET",
+      "path": "/?action=campaigns",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
       "expectedStatus": 403
     }
   ]

@@ -9,6 +9,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import func2url from '@/../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface ChannelStats {
   subscribers?: number;
@@ -93,12 +94,8 @@ export default function AdminMAX() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${maxBotUrl}?action=send`, {
+      const response = await adminFetch(`${maxBotUrl}?action=send`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_authenticated'
-        },
         body: JSON.stringify({
           text: postText,
           image_url: imageUrl || undefined
@@ -158,12 +155,8 @@ export default function AdminMAX() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${maxBotUrl}?action=schedule`, {
+      const response = await adminFetch(`${maxBotUrl}?action=schedule`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_authenticated'
-        },
         body: JSON.stringify({
           text: postText,
           scheduled_time: scheduledTime,

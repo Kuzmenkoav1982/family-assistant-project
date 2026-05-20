@@ -87,6 +87,20 @@
       },
       "expectedStatus": 401,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "X-Admin-Token legacy header on admin-list → 401",
+      "method": "GET",
+      "path": "/?action=admin-list",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "X-Admin-Token legacy header on admin-stats → 401",
+      "method": "GET",
+      "path": "/?action=admin-stats",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 401
     }
   ]
 }

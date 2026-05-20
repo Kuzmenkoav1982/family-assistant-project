@@ -13,13 +13,13 @@ import { useToast } from '@/hooks/use-toast';
 import func2url from '@/../backend/func2url.json';
 import AdminRatingCampaigns from '@/components/admin/AdminRatingCampaigns';
 import AdminReferralProgram from '@/components/admin/AdminReferralProgram';
+import { adminFetch } from '@/lib/adminFetch';
 
 const API = (func2url as Record<string, string>)['admin-users'];
-const AUTH_HEADERS = { 'X-Admin-Token': 'admin_authenticated', 'Content-Type': 'application/json' };
 
 async function apiGet<T>(resource: string, extra = ''): Promise<T | null> {
   try {
-    const r = await fetch(`${API}?resource=${resource}${extra}`, { headers: AUTH_HEADERS });
+    const r = await adminFetch(`${API}?resource=${resource}${extra}`);
     if (!r.ok) return null;
     return await r.json();
   } catch {
@@ -29,9 +29,8 @@ async function apiGet<T>(resource: string, extra = ''): Promise<T | null> {
 
 async function apiPost<T>(resource: string, body: object): Promise<T | null> {
   try {
-    const r = await fetch(`${API}?resource=${resource}`, {
+    const r = await adminFetch(`${API}?resource=${resource}`, {
       method: 'POST',
-      headers: AUTH_HEADERS,
       body: JSON.stringify(body),
     });
     return await r.json();
@@ -42,9 +41,8 @@ async function apiPost<T>(resource: string, body: object): Promise<T | null> {
 
 async function apiDelete<T>(resource: string, body: object): Promise<T | null> {
   try {
-    const r = await fetch(`${API}?resource=${resource}`, {
+    const r = await adminFetch(`${API}?resource=${resource}`, {
       method: 'DELETE',
-      headers: AUTH_HEADERS,
       body: JSON.stringify(body),
     });
     return await r.json();
@@ -202,10 +200,10 @@ export default function AdminPanel() {
             <FlagsTab toast={toast} />
           </TabsContent>
           <TabsContent value="campaigns" className="mt-4">
-            <AdminRatingCampaigns adminToken="admin_authenticated" />
+            <AdminRatingCampaigns />
           </TabsContent>
           <TabsContent value="referrals" className="mt-4">
-            <AdminReferralProgram adminToken="admin_authenticated" />
+            <AdminReferralProgram />
           </TabsContent>
           <TabsContent value="hubs" className="mt-4">
             <HubsTab />

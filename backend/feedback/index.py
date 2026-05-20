@@ -6,7 +6,7 @@ from typing import Optional, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 IDEA_CATEGORIES = [
@@ -48,9 +48,36 @@ def cors_headers():
     return {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-Admin-Token',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token, X-Admin-Session-Token, X-Admin-Actor',
         'Content-Type': 'application/json'
     }
+
+
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
+        return False
+    try:
+        import hashlib
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
 
 
 def verify_token(token: Optional[str]) -> Optional[dict]:
@@ -102,8 +129,10 @@ def response(status_code, body):
 
 def is_admin(event):
     headers = event.get('headers') or {}
-    token = headers.get('x-admin-token') or headers.get('X-Admin-Token')
-    return token == 'admin_authenticated'
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
+    return False
 
 
 def handler(event, context):

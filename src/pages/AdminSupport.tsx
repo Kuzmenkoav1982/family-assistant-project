@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import func2url from '../../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
+import { hasValidLocalAdminSession } from '@/lib/adminAuth';
 
 interface FeedbackItem {
   id: string;
@@ -27,11 +29,9 @@ export default function AdminSupport() {
   const [loading, setLoading] = useState(true);
 
   const feedbackUrl = func2url['feedback' as keyof typeof func2url];
-  const adminHeaders = { 'Content-Type': 'application/json', 'X-Admin-Token': 'admin_authenticated' };
 
   useEffect(() => {
-    const adminToken = localStorage.getItem('adminToken');
-    if (adminToken !== 'admin_authenticated') {
+    if (!hasValidLocalAdminSession()) {
       navigate('/admin/login');
       return;
     }
@@ -41,9 +41,9 @@ export default function AdminSupport() {
   const loadAllData = async () => {
     try {
       const [supportRes, feedbackRes, suggestionRes] = await Promise.all([
-        fetch(`${feedbackUrl}?type=support&all_statuses=true`, { headers: adminHeaders }),
-        fetch(`${feedbackUrl}?type=review&all_statuses=true`, { headers: adminHeaders }),
-        fetch(`${feedbackUrl}?type=suggestion&all_statuses=true`, { headers: adminHeaders })
+        adminFetch(`${feedbackUrl}?type=support&all_statuses=true`),
+        adminFetch(`${feedbackUrl}?type=review&all_statuses=true`),
+        adminFetch(`${feedbackUrl}?type=suggestion&all_statuses=true`)
       ]);
 
       const supportData = await supportRes.json();
@@ -62,9 +62,8 @@ export default function AdminSupport() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await fetch(feedbackUrl, {
+      await adminFetch(feedbackUrl, {
         method: 'PUT',
-        headers: adminHeaders,
         body: JSON.stringify({ id, status })
       });
       loadAllData();
@@ -75,9 +74,8 @@ export default function AdminSupport() {
 
   const deleteFeedback = async (id: string) => {
     try {
-      await fetch(`${feedbackUrl}?id=${id}`, {
-        method: 'DELETE',
-        headers: adminHeaders
+      await adminFetch(`${feedbackUrl}?id=${id}`, {
+        method: 'DELETE'
       });
       loadAllData();
     } catch (error) {

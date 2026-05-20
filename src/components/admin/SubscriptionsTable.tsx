@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface Subscription {
   id: string;
@@ -67,11 +68,7 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
   const fetchSubscriptions = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}?action=subscriptions`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(`${apiUrl}?action=subscriptions`);
 
       if (!response.ok) throw new Error('Failed to fetch');
 
@@ -118,12 +115,8 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
     if (!selectedSub) return;
 
     try {
-      const response = await fetch(`${apiUrl}?action=extend`, {
+      const response = await adminFetch(`${apiUrl}?action=extend`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_authenticated'
-        },
         body: JSON.stringify({
           subscription_id: selectedSub.id,
           days: parseInt(extendDays),
@@ -156,12 +149,8 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
     if (!selectedSub || !newPlanType) return;
 
     try {
-      const response = await fetch(`${apiUrl}?action=change-plan`, {
+      const response = await adminFetch(`${apiUrl}?action=change-plan`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_authenticated'
-        },
         body: JSON.stringify({
           subscription_id: selectedSub.id,
           new_plan: newPlanType,

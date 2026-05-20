@@ -1,6 +1,6 @@
 """
 Business: Admin write API для StatusBanner. CRUD + enable/disable + publish/
-unpublish. Требует X-Admin-Token: admin_authenticated. Серверная валидация
+unpublish. Требует X-Admin-Session-Token (проверка в admin_sessions). Серверная валидация
 дублирует CHECK-констрейнты БД для понятных ошибок в админке.
 
 Args: event с httpMethod GET|POST|PUT|DELETE|OPTIONS;
@@ -22,7 +22,6 @@ from psycopg2.extras import RealDictCursor
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
-ADMIN_TOKEN_EXPECTED = 'admin_authenticated'
 
 ALLOWED_TYPES = {'info', 'maintenance', 'warning', 'critical', 'update'}
 ALLOWED_AUDIENCES = {'all', 'authenticated', 'admins'}
@@ -38,7 +37,7 @@ DEFAULT_DISMISSIBLE = {
 CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token, X-Admin-Session-Token, X-Admin-Actor',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token, X-Admin-Actor',
     'Access-Control-Max-Age': '86400',
     'Content-Type': 'application/json',
     'Cache-Control': 'no-store',
@@ -56,31 +55,11 @@ def _resp(status: int, body: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _admin_authorized(event: Dict[str, Any]) -> bool:
-    """
-    SEC-1.3: основной путь — X-Admin-Session-Token (verified в БД через
-    backend.admin-auth). Legacy X-Admin-Token остаётся для grace-period,
-    пока фронт переходит на сессии. Уберём после SEC-1 checkpoint.
-    """
+    """SEC-1.3: единственный путь — X-Admin-Session-Token, verified в БД."""
     headers = event.get('headers') or {}
-    session_token = None
-    legacy_token = None
     for k, v in headers.items():
-        if not isinstance(k, str) or not isinstance(v, str):
-            continue
-        k_lower = k.lower()
-        if k_lower == 'x-admin-session-token':
-            session_token = v
-        elif k_lower == 'x-admin-token':
-            legacy_token = v
-
-    # 1) New session-based auth — БД проверяет TTL/revoked
-    if session_token and _verify_session_in_db(session_token):
-        return True
-
-    # 2) Legacy fallback — будет удалён после SEC-1 checkpoint
-    if legacy_token == ADMIN_TOKEN_EXPECTED:
-        return True
-
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
     return False
 
 

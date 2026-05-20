@@ -5,17 +5,16 @@
 //                независимо от заголовков. authenticated/admins audiences
 //                considered gated до security mini-sprint с верифицированной
 //                серверной auth-валидацией.
-// Admin write:   admin-status-banners   (CRUD, требует X-Admin-Token)
+// Admin write:   admin-status-banners   (CRUD, требует X-Admin-Session-Token)
 //
 // URL'ы — через @/../backend/func2url.json (генерируется при sync_backend).
 
 import func2url from '../../../backend/func2url.json';
 import type { StatusBanner, StatusBannerDraft } from './types';
+import { adminFetch } from '@/lib/adminFetch';
 
 const PUBLIC_URL = (func2url as Record<string, string>)['status-banners-public'] ?? '';
 const ADMIN_URL = (func2url as Record<string, string>)['admin-status-banners'] ?? '';
-
-const ADMIN_TOKEN = 'admin_authenticated';
 
 /** Политика audience public endpoint в v1 (B3.6, вариант A). */
 export const AUDIENCE_POLICY_V1 = 'all_only_v1' as const;
@@ -55,30 +54,9 @@ export async function fetchPublicBanners(signal?: AbortSignal): Promise<StatusBa
 
 // ---------- admin ----------
 
-function adminHeaders(actor?: string): HeadersInit {
-  const h: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  // SEC-1.3: предпочитаем server-issued session token; legacy ADMIN_TOKEN
-  // отправляем как fallback на grace-period, пока backend поддерживает оба.
-  let sessionToken: string | null = null;
-  try {
-    sessionToken = localStorage.getItem('adminSessionToken');
-  } catch {
-    sessionToken = null;
-  }
-  if (sessionToken) {
-    h['X-Admin-Session-Token'] = sessionToken;
-  } else {
-    h['X-Admin-Token'] = ADMIN_TOKEN;
-  }
-  if (actor) h['X-Admin-Actor'] = actor;
-  return h;
-}
-
 export async function adminListBanners(): Promise<StatusBanner[]> {
   if (!ADMIN_URL) throw new Error('admin-status-banners URL not configured');
-  const res = await fetch(ADMIN_URL, { method: 'GET', headers: adminHeaders() });
+  const res = await adminFetch(ADMIN_URL);
   if (!res.ok) throw new Error(`adminListBanners HTTP ${res.status}`);
   const data = (await res.json()) as AdminListResponse;
   return Array.isArray(data.banners) ? data.banners : [];
@@ -88,10 +66,10 @@ export async function adminCreateBanner(
   draft: StatusBannerDraft,
   actor?: string,
 ): Promise<StatusBanner> {
-  const res = await fetch(ADMIN_URL, {
+  const res = await adminFetch(ADMIN_URL, {
     method: 'POST',
-    headers: adminHeaders(actor),
     body: JSON.stringify(draft),
+    ...(actor ? { actor } : {}),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -107,10 +85,10 @@ export async function adminUpdateBanner(
   actor?: string,
 ): Promise<StatusBanner> {
   const url = `${ADMIN_URL}?id=${encodeURIComponent(id)}`;
-  const res = await fetch(url, {
+  const res = await adminFetch(url, {
     method: 'PUT',
-    headers: adminHeaders(actor),
     body: JSON.stringify(draft),
+    ...(actor ? { actor } : {}),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -127,7 +105,10 @@ export async function adminSetEnabled(
 ): Promise<StatusBanner> {
   const action = enabled ? 'enable' : 'disable';
   const url = `${ADMIN_URL}?id=${encodeURIComponent(id)}&action=${action}`;
-  const res = await fetch(url, { method: 'POST', headers: adminHeaders(actor) });
+  const res = await adminFetch(url, {
+    method: 'POST',
+    ...(actor ? { actor } : {}),
+  });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || body.error || `HTTP ${res.status}`);
@@ -138,7 +119,7 @@ export async function adminSetEnabled(
 
 export async function adminDeleteBanner(id: string): Promise<void> {
   const url = `${ADMIN_URL}?id=${encodeURIComponent(id)}`;
-  const res = await fetch(url, { method: 'DELETE', headers: adminHeaders() });
+  const res = await adminFetch(url, { method: 'DELETE' });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail || body.error || `HTTP ${res.status}`);

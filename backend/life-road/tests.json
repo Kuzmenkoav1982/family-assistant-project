@@ -7,12 +7,21 @@
       "expectedStatus": 200
     },
     {
-      "name": "Unauthorized without X-User-Id",
+      "name": "No X-User-Id → 401",
       "method": "GET",
       "path": "/?resource=events",
       "expectedStatus": 401,
       "expectedBody": {"error": "string"},
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "X-Admin-Token legacy header on cache-backfill → 403",
+      "method": "POST",
+      "path": "/?resource=cache-backfill",
+      "headers": {
+        "X-Admin-Token": "admin_authenticated"
+      },
+      "expectedStatus": 403
     }
   ]
 }

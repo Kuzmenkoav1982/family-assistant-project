@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import func2url from '@/../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface User {
   id: string;
@@ -71,11 +72,7 @@ export default function AdminUsers() {
 
     setLoading(true);
     try {
-      const response = await fetch(usersApiUrl, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(usersApiUrl);
 
       if (!response.ok) {
         throw new Error('Ошибка загрузки пользователей');

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import func2url from '@/../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -220,11 +221,7 @@ export default function PlansSettings() {
         return;
       }
 
-      const response = await fetch(`${apiUrl}?action=all`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(`${apiUrl}?action=all`);
 
       if (response.ok) {
         const data = await response.json();
@@ -281,12 +278,8 @@ export default function PlansSettings() {
     }
 
     try {
-      const response = await fetch(apiUrl, {
+      const response = await adminFetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_authenticated'
-        },
         body: JSON.stringify({
           plan_id: plan.id,
           name: plan.name,

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import func2url from '../../../../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 const MAX_BOT_URL = (func2url as Record<string, string>)['max-bot'];
 
@@ -21,10 +22,7 @@ export default function WebhookConnector() {
   const loadStatus = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${MAX_BOT_URL}?action=webhook-status`, {
-        headers: { 'X-Admin-Token': token },
-      });
+      const res = await adminFetch(`${MAX_BOT_URL}?action=webhook-status`);
       const data = await res.json();
       if (data.ok) {
         setStatus({
@@ -50,10 +48,8 @@ export default function WebhookConnector() {
   const handleConnect = async () => {
     setActing(true);
     try {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${MAX_BOT_URL}?action=webhook-subscribe`, {
+      const res = await adminFetch(`${MAX_BOT_URL}?action=webhook-subscribe`, {
         method: 'POST',
-        headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' },
         body: '{}',
       });
       const data = await res.json();
@@ -74,10 +70,8 @@ export default function WebhookConnector() {
     if (!confirm('Удалить все ЧУЖИЕ webhook-подписки у бота? Своя подписка останется. Это нужно делать, если посты из MAX перестали приходить из-за конфликта подписок.')) return;
     setActing(true);
     try {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${MAX_BOT_URL}?action=webhook-clean-foreign`, {
+      const res = await adminFetch(`${MAX_BOT_URL}?action=webhook-clean-foreign`, {
         method: 'POST',
-        headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' },
         body: '{}',
       });
       const data = await res.json();
@@ -103,10 +97,8 @@ export default function WebhookConnector() {
     if (!confirm('Точно отключить автоматическое зеркало? После этого посты из МАХ перестанут попадать на сайт автоматически.')) return;
     setActing(true);
     try {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${MAX_BOT_URL}?action=webhook-unsubscribe`, {
+      const res = await adminFetch(`${MAX_BOT_URL}?action=webhook-unsubscribe`, {
         method: 'POST',
-        headers: { 'X-Admin-Token': token, 'Content-Type': 'application/json' },
         body: '{}',
       });
       const data = await res.json();

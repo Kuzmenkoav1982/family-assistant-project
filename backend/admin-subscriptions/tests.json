@@ -1,23 +1,23 @@
 {
   "tests": [
     {
-      "name": "Unauthorized access without admin token",
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "No token → 401",
       "method": "GET",
       "path": "/?action=dashboard",
       "expectedStatus": 401
     },
     {
-      "name": "Get dashboard stats with admin token",
+      "name": "X-Admin-Token legacy header → 401",
       "method": "GET",
       "path": "/?action=dashboard",
-      "headers": {
-        "X-Admin-Token": "admin_authenticated"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "subscription_stats": "object"
-      },
-      "bodyMatcher": "partial"
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 401
     }
   ]
 }

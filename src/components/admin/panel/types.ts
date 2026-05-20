@@ -1,12 +1,12 @@
 import func2url from '@/../backend/func2url.json';
+import { adminFetch } from '@/lib/adminFetch';
 
 export const API = (func2url as Record<string, string>)['admin-users'];
 export const ANALYTICS_URL = (func2url as Record<string, string>)['analytics'];
-export const AUTH_HEADERS = { 'X-Admin-Token': 'admin_authenticated', 'Content-Type': 'application/json' };
 
 export async function apiGet<T>(resource: string, extra = ''): Promise<T | null> {
   try {
-    const r = await fetch(`${API}?resource=${resource}${extra}`, { headers: AUTH_HEADERS });
+    const r = await adminFetch(`${API}?resource=${resource}${extra}`);
     if (!r.ok) return null;
     return await r.json();
   } catch {
@@ -16,9 +16,8 @@ export async function apiGet<T>(resource: string, extra = ''): Promise<T | null>
 
 export async function apiPost<T>(resource: string, body: object): Promise<T | null> {
   try {
-    const r = await fetch(`${API}?resource=${resource}`, {
+    const r = await adminFetch(`${API}?resource=${resource}`, {
       method: 'POST',
-      headers: AUTH_HEADERS,
       body: JSON.stringify(body),
     });
     return await r.json();
@@ -29,9 +28,8 @@ export async function apiPost<T>(resource: string, body: object): Promise<T | nu
 
 export async function apiDelete<T>(resource: string, body: object): Promise<T | null> {
   try {
-    const r = await fetch(`${API}?resource=${resource}`, {
+    const r = await adminFetch(`${API}?resource=${resource}`, {
       method: 'DELETE',
-      headers: AUTH_HEADERS,
       body: JSON.stringify(body),
     });
     return await r.json();

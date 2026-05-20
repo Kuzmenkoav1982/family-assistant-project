@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from '@/lib/adminFetch';
 
 const API = 'https://functions.poehali.dev/f7e5b7b2-225c-43f5-b399-5b5201594228';
 
@@ -37,9 +38,7 @@ interface Invite {
   created_at?: string | null;
 }
 
-interface Props {
-  adminToken: string;
-}
+
 
 const defaultSettings: Settings = {
   is_enabled: true,
@@ -53,7 +52,7 @@ const defaultSettings: Settings = {
   max_rewards_per_inviter: 50,
 };
 
-export default function AdminReferralProgram({ adminToken }: Props) {
+export default function AdminReferralProgram() {
   const { toast } = useToast();
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [settingsLoading, setSettingsLoading] = useState(true);
@@ -63,17 +62,10 @@ export default function AdminReferralProgram({ adminToken }: Props) {
   const [filter, setFilter] = useState<string>('all');
   const [checkingActivation, setCheckingActivation] = useState(false);
 
-  const headers = {
-    'X-Admin-Token': adminToken,
-    'Content-Type': 'application/json',
-  };
-
   const loadSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
-      const r = await fetch(`${API}?action=settings`, {
-        headers: { 'X-Admin-Token': adminToken },
-      });
+      const r = await adminFetch(`${API}?action=settings`);
       if (r.ok) {
         const j = await r.json();
         setSettings({ ...defaultSettings, ...(j.settings || j) });
@@ -83,14 +75,12 @@ export default function AdminReferralProgram({ adminToken }: Props) {
     } finally {
       setSettingsLoading(false);
     }
-  }, [adminToken]);
+  }, []);
 
   const loadInvites = useCallback(async () => {
     setInvitesLoading(true);
     try {
-      const r = await fetch(`${API}?action=admin_invites&limit=200`, {
-        headers: { 'X-Admin-Token': adminToken },
-      });
+      const r = await adminFetch(`${API}?action=admin_invites&limit=200`);
       if (r.ok) {
         const j = await r.json();
         setInvites(j.invites || j || []);
@@ -102,7 +92,7 @@ export default function AdminReferralProgram({ adminToken }: Props) {
     } finally {
       setInvitesLoading(false);
     }
-  }, [adminToken]);
+  }, []);
 
   useEffect(() => {
     loadSettings();
@@ -112,9 +102,8 @@ export default function AdminReferralProgram({ adminToken }: Props) {
   const saveSettings = async () => {
     setSavingSettings(true);
     try {
-      const r = await fetch(`${API}?action=update_settings`, {
+      const r = await adminFetch(`${API}?action=update_settings`, {
         method: 'POST',
-        headers,
         body: JSON.stringify(settings),
       });
       const j = await r.json().catch(() => ({}));
@@ -133,9 +122,8 @@ export default function AdminReferralProgram({ adminToken }: Props) {
   const checkActivation = async () => {
     setCheckingActivation(true);
     try {
-      const r = await fetch(`${API}?action=check_activation`, {
+      const r = await adminFetch(`${API}?action=check_activation`, {
         method: 'POST',
-        headers,
         body: '{}',
       });
       const j = await r.json().catch(() => ({}));
@@ -159,9 +147,8 @@ export default function AdminReferralProgram({ adminToken }: Props) {
     const reason = prompt('Причина пометки как фрод:');
     if (!reason) return;
     try {
-      const r = await fetch(`${API}?action=mark_fraud`, {
+      const r = await adminFetch(`${API}?action=mark_fraud`, {
         method: 'POST',
-        headers,
         body: JSON.stringify({ invite_id: inv.id, reason }),
       });
       const j = await r.json().catch(() => ({}));

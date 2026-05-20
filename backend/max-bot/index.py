@@ -19,6 +19,7 @@ MAX_BOT_TOKEN = os.environ.get('MAX_BOT_TOKEN')
 MAX_API_BASE = 'https://platform-api.max.ru'
 SCHEMA = 't_p5815085_family_assistant_pro'
 CHANNEL_CHAT_ID_ENV = os.environ.get('MAX_CHANNEL_CHAT_ID', '')
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
 CORS_HEADERS = {
     'Content-Type': 'application/json',
@@ -57,15 +58,39 @@ def send_message(chat_id: int, text: str) -> Dict[str, Any]:
     })
 
 
-def _is_admin(event: Dict) -> bool:
-    h = event.get('headers', {}) or {}
-    token = h.get('x-admin-token') or h.get('X-Admin-Token')
-    if not token:
+def _verify_session_in_db(token: str) -> bool:
+    if not token or not DATABASE_URL:
         return False
-    if token == 'admin_authenticated':
-        return True
-    secret = os.environ.get('ADMIN_TOKEN')
-    return bool(secret) and token == secret
+    try:
+        import hashlib
+        token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT 1 FROM {SCHEMA}.admin_sessions "
+            f"WHERE token_hash = %s AND revoked_at IS NULL AND expires_at > now() LIMIT 1",
+            (token_hash,),
+        )
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                f"UPDATE {SCHEMA}.admin_sessions SET last_used_at = now() WHERE token_hash = %s",
+                (token_hash,),
+            )
+            conn.commit()
+        cur.close()
+        conn.close()
+        return bool(row)
+    except Exception:
+        return False
+
+
+def _admin_authorized(event: dict) -> bool:
+    headers = event.get('headers') or {}
+    for k, v in headers.items():
+        if isinstance(k, str) and isinstance(v, str) and k.lower() == 'x-admin-session-token':
+            return _verify_session_in_db(v)
+    return False
 
 
 def db_connect():
@@ -478,7 +503,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'headers': {
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Token',
+                'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Session-Token, X-Admin-Actor',
                 'Access-Control-Max-Age': '86400'
             },
             'body': '',
@@ -549,7 +574,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             }
 
     if method == 'POST' and action == 'send':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -593,7 +618,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'mirror':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -629,7 +654,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'GET' and action == 'webhook-status':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -657,7 +682,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'webhook-subscribe':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -682,7 +707,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'webhook-unsubscribe':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -710,7 +735,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'GET' and action == 'webhook-debug':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -748,7 +773,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
 
     if (method == 'POST' or method == 'GET') and action == 'poll-channel':
         is_cron = (event.get('headers') or {}).get('X-Cron') or (event.get('headers') or {}).get('x-cron')
-        if not is_cron and not _is_admin(event):
+        if not is_cron and not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -774,7 +799,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'GET' and action == 'chats':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,
@@ -794,7 +819,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'webhook-clean-foreign':
-        if not _is_admin(event):
+        if not _admin_authorized(event):
             return {
                 'statusCode': 401,
                 'headers': CORS_HEADERS,

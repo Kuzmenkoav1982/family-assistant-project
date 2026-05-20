@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface PromoCode {
   id: string;
@@ -49,11 +50,7 @@ export default function PromoCodesManager({ apiUrl }: Props) {
   const fetchPromoCodes = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${apiUrl}?action=promo-codes`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(`${apiUrl}?action=promo-codes`);
 
       if (!response.ok) throw new Error('Failed to fetch');
 
@@ -91,12 +88,8 @@ export default function PromoCodesManager({ apiUrl }: Props) {
     }
 
     try {
-      const response = await fetch(`${apiUrl}?action=create-promo`, {
+      const response = await adminFetch(`${apiUrl}?action=create-promo`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': 'admin_authenticated'
-        },
         body: JSON.stringify({
           code: newPromo.code,
           discount_type: newPromo.discount_type,

@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { hasValidLocalAdminSession } from '@/lib/adminAuth';
 import SubscriptionsDashboard from '@/components/admin/SubscriptionsDashboard';
 import SubscriptionsTable from '@/components/admin/SubscriptionsTable';
 import PromoCodesManager from '@/components/admin/PromoCodesManager';
@@ -19,8 +20,7 @@ export default function AdminSubscriptions() {
   const [activeTab, setActiveTab] = useState('dashboard');
 
   useEffect(() => {
-    const adminToken = localStorage.getItem('adminToken');
-    if (adminToken !== 'admin_authenticated') {
+    if (!hasValidLocalAdminSession()) {
       navigate('/admin/login');
       return;
     }

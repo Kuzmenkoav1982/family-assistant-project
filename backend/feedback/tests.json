@@ -1,7 +1,13 @@
 {
   "tests": [
     {
-      "name": "Get reviews",
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get reviews (public)",
       "method": "GET",
       "path": "/?type=review",
       "expectedStatus": 200,
@@ -9,7 +15,7 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Ideas categories",
+      "name": "Ideas categories (public)",
       "method": "GET",
       "path": "/?resource=ideas&action=categories",
       "expectedStatus": 200,
@@ -17,7 +23,7 @@
       "expectedBody": {}
     },
     {
-      "name": "Ideas statuses",
+      "name": "Ideas statuses (public)",
       "method": "GET",
       "path": "/?resource=ideas&action=statuses",
       "expectedStatus": 200,
@@ -25,7 +31,7 @@
       "expectedBody": {}
     },
     {
-      "name": "Ideas list",
+      "name": "Ideas list (public)",
       "method": "GET",
       "path": "/?resource=ideas&sort_by=votes",
       "expectedStatus": 200,
@@ -33,10 +39,26 @@
       "expectedBody": {}
     },
     {
-      "name": "OPTIONS preflight",
-      "method": "OPTIONS",
+      "name": "X-Admin-Token legacy header on PUT → 403",
+      "method": "PUT",
       "path": "/",
-      "expectedStatus": 200
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "body": {"id": "1", "status": "resolved"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "X-Admin-Token legacy header on DELETE → 403",
+      "method": "DELETE",
+      "path": "/?id=1",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "No token on PUT → 403",
+      "method": "PUT",
+      "path": "/",
+      "body": {"id": "1", "status": "resolved"},
+      "expectedStatus": 403
     }
   ]
 }

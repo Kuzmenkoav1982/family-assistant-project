@@ -14,15 +14,37 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "my_code без user — 401",
+      "name": "my_code без user → 401",
       "method": "GET",
       "path": "/?action=my_code",
       "expectedStatus": 401
     },
     {
-      "name": "Update settings без админа — 403",
+      "name": "Update settings без токена → 403",
       "method": "POST",
       "path": "/?action=update_settings",
+      "expectedStatus": 403
+    },
+    {
+      "name": "X-Admin-Token legacy header на update_settings → 403",
+      "method": "POST",
+      "path": "/?action=update_settings",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "body": {"is_enabled": true},
+      "expectedStatus": 403
+    },
+    {
+      "name": "X-Admin-Token legacy header на admin_invites → 403",
+      "method": "GET",
+      "path": "/?action=admin_invites",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "X-Admin-Token legacy header на check_activation → 403",
+      "method": "POST",
+      "path": "/?action=check_activation",
+      "headers": {"X-Admin-Token": "admin_authenticated"},
       "expectedStatus": 403
     }
   ]

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface Props {
   apiUrl: string;
@@ -17,11 +18,7 @@ export default function CohortAnalysis({ apiUrl }: Props) {
 
   const fetchCohortData = async () => {
     try {
-      const response = await fetch(`${apiUrl}?action=cohort-analysis`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(`${apiUrl}?action=cohort-analysis`);
 
       if (response.ok) {
         const data = await response.json();

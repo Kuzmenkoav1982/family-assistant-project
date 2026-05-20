@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { adminFetch } from '@/lib/adminFetch';
 
 interface Props {
   apiUrl: string;
@@ -23,11 +24,7 @@ export default function ReportsExport({ apiUrl }: Props) {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(`${apiUrl}?action=dashboard`, {
-        headers: {
-          'X-Admin-Token': 'admin_authenticated'
-        }
-      });
+      const response = await adminFetch(`${apiUrl}?action=dashboard`);
 
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();

@@ -1,3 +1,5 @@
+import { adminFetch } from '@/lib/adminFetch';
+
 const BLOG_API_URL = 'https://functions.poehali.dev/c3d1a7ab-aa2c-4aa8-981d-1a96e19dbd2d';
 const BLOG_COVER_GEN_URL = 'https://functions.poehali.dev/62fc2d89-a73c-44b2-84cd-2e02f256af7a';
 
@@ -165,13 +167,8 @@ export const blogApi = {
     generateCover: async (
       postId: number,
     ): Promise<{ ok: boolean; url?: string; error?: string }> => {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${BLOG_COVER_GEN_URL}?action=generate`, {
+      const res = await adminFetch(`${BLOG_COVER_GEN_URL}?action=generate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': token,
-        },
         body: JSON.stringify({ post_id: postId }),
       });
       return res.json();
@@ -186,13 +183,8 @@ export const blogApi = {
       failed: number;
       results: { ok: boolean; post_id: number; url?: string; title?: string; error?: string }[];
     }> => {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${BLOG_COVER_GEN_URL}?action=generate-all`, {
+      const res = await adminFetch(`${BLOG_COVER_GEN_URL}?action=generate-all`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': token,
-        },
         body: JSON.stringify({ limit }),
       });
       return res.json();
@@ -202,24 +194,16 @@ export const blogApi = {
       posts: { id: number; title: string; category_slug: string | null }[];
       count: number;
     }> => {
-      const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-      const res = await fetch(`${BLOG_COVER_GEN_URL}?action=pending`, {
-        headers: { 'X-Admin-Token': token },
-      });
+      const res = await adminFetch(`${BLOG_COVER_GEN_URL}?action=pending`);
       return res.json();
     },
   },
 };
 
 async function adminApi<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem('adminToken') || 'admin_authenticated';
-  const res = await fetch(`${BLOG_API_URL}${path}`, {
+  const res = await adminFetch(`${BLOG_API_URL}${path}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Admin-Token': token,
-      ...(init.headers || {}),
-    },
+    headers: init.headers as Record<string, string> | undefined,
   });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
