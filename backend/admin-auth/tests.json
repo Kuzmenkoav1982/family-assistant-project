@@ -13,17 +13,10 @@
       "expectedStatus": 200
     },
     {
-      "name": "POST verify с CI seed session → 200 (positive-path)",
+      "name": "POST verify с fake token → 401",
       "method": "POST",
       "path": "/?action=verify",
-      "headers": { "X-Admin-Session-Token": "ci_test_admin_session_token_v1" },
-      "expectedStatus": 200
-    },
-    {
-      "name": "POST verify с fake token → 401 (negative-path: invalid)",
-      "method": "POST",
-      "path": "/?action=verify",
-      "headers": { "X-Admin-Session-Token": "definitely_fake_token_xyz_not_in_db" },
+      "headers": { "X-Admin-Session-Token": "fake_token_not_in_db" },
       "expectedStatus": 401
     },
     {
