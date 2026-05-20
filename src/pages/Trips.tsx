@@ -7,7 +7,7 @@ import { EditTripDialog } from '@/components/trips/EditTripDialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { detectCurrencyByCountry } from '@/data/currencies';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import ItineraryGenerator from '@/components/ItineraryGenerator';
@@ -314,25 +314,24 @@ export default function Trips() {
   return (
     <>
     <SEOHead title="Путешествия семьи — планирование поездок" description="Планирование семейных путешествий: маршруты, бюджет, список вещей, бронирования. ИИ-рекомендации для идеального отдыха." path="/trips" breadcrumbs={[{ name: "Досуг", path: "/leisure-hub" }, { name: "Путешествия", path: "/trips" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-sky-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Путешествия"
-          subtitle="Планируйте незабываемые поездки"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f7561c5b-e8e8-4ad0-bc38-e2a099d2e324.jpg"
-          backPath="/leisure-hub"
-          rightAction={
-            <Button
-              onClick={() => navigate('/trips/wishlist')}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20"
-            >
-              <Icon name="Star" size={16} />
-              <span className="ml-1 text-sm">Wish List</span>
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Путешествия"
+      subtitle="Планируйте незабываемые поездки"
+      backPath="/leisure-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f7561c5b-e8e8-4ad0-bc38-e2a099d2e324.jpg"
+      backgroundClass="bg-gradient-to-b from-blue-50 via-sky-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      rightAction={
+        <Button
+          onClick={() => navigate('/trips/wishlist')}
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/20"
+        >
+          <Icon name="Star" size={16} />
+          <span className="ml-1 text-sm">Wish List</span>
+        </Button>
+      }
+    >
 
         <SectionAIAdvisor
           role="travel-planner"
@@ -385,7 +384,7 @@ export default function Trips() {
           onRestoreTrip={handleRestoreTrip}
           onAddTrip={() => setIsAddDialogOpen(true)}
         />
-      </div>
+    </SectionPageFrame>
 
       <CreateTripDialog
         isOpen={isAddDialogOpen}
@@ -410,7 +409,6 @@ export default function Trips() {
       >
         <Icon name="Plus" size={24} />
       </Button>
-    </div>
     </>
   );
 }

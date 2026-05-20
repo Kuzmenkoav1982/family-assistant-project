@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -302,19 +302,19 @@ export default function Pets() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 pb-24">
-      <SectionHero
-        title="Питомцы"
-        subtitle="Забота о домашних любимцах всей семьёй"
-        imageUrl={PETS_HERO}
-        backPath="/"
-        rightAction={
-          <Button size="sm" onClick={openCreate} className="bg-white text-violet-700 hover:bg-white/90 shadow-md font-semibold">
-            <Icon name="Plus" size={16} className="mr-1" />
-            Питомец
-          </Button>
-        }
-      />
+    <SectionPageFrame
+      title="Питомцы"
+      subtitle="Забота о домашних любимцах всей семьёй"
+      backPath="/household-hub"
+      imageUrl={PETS_HERO}
+      backgroundClass="bg-gradient-to-b from-violet-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      rightAction={
+        <Button size="sm" onClick={openCreate} className="bg-white text-violet-700 hover:bg-white/90 shadow-md font-semibold">
+          <Icon name="Plus" size={16} className="mr-1" />
+          Питомец
+        </Button>
+      }
+    >
 
       <div className="mb-4">
         <SectionAIAdvisor
@@ -614,6 +614,6 @@ export default function Pets() {
           </Badge>
         </div>
       )}
-    </div>
+    </SectionPageFrame>
   );
 }

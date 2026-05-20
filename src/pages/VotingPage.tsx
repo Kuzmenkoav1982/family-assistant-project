@@ -5,7 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Card, CardContent } from '@/components/ui/card';
 import { VotingWidget } from '@/components/VotingWidget';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 export default function VotingPage() {
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
@@ -13,14 +13,13 @@ export default function VotingPage() {
   return (
     <>
     <SEOHead title="Семейные голосования — решаем вместе" description="Семейные голосования для совместного принятия решений. Демократичный способ решить куда поехать, что купить, как назвать питомца." path="/voting" />
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-purple-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Голосования"
-          subtitle="Семейные решения демократично"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7db4e4eb-f20a-44c7-81de-270d03d22da1.jpg"
-          backPath="/household-hub"
-        />
+    <SectionPageFrame
+      title="Голосования"
+      subtitle="Семейные решения демократично"
+      backPath="/household-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7db4e4eb-f20a-44c7-81de-270d03d22da1.jpg"
+      backgroundClass="bg-gradient-to-b from-indigo-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
 
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
           <Alert className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
@@ -87,8 +86,7 @@ export default function VotingPage() {
             <VotingWidget />
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

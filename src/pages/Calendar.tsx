@@ -23,7 +23,7 @@ import { ReminderNotifications } from '@/components/calendar/ReminderNotificatio
 import { DayEventsDialog } from '@/components/calendar/DayEventsDialog';
 import { CalendarAI } from '@/components/calendar/CalendarAI';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 type ViewMode = 'month' | 'week';
 
@@ -549,14 +549,13 @@ export default function Calendar() {
   return (
     <>
     <SEOHead title="Семейный календарь — события и напоминания" description="Общий календарь семьи: дни рождения, праздники, визиты к врачу, школьные мероприятия. Синхронизация для всех членов семьи." path="/calendar" breadcrumbs={[{ name: "Планирование", path: "/planning-hub" }, { name: "Календарь", path: "/calendar" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Календарь"
-          subtitle="Семейные события и планирование"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7bc63316-22c3-45cf-aa32-cecaefd28f16.jpg"
-          backPath="/planning-hub"
-        />
+    <SectionPageFrame
+      title="Календарь"
+      subtitle="Семейные события и планирование"
+      backPath="/planning-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7bc63316-22c3-45cf-aa32-cecaefd28f16.jpg"
+      backgroundClass="bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
         <div className="flex flex-col gap-4">
           <CalendarHeader
             currentDate={currentDate}
@@ -728,8 +727,7 @@ export default function Calendar() {
             </DialogContent>
           </Dialog>
         )}
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
