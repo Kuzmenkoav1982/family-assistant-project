@@ -283,30 +283,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if action == 'health' and method == 'GET':
         return _resp(200, {'ok': True, 'admin_configured': bool(ADMIN_EMAIL and ADMIN_PASSWORD_HASH)})
 
-    if action == 'debug-hash' and method == 'GET':
-        h = ADMIN_PASSWORD_HASH
-        e = ADMIN_EMAIL
-        # Пробуем checkpw с тестовым паролем чтобы увидеть ошибку
-        test_pw = 'Anastasiya87kuz!!!'
-        checkpw_result = None
-        checkpw_error = None
-        try:
-            checkpw_result = bcrypt.checkpw(test_pw.encode('utf-8'), h.encode('utf-8'))
-        except Exception as ex:
-            checkpw_error = str(ex)
-        test_email = 'kuzmenkoav1982@yandex.ru'
-        return _resp(200, {
-            'hash_len': len(h),
-            'hash_prefix': h[:20],
-            'hash_suffix': h[-10:],
-            'starts_with_2b': h.startswith('$2b$'),
-            'email_len': len(e),
-            'email_repr': repr(e),
-            'test_email_repr': repr(test_email),
-            'email_match': (e == test_email),
-            'checkpw_result': checkpw_result,
-            'checkpw_error': checkpw_error,
-        })
 
     if method == 'POST':
         if action == 'login':
