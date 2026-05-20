@@ -215,6 +215,7 @@ export default function AdminDashboard() {
     { icon: 'Atom', label: 'Паспорт платформы', tab: 'atlas', color: 'from-violet-500 to-fuchsia-500', href: '/admin/atlas' },
     { icon: 'Layers', label: 'Проект v2', tab: 'project-v2', color: 'from-violet-600 to-fuchsia-700', href: '/admin/project-v2' },
     { icon: 'Target', label: 'Стратег. хаб', tab: 'strategy-hub', color: 'from-slate-700 to-slate-900', href: '/strategy/hub' },
+    { icon: 'Bell', label: 'Баннеры', tab: 'banners', color: 'from-emerald-400 to-teal-500', href: '/admin/status-banners' },
   ];
 
   return (
