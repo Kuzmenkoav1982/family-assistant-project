@@ -3,6 +3,7 @@ Business: Admin authentication API. Заменяет hardcoded creds во фро
 полноценную серверную проверку. Bcrypt-хеш пароля хранится в secret
 ADMIN_PASSWORD_HASH, plaintext НЕ покидает сервер. Сессии — short-lived
 session token (12 часов), хранится хеш токена, plain-token уходит клиенту.
+Redeploy: force refresh secrets.
 
 Endpoints (через action query param или httpMethod):
   POST /?action=login    { email, password } → { token, expires_at } | 401
