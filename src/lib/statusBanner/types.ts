@@ -21,9 +21,9 @@ export const BANNER_TYPES = [
 export type BannerType = (typeof BANNER_TYPES)[number];
 
 export const BANNER_AUDIENCES = [
-  'all',
+  'public',
   'authenticated',
-  'admins',
+  'admin',
 ] as const;
 export type BannerAudience = (typeof BANNER_AUDIENCES)[number];
 

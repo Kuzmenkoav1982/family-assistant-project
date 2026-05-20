@@ -49,9 +49,9 @@ SCHEMA = 't_p5815085_family_assistant_pro'
 AUDIENCE_POLICY = 'server_resolved_v2'
 
 ALLOWED_AUDIENCES_BY_VIEWER: Dict[str, List[str]] = {
-    'public':        ['all'],
-    'authenticated': ['all', 'authenticated'],
-    'admin':         ['all', 'authenticated', 'admins'],
+    'public':        ['public'],
+    'authenticated': ['public', 'authenticated'],
+    'admin':         ['public', 'authenticated', 'admin'],
 }
 
 # CORS без X-Admin-Token — он больше не нужен в browser-read flow

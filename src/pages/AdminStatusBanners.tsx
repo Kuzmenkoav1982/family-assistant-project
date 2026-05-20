@@ -88,7 +88,7 @@ function emptyForm(): FormState {
     dismissible: DEFAULT_DISMISSIBLE_BY_TYPE.info,
     startsAt: '',
     endsAt: '',
-    audience: 'all',
+    audience: 'public',
     routeScopeRaw: '',
     priority: DEFAULT_PRIORITY_BY_TYPE.info,
   };
@@ -369,17 +369,14 @@ export default function AdminStatusBanners() {
           </div>
         </div>
 
-        {/* v1 audience-policy notice */}
+        {/* SEC-1.5: audience-policy info */}
         <div
           role="note"
-          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3"
+          className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3"
         >
-          <Icon name="ShieldAlert" size={16} aria-hidden="true" className="text-amber-700 mt-0.5 shrink-0" />
-          <div className="text-xs text-amber-900 leading-snug">
-            <b>v1 policy:</b> публично доставляются только баннеры с аудиторией <b>all</b>.
-            Аудитории <b>authenticated</b> и <b>admins</b> можно сохранить как заготовку
-            (они существуют в БД), но пользователям пока не показываются — это закроется
-            после security mini-sprint с верифицированной серверной авторизацией.
+          <Icon name="ShieldCheck" size={16} aria-hidden="true" className="text-emerald-700 mt-0.5 shrink-0" />
+          <div className="text-xs text-emerald-900 leading-snug">
+            <b>Аудитория проверяется сервером:</b> public — всем, authenticated — только залогиненным, admin — только администраторам.
           </div>
         </div>
 
@@ -503,22 +500,11 @@ export default function AdminStatusBanners() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {BANNER_AUDIENCES.map((a) => (
-                        <SelectItem key={a} value={a}>
-                          {a === 'all' ? a : `${a} (gated v1)`}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="public">Public — все посетители</SelectItem>
+                      <SelectItem value="authenticated">Authenticated — только залогиненные</SelectItem>
+                      <SelectItem value="admin">Admin — только администраторы</SelectItem>
                     </SelectContent>
                   </Select>
-                  {form.audience !== 'all' && (
-                    <p className="mt-1 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
-                      <Icon name="ShieldAlert" size={11} className="inline mr-1" aria-hidden="true" />
-                      В v1 баннеры с аудиторией <b>{form.audience}</b> сохраняются в БД, но
-                      <b> не отдаются пользователям</b> через публичный API. Доставка вернётся
-                      после security mini-sprint с верифицированной серверной авторизацией.
-                      Для общего объявления выбирайте <b>all</b>.
-                    </p>
-                  )}
                 </div>
               </div>
 
@@ -840,9 +826,16 @@ function BannerRow({
               <span className={`text-[10px] px-2 py-0.5 rounded-full ${LIFECYCLE_TONE[lifecycle]}`}>
                 {LIFECYCLE_LABEL[lifecycle]}
               </span>
-              <span className="text-[10px] text-slate-500">
-                audience: {banner.audience} · prio {banner.priority}
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                banner.audience === 'admin'
+                  ? 'bg-rose-100 text-rose-700'
+                  : banner.audience === 'authenticated'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-slate-100 text-slate-600'
+              }`}>
+                {banner.audience === 'admin' ? 'Admin' : banner.audience === 'authenticated' ? 'Auth' : 'Public'}
               </span>
+              <span className="text-[10px] text-slate-500">prio {banner.priority}</span>
             </div>
             <div className="text-sm font-semibold text-slate-900 mt-1 break-words">
               {banner.title}

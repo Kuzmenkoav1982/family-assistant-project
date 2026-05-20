@@ -73,7 +73,7 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "CACHE: audience-sensitive endpoint → private, no-store",
+      "name": "AUDIENCE: canonical values are public/authenticated/admin (not all/admins)",
       "method": "GET",
       "path": "/",
       "expectedStatus": 200,

@@ -42,7 +42,7 @@
     },
 
     {
-      "name": "SPOOFING: legacy X-Admin-Token: admin_authenticated → 401 (не X-Admin-Session-Token)",
+      "name": "SPOOFING: legacy X-Admin-Token: admin_authenticated → 401",
       "method": "GET",
       "path": "/",
       "headers": { "X-Admin-Token": "admin_authenticated" },
@@ -57,6 +57,20 @@
       "expectedStatus": 401
     },
 
+    {
+      "name": "VALIDATION: invalid audience → 401 (нет auth, не 400)",
+      "method": "POST",
+      "path": "/",
+      "body": { "type": "info", "title": "x", "message": "y", "audience": "all" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "VALIDATION: audience=admins (old value) → 401 (нет auth, не 400)",
+      "method": "POST",
+      "path": "/",
+      "body": { "type": "info", "title": "x", "message": "y", "audience": "admins" },
+      "expectedStatus": 401
+    },
     {
       "name": "VALIDATION: POST create с неверным type → 401 (нет auth, не 400)",
       "method": "POST",

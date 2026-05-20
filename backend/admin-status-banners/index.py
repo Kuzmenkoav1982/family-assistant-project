@@ -24,7 +24,7 @@ DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
 ALLOWED_TYPES = {'info', 'maintenance', 'warning', 'critical', 'update'}
-ALLOWED_AUDIENCES = {'all', 'authenticated', 'admins'}
+ALLOWED_AUDIENCES = {'public', 'authenticated', 'admin'}
 # Соответствует DEFAULT_DISMISSIBLE_BY_TYPE из src/lib/statusBanner/types.ts
 DEFAULT_DISMISSIBLE = {
     'critical': False,
@@ -149,7 +149,7 @@ def _validate_payload(p: Dict[str, Any]) -> Optional[str]:
         return 'empty_title'
     if not message:
         return 'empty_message'
-    audience = p.get('audience', 'all')
+    audience = p.get('audience', 'public')
     if audience not in ALLOWED_AUDIENCES:
         return f'invalid_audience: {audience}'
 
@@ -265,7 +265,7 @@ def create(payload: Dict[str, Any], actor: str) -> Tuple[int, Dict[str, Any]]:
     enabled = bool(payload.get('enabled', False))
     starts_at = payload.get('startsAt')
     ends_at = payload.get('endsAt')
-    audience = payload.get('audience', 'all')
+    audience = payload.get('audience', 'public')
     route_scope = payload.get('routeScope') or []
     priority = int(payload.get('priority') or 0)
 
@@ -331,7 +331,7 @@ def update(banner_id: str, payload: Dict[str, Any], actor: str) -> Tuple[int, Di
         (payload.get('ctaHref') or '').strip() or None,
         bool(payload.get('enabled', False)), dismissible,
         payload.get('startsAt'), payload.get('endsAt'),
-        payload.get('audience', 'all'),
+        payload.get('audience', 'public'),
         json.dumps(payload.get('routeScope') or []),
         int(payload.get('priority') or 0),
         actor,
