@@ -536,7 +536,7 @@ const App = () => {
                       <Route path="/admin/domovoy" element={<AdminRoute><AdminDomovoy /></AdminRoute>} />
                       <Route path="/admin/domovoy/studio" element={<AdminRoute><DomovoyStudio /></AdminRoute>} />
                       <Route path="/admin/dev-agent" element={<AdminRoute><DevAgentStudio /></AdminRoute>} />
-                      <Route path="/admin/status-banner" element={
+                      <Route path="/admin/status-banners" element={
                         <AdminRoute>
                           <AdminStatusBanners />
                         </AdminRoute>
