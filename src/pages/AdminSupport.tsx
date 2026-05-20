@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import func2url from '../../backend/func2url.json';
 import { adminFetch } from '@/lib/adminFetch';
-import { hasValidLocalAdminSession } from '@/lib/adminAuth';
+import { hasValidLocalAdminSession, adminLogout } from '@/lib/adminAuth';
 
 interface FeedbackItem {
   id: string;
@@ -210,7 +210,7 @@ export default function AdminSupport() {
             
             <Button
               onClick={() => {
-                localStorage.removeItem('adminToken');
+                adminLogout();
                 navigate('/admin/login');
               }}
               variant="outline"

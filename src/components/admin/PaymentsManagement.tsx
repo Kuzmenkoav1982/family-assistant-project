@@ -6,7 +6,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
-import { readAdminSessionToken } from '@/lib/adminAuth';
+import { readAdminSessionEmail, hasValidLocalAdminSession } from '@/lib/adminAuth';
+import { adminFetch } from '@/lib/adminFetch';
 
 // SEC-1.3c: admin_secret_key_2024 удалён. Backend payments-tbank/payments-sber
 // не проверяли этот токен — он не давал реальной защиты и при этом утекал
@@ -42,25 +43,20 @@ export default function PaymentsManagement() {
   }, []);
 
   const fetchPendingPayments = async () => {
-    // SEC-1.3c: проверяем наличие session token (не legacy-флаг)
-    if (!readAdminSessionToken()) return;
+    // SEC-1.3c: проверяем наличие валидной сессии (не legacy-флаг)
+    if (!hasValidLocalAdminSession()) return;
 
     try {
       setLoading(true);
       
       // Получаем pending подписки из T-Bank
-      const sessionToken = readAdminSessionToken() || '';
-      const tbankResponse = await fetch(`${TBANK_API}?action=admin_pending`, {
-        headers: { 'X-Admin-Session-Token': sessionToken },
-      });
+      const tbankResponse = await adminFetch(`${TBANK_API}?action=admin_pending`);
       
       const tbankData = await tbankResponse.json();
       const tbankPayments = tbankData.pending_subscriptions || [];
 
       // Получаем pending донаты из Sber
-      const sberResponse = await fetch(`${SBER_API}?action=admin_pending`, {
-        headers: { 'X-Admin-Session-Token': sessionToken },
-      });
+      const sberResponse = await adminFetch(`${SBER_API}?action=admin_pending`);
       
       const sberData = await sberResponse.json();
       const sberPayments = sberData.pending_donations || [];
@@ -79,16 +75,13 @@ export default function PaymentsManagement() {
     try {
       const apiUrl = selectedPayment.payment_provider === 'tbank' ? TBANK_API : SBER_API;
       
-      const response = await fetch(apiUrl, {
+      const response = await adminFetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Session-Token': readAdminSessionToken() || '',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'admin_approve',
           payment_id: selectedPayment.id,
-          admin_email: localStorage.getItem('adminSessionEmail') || '',
+          admin_email: readAdminSessionEmail() || '',
         }),
       });
 
@@ -117,16 +110,13 @@ export default function PaymentsManagement() {
     try {
       const apiUrl = selectedPayment.payment_provider === 'tbank' ? TBANK_API : SBER_API;
       
-      const response = await fetch(apiUrl, {
+      const response = await adminFetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Session-Token': readAdminSessionToken() || '',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'admin_reject',
           payment_id: selectedPayment.id,
-          admin_email: localStorage.getItem('adminSessionEmail') || '',
+          admin_email: readAdminSessionEmail() || '',
         }),
       });
 

@@ -64,8 +64,9 @@
 - [x] SEC-1.2a — HIGH-risk routes
 - [x] SEC-1.3 — Admin auth с bcrypt
 - [x] SEC-1.4 — Debug routes за DEV
-- [ ] SEC-1.5 — Auth verification foundation документ (после checkpoint)
-- [ ] SEC-1.2b — MEDIUM-risk routes (после checkpoint)
+- [x] SEC-1.5 — Auth verification foundation (server-side viewer resolution, аудит в SECURITY_AUDIT.md)
+- [x] SEC-1.2b — MEDIUM-risk routes: /chat, /calendar, /nutrition/*, /trips/*, /events/*, /tasks, /notifications, /ai-assistant, /domovoy, /alice, /psychologist, /planning-hub, /life-road, /workshop, /workshop/goal/:id, /garage, /pets, /shopping, /meals, /purchases, /community, /recipes, /voting, /feedback, /suggestions, /support, /family-news, /tree, /leisure, все хабы (/family-hub, /values-hub, /household-hub, /home-hub, /development-hub, /state-hub, /leisure-hub) — все закрыты за ProtectedRoute (commit после `0058550`)
+- [x] Legacy X-Admin-Token cleanup — AdminSupport.tsx и PaymentsManagement.tsx переведены на adminFetch() + adminLogout()
 - [ ] SEC-1.6 — Security smoke + финальный registry update
 
 ---
