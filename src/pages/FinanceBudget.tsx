@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceBudgetInstructions } from '@/components/finance/FinanceInstructions';
 import useFinanceBudget from '@/hooks/useFinanceBudget';
@@ -45,22 +45,24 @@ export default function FinanceBudget() {
   return (
     <>
     <SEOHead title="Семейный бюджет — доходы и расходы" description="Планирование семейного бюджета: учёт доходов и расходов, категории трат, лимиты. Контролируйте финансы семьи." path="/finance/budget" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Бюджет", path: "/finance/budget" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Бюджет"
-          subtitle="Доходы, расходы и планирование"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3811fe85-aff5-47a9-8059-48190f4100e4.jpg"
-          backPath="/finance"
-        />
+    <SectionPageFrame
+      title="Бюджет"
+      subtitle="Доходы, расходы и планирование"
+      backPath="/finance"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3811fe85-aff5-47a9-8059-48190f4100e4.jpg"
+      width="narrow"
+      backgroundClass="bg-gradient-to-b from-emerald-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+      rightAction={
+        <Button size="sm" onClick={() => { budget.setTxType('expense'); budget.setShowAddTx(true); }}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <Icon name="Plus" size={16} className="mr-1" /> Запись
+        </Button>
+      }
+    >
         <FinanceBudgetInstructions />
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end">
           <Button size="sm" variant="outline" onClick={() => navigate('/finance/recurring')}>
             <Icon name="Repeat" size={16} className="mr-1" /> Регулярные
-          </Button>
-          <Button size="sm" onClick={() => { budget.setTxType('expense'); budget.setShowAddTx(true); }}
-            className="bg-emerald-600 hover:bg-emerald-700">
-            <Icon name="Plus" size={16} className="mr-1" /> Запись
           </Button>
         </div>
 
@@ -154,7 +156,7 @@ export default function FinanceBudget() {
             />
           </TabsContent>
         </Tabs>
-      </div>
+    </SectionPageFrame>
 
       <BudgetDialogs
         showAddTx={budget.showAddTx}
@@ -195,7 +197,6 @@ export default function FinanceBudget() {
         confirmAccountDialog={budget.confirmAccountDialog}
         setConfirmAccountDialog={budget.setConfirmAccountDialog}
       />
-    </div>
     </>
   );
 }
