@@ -33,6 +33,12 @@ export interface SectionPageFrameProps {
   backPath?: string;
   /** Escape hatch: скрыть back-кнопку на root-like страницах. */
   backMode?: 'default' | 'none';
+  /**
+   * Скрыть title/subtitle в light variant — когда страница сама рендерит
+   * свой заголовок как первый children (например WorkshopHero).
+   * Back-кнопка при этом остаётся.
+   */
+  hideTitle?: boolean;
   variant?: SectionVariant;
   width?: SectionWidth;
   /** Только для variant="hero". Если не передан — hero не рендерится, используется light. */
@@ -51,6 +57,7 @@ export default function SectionPageFrame({
   subtitle,
   backPath = '/',
   backMode = 'default',
+  hideTitle = false,
   variant,
   width = 'standard',
   imageUrl,
@@ -72,7 +79,7 @@ export default function SectionPageFrame({
       <div className={containerCls}>
         {resolvedVariant === 'hero' && imageUrl ? (
           // ── Hero variant ──────────────────────────────────────────
-          <div className="relative -mx-4 -mt-0 mb-4 rounded-b-2xl overflow-hidden">
+          <div className="relative -mx-4 -mt-4 mb-4 rounded-b-2xl overflow-hidden">
             <img
               src={imageUrl}
               alt={title}
@@ -108,30 +115,34 @@ export default function SectionPageFrame({
           </div>
         ) : (
           // ── Light variant ─────────────────────────────────────────
-          <div className="flex items-start justify-between gap-3 pt-4 pb-3 mb-2 border-b border-gray-100 dark:border-gray-800">
-            <div className="flex items-center gap-2 min-w-0">
-              {backMode !== 'none' && (
-                <button
-                  onClick={handleBack}
-                  aria-label="Назад"
-                  className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <Icon name="ArrowLeft" size={16} />
-                </button>
-              )}
-              <div className="min-w-0">
-                <h1 className={`text-lg sm:text-xl font-bold truncate ${accentColor}`}>
-                  {title}
-                </h1>
-                {subtitle && (
-                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
-                    {subtitle}
-                  </p>
+          (backMode !== 'none' || !hideTitle) && (
+            <div className="flex items-start justify-between gap-3 pt-4 pb-3 mb-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center gap-2 min-w-0">
+                {backMode !== 'none' && (
+                  <button
+                    onClick={handleBack}
+                    aria-label="Назад"
+                    className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <Icon name="ArrowLeft" size={16} />
+                  </button>
+                )}
+                {!hideTitle && (
+                  <div className="min-w-0">
+                    <h1 className={`text-lg sm:text-xl font-bold truncate ${accentColor}`}>
+                      {title}
+                    </h1>
+                    {subtitle && (
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                        {subtitle}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
+              {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
             </div>
-            {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
-          </div>
+          )
         )}
 
         {/* ── Content ─────────────────────────────────────────────── */}
