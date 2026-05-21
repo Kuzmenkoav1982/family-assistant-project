@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { FinanceAntiscamInstructions } from '@/components/finance/FinanceInstructions';
 
 interface ScamScheme {
@@ -600,14 +600,14 @@ export default function AntiScam() {
   return (
     <>
     <SEOHead title="Антимошенник — защита семьи от мошенников" description="Защита семьи от финансового мошенничества: распознавание схем, проверка звонков, безопасность в интернете." path="/finance/antiscam" />
-    <div className="min-h-screen bg-gradient-to-b from-red-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Антимошенник"
-          subtitle="Защита семьи от мошенников"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e8e3b99f-ee06-4225-bd9e-bbbb2e1a2c07.jpg"
-          backPath="/finance"
-        />
+    <SectionPageFrame
+      title="Антимошенник"
+      subtitle="Защита семьи от мошенников"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e8e3b99f-ee06-4225-bd9e-bbbb2e1a2c07.jpg"
+      backPath="/finance"
+      width="narrow"
+      backgroundClass="bg-gradient-to-b from-red-50 to-white dark:from-gray-950 dark:to-gray-900"
+    >
 
         <FinanceAntiscamInstructions />
 
@@ -772,8 +772,7 @@ export default function AntiScam() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

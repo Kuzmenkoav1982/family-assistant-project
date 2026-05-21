@@ -9,12 +9,13 @@
 ## Summary
 
 ```
-Remaining SectionHero files: 19 → 6 after W5-B1+B2+B3+P1
+Remaining SectionHero files: 19 → 3 after W5-B1+B2+B3+P1+S1
   W5-B1 CLOSED ✅ (6): FamilyPolicy, EmptyChildrenState, FinanceAssets, FinanceAccounts, FinanceGoals, PariTest
   W5-B2 CLOSED ✅ (2): EventsPage, StateSupport
   W5-B3 CLOSED ✅ (3): Meals, Shopping, Purchases
-  W5-P1 CLOSED ✅ (2): FinanceStrategy (4× SH, все в хуке), FinanceAnalytics (3× SH, все в хуке)
-  Remaining: 6 (Special cases)
+  W5-P1 CLOSED ✅ (2): FinanceStrategy, FinanceAnalytics
+  W5-S1 CLOSED ✅ (3): FinanceDebts, FinanceLoyalty, AntiScam
+  Remaining: 3 (S2 + S3 final boss)
   Exempt:         0 (intentional exceptions не обнаружены)
 
 Top 5 W5-B1 candidates:   FamilyPolicy, EmptyChildrenState, FinanceGoals, PariTest, StateSupport

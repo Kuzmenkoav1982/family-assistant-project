@@ -2,7 +2,7 @@ import SEOHead from "@/components/SEOHead";
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceDebtsInstructions } from '@/components/finance/FinanceInstructions';
 import useFinanceDebts from '@/hooks/useFinanceDebts';
@@ -15,33 +15,40 @@ export default function FinanceDebts() {
   const isOwner = useIsFamilyOwner();
   const d = useFinanceDebts();
 
+  const BG = 'bg-gradient-to-b from-rose-50 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4cd90e85-8966-4402-84ce-6475cc940f22.jpg';
+
   if (d.loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600" />
-      </div>
+      <SectionPageFrame title="Кредиты и долги" backPath="/finance" backgroundClass={BG} width="narrow">
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-rose-600" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   if (!isOwner) {
     return (
-      <div className="min-h-screen flex items-center justify-center pb-24">
-        <div className="text-center p-6">
-          <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-            <Icon name="Lock" size={32} className="text-red-500" />
+      <SectionPageFrame title="Кредиты и долги" backPath="/finance" backgroundClass={BG} width="narrow">
+        <div className="flex items-center justify-center py-24">
+          <div className="text-center p-6">
+            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <Icon name="Lock" size={32} className="text-red-500" />
+            </div>
+            <h2 className="text-lg font-bold mb-2">Доступ ограничен</h2>
+            <p className="text-sm text-muted-foreground mb-4">Этот раздел доступен только владельцу семьи</p>
+            <Button onClick={() => navigate('/finance')}>Вернуться к финансам</Button>
           </div>
-          <h2 className="text-lg font-bold mb-2">Доступ ограничен</h2>
-          <p className="text-sm text-muted-foreground mb-4">Этот раздел доступен только владельцу семьи</p>
-          <Button onClick={() => navigate('/finance')}>Вернуться к финансам</Button>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   if (d.selectedDebt) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white pb-24">
-        <div className="max-w-2xl mx-auto p-4 space-y-4">
+      <SectionPageFrame title="Кредиты и долги" backPath="/finance" backgroundClass={BG} width="narrow">
+        <div className="space-y-4">
           <DebtDetailView
             debt={d.selectedDebt}
             payments={d.payments}
@@ -78,27 +85,26 @@ export default function FinanceDebts() {
             selectedDebt={d.selectedDebt}
           />
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   return (
     <>
     <SEOHead title="Кредиты и долги — управление задолженностями" description="Учёт кредитов, ипотеки и долгов семьи. График платежей, остаток долга, стратегии погашения." path="/finance/debts" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Кредиты и долги", path: "/finance/debts" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Кредиты и долги"
-          subtitle="Ипотека, кредиты и управление долгами"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4cd90e85-8966-4402-84ce-6475cc940f22.jpg"
-          backPath="/finance"
-          rightAction={
-            <Button size="sm" className="bg-rose-600 hover:bg-rose-700" onClick={() => d.setShowAdd(true)}>
-              <Icon name="Plus" size={16} className="mr-1" /> Добавить
-            </Button>
-          }
-        />
-
+    <SectionPageFrame
+      title="Кредиты и долги"
+      subtitle="Ипотека, кредиты и управление долгами"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      width="narrow"
+      backgroundClass={BG}
+      rightAction={
+        <Button size="sm" className="bg-rose-600 hover:bg-rose-700" onClick={() => d.setShowAdd(true)}>
+          <Icon name="Plus" size={16} className="mr-1" /> Добавить
+        </Button>
+      }
+    >
         <FinanceDebtsInstructions />
 
         <DebtsList
@@ -107,7 +113,6 @@ export default function FinanceDebts() {
           totalMonthly={d.totalMonthly}
           onSelect={d.setSelectedDebt}
         />
-      </div>
 
       <DebtDialogs
         showAdd={d.showAdd}
@@ -132,7 +137,7 @@ export default function FinanceDebts() {
         addPayment={d.addPayment}
         selectedDebt={d.selectedDebt}
       />
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

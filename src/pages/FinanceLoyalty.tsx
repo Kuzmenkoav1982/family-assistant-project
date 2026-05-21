@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { FinanceLoyaltyInstructions } from '@/components/finance/FinanceInstructions';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 
@@ -143,18 +143,23 @@ export default function FinanceLoyalty() {
   const usedCategories = [...new Set(activeCards.map(c => c.category))];
   const filteredCards = filter === 'all' ? activeCards : activeCards.filter(c => c.category === filter);
 
+  const BG = 'bg-gradient-to-b from-violet-50 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0a4f80d7-d7e6-435f-809d-f93e457230b2.jpg';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-violet-600" />
-      </div>
+      <SectionPageFrame title="Скидочные карты" backPath="/finance" backgroundClass={BG} width="narrow">
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-violet-600" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   if (showDetail) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
-        <div className="max-w-md mx-auto p-4 space-y-4">
+      <SectionPageFrame title={showDetail.name} backPath="/finance" backgroundClass={BG} width="narrow" hideTitle>
+        <div className="space-y-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => setShowDetail(null)}>
               <Icon name="ArrowLeft" size={18} />
@@ -220,26 +225,26 @@ export default function FinanceLoyalty() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   return (
     <>
     <SEOHead title="Скидочные карты — экономия для семьи" description="Хранение скидочных и бонусных карт семьи в одном месте. Штрих-коды, баланс бонусов, напоминания об акциях." path="/finance/loyalty" />
-    <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Скидочные карты"
-          subtitle="Карты лояльности магазинов и сервисов"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0a4f80d7-d7e6-435f-809d-f93e457230b2.jpg"
-          backPath="/finance"
-          rightAction={
-            <Button size="sm" className="bg-violet-600 hover:bg-violet-700" onClick={() => { resetForm(); setShowAdd(true); }}>
-              <Icon name="Plus" size={16} className="mr-1" /> Добавить
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Скидочные карты"
+      subtitle="Карты лояльности магазинов и сервисов"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      width="narrow"
+      backgroundClass={BG}
+      rightAction={
+        <Button size="sm" className="bg-violet-600 hover:bg-violet-700" onClick={() => { resetForm(); setShowAdd(true); }}>
+          <Icon name="Plus" size={16} className="mr-1" /> Добавить
+        </Button>
+      }
+    >
 
         <FinanceLoyaltyInstructions />
 
@@ -300,7 +305,6 @@ export default function FinanceLoyalty() {
             })}
           </div>
         )}
-      </div>
 
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
@@ -387,7 +391,7 @@ export default function FinanceLoyalty() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
