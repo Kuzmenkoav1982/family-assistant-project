@@ -105,11 +105,32 @@
 
 ---
 
-## W3-M3 Core Rollout Complete (commit a8cfd31)
+## W3-M3 Core Rollout Complete — Reconciliation (commit a953ee8)
 
-### Route Inventory Freeze
+### Route Inventory Freeze (точные числа)
 
-**Мигрировано: ~46 route pages**
+**Scope W3 (route pages в scope миграции):**
+
+| Категория | Кол-во | Примечание |
+|---|---|---|
+| W3 migrated (W3 rollout Pilot–Batch 8) | **46** | SectionPageFrame / HubLayoutV2 через rollout |
+| Hub pages (автоматически) | **7** | HealthHub, DevelopmentHub, FamilyCodeHub, HouseholdHub, LeisureHub, StateHub, ValuesHub |
+| **Итого мигрированных** | **53** | |
+| W3-tail-medium (Batch 9) | **4** | LifeRoad, Shopping, RecipeFromProducts, FinanceDebts |
+| W3-hardcases | **27** | Finance×9, Nutrition, Garage, Leisure, Recipes, Meals, Purchases, EventsPage, PariTest, PariResults, DietProgress, DietQuiz, Culture, FamilyChat, FamilyCode, FamilyPolicy, FamilyTracker, StateSupport, AntiScam |
+| Вне scope (Admin*, Index, DietMiniQuiz) | **~6** | Собственная архитектура |
+
+**Grep метрики (точные, commit a953ee8):**
+
+| Метрика | Baseline | Сейчас | Delta |
+|---|---|---|---|
+| SectionHero imports | 56 | **31** | −25 |
+| pb-24 files | 48 | **30** | −18 |
+| navigate(-1) | 16 | **8** | −8 |
+
+**W3-tail-medium (Batch 9 — опционально):**
+
+**Мигрировано: 53 route pages (46 W3 rollout + 7 Hub auto)**
 
 **Remaining SectionHero imports (31 файл) — tail:**
 
