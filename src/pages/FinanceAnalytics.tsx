@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { FinanceAnalyticsInstructions } from '@/components/finance/FinanceInstructions';
 import useFinanceAnalytics from '@/hooks/useFinanceAnalytics';
 import { HealthGauge, MetricCard, RecCard } from '@/components/finance-analytics/AnalyticsWidgets';
@@ -15,6 +15,7 @@ import AIAdvisor from '@/components/finance-analytics/AIAdvisor';
 import { fmCompact, MISSING_LINKS } from '@/data/financeAnalyticsTypes';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg';
+const BG = 'bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900';
 
 export default function FinanceAnalytics() {
   const navigate = useNavigate();
@@ -22,32 +23,26 @@ export default function FinanceAnalytics() {
 
   if (a.loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
-        <div className="max-w-4xl mx-auto p-4 space-y-4">
-          <SectionHero title="Финансовая аналитика" subtitle="Загрузка данных..." imageUrl={HERO_IMG} backPath="/finance" />
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-            <p className="text-sm text-muted-foreground">Анализируем финансы...</p>
-          </div>
+      <SectionPageFrame title="Финансовая аналитика" subtitle="Загрузка данных..." imageUrl={HERO_IMG} backPath="/finance" backgroundClass={BG}>
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          <p className="text-sm text-muted-foreground">Анализируем финансы...</p>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   if (a.error || !a.data) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
-        <div className="max-w-4xl mx-auto p-4 space-y-4">
-          <SectionHero title="Финансовая аналитика" subtitle="Ошибка загрузки" imageUrl={HERO_IMG} backPath="/finance" />
-          <Card className="border-destructive">
-            <CardContent className="py-10 text-center space-y-3">
-              <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
-              <p className="font-medium">{a.error || 'Не удалось загрузить данные'}</p>
-              <Button onClick={a.fetchData}>Повторить</Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <SectionPageFrame title="Финансовая аналитика" subtitle="Ошибка загрузки" imageUrl={HERO_IMG} backPath="/finance" backgroundClass={BG}>
+        <Card className="border-destructive">
+          <CardContent className="py-10 text-center space-y-3">
+            <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
+            <p className="font-medium">{a.error || 'Не удалось загрузить данные'}</p>
+            <Button onClick={a.fetchData}>Повторить</Button>
+          </CardContent>
+        </Card>
+      </SectionPageFrame>
     );
   }
 
@@ -64,19 +59,18 @@ export default function FinanceAnalytics() {
   ].filter(x => x.value > 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
-      <div className="max-w-4xl mx-auto p-4 space-y-5">
-        <SectionHero
-          title="Финансовая аналитика"
-          subtitle="Полный анализ вашей финансовой ситуации"
-          imageUrl={HERO_IMG}
-          backPath="/finance"
-          rightAction={
-            <Button size="sm" variant="secondary" className="text-xs gap-1" onClick={a.fetchData}>
-              <Icon name="RefreshCw" size={14} /> Обновить
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Финансовая аналитика"
+      subtitle="Полный анализ вашей финансовой ситуации"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      backgroundClass={BG}
+      rightAction={
+        <Button size="sm" variant="secondary" className="text-xs gap-1" onClick={a.fetchData}>
+          <Icon name="RefreshCw" size={14} /> Обновить
+        </Button>
+      }
+    >
 
         <FinanceAnalyticsInstructions />
 
@@ -144,7 +138,6 @@ export default function FinanceAnalytics() {
             </Button>
           ))}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

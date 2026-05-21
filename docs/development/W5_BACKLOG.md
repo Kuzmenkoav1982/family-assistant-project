@@ -9,11 +9,12 @@
 ## Summary
 
 ```
-Remaining SectionHero files: 19 → 8 after W5-B1+B2+B3
+Remaining SectionHero files: 19 → 6 after W5-B1+B2+B3+P1
   W5-B1 CLOSED ✅ (6): FamilyPolicy, EmptyChildrenState, FinanceAssets, FinanceAccounts, FinanceGoals, PariTest
   W5-B2 CLOSED ✅ (2): EventsPage, StateSupport
-  W5-B3 CLOSED ✅ (3): Meals, Shopping, Purchases — Вариант A (direct cluster migrate)
-  Remaining: 8 (Hard/decompose + Special)
+  W5-B3 CLOSED ✅ (3): Meals, Shopping, Purchases
+  W5-P1 CLOSED ✅ (2): FinanceStrategy (4× SH, все в хуке), FinanceAnalytics (3× SH, все в хуке)
+  Remaining: 6 (Special cases)
   Exempt:         0 (intentional exceptions не обнаружены)
 
 Top 5 W5-B1 candidates:   FamilyPolicy, EmptyChildrenState, FinanceGoals, PariTest, StateSupport

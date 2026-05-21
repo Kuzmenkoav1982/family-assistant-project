@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { FinanceStrategyInstructions } from '@/components/finance/FinanceInstructions';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import useFinanceStrategy from '@/hooks/useFinanceStrategy';
@@ -15,6 +15,7 @@ import BonusPayoffPlanner from '@/components/finance-strategy/BonusPayoffPlanner
 import { fm } from '@/data/financeStrategyTypes';
 
 const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg';
+const BG = 'bg-gradient-to-b from-violet-50 to-white dark:from-gray-950 dark:to-gray-900';
 
 export default function FinanceStrategy() {
   const navigate = useNavigate();
@@ -22,57 +23,46 @@ export default function FinanceStrategy() {
 
   if (s.loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
-        <div className="max-w-4xl mx-auto p-4 space-y-4">
-          <SectionHero title="Стратегия погашения" subtitle="Загрузка..." imageUrl={HERO_IMG} backPath="/finance" />
-          <div className="flex flex-col items-center py-20 gap-3">
-            <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-            <p className="text-sm text-muted-foreground">Анализируем долги...</p>
-          </div>
+      <SectionPageFrame title="Стратегия погашения" subtitle="Загрузка..." imageUrl={HERO_IMG} backPath="/finance" backgroundClass={BG}>
+        <div className="flex flex-col items-center py-20 gap-3">
+          <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+          <p className="text-sm text-muted-foreground">Анализируем долги...</p>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   if (s.error || !s.data) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
-        <div className="max-w-4xl mx-auto p-4 space-y-4">
-          <SectionHero title="Стратегия погашения" subtitle="Ошибка" imageUrl={HERO_IMG} backPath="/finance" />
-          <Card className="border-destructive">
-            <CardContent className="py-10 text-center space-y-3">
-              <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
-              <p className="font-medium">{s.error || 'Не удалось загрузить'}</p>
-              <Button onClick={s.fetchData}>Повторить</Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <SectionPageFrame title="Стратегия погашения" subtitle="Ошибка" imageUrl={HERO_IMG} backPath="/finance" backgroundClass={BG}>
+        <Card className="border-destructive">
+          <CardContent className="py-10 text-center space-y-3">
+            <Icon name="AlertTriangle" size={40} className="mx-auto text-destructive" />
+            <p className="font-medium">{s.error || 'Не удалось загрузить'}</p>
+            <Button onClick={s.fetchData}>Повторить</Button>
+          </CardContent>
+        </Card>
+      </SectionPageFrame>
     );
   }
 
   if (s.debts.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
-        <div className="max-w-4xl mx-auto p-4 space-y-4">
-          <SectionHero title="Стратегия погашения" subtitle="Управление долгами" imageUrl={HERO_IMG} backPath="/finance" />
-          <Card className="border-0 shadow-md">
-            <CardContent className="py-12 text-center space-y-3">
-              <Icon name="PartyPopper" size={48} className="mx-auto text-green-500" />
-              <h2 className="text-lg font-bold">У вас нет долгов!</h2>
-              <p className="text-sm text-muted-foreground">Добавьте кредиты для анализа стратегий</p>
-              <Button onClick={() => navigate('/finance/debts')}>Добавить кредит</Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <SectionPageFrame title="Стратегия погашения" subtitle="Управление долгами" imageUrl={HERO_IMG} backPath="/finance" backgroundClass={BG}>
+        <Card className="border-0 shadow-md">
+          <CardContent className="py-12 text-center space-y-3">
+            <Icon name="PartyPopper" size={48} className="mx-auto text-green-500" />
+            <h2 className="text-lg font-bold">У вас нет долгов!</h2>
+            <p className="text-sm text-muted-foreground">Добавьте кредиты для анализа стратегий</p>
+            <Button onClick={() => navigate('/finance/debts')}>Добавить кредит</Button>
+          </CardContent>
+        </Card>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-violet-50 to-white pb-24">
-      <div className="max-w-4xl mx-auto p-4 space-y-5">
-        <SectionHero title="Стратегия погашения" subtitle="Оптимальный план выплаты долгов" imageUrl={HERO_IMG} backPath="/finance" />
+    <SectionPageFrame title="Стратегия погашения" subtitle="Оптимальный план выплаты долгов" imageUrl={HERO_IMG} backPath="/finance" backgroundClass={BG}>
         <FinanceStrategyInstructions />
 
         <section className="space-y-3">
@@ -212,7 +202,6 @@ export default function FinanceStrategy() {
             <Icon name="Receipt" size={20} className="text-red-500" /><span className="text-xs">Кредиты</span>
           </Button>
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }
