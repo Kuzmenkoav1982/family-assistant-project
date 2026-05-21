@@ -3,6 +3,11 @@
 > Аудит: 8da7e49 (после W4 complete)
 > Цель: довести оставшиеся файлы с SectionHero до SectionPageFrame
 > Начало: следующий после W4 complete
+>
+> **W5 COMPLETE ✅ — build 2f48161**
+> Migrated: 19/19 | Eject: 0 | Pattern violations: 0
+> SectionHero imports in pages: 0 (confirmed grep)
+> section-hero.tsx: файл существует, 0 импортов — orphan, cleanup pending
 
 ---
 
