@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import useDietProgress from '@/hooks/useDietProgress';
 import StatsCards from '@/components/diet-progress/StatsCards';
 import AnalysisCard from '@/components/diet-progress/AnalysisCard';
@@ -14,62 +14,63 @@ export default function DietProgress() {
   const navigate = useNavigate();
   const d = useDietProgress();
 
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg';
+  const BG = 'bg-gradient-to-b from-violet-50 via-white to-white dark:from-gray-950 dark:to-gray-900';
+
   if (d.loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
-      </div>
+      <SectionPageFrame title="Прогресс диеты" backPath="/nutrition" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-24">
+          <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   if (!d.data?.has_plan) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
-        <div className="max-w-2xl mx-auto px-4 py-4 space-y-6" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
-          <SectionHero
-            title="Прогресс диеты"
-            subtitle="Отслеживание результатов и мотивация"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg"
-            backPath="/nutrition"
-          />
-          <Card className="border-2 border-dashed border-violet-200">
-            <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet-100 flex items-center justify-center">
-                <Icon name="TrendingUp" size={32} className="text-violet-500" />
-              </div>
-              <h2 className="text-lg font-bold mb-2">Нет активного плана</h2>
-              <p className="text-muted-foreground text-sm mb-4">
-                Создайте план питания, чтобы отслеживать прогресс
-              </p>
-              <Button onClick={() => navigate('/nutrition/diet')} className="bg-violet-600">
-                <Icon name="Sparkles" size={16} className="mr-2" />
-                Создать ИИ-план питания
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <SectionPageFrame
+        title="Прогресс диеты"
+        subtitle="Отслеживание результатов и мотивация"
+        imageUrl={HERO_IMG}
+        backPath="/nutrition"
+        backgroundClass={BG}
+      >
+        <Card className="border-2 border-dashed border-violet-200">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet-100 flex items-center justify-center">
+              <Icon name="TrendingUp" size={32} className="text-violet-500" />
+            </div>
+            <h2 className="text-lg font-bold mb-2">Нет активного плана</h2>
+            <p className="text-muted-foreground text-sm mb-4">
+              Создайте план питания, чтобы отслеживать прогресс
+            </p>
+            <Button onClick={() => navigate('/nutrition/diet')} className="bg-violet-600">
+              <Icon name="Sparkles" size={16} className="mr-2" />
+              Создать ИИ-план питания
+            </Button>
+          </CardContent>
+        </Card>
+      </SectionPageFrame>
     );
   }
 
   const { plan, stats } = d;
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-gradient-to-b from-violet-50 via-white to-white pb-24" style={{ paddingBottom: 'calc(6rem + env(safe-area-inset-bottom, 0px))' }}>
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4" style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}>
-
-        <SectionHero
-          title="Прогресс диеты"
-          subtitle={`День ${stats?.days_elapsed || 0} из ${plan?.duration_days || 0}`}
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg"
-          backPath="/nutrition"
-          rightAction={
-            <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 bg-white/80" onClick={() => d.setShowSOS(true)}>
-              <Icon name="LifeBuoy" size={16} />
-              <span className="ml-1">SOS</span>
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Прогресс диеты"
+      subtitle={`День ${stats?.days_elapsed || 0} из ${plan?.duration_days || 0}`}
+      imageUrl={HERO_IMG}
+      backPath="/nutrition"
+      backgroundClass={BG}
+      rightAction={
+        <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 bg-white/80" onClick={() => d.setShowSOS(true)}>
+          <Icon name="LifeBuoy" size={16} />
+          <span className="ml-1">SOS</span>
+        </Button>
+      }
+    >
 
         {stats && (
           <StatsCards stats={stats} plan={plan} tip={d.data!.tip} onWeightFormOpen={() => d.setShowWeightForm(true)} />
@@ -241,7 +242,6 @@ export default function DietProgress() {
           onDismiss={() => { d.setShowSOS(false); d.setSosResponse(null); d.setSosComment(''); }}
         />
 
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

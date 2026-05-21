@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useToast } from '@/hooks/use-toast';
 import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR, useStorageStats } from '@/hooks/useRecipes';
 import type { Recipe, RecipeCategory, CuisineType, DifficultyLevel } from '@/types/recipe.types';
@@ -319,14 +319,14 @@ export default function Recipes() {
   return (
     <>
     <SEOHead title="Рецепты — кулинарная книга семьи" description="Семейная кулинарная книга: любимые рецепты, новые блюда, рецепты по ингредиентам. Сохраняйте и делитесь рецептами." path="/recipes" breadcrumbs={[{ name: "Питание", path: "/nutrition" }, { name: "Рецепты", path: "/recipes" }]} />
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <SectionHero
-          title="Рецепты"
-          subtitle="Ваша семейная кулинарная книга"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/262a96a0-e48f-4449-a8bd-326f5cfb3657.jpg"
-          backPath="/nutrition"
-        />
+    <SectionPageFrame
+      title="Рецепты"
+      subtitle="Ваша семейная кулинарная книга"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/262a96a0-e48f-4449-a8bd-326f5cfb3657.jpg"
+      backPath="/nutrition"
+      width="wide"
+      backgroundClass="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-gray-950 dark:to-gray-900"
+    >
 
         <div className="mb-6">
           <SectionAIAdvisor
@@ -638,8 +638,7 @@ export default function Recipes() {
           onEdit={handleEditRecipe}
           isDeleting={deleteRecipe.isPending}
         />
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

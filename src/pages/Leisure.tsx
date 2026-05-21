@@ -11,7 +11,7 @@ import { LeisureMap } from '@/components/leisure/LeisureMap';
 import { LeisureCalendar } from '@/components/leisure/LeisureCalendar';
 import { LeisureStats } from '@/components/leisure/LeisureStats';
 import { RouteGenerator } from '@/components/leisure/RouteGenerator';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import useLeisure from '@/hooks/useLeisure';
 import ActivityGrid from '@/components/leisure/ActivityGrid';
 import LeisureDialogs from '@/components/leisure/LeisureDialogs';
@@ -51,14 +51,13 @@ export default function Leisure() {
   return (
     <>
     <SEOHead title="Досуг — развлечения и отдых для семьи" description="Идеи для семейного досуга: парки, кино, музеи, мероприятия. Планируйте совместный отдых и создавайте воспоминания." path="/leisure" />
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Досуг"
-          subtitle="Места и активности для всей семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2c0380fb-216f-44aa-b638-31181b895672.jpg"
-          backPath="/leisure-hub"
-        />
+    <SectionPageFrame
+      title="Досуг"
+      subtitle="Места и активности для всей семьи"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2c0380fb-216f-44aa-b638-31181b895672.jpg"
+      backPath="/leisure-hub"
+      backgroundClass="bg-gradient-to-b from-purple-50 via-pink-50/30 to-white dark:from-gray-950 dark:to-gray-900"
+    >
 
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex gap-2 flex-wrap sm:flex-1">
@@ -188,7 +187,6 @@ export default function Leisure() {
             onRevokeShare={l.handleRevokeShareLink}
           />
         )}
-      </div>
 
       <LeisureDialogs
         isAddDialogOpen={l.isAddDialogOpen}
@@ -204,7 +202,7 @@ export default function Leisure() {
         setEditingActivity={l.setEditingActivity}
         handleUpdateActivity={l.handleUpdateActivity}
       />
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

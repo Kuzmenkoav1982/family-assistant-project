@@ -117,5 +117,5 @@ W4 работает с W3-hardcases через паттерн:
 | Phase 1 — quick wins | 13 | W4-B1: FamilyChat, Nutrition, DietQuiz, Culture, FamilyCode ✅ (5/13) |
 | Phase 2 — Garage pilot | 1 | W4-P1: Garage ✅ CLOSED (adba024) — 832→130 строк, 7 child компонентов |
 | Phase 3 — Finance cluster | 3 | W4-F1/F2/F3 ✅ CLOSED — FinanceCashflow, FinanceRecurring, FinanceLiteracy |
-| Phase 4 — остаток | 4 | — |
+| Phase 4 — остаток | 4 | W4-P4 ✅ CLOSED — DietProgress, Leisure, PariResults, Recipes → SectionPageFrame |
 | **W3-tail-medium (Batch 9)** | 4 | фоновая очередь |
