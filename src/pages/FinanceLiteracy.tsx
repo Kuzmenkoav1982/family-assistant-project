@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { toast } from 'sonner';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { FinanceLiteracyInstructions } from '@/components/finance/FinanceInstructions';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
@@ -223,11 +223,16 @@ export default function FinanceLiteracy() {
   const filteredCourses = filter === 'all' ? courses : courses.filter(c => c.age_group === filter);
   const ageGroups = [...new Set(courses.map(c => c.age_group))];
 
+  const BG = 'bg-gradient-to-b from-purple-50 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dda844a8-299d-4e2a-9c95-2b173c84aeb8.jpg';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600" />
-      </div>
+      <SectionPageFrame title="Финансовая грамотность" backPath="/finance" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
@@ -454,14 +459,13 @@ export default function FinanceLiteracy() {
   return (
     <>
     <SEOHead title="Финансовая грамотность — обучение для семьи" description="Курсы финансовой грамотности для всей семьи: бюджетирование, инвестиции, страхование, налоги. Учите детей обращаться с деньгами." path="/finance/literacy" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Финграмотность", path: "/finance/literacy" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-purple-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Финансовая грамотность"
-          subtitle="Обучение финансам для всей семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dda844a8-299d-4e2a-9c95-2b173c84aeb8.jpg"
-          backPath="/finance"
-        />
+    <SectionPageFrame
+      title="Финансовая грамотность"
+      subtitle="Обучение финансам для всей семьи"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      backgroundClass={BG}
+    >
 
         <FinanceLiteracyInstructions />
 
@@ -539,8 +543,7 @@ export default function FinanceLiteracy() {
             </Card>
           ))}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
