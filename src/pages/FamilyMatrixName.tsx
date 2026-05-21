@@ -3,8 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from '@/lib/helmet';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { analyzeName, getTopNames, type NameAnalysis } from '@/lib/name-calculator';
 import MemberAvatar from '@/components/ui/member-avatar';
@@ -57,6 +56,7 @@ function NameRow({ analysis, p1Name, p2Name }: { analysis: NameAnalysis; p1Name:
 }
 
 export default function FamilyMatrixName() {
+  const BG = 'bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
   const { members, loading } = useFamilyMembersContext();
   const [gender, setGender] = useState<'male' | 'female'>('male');
   const [customName, setCustomName] = useState('');
@@ -81,14 +81,22 @@ export default function FamilyMatrixName() {
     return analyzeName(customName.trim(), p1.name, getBd(p1)!, p2.name, getBd(p2)!, expectedDate || undefined);
   }, [hasPair, customName, p1, p2, expectedDate]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Icon name="Loader2" size={32} className="animate-spin text-purple-500" /></div>;
+  if (loading) return (
+    <SectionPageFrame title="Имя для малыша" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+      <div className="flex items-center justify-center py-32">
+        <Icon name="Loader2" size={32} className="animate-spin text-purple-500" />
+      </div>
+    </SectionPageFrame>
+  );
 
   return (
-    <>
-      <Helmet><title>Имя для малыша | Семейный код</title></Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero title="Имя для малыша" subtitle="Нумерологическая совместимость имени с родителями" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b25dcedf-1426-49a5-bab9-8060c6d36ffc.jpg" backPath="/family-matrix" />
+    <SectionPageFrame
+      title="Имя для малыша"
+      subtitle="Нумерологическая совместимость имени с родителями"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b25dcedf-1426-49a5-bab9-8060c6d36ffc.jpg"
+      backPath="/family-matrix"
+      backgroundClass={BG}
+    >
 
           {!hasPair ? (
             <Card className="border-amber-200 bg-amber-50"><CardContent className="p-6 text-center">
@@ -142,8 +150,6 @@ export default function FamilyMatrixName() {
               </div>
             </>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }

@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from '@/lib/helmet';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { generateReconciliationScenarios } from '@/lib/reconciliation';
 import MemberPicker from '@/components/family-code/rituals/MemberPicker';
@@ -32,25 +31,26 @@ export default function FamilyMatrixRituals() {
     onSuccess: switchToAi,
   });
 
+  const BG = 'bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Icon name="Loader2" size={32} className="animate-spin text-purple-500" />
-      </div>
+      <SectionPageFrame title="Ритуалы примирения" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
+          <Icon name="Loader2" size={32} className="animate-spin text-purple-500" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <>
-      <Helmet><title>Ритуалы примирения | Семейный код</title></Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero
-            title="Ритуалы примирения"
-            subtitle="Персональные сценарии после ссор на основе ваших данных"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b20738ad-2590-49b8-aedf-a34483b659c2.jpg"
-            backPath="/family-matrix"
-          />
+    <SectionPageFrame
+      title="Ритуалы примирения"
+      subtitle="Персональные сценарии после ссор на основе ваших данных"
+      backPath="/family-matrix"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b20738ad-2590-49b8-aedf-a34483b659c2.jpg"
+      backgroundClass={BG}
+    >
 
           <MemberPicker
             members={members}
@@ -114,8 +114,6 @@ export default function FamilyMatrixRituals() {
               )}
             </>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }

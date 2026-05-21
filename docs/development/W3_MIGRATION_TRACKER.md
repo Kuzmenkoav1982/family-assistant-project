@@ -99,6 +99,8 @@
 | **W3-M1** | Midpoint snapshot | ✅ Зафиксирован |
 | Batch 6 | PrivacyPolicy, TermsOfService, RefundPolicy, SuggestionsPage (light) + FamilyRules, Children (hero) | ✅ Done |
 | Batch 7 | FamilyWallet, Faith (hero) + Offer, SupportPage, FeedbackPage, InstallationGuide (light) | ✅ Done |
+| **W3-M2** | easy rollout complete | ✅ Зафиксирован |
+| Batch 8 | DietProgramCatalog + FamilyMatrix×6 cluster (все hero) | ✅ Done |
 
 ---
 

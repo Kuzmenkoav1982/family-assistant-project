@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Helmet } from '@/lib/helmet';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateNumerologyProfile } from '@/lib/numerology';
@@ -72,28 +72,26 @@ export default function FamilyMatrixFamily() {
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
   }, [memberCards]);
 
+  const BG = 'bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 via-orange-50 to-red-50">
-        <Icon name="Loader2" size={32} className="text-orange-500 animate-spin" />
-      </div>
+      <SectionPageFrame title="Код семьи" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
+          <Icon name="Loader2" size={32} className="text-orange-500 animate-spin" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Код семьи — Общая энергетика и взаимоотношения | Семейный код</title>
-      </Helmet>
-
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero
-            title="Код семьи"
-            subtitle="Энергетика семьи, взаимоотношения и биоритмы"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/193201a8-24e3-4c7a-ba2d-09da9c5381f1.jpg"
-            backPath="/family-matrix"
-          />
+    <SectionPageFrame
+      title="Код семьи"
+      subtitle="Энергетика семьи, взаимоотношения и биоритмы"
+      backPath="/family-matrix"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/193201a8-24e3-4c7a-ba2d-09da9c5381f1.jpg"
+      backgroundClass={BG}
+    >
 
           {membersWithBirth.length < 2 ? (
             <Card className="border-amber-200 bg-amber-50">
@@ -232,8 +230,6 @@ export default function FamilyMatrixFamily() {
               )}
             </>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }

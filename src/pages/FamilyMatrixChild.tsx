@@ -2,8 +2,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from '@/lib/helmet';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateChildCode } from '@/lib/child-code';
 import MemberAvatar from '@/components/ui/member-avatar';
@@ -12,6 +11,7 @@ import type { FamilyMember } from '@/types/family.types';
 function getBd(m: FamilyMember): string | null { return m.birth_date || m.birthDate || null; }
 
 export default function FamilyMatrixChild() {
+  const BG = 'bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
   const { members, loading } = useFamilyMembersContext();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const children = members.filter(m => ['сын', 'дочь', 'ребёнок', 'ребенок'].some(r => m.role.toLowerCase().includes(r)) || m.account_type === 'child_profile');
@@ -24,14 +24,22 @@ export default function FamilyMatrixChild() {
     return calculateChildCode(selected.name, bd);
   }, [selected, bd]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><Icon name="Loader2" size={32} className="animate-spin text-purple-500" /></div>;
+  if (loading) return (
+    <SectionPageFrame title="Детский код" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+      <div className="flex items-center justify-center py-32">
+        <Icon name="Loader2" size={32} className="animate-spin text-purple-500" />
+      </div>
+    </SectionPageFrame>
+  );
 
   return (
-    <>
-      <Helmet><title>Детский код | Семейный код</title></Helmet>
-      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero title="Детский код" subtitle="Таланты, склонности и рекомендации для родителей" imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fab06202-41cb-4c97-bb9b-1d03d9e95e8f.jpg" backPath="/family-matrix" />
+    <SectionPageFrame
+      title="Детский код"
+      subtitle="Таланты, склонности и рекомендации для родителей"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fab06202-41cb-4c97-bb9b-1d03d9e95e8f.jpg"
+      backPath="/family-matrix"
+      backgroundClass={BG}
+    >
 
           <Card>
             <CardContent className="p-4">
@@ -105,8 +113,6 @@ export default function FamilyMatrixChild() {
               </CardContent></Card>
             </div>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }

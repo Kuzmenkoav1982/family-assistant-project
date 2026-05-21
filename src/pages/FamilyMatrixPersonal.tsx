@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Helmet } from '@/lib/helmet';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateNumerologyProfile } from '@/lib/numerology';
@@ -91,31 +91,26 @@ export default function FamilyMatrixPersonal() {
     }
   }, [selectedMember, birthDate]);
 
+  const BG = 'bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50">
-        <div className="text-center">
+      <SectionPageFrame title="Личный код" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
           <Icon name="Loader2" size={32} className="mx-auto mb-3 text-purple-500 animate-spin" />
-          <p className="text-sm text-gray-500">Загрузка...</p>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Личный код{selectedMember ? ` — ${selectedMember.name}` : ''} | Семейный код</title>
-      </Helmet>
-
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-fuchsia-50 p-3 sm:p-4 lg:p-8 pb-24">
-        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
-          <SectionHero
-            title="Личный код"
-            subtitle="Нумерологический расклад по дате рождения и имени"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/460c88cf-fc6e-4eff-99f8-9b5d71e7b34d.jpg"
-            backPath="/family-matrix"
-          />
+    <SectionPageFrame
+      title="Личный код"
+      subtitle="Нумерологический расклад по дате рождения и имени"
+      backPath="/family-matrix"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/460c88cf-fc6e-4eff-99f8-9b5d71e7b34d.jpg"
+      backgroundClass={BG}
+    >
 
           <Card>
             <CardContent className="p-4">
@@ -219,8 +214,6 @@ export default function FamilyMatrixPersonal() {
               )}
             </div>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 interface DietProgram {
   id: number;
@@ -121,23 +121,26 @@ export default function DietProgramCatalog() {
 
   const filtered = programs.filter(p => filter === 'all' || p.category === filter);
 
+  const BG = 'bg-gradient-to-b from-emerald-50 via-white to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Icon name="Loader2" className="animate-spin" size={48} />
-      </div>
+      <SectionPageFrame title="Готовые режимы питания" backPath="/nutrition" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
+          <Icon name="Loader2" className="animate-spin" size={48} />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white pb-24">
-      <div className="max-w-4xl mx-auto p-4 space-y-5">
-        <SectionHero
-          title="Готовые режимы питания"
-          subtitle="Выберите программу и получите план"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/62fbca40-b16c-44ff-a3d4-53a5dfc288ea.jpg"
-          backPath="/nutrition"
-        />
+    <SectionPageFrame
+      title="Готовые режимы питания"
+      subtitle="Выберите программу и получите план"
+      backPath="/nutrition"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/62fbca40-b16c-44ff-a3d4-53a5dfc288ea.jpg"
+      backgroundClass={BG}
+    >
 
         <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
           <TabsList className="w-full">
@@ -253,7 +256,6 @@ export default function DietProgramCatalog() {
             );
           })}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

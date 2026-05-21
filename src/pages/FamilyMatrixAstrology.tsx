@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from '@/lib/helmet';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateAstrologyProfile } from '@/lib/astrology';
 import type { AstrologyProfile } from '@/types/family-code.types';
@@ -18,6 +17,7 @@ import CompatibilityTable from '@/components/family-code/astrology/Compatibility
 import ZodiacDistributionCard from '@/components/family-code/astrology/ZodiacDistributionCard';
 
 export default function FamilyMatrixAstrology() {
+  const BG = 'bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
   const { members, loading } = useFamilyMembersContext();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -52,29 +52,22 @@ export default function FamilyMatrixAstrology() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50">
-        <div className="text-center">
-          <Icon name="Loader2" size={32} className="mx-auto mb-3 text-indigo-500 animate-spin" />
-          <p className="text-sm text-gray-500">Загрузка...</p>
+      <SectionPageFrame title="Астрология семьи" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
+          <Icon name="Loader2" size={32} className="text-indigo-500 animate-spin" />
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Астрология{selectedMember ? ` — ${selectedMember.name}` : ''} | Семейный код</title>
-      </Helmet>
-
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero
-            title="Астрология семьи"
-            subtitle="Звёздные карты, стихии и совместимость знаков зодиака"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/da280cc1-1f9a-4521-995f-1fab621c0a1b.jpg"
-            backPath="/family-matrix"
-          />
+    <SectionPageFrame
+      title="Астрология семьи"
+      subtitle="Звёздные карты, стихии и совместимость знаков зодиака"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/da280cc1-1f9a-4521-995f-1fab621c0a1b.jpg"
+      backPath="/family-matrix"
+      backgroundClass={BG}
+    >
 
           <MemberSelector members={members} selectedId={selectedId} onSelect={setSelectedId} />
 
@@ -120,8 +113,6 @@ export default function FamilyMatrixAstrology() {
               <ZodiacDistributionCard membersData={allMembersData} />
             </div>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }

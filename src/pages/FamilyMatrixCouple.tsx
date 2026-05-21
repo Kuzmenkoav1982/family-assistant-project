@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from '@/lib/helmet';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { calculateCoupleCompatibility } from '@/lib/compatibility';
 import CompatibilityGauge from '@/components/family-code/CompatibilityGauge';
@@ -43,6 +42,7 @@ function MemberButton({ member, isSelected, onClick, disabled }: {
 }
 
 export default function FamilyMatrixCouple() {
+  const BG = 'bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
   const { members, loading } = useFamilyMembersContext();
   const [member1Id, setMember1Id] = useState<string | null>(null);
   const [member2Id, setMember2Id] = useState<string | null>(null);
@@ -59,26 +59,22 @@ export default function FamilyMatrixCouple() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50">
-        <Icon name="Loader2" size={32} className="text-purple-500 animate-spin" />
-      </div>
+      <SectionPageFrame title="Код пары" backPath="/family-matrix" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
+          <Icon name="Loader2" size={32} className="text-purple-500 animate-spin" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Код пары — Совместимость | Семейный код</title>
-      </Helmet>
-
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 p-4 lg:p-8 pb-20">
-        <div className="max-w-4xl mx-auto space-y-5">
-          <SectionHero
-            title="Код пары"
-            subtitle="Совместимость по нумерологии, астрологии, арканам и психологии"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/91271438-b023-4903-aaf0-b0cd976f2865.jpg"
-            backPath="/family-matrix"
-          />
+    <SectionPageFrame
+      title="Код пары"
+      subtitle="Совместимость по нумерологии, астрологии, арканам и психологии"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/91271438-b023-4903-aaf0-b0cd976f2865.jpg"
+      backPath="/family-matrix"
+      backgroundClass={BG}
+    >
 
           <Card>
             <CardContent className="p-4">
@@ -155,8 +151,6 @@ export default function FamilyMatrixCouple() {
               <CompatibilityBreakdown result={result} />
             </div>
           )}
-        </div>
-      </div>
-    </>
+    </SectionPageFrame>
   );
 }
