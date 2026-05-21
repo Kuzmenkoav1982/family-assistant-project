@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ interface FeedbackItem {
 }
 
 export default function FeedbackPage() {
-  const navigate = useNavigate();
+
   const { currentUser } = useAuth();
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,35 +102,22 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="gap-2"
-          >
-            <Icon name="ArrowLeft" size={20} />
-            Назад
-          </Button>
-          
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-          >
-            <Icon name="MessageSquarePlus" size={20} />
-            Оставить отзыв
-          </Button>
-        </div>
-
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            Отзывы пользователей
-          </h1>
-          <p className="text-gray-600">
-            Делитесь своим опытом использования приложения
-          </p>
-        </div>
+    <SectionPageFrame
+      title="Отзывы пользователей"
+      subtitle="Делитесь своим опытом использования приложения"
+      backPath="/"
+      variant="light"
+      rightAction={
+        <Button
+          onClick={() => setShowForm(!showForm)}
+          size="sm"
+          className="gap-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+        >
+          <Icon name="MessageSquarePlus" size={16} />
+          Оставить отзыв
+        </Button>
+      }
+    >
 
         {showForm && (
           <Card className="p-6 mb-6 border-2 border-purple-200">
@@ -236,7 +223,6 @@ export default function FeedbackPage() {
             ))
           )}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

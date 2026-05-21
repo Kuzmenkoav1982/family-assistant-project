@@ -1,31 +1,26 @@
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 export default function InstallationGuide() {
-  const navigate = useNavigate();
-
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8 print:hidden">
-          <div className="flex items-center justify-between mb-4">
-            <Button variant="ghost" onClick={() => navigate(-1)}>
-              <Icon name="ArrowLeft" className="w-4 h-4 mr-2" />
-              Назад
-            </Button>
-            <Button variant="default" className="bg-purple-600 hover:bg-purple-700 text-white" onClick={handlePrint}>
-              <Icon name="Download" className="w-4 h-4 mr-2" />
-              Скачать PDF
-            </Button>
-          </div>
-        </div>
-
+    <>
+    <SectionPageFrame
+      title="Руководство по установке"
+      backPath="/"
+      variant="light"
+      width="standard"
+      rightAction={
+        <Button variant="default" size="sm" className="bg-purple-600 hover:bg-purple-700 text-white print:hidden" onClick={handlePrint}>
+          <Icon name="Download" className="w-4 h-4 mr-1" />
+          Скачать PDF
+        </Button>
+      }
+    >
         {/* Документ */}
         <div className="bg-white rounded-2xl shadow-lg p-8 lg:p-12 print:shadow-none print:p-0">
 
@@ -323,7 +318,7 @@ export default function InstallationGuide() {
             </p>
           </div>
         </div>
-      </div>
+    </SectionPageFrame>
 
       <style>{`
         @media print {
@@ -331,6 +326,6 @@ export default function InstallationGuide() {
           .print\\:hidden { display: none !important; }
         }
       `}</style>
-    </div>
+    </>
   );
 }

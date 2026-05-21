@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,6 @@ import { useAuth } from '@/lib/auth-context';
 import func2url from '../../backend/func2url.json';
 
 export default function SupportPage() {
-  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -81,30 +80,13 @@ export default function SupportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="gap-2"
-          >
-            <Icon name="ArrowLeft" size={20} />
-            Назад
-          </Button>
-        </div>
-
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Icon name="Headphones" size={40} className="text-white" />
-          </div>
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
-            Техническая поддержка
-          </h1>
-          <p className="text-gray-600">
-            Опишите вашу проблему, и мы поможем её решить
-          </p>
-        </div>
+    <SectionPageFrame
+      title="Техническая поддержка"
+      subtitle="Опишите вашу проблему, и мы поможем её решить"
+      backPath="/"
+      variant="light"
+      width="narrow"
+    >
 
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -223,7 +205,6 @@ export default function SupportPage() {
             </Button>
           </form>
         </Card>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

@@ -98,6 +98,7 @@
 | Batch 5 | Wisdom, WhatIsFamily, Goals, Referral, Videos + fix FamilyNews wide→standard | ✅ Done |
 | **W3-M1** | Midpoint snapshot | ✅ Зафиксирован |
 | Batch 6 | PrivacyPolicy, TermsOfService, RefundPolicy, SuggestionsPage (light) + FamilyRules, Children (hero) | ✅ Done |
+| Batch 7 | FamilyWallet, Faith (hero) + Offer, SupportPage, FeedbackPage, InstallationGuide (light) | ✅ Done |
 
 ---
 

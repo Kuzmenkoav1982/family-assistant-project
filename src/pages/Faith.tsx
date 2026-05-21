@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
-import { Helmet } from '@/lib/helmet';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { HERO_IMAGES, TAB_LIST, getReligionEmoji, getReligionLabel } from '@/components/faith/constants';
 import { useFaithData } from '@/components/faith/useFaithData';
 import OverviewTab from '@/components/faith/tabs/OverviewTab';
@@ -30,78 +29,71 @@ export default function Faith() {
   const heroImage = HERO_IMAGES[religion] || HERO_IMAGES.orthodox;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 pb-24">
-      <Helmet>
-        <title>Вера - Семейный помощник</title>
-      </Helmet>
+    <SectionPageFrame
+      title="Вера"
+      subtitle={`${getReligionEmoji(religion)} ${getReligionLabel(religion)}`}
+      backPath="/values-hub"
+      imageUrl={heroImage}
+      backgroundClass="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full flex overflow-x-auto h-auto bg-amber-100/80 rounded-xl p-1 gap-0.5">
+          {TAB_LIST.map(tab => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="text-[10px] py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm text-amber-700 shrink-0 flex flex-col items-center gap-0.5"
+            >
+              <Icon name={tab.icon} size={14} />
+              <span className="leading-none">{tab.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      <div className="max-w-5xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Вера"
-          subtitle={`${getReligionEmoji(religion)} ${getReligionLabel(religion)}`}
-          imageUrl={heroImage}
-          backPath="/values-hub"
-        />
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full flex overflow-x-auto h-auto bg-amber-100/80 rounded-xl p-1 gap-0.5">
-            {TAB_LIST.map(tab => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="text-[10px] py-2 px-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-amber-900 data-[state=active]:shadow-sm text-amber-700 shrink-0 flex flex-col items-center gap-0.5"
-              >
-                <Icon name={tab.icon} size={14} />
-                <span className="leading-none">{tab.label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-amber-600 mb-4" />
-              <p className="text-sm text-amber-600/70">Загрузка...</p>
-            </div>
-          ) : (
-            <>
-              <TabsContent value="overview">
-                <OverviewTab
-                  religion={religion} setReligion={setReligion} onSaveSettings={saveSettings}
-                  holidays={holidays} fasting={fasting} saving={saving} setActiveTab={setActiveTab}
-                  collapseReligion={collapseReligion}
-                />
-              </TabsContent>
-              <TabsContent value="holidays">
-                <HolidaysTab holidays={holidays} religion={religion} onSync={syncToCalendar} onAddCustom={addCustomEvent} onDeleteCustom={deleteCustomEvent} />
-              </TabsContent>
-              <TabsContent value="fasting">
-                <FastingTab fasting={fasting} religion={religion} />
-              </TabsContent>
-              <TabsContent value="prayers">
-                <PrayersTab prayers={prayers} religion={religion} />
-              </TabsContent>
-              <TabsContent value="texts">
-                <SacredTextsTab religion={religion} />
-              </TabsContent>
-              <TabsContent value="saint">
-                <SaintOfDayTab religion={religion} />
-              </TabsContent>
-              <TabsContent value="icon">
-                <IconOfDayTab religion={religion} />
-              </TabsContent>
-              <TabsContent value="library">
-                <LibraryTab religion={religion} />
-              </TabsContent>
-              <TabsContent value="namedays">
-                <NameDaysTab religion={religion} />
-              </TabsContent>
-              <TabsContent value="temple">
-                <TempleTab religion={religion} templeData={templeData} onSave={saveTemple} saving={saving} />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </div>
-    </div>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-amber-600 mb-4" />
+            <p className="text-sm text-amber-600/70">Загрузка...</p>
+          </div>
+        ) : (
+          <>
+            <TabsContent value="overview">
+              <OverviewTab
+                religion={religion} setReligion={setReligion} onSaveSettings={saveSettings}
+                holidays={holidays} fasting={fasting} saving={saving} setActiveTab={setActiveTab}
+                collapseReligion={collapseReligion}
+              />
+            </TabsContent>
+            <TabsContent value="holidays">
+              <HolidaysTab holidays={holidays} religion={religion} onSync={syncToCalendar} onAddCustom={addCustomEvent} onDeleteCustom={deleteCustomEvent} />
+            </TabsContent>
+            <TabsContent value="fasting">
+              <FastingTab fasting={fasting} religion={religion} />
+            </TabsContent>
+            <TabsContent value="prayers">
+              <PrayersTab prayers={prayers} religion={religion} />
+            </TabsContent>
+            <TabsContent value="texts">
+              <SacredTextsTab religion={religion} />
+            </TabsContent>
+            <TabsContent value="saint">
+              <SaintOfDayTab religion={religion} />
+            </TabsContent>
+            <TabsContent value="icon">
+              <IconOfDayTab religion={religion} />
+            </TabsContent>
+            <TabsContent value="library">
+              <LibraryTab religion={religion} />
+            </TabsContent>
+            <TabsContent value="namedays">
+              <NameDaysTab religion={religion} />
+            </TabsContent>
+            <TabsContent value="temple">
+              <TempleTab religion={religion} templeData={templeData} onSave={saveTemple} saving={saving} />
+            </TabsContent>
+          </>
+        )}
+      </Tabs>
+    </SectionPageFrame>
   );
 }
