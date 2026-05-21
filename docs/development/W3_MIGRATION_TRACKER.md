@@ -95,6 +95,7 @@
 | Batch 3 | Calendar, Trips, Pets, Analytics, VotingPage | ✅ Done |
 | Batch 4 | FamilyNews, Articles, Values, Memory, Tree | ✅ Done |
 | **Tech debt** | Analytics.tsx — 22 pre-existing `any` TS errors | ⏳ Отдельный трек |
+| Batch 5 | Wisdom, WhatIsFamily, Goals, Referral, Videos + fix FamilyNews wide→standard | ✅ Done |
 
 ---
 

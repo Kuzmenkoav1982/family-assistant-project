@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useToast } from '@/hooks/use-toast';
 import {
   wisdoms,
@@ -171,9 +171,8 @@ export default function Wisdom() {
   return (
     <>
     <SEOHead title="Мудрость народа — пословицы и притчи о семье" description="Народная мудрость о семье: пословицы, поговорки, притчи, цитаты великих людей. Вдохновение для семейной жизни." path="/wisdom" breadcrumbs={[{ name: "Ценности", path: "/values-hub" }, { name: "Мудрость", path: "/wisdom" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 via-orange-50/30 to-white pb-24">
-      {sharingWisdom && (
-        <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+    {sharingWisdom && (
+      <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
           <div
             ref={shareCardRef}
             style={{
@@ -250,14 +249,13 @@ export default function Wisdom() {
           </div>
         </div>
       )}
-      <div className="max-w-5xl mx-auto p-4 space-y-5">
-        {/* Hero */}
-        <SectionHero
-          title="Мудрость народа"
-          subtitle="Вековая мудрость разных народов мира"
-          imageUrl={CATEGORY_IMAGES.wisdom}
-          backPath="/values-hub"
-        />
+    <SectionPageFrame
+      title="Мудрость народа"
+      subtitle="Вековая мудрость разных народов мира"
+      backPath="/values-hub"
+      imageUrl={CATEGORY_IMAGES.wisdom}
+      backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
 
         {/* Wisdom of the Day */}
         <Card className="border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden">
@@ -480,8 +478,7 @@ export default function Wisdom() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

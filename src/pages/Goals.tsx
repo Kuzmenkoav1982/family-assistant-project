@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { GoalsSection } from '@/components/GoalsSection';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { FamilyGoal } from '@/types/family.types';
@@ -54,14 +54,13 @@ export default function Goals() {
   return (
     <>
     <SEOHead title="Семейные цели — планы и достижения" description="Ставьте семейные цели, отслеживайте прогресс, празднуйте достижения вместе. Долгосрочное планирование для семьи." path="/goals" breadcrumbs={[{ name: "Планирование", path: "/planning-hub" }, { name: "Цели", path: "/goals" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Цели семьи"
-          subtitle="Долгосрочное планирование и контроль целей"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/aebca401-927f-4368-af40-780e294f101f.jpg"
-          backPath="/planning-hub"
-        />
+    <SectionPageFrame
+      title="Цели семьи"
+      subtitle="Долгосрочное планирование и контроль целей"
+      backPath="/planning-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/aebca401-927f-4368-af40-780e294f101f.jpg"
+      backgroundClass="bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
 
         <Card className="border-2 border-indigo-200 bg-indigo-50/50">
           <CardContent className="pt-6">
@@ -102,8 +101,7 @@ export default function Goals() {
             setFamilyGoals(prev => prev.filter(g => g.id !== goalId));
           }}
         />
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
