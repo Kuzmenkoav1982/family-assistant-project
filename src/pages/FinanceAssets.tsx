@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceAssetsInstructions } from '@/components/finance/FinanceInstructions';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -148,30 +148,35 @@ export default function FinanceAssets() {
     );
   }
 
+  const BG = 'bg-gradient-to-b from-sky-50 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5f2f6405-3d6e-4875-ac6a-09560bb4d208.jpg';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-600" />
-      </div>
+      <SectionPageFrame title="Имущество" backPath="/finance" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-600" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
     <>
     <SEOHead title="Имущество семьи — недвижимость и активы" description="Учёт имущества семьи: недвижимость, автомобили, ценные вещи. Оценка стоимости и страхование." path="/finance/assets" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Имущество", path: "/finance/assets" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-sky-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Имущество"
-          subtitle="Недвижимость, транспорт и ценные активы"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5f2f6405-3d6e-4875-ac6a-09560bb4d208.jpg"
-          backPath="/finance"
-          rightAction={
-            <Button size="sm" className="bg-sky-600 hover:bg-sky-700" onClick={() => { resetForm(); setShowAdd(true); }}>
-              <Icon name="Plus" size={16} className="mr-1" /> Добавить
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Имущество"
+      subtitle="Недвижимость, транспорт и ценные активы"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      width="narrow"
+      backgroundClass={BG}
+      rightAction={
+        <Button size="sm" className="bg-sky-600 hover:bg-sky-700" onClick={() => { resetForm(); setShowAdd(true); }}>
+          <Icon name="Plus" size={16} className="mr-1" /> Добавить
+        </Button>
+      }
+    >
 
         <FinanceAssetsInstructions />
 
@@ -238,7 +243,6 @@ export default function FinanceAssets() {
             })}
           </div>
         )}
-      </div>
 
       <Dialog open={showAdd || !!showEdit} onOpenChange={() => { setShowAdd(false); setShowEdit(null); resetForm(); }}>
         <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
@@ -310,7 +314,7 @@ export default function FinanceAssets() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

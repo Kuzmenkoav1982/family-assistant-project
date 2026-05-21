@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
 import { FinanceAccountsInstructions } from '@/components/finance/FinanceInstructions';
 import { useDemoMode } from '@/contexts/DemoModeContext';
@@ -188,31 +188,36 @@ export default function FinanceAccounts() {
   const activeAccounts = accounts.filter(a => a.is_active);
   const inactiveAccounts = accounts.filter(a => !a.is_active);
 
+  const BG = 'bg-gradient-to-b from-blue-50 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ccb6f09e-cd0b-4725-ada5-75300dace1fd.jpg';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
-      </div>
+      <SectionPageFrame title="Счета и карты" backPath="/finance" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
     <>
     <SEOHead title="Счета и карты — банковские счета семьи" description="Управление банковскими счетами и картами семьи. Отслеживание остатков, переводы между счетами." path="/finance/accounts" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Счета", path: "/finance/accounts" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Счета и карты"
-          subtitle="Банковские карты, счета и кошельки"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ccb6f09e-cd0b-4725-ada5-75300dace1fd.jpg"
-          backPath="/finance"
-          rightAction={
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => { resetForm(); setShowAdd(true); }}>
-              <Icon name="Plus" size={16} className="mr-1" /> Добавить
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Счета и карты"
+      subtitle="Банковские карты, счета и кошельки"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      width="narrow"
+      backgroundClass={BG}
+      rightAction={
+        <Button size="sm" className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => { resetForm(); setShowAdd(true); }}>
+          <Icon name="Plus" size={16} className="mr-1" /> Добавить
+        </Button>
+      }
+    >
 
         <FinanceAccountsInstructions />
 
@@ -285,7 +290,6 @@ export default function FinanceAccounts() {
             )}
           </div>
         )}
-      </div>
 
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
@@ -320,7 +324,7 @@ export default function FinanceAccounts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

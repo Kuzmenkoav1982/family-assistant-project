@@ -9,10 +9,12 @@
 ## Summary
 
 ```
-Remaining SectionHero files: 19
-  Quick wins:     2
-  Medium:         8
-  Hard/decompose: 9
+Remaining SectionHero files: 19 → 13 after W5-B1
+  W5-B1 CLOSED ✅ (6 файлов): FamilyPolicy, EmptyChildrenState, FinanceAssets, FinanceAccounts, FinanceGoals, PariTest
+  Remaining: 13
+    Medium:         2 (EventsPage, StateSupport — W5-B2)
+    Hard/decompose: 9
+    Not started:    2
   Exempt:         0 (intentional exceptions не обнаружены)
 
 Top 5 W5-B1 candidates:   FamilyPolicy, EmptyChildrenState, FinanceGoals, PariTest, StateSupport

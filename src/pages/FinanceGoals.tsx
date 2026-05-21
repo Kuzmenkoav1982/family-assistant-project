@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { FinanceGoalsInstructions } from '@/components/finance/FinanceInstructions';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 import { DEMO_GOALS } from '@/data/demoFinanceData';
@@ -145,30 +145,35 @@ export default function FinanceGoals() {
   const totalTarget = activeGoals.reduce((s, g) => s + g.target_amount, 0);
   const totalSaved = activeGoals.reduce((s, g) => s + g.current_amount, 0);
 
+  const BG = 'bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed60650e-aeba-4207-8ad6-870ec1760abf.jpg';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600" />
-      </div>
+      <SectionPageFrame title="Финансовые цели" backPath="/finance" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600" />
+        </div>
+      </SectionPageFrame>
     );
   }
 
   return (
     <>
     <SEOHead title="Финансовые цели — накопления семьи" description="Финансовые цели семьи: накопления на отпуск, образование, жильё. Отслеживание прогресса и автоматические расчёты." path="/finance/goals" breadcrumbs={[{ name: "Финансы", path: "/finance" }, { name: "Финансовые цели", path: "/finance/goals" }]} />
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-4">
-        <SectionHero
-          title="Финансовые цели"
-          subtitle="Копите на мечты всей семьёй"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed60650e-aeba-4207-8ad6-870ec1760abf.jpg"
-          backPath="/finance"
-          rightAction={
-            <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setShowAdd(true)}>
-              <Icon name="Plus" size={16} className="mr-1" /> Цель
-            </Button>
-          }
-        />
+    <SectionPageFrame
+      title="Финансовые цели"
+      subtitle="Копите на мечты всей семьёй"
+      imageUrl={HERO_IMG}
+      backPath="/finance"
+      width="narrow"
+      backgroundClass={BG}
+      rightAction={
+        <Button size="sm" className="bg-amber-600 hover:bg-amber-700" onClick={() => setShowAdd(true)}>
+          <Icon name="Plus" size={16} className="mr-1" /> Цель
+        </Button>
+      }
+    >
 
         <FinanceGoalsInstructions />
 
@@ -272,7 +277,6 @@ export default function FinanceGoals() {
             )}
           </div>
         )}
-      </div>
 
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
@@ -348,7 +352,7 @@ export default function FinanceGoals() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

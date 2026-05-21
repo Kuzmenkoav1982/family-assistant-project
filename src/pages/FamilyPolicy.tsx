@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 interface PolicyDirection {
   id: string;
@@ -194,14 +194,14 @@ export default function FamilyPolicy() {
   return (
     <>
     <SEOHead title="Семейная политика России — программы и инициативы" description="Семейная политика государства: национальные проекты, демографические программы, поддержка многодетных семей." path="/family-policy" />
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 p-4 lg:p-8 pb-20">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <SectionHero
-          title="Семейная политика"
-          subtitle="Стратегические направления поддержки семей со стороны государства"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7857c96e-46f6-497c-8dd9-7e5a74ec7de3.jpg"
-          backPath="/state-hub"
-        />
+    <SectionPageFrame
+      title="Семейная политика"
+      subtitle="Стратегические направления поддержки семей со стороны государства"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7857c96e-46f6-497c-8dd9-7e5a74ec7de3.jpg"
+      backPath="/state-hub"
+      width="wide"
+      backgroundClass="bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 dark:from-gray-950 dark:to-gray-900"
+    >
 
         <Card className="bg-gradient-to-r from-red-50 to-blue-50">
           <CardHeader>
@@ -402,8 +402,7 @@ export default function FamilyPolicy() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
