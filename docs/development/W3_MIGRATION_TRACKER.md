@@ -2,7 +2,7 @@
 
 > Статус миграции страниц на SectionPageFrame / HubLayoutV2 (locked contract).
 > Обновлять по факту кода, не по памяти.
-> Последнее обновление: W3-G1 (commit 967701c)
+> Последнее обновление: W3-M3 core rollout complete (commit a8cfd31)
 
 ---
 
@@ -101,6 +101,60 @@
 | Batch 7 | FamilyWallet, Faith (hero) + Offer, SupportPage, FeedbackPage, InstallationGuide (light) | ✅ Done |
 | **W3-M2** | easy rollout complete | ✅ Зафиксирован |
 | Batch 8 | DietProgramCatalog + FamilyMatrix×6 cluster (все hero) | ✅ Done |
+| **W3-M3** | **Core rollout complete** | ✅ commit a8cfd31 |
+
+---
+
+## W3-M3 Core Rollout Complete (commit a8cfd31)
+
+### Route Inventory Freeze
+
+**Мигрировано: ~46 route pages**
+
+**Remaining SectionHero imports (31 файл) — tail:**
+
+#### W3-tail-medium (4 страницы, Batch 9):
+| Файл | Домен |
+|---|---|
+| LifeRoad.tsx | Family |
+| Shopping.tsx | Household |
+| RecipeFromProducts.tsx | Nutrition |
+| FinanceDebts.tsx | Finance |
+
+#### W3-hardcases (~27 страниц, отдельный backlog):
+| Файл | Причина |
+|---|---|
+| Finance* (FinanceAccounts, FinanceAnalytics, FinanceAssets, FinanceCashflow, FinanceGoals, FinanceLiteracy, FinanceLoyalty, FinanceRecurring, FinanceStrategy) | charts + async |
+| Nutrition.tsx | composite |
+| Recipes.tsx | API |
+| Meals.tsx | complex state |
+| Purchases.tsx | complex state |
+| EventsPage.tsx | CRUD heavy |
+| Garage.tsx | 667 строк, composite |
+| Leisure.tsx | map + complex |
+| PariTest.tsx | test runner |
+| PariResults.tsx | charts + async |
+| DietProgress.tsx | charts |
+| DietQuiz.tsx | quiz logic |
+| Culture.tsx | composite |
+| FamilyChat.tsx | chat |
+| FamilyCode.tsx | heavy |
+| FamilyPolicy.tsx | complex |
+| FamilyTracker.tsx | tracking |
+| StateSupport.tsx | composite |
+| AntiScam.tsx | content heavy |
+
+**Remaining navigate(-1) (8 файлов, не page-header):**
+PortfolioCompare, FamilyPortfolio, SupportNavigator, PortfolioAbout, MemberPortfolio, Dashboard (в контенте), IdeasBoard, SupportPage (в форме)
+
+**Метрики (baseline → M3):**
+- SectionHero imports: 56 → 31 (−25)
+- pb-24 files: 48 → ~30 (−18)
+- navigate(-1) page-headers: 16 → ~8
+
+### Следующий основной трек
+W3 переходит в поддерживающий режим.
+Batch 9 (опционально): LifeRoad + Shopping + RecipeFromProducts + FinanceDebts
 
 ---
 
