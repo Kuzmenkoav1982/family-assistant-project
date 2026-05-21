@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useShopping } from '@/hooks/useShopping';
 import { useNotifications } from '@/hooks/useNotifications';
 import { toast } from 'sonner';
@@ -127,28 +127,30 @@ export default function Shopping() {
   const activeCount = items.filter(i => !i.bought).length;
   const boughtCount = items.filter(i => i.bought).length;
 
+  const BG = 'bg-gradient-to-b from-green-50 via-emerald-50/30 to-white dark:from-gray-950 dark:to-gray-900';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a0559aa1-893a-44e6-84ca-315aec043fd9.jpg';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mx-auto mb-4"></div>
+      <SectionPageFrame title="Покупки" backPath="/household-hub" backgroundClass={BG}>
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mb-4" />
           <p className="text-lg text-gray-600">Загрузка списка покупок...</p>
         </div>
-      </div>
+      </SectionPageFrame>
     );
   }
 
   return (
     <>
     <SEOHead title="Список покупок — совместные покупки семьи" description="Общий список покупок для всей семьи. Добавляйте товары, отмечайте купленное, распределяйте по магазинам." path="/shopping" />
-    <div className="min-h-screen bg-gradient-to-b from-green-50 via-emerald-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Покупки"
-          subtitle={`Активных: ${activeCount} • Куплено: ${boughtCount}`}
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a0559aa1-893a-44e6-84ca-315aec043fd9.jpg"
-          backPath="/household-hub"
-          rightAction={
+    <SectionPageFrame
+      title="Покупки"
+      subtitle={`Активных: ${activeCount} • Куплено: ${boughtCount}`}
+      imageUrl={HERO_IMG}
+      backPath="/household-hub"
+      backgroundClass={BG}
+      rightAction={
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="bg-white/90 text-green-700 hover:bg-white shadow-lg">
@@ -225,7 +227,7 @@ export default function Shopping() {
               </DialogContent>
             </Dialog>
           }
-        />
+    >
 
         <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
           <Alert className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
@@ -407,7 +409,6 @@ export default function Shopping() {
             )}
           </CardContent>
         </Card>
-      </div>
 
       <Dialog open={priceDialogOpen} onOpenChange={setPriceDialogOpen}>
         <DialogContent className="max-w-sm">
@@ -448,7 +449,7 @@ export default function Shopping() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

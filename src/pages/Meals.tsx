@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { MealDialog } from '@/components/meals/MealDialog';
 import { MealsHeader } from '@/components/meals/MealsHeader';
@@ -328,14 +328,14 @@ export default function Meals() {
   return (
     <>
     <SEOHead title="Меню на неделю — план питания семьи" description="Планирование меню на неделю для всей семьи. Завтраки, обеды, ужины с учётом предпочтений и диет каждого." path="/meals" breadcrumbs={[{ name: "Питание", path: "/nutrition" }, { name: "Меню на неделю", path: "/meals" }]} />
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 p-4 lg:p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <SectionHero
-          title="Меню на неделю"
-          subtitle="Планирование семейного меню на каждый день"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/54eba384-ad6c-4e5e-a0cc-9602a4bc17b9.jpg"
-          backPath="/nutrition"
-        />
+    <SectionPageFrame
+      title="Меню на неделю"
+      subtitle="Планирование семейного меню на каждый день"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/54eba384-ad6c-4e5e-a0cc-9602a4bc17b9.jpg"
+      backPath="/nutrition"
+      width="wide"
+      backgroundClass="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-gray-950 dark:to-gray-900"
+    >
 
         <MealsHeader
           onNavigateBack={() => navigate('/nutrition')}
@@ -411,8 +411,7 @@ export default function Meals() {
         />
 
 
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
