@@ -5,9 +5,12 @@
 > Начало: следующий после W4 complete
 >
 > **W5 COMPLETE ✅ — build 2f48161**
+> **Post-W5 cleanup COMPLETE ✅ — build 0e133e0**
 > Migrated: 19/19 | Eject: 0 | Pattern violations: 0
 > SectionHero imports in pages: 0 (confirmed grep)
-> section-hero.tsx: файл существует, 0 импортов — orphan, cleanup pending
+> section-hero.tsx: DELETED (1.6 KB, 51 строк, 0 импортов)
+> Historical comment in SectionPageFrame: retained intentionally
+> WAVE 5 FULLY CLOSED
 
 ---
 
