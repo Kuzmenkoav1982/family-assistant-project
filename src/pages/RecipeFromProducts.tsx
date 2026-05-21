@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 
@@ -401,14 +401,14 @@ export default function RecipeFromProducts() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50/30 to-white pb-24">
-      <div className="max-w-2xl mx-auto p-4 space-y-5">
-        <SectionHero
-          title="Рецепт из продуктов"
-          subtitle="Укажите что есть — ИИ предложит блюда"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/bce7c61c-1b5e-4743-a5d2-1c7a6ae4e868.jpg"
-          backPath="/nutrition"
-        />
+    <SectionPageFrame
+      title="Рецепт из продуктов"
+      subtitle="Укажите что есть — ИИ предложит блюда"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/bce7c61c-1b5e-4743-a5d2-1c7a6ae4e868.jpg"
+      backPath="/nutrition"
+      width="narrow"
+      backgroundClass="bg-gradient-to-b from-orange-50 via-amber-50/30 to-white dark:from-gray-950 dark:to-gray-900"
+    >
 
         {products.length > 0 && (
           <Card className="bg-orange-50 border-orange-200">
@@ -540,7 +540,6 @@ export default function RecipeFromProducts() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

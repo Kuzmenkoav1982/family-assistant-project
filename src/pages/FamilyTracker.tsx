@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import useFamilyTracker from '@/hooks/useFamilyTracker';
 import MapSection from '@/components/family-tracker/MapSection';
 import MembersPanel from '@/components/family-tracker/MembersPanel';
@@ -17,14 +17,13 @@ export default function FamilyTracker() {
   return (
     <>
     <SEOHead title="Семейный маячок — где находятся близкие" description="Отслеживание местоположения членов семьи в реальном времени. Безопасность детей, геозоны, история перемещений." path="/family-tracker" />
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white pb-24">
-      <div className="max-w-5xl mx-auto p-4 space-y-6">
-        <SectionHero
-          title="Семейный маячок"
-          subtitle="Местоположение членов семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1f86cef7-8734-493e-bef6-12ac69e8a4b8.jpg"
-          backPath="/family-hub"
-        />
+    <SectionPageFrame
+      title="Семейный маячок"
+      subtitle="Местоположение членов семьи"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1f86cef7-8734-493e-bef6-12ac69e8a4b8.jpg"
+      backPath="/family-hub"
+      backgroundClass="bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white dark:from-gray-950 dark:to-gray-900"
+    >
 
         <Card className="shadow-md bg-blue-50 border-blue-200">
           <div className="p-4 cursor-pointer flex items-center justify-between hover:bg-blue-100 transition-colors" onClick={() => t.setIsInstructionOpen(!t.isInstructionOpen)}>
@@ -102,8 +101,7 @@ export default function FamilyTracker() {
             </div>
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
