@@ -100,76 +100,91 @@ function MatryoshkaTitleSlide() {
 }
 
 function MatryoshkaLegend() {
+  const [open, setOpen] = useState(false);
   return (
     <section
       data-pdf-slide
       className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 p-6 sm:p-10 mb-6 sm:mb-8"
     >
-      <div className="text-center mb-6">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full text-center group"
+      >
         <div className="inline-flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-full mb-3 border border-amber-200">
           <Icon name="BookOpen" size={14} className="text-amber-700" />
           <span className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
             Как читать матрёшку
           </span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Четыре уровня — одна логика
-        </h2>
-      </div>
-
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="bg-amber-50 border-l-4 border-amber-600 rounded-r-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="Heart" size={18} className="text-amber-700" />
-            <h3 className="font-bold text-amber-900">Центр · Ценности 809</h3>
-          </div>
-          <p className="text-sm text-amber-900/80 leading-relaxed">
-            7 традиционных ценностей по Указу Президента. Это смысловое сердце продукта —
-            то, ради чего он существует.
-          </p>
+        <div className="flex items-center justify-center gap-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Четыре уровня — одна логика
+          </h2>
+          <Icon
+            name={open ? 'ChevronUp' : 'ChevronDown'}
+            size={22}
+            className="text-gray-400 group-hover:text-gray-600 transition-colors mt-0.5"
+          />
         </div>
+      </button>
 
-        <div className="bg-emerald-50 border-l-4 border-emerald-600 rounded-r-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="Zap" size={18} className="text-emerald-700" />
-            <h3 className="font-bold text-emerald-900">Кольцо 2 · Ядро</h3>
+      {open && (
+        <>
+          <div className="grid sm:grid-cols-2 gap-4 mt-6">
+            <div className="bg-amber-50 border-l-4 border-amber-600 rounded-r-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon name="Heart" size={18} className="text-amber-700" />
+                <h3 className="font-bold text-amber-900">Центр · Ценности 809</h3>
+              </div>
+              <p className="text-sm text-amber-900/80 leading-relaxed">
+                7 традиционных ценностей по Указу Президента. Это смысловое сердце продукта —
+                то, ради чего он существует.
+              </p>
+            </div>
+
+            <div className="bg-emerald-50 border-l-4 border-emerald-600 rounded-r-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon name="Zap" size={18} className="text-emerald-700" />
+                <h3 className="font-bold text-emerald-900">Кольцо 2 · Ядро</h3>
+              </div>
+              <p className="text-sm text-emerald-900/80 leading-relaxed">
+                8 модулей платформы, которые уже работают. Это готовый актив —
+                фундамент, на который опирается остальное.
+              </p>
+            </div>
+
+            <div className="bg-orange-50 border-l-4 border-orange-600 rounded-r-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon name="Target" size={18} className="text-orange-700" />
+                <h3 className="font-bold text-orange-900">Кольцо 3 · Стратегия 615-р</h3>
+              </div>
+              <p className="text-sm text-orange-900/80 leading-relaxed">
+                12 прикладных сервисов из Распоряжения Правительства. Это направление достройки
+                на горизонте до 2036 года.
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border-l-4 border-blue-700 rounded-r-xl p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon name="Network" size={18} className="text-blue-700" />
+                <h3 className="font-bold text-blue-900">Кольцо 4 · Каналы государства</h3>
+              </div>
+              <p className="text-sm text-blue-900/80 leading-relaxed">
+                8 каналов дистрибуции — Госуслуги, MAX, Web, региональные ИС, реестр ПО.
+                Через них продукт доходит до семьи.
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-emerald-900/80 leading-relaxed">
-            8 модулей платформы, которые уже работают. Это готовый актив —
-            фундамент, на который опирается остальное.
-          </p>
-        </div>
 
-        <div className="bg-orange-50 border-l-4 border-orange-600 rounded-r-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="Target" size={18} className="text-orange-700" />
-            <h3 className="font-bold text-orange-900">Кольцо 3 · Стратегия 615-р</h3>
+          <div className="mt-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 border border-amber-200 rounded-xl p-5">
+            <p className="text-sm text-gray-800 leading-relaxed">
+              <strong className="text-amber-800">Логика чтения изнутри наружу:</strong> Указ
+              формирует ценности → мы построили продукт под семью → он содержательно стыкуется с
+              задачами 615-р → масштабируется через каналы государства.
+            </p>
           </div>
-          <p className="text-sm text-orange-900/80 leading-relaxed">
-            12 прикладных сервисов из Распоряжения Правительства. Это направление достройки
-            на горизонте до 2036 года.
-          </p>
-        </div>
-
-        <div className="bg-blue-50 border-l-4 border-blue-700 rounded-r-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Icon name="Network" size={18} className="text-blue-700" />
-            <h3 className="font-bold text-blue-900">Кольцо 4 · Каналы государства</h3>
-          </div>
-          <p className="text-sm text-blue-900/80 leading-relaxed">
-            8 каналов дистрибуции — Госуслуги, MAX, Web, региональные ИС, реестр ПО.
-            Через них продукт доходит до семьи.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 border border-amber-200 rounded-xl p-5">
-        <p className="text-sm text-gray-800 leading-relaxed">
-          <strong className="text-amber-800">Логика чтения изнутри наружу:</strong> Указ
-          формирует ценности → мы построили продукт под семью → он содержательно стыкуется с
-          задачами 615-р → масштабируется через каналы государства.
-        </p>
-      </div>
+        </>
+      )}
     </section>
   );
 }
