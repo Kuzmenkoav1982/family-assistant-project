@@ -1,29 +1,21 @@
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import Icon from '@/components/ui/icon';
 import SEOHead from '@/components/SEOHead';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 export default function PrivacyPolicy() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 px-4">
+    <>
       <SEOHead
         title="Политика конфиденциальности"
         description="Политика конфиденциальности платформы «Наша Семья». Как мы собираем, храним и защищаем ваши персональные данные."
         path="/privacy-policy"
       />
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 md:p-12">
-        <Button
-          onClick={() => navigate(-1)}
-          variant="outline"
-          className="mb-6"
-        >
-          <Icon name="ArrowLeft" className="mr-2" size={18} />
-          Назад
-        </Button>
-
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Политика конфиденциальности</h1>
+      <SectionPageFrame
+        title="Политика конфиденциальности"
+        backPath="/"
+        variant="light"
+        width="narrow"
+      >
+        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
         
         <div className="space-y-6 text-gray-700 leading-relaxed">
           <p className="text-sm text-gray-500">Дата последнего обновления: {new Date().toLocaleDateString('ru-RU')}</p>
@@ -273,18 +265,8 @@ export default function PrivacyPolicy() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t">
-          <Button
-            onClick={() => navigate(-1)}
-            variant="default"
-            size="lg"
-            className="w-full md:w-auto"
-          >
-            <Icon name="ArrowLeft" className="mr-2" size={18} />
-            Вернуться назад
-          </Button>
         </div>
-      </div>
-    </div>
+      </SectionPageFrame>
+    </>
   );
 }

@@ -1,28 +1,21 @@
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
-import Icon from '@/components/ui/icon';
 import SEOHead from '@/components/SEOHead';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 export default function TermsOfService() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4">
+    <>
       <SEOHead
         title="Пользовательское соглашение"
         description="Пользовательское соглашение платформы «Наша Семья». Условия использования сервиса."
         path="/terms-of-service"
       />
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 md:p-12">
-        <Button
-          onClick={() => navigate(-1)}
-          variant="outline"
-          className="mb-6"
-        >
-          <Icon name="ArrowLeft" className="mr-2" size={18} />
-          Назад
-        </Button>
-
+      <SectionPageFrame
+        title="Пользовательское соглашение"
+        backPath="/"
+        variant="light"
+        width="narrow"
+      >
+        <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Пользовательское соглашение</h1>
         
         <div className="space-y-6 text-gray-700 leading-relaxed">
@@ -292,18 +285,8 @@ export default function TermsOfService() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t">
-          <Button
-            onClick={() => navigate(-1)}
-            variant="default"
-            size="lg"
-            className="w-full md:w-auto"
-          >
-            <Icon name="ArrowLeft" className="mr-2" size={18} />
-            Вернуться назад
-          </Button>
         </div>
-      </div>
-    </div>
+      </SectionPageFrame>
+    </>
   );
 }

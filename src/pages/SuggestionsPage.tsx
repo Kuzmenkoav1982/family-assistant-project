@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,6 @@ interface SuggestionItem {
 }
 
 export default function SuggestionsPage() {
-  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [items, setItems] = useState<SuggestionItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,35 +84,22 @@ export default function SuggestionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="gap-2"
-          >
-            <Icon name="ArrowLeft" size={20} />
-            Назад
-          </Button>
-          
-          <Button
-            onClick={() => setShowForm(!showForm)}
-            className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            <Icon name="Lightbulb" size={20} />
-            Предложить идею
-          </Button>
-        </div>
-
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Предложения и идеи
-          </h1>
-          <p className="text-gray-600">
-            Помогите нам стать лучше - поделитесь своими идеями
-          </p>
-        </div>
+    <SectionPageFrame
+      title="Предложения и идеи"
+      subtitle="Помогите нам стать лучше — поделитесь своими идеями"
+      backPath="/"
+      variant="light"
+      rightAction={
+        <Button
+          onClick={() => setShowForm(!showForm)}
+          size="sm"
+          className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+        >
+          <Icon name="Lightbulb" size={16} />
+          Предложить идею
+        </Button>
+      }
+    >
 
         {showForm && (
           <Card className="p-6 mb-6 border-2 border-blue-200">
@@ -201,7 +187,6 @@ export default function SuggestionsPage() {
             ))
           )}
         </div>
-      </div>
-    </div>
+    </SectionPageFrame>
   );
 }

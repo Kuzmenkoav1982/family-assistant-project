@@ -96,6 +96,62 @@
 | Batch 4 | FamilyNews, Articles, Values, Memory, Tree | ✅ Done |
 | **Tech debt** | Analytics.tsx — 22 pre-existing `any` TS errors | ⏳ Отдельный трек |
 | Batch 5 | Wisdom, WhatIsFamily, Goals, Referral, Videos + fix FamilyNews wide→standard | ✅ Done |
+| **W3-M1** | Midpoint snapshot | ✅ Зафиксирован |
+| Batch 6 | PrivacyPolicy, TermsOfService, RefundPolicy, SuggestionsPage (light) + FamilyRules, Children (hero) | ✅ Done |
+
+---
+
+## W3-M1 Midpoint Snapshot (commit df5c22f)
+
+**Мигрировано route pages: 28**
+
+| # | Страница | Тип | Batch |
+|---|---|---|---|
+| 1 | Tasks | hero | Pilot |
+| 2 | FamilyHub | hub | Pilot |
+| 3 | PlanningHub | hub | Pilot |
+| 4 | Workshop | light/hideTitle | Pilot+ |
+| 5 | Notifications | light | Batch 1 |
+| 6 | HealthNew | hero | Batch 1 |
+| 7 | FinanceBudget | hero | Batch 1 |
+| 8 | Dashboard | light/hideTitle | Batch 2 |
+| 9 | Settings | light | Batch 2 |
+| 10 | Development | hero | Batch 2 |
+| 11 | FinanceHub | hub | auto |
+| 12 | Calendar | hero | Batch 3 |
+| 13 | Trips | hero | Batch 3 |
+| 14 | Pets | hero | Batch 3 |
+| 15 | Analytics | hero | Batch 3 |
+| 16 | VotingPage | hero | Batch 3 |
+| 17 | FamilyNews | hero | Batch 4 |
+| 18 | Articles | hero | Batch 4 |
+| 19 | Values | hero | Batch 4 |
+| 20 | Memory | hero | Batch 4 |
+| 21 | Tree | hero | Batch 4 |
+| 22 | Wisdom | hero | Batch 5 |
+| 23 | WhatIsFamily | hero | Batch 5 |
+| 24 | Goals | hero | Batch 5 |
+| 25 | Referral | light | Batch 5 |
+| 26 | Videos | light | Batch 5 |
+
+**Итого: 26 (не 28 как считалось — пересчёт по факту)**
+
+**Remaining по типу:**
+- hero easy: Children, FamilyRules, FamilyWallet, DietProgramCatalog, Faith (~5)
+- hero medium: FamilyMatrix* (6 страниц), LifeRoad, Shopping, RecipeFromProducts (~9)
+- hero hard: Finance*, Nutrition, Recipes, PariTest, PariResults, Garage, Culture, Leisure, Meals, Purchases, EventsPage, DietQuiz (~20)
+- light easy: PrivacyPolicy, TermsOfService, RefundPolicy, SuggestionsPage, FeedbackPage, SupportPage, InstallationGuide (~7)
+- light hard: SupportNavigator, PortfolioCompare, FamilyPortfolio, MemberPortfolio (~4)
+
+**Deferred (hard tail):**
+- Garage, Leisure, PariResults — composite/heavy
+- Finance* блок — charts + async
+- MemberPortfolio, SupportNavigator — complex composite
+- Analytics TS debt — отдельный трек
+
+**Decision rule после Batch 6:**
+- easy + medium remaining > 8 → продолжаем W3
+- easy + medium remaining ≤ 5–6 → W3 core complete, hard tail отдельно
 
 ---
 
