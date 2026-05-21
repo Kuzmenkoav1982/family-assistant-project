@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -118,43 +118,43 @@ export default function LifeRoad() {
           { name: 'Мастерская жизни', path: '/life-road' },
         ]}
       />
-      <div className="min-h-screen bg-gradient-to-b from-purple-50 via-pink-50/30 to-white pb-24">
-        <div className="max-w-6xl mx-auto p-4 space-y-4">
-          <SectionHero
-            title="Мастерская жизни"
-            subtitle="Твори свой путь: прошлое, настоящее и план будущего"
-            imageUrl={BANNER_URL}
-            backPath="/development-hub"
-            rightAction={
-              <div className="flex items-center gap-1.5">
-                <Button
-                  onClick={() => setStoryOpen(true)}
-                  size="sm"
-                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
-                  title="Смотреть как историю"
-                >
-                  <Icon name="Film" size={14} className="sm:mr-1.5" />
-                  <span className="hidden sm:inline">История</span>
-                </Button>
-                <Button
-                  onClick={() => setShareOpen(true)}
-                  size="sm"
-                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
-                  title="Поделиться"
-                >
-                  <Icon name="Share2" size={14} />
-                </Button>
-                <Button
-                  onClick={() => setCoachOpen(true)}
-                  size="sm"
-                  className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
-                >
-                  <Icon name="Sparkles" size={14} className="sm:mr-1.5" />
-                  <span className="hidden sm:inline">Домовой</span>
-                </Button>
-              </div>
-            }
-          />
+      <SectionPageFrame
+        title="Мастерская жизни"
+        subtitle="Твори свой путь: прошлое, настоящее и план будущего"
+        imageUrl={BANNER_URL}
+        backPath="/development-hub"
+        width="wide"
+        backgroundClass="bg-gradient-to-b from-purple-50 via-pink-50/30 to-white dark:from-gray-950 dark:to-gray-900"
+        rightAction={
+          <div className="flex items-center gap-1.5">
+            <Button
+              onClick={() => setStoryOpen(true)}
+              size="sm"
+              className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
+              title="Смотреть как историю"
+            >
+              <Icon name="Film" size={14} className="sm:mr-1.5" />
+              <span className="hidden sm:inline">История</span>
+            </Button>
+            <Button
+              onClick={() => setShareOpen(true)}
+              size="sm"
+              className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
+              title="Поделиться"
+            >
+              <Icon name="Share2" size={14} />
+            </Button>
+            <Button
+              onClick={() => setCoachOpen(true)}
+              size="sm"
+              className="bg-white/20 backdrop-blur-md text-white border border-white/40 hover:bg-white/30 px-2 sm:px-3"
+            >
+              <Icon name="Sparkles" size={14} className="sm:mr-1.5" />
+              <span className="hidden sm:inline">Домовой</span>
+            </Button>
+          </div>
+        }
+      >
 
           <LifeRoadInstructions />
 
@@ -328,8 +328,7 @@ export default function LifeRoad() {
             events={events}
             birthYear={birthYear}
           />
-        </div>
-      </div>
+      </SectionPageFrame>
     </>
   );
 }
