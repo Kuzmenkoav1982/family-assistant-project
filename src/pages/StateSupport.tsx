@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
 interface SupportMeasure {
   id: string;
@@ -301,14 +301,14 @@ export default function StateSupport() {
   return (
     <>
     <SEOHead title="Господдержка семей — льготы и выплаты" description="Государственная поддержка семей в России: материнский капитал, пособия, льготы, субсидии. Актуальная информация о выплатах." path="/state-support" breadcrumbs={[{ name: "Госуслуги", path: "/state-hub" }, { name: "Господдержка", path: "/state-support" }]} />
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 lg:p-8 pb-20">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <SectionHero
-          title="Господдержка семей"
-          subtitle="Меры поддержки от государства РФ для семей с детьми"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/837fd184-7adf-4cfa-9e10-87a2c24fc6f9.jpg"
-          backPath="/state-hub"
-        />
+    <SectionPageFrame
+      title="Господдержка семей"
+      subtitle="Меры поддержки от государства РФ для семей с детьми"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/837fd184-7adf-4cfa-9e10-87a2c24fc6f9.jpg"
+      backPath="/state-hub"
+      width="wide"
+      backgroundClass="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:to-gray-900"
+    >
 
         <Card
           className="cursor-pointer overflow-hidden border-emerald-200 bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:shadow-xl transition-all"
@@ -455,8 +455,7 @@ export default function StateSupport() {
             </Button>
           </Card>
         )}
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }
