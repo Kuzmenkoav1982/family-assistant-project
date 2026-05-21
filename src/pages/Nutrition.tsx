@@ -3,7 +3,7 @@ import SEOHead from '@/components/SEOHead';
 import Icon from '@/components/ui/icon';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { NutritionHeader } from '@/components/nutrition/NutritionHeader';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { NutritionStats } from '@/components/nutrition/NutritionStats';
 import { AddMealDialog } from '@/components/nutrition/AddMealDialog';
 import { FoodDiaryTable } from '@/components/nutrition/FoodDiaryTable';
@@ -25,11 +25,15 @@ export default function Nutrition() {
     handleEditEntry, handleUpdateEntry, selectProduct,
   } = useNutritionData();
 
+  const BG = 'bg-gradient-to-b from-green-50 to-white dark:from-gray-950 dark:to-gray-900';
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <Icon name="Loader2" className="animate-spin" size={48} />
-      </div>
+      <SectionPageFrame title="Счётчик БЖУ" backPath="/nutrition" variant="light" backgroundClass={BG}>
+        <div className="flex items-center justify-center py-32">
+          <Icon name="Loader2" className="animate-spin" size={48} />
+        </div>
+      </SectionPageFrame>
     );
   }
 
@@ -42,15 +46,14 @@ export default function Nutrition() {
         description="Планирование питания семьи: ИИ-диеты, готовые программы, рецепты из продуктов, счётчик калорий и БЖУ. Здоровое питание для всей семьи."
         path="/nutrition"
       />
-      <div className="min-h-screen bg-gradient-to-b from-green-50 to-white p-4 pb-24">
-        <div className="max-w-6xl mx-auto space-y-6">
-
-          <SectionHero
-            title="Счётчик БЖУ"
-            subtitle="Дневник питания с подсчётом калорий и нутриентов"
-            imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3783739b-09dd-451c-9fac-a95c55db2792.jpg"
-            backPath="/nutrition"
-          />
+      <SectionPageFrame
+        title="Счётчик БЖУ"
+        subtitle="Дневник питания с подсчётом калорий и нутриентов"
+        backPath="/nutrition"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3783739b-09dd-451c-9fac-a95c55db2792.jpg"
+        width="wide"
+        backgroundClass={BG}
+      >
 
           <NutritionHeader
             members={members}
@@ -90,8 +93,7 @@ export default function Nutrition() {
             onUpdate={handleUpdateEntry}
           />
 
-        </div>
-      </div>
+      </SectionPageFrame>
     </>
   );
 }

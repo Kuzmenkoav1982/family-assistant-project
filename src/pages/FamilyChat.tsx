@@ -1,5 +1,5 @@
 import SEOHead from '@/components/SEOHead';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { useFamilyChat } from '@/components/family-chat/useFamilyChat';
@@ -30,13 +30,13 @@ export default function FamilyChat() {
         description="Закрытый семейный чат: общий чат и тет-а-тет с каждым членом семьи. Реальное время, без рекламы, данные хранятся в РФ."
       />
 
-      <SectionHero
+      <SectionPageFrame
         title="Чат семьи"
         subtitle="Закрытый чат для своих — без рекламы, данные хранятся в РФ"
+        backPath="/family-hub"
         imageUrl={HERO_IMAGE}
-      />
-
-      <div className="px-3 sm:px-4 pt-2 pb-24 max-w-3xl mx-auto">
+        width="narrow"
+      >
         {error && (
           <Card className="mb-3 border-red-200 bg-red-50">
             <CardContent className="p-3 text-sm text-red-700 flex items-center gap-2">
@@ -86,7 +86,7 @@ export default function FamilyChat() {
             />
           </>
         )}
-      </div>
+      </SectionPageFrame>
     </>
   );
 }

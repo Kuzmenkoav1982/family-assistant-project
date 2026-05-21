@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
-import SectionHero from '@/components/ui/section-hero';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { familyCodeCategories, familyCodeArticles, FamilyCodeArticle } from '@/data/familyCodeData';
 
 export default function FamilyCode() {
@@ -32,14 +32,14 @@ export default function FamilyCode() {
   return (
     <>
     <SEOHead title="Семейный кодекс РФ — права и обязанности" description="Основные положения Семейного кодекса РФ: брак, развод, права детей, алименты, опека. Доступным языком для каждой семьи." path="/family-code" breadcrumbs={[{ name: "Госуслуги", path: "/state-hub" }, { name: "Семейный кодекс", path: "/family-code" }]} />
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <SectionHero
-          title="Семейный кодекс РФ"
-          subtitle="Изучайте права и обязанности членов семьи"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4c141f31-45b8-4e12-ab84-49e81a80c64a.jpg"
-          backPath="/state-hub"
-        />
+    <SectionPageFrame
+      title="Семейный кодекс РФ"
+      subtitle="Изучайте права и обязанности членов семьи"
+      backPath="/state-hub"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4c141f31-45b8-4e12-ab84-49e81a80c64a.jpg"
+      width="wide"
+      backgroundClass="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+    >
 
         <div className="relative">
           <Icon name="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
@@ -175,8 +175,7 @@ export default function FamilyCode() {
             </CardContent>
           </Card>
         )}
-      </div>
-    </div>
+    </SectionPageFrame>
     </>
   );
 }

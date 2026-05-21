@@ -114,7 +114,7 @@ W4 работает с W3-hardcases через паттерн:
 
 | Phase | Файлов | Статус |
 |---|---|---|
-| Phase 1 — quick wins | 13 | — |
+| Phase 1 — quick wins | 13 | W4-B1: FamilyChat, Nutrition, DietQuiz, Culture, FamilyCode ✅ (5/13) |
 | Phase 2 — Garage pilot | 1 | — |
 | Phase 3 — Finance cluster | 3 | — |
 | Phase 4 — остаток | 4 | — |
