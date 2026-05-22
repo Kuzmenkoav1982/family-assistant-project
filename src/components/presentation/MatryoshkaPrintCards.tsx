@@ -145,21 +145,10 @@ export function MatryoshkaPrintCards() {
       data-pdf-slide
       className="bg-white rounded-3xl shadow-xl my-6 overflow-hidden border border-gray-200 px-5 py-7 sm:px-8 sm:py-10"
     >
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 bg-amber-100 px-3 py-1 rounded-full mb-3">
-          <Icon name="FileText" size={14} className="text-amber-700" />
-          <span className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
-            Печатная форма матрёшки
-          </span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Расшифровка всех ячеек матрёшки
-        </h2>
-        <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
-          Каждая ячейка четырёх колец и центра — с описанием, источником и связью с продуктом.
-          Версия для печати и PDF.
-        </p>
-      </div>
+      <p className="text-sm text-gray-600 mb-6 max-w-2xl mx-auto text-center">
+        Каждая ячейка четырёх колец и центра — с описанием, источником и связью с продуктом.
+        Версия для печати и PDF.
+      </p>
 
       {/* ========== ЦЕНТР: ЦЕННОСТИ 809 ========== */}
       <PrintSection
