@@ -22,7 +22,7 @@ export function StrategyDeckCTA() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-white text-purple-700 hover:bg-purple-50 font-bold px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg transition-all hover:scale-105 text-sm sm:text-base"
           >
-            Стратегия с матрёшкой
+            Стратегия до 2036
             <Icon name="ArrowRight" size={20} />
           </a>
           <a
@@ -32,7 +32,7 @@ export function StrategyDeckCTA() {
             className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/30 font-bold px-6 py-3 sm:px-8 sm:py-4 rounded-xl shadow-lg backdrop-blur transition-all hover:scale-105 text-sm sm:text-base"
           >
             <Icon name="TrendingUp" size={20} />
-            Стратегия до 2036
+            Краткая стратегия (для быстрого знакомства)
           </a>
         </div>
         <p className="text-purple-200 text-xs mt-4 opacity-80">
