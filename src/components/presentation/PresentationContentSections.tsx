@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 
 function SectionCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -83,6 +84,72 @@ function ComparisonTable() {
         </tbody>
       </table>
     </div>
+  );
+}
+
+function SecuritySectionCollapsible() {
+  const [open, setOpen] = useState(false);
+  const items = [
+    { icon: 'MapPin', title: 'Данные в РФ (Yandex Cloud)', desc: 'Все данные хранятся исключительно на российской инфраструктуре Yandex Cloud' },
+    { icon: 'Lock', title: 'Шифрование', desc: 'Шифрование данных при передаче (TLS 1.3) и хранении' },
+    { icon: 'HeartPulse', title: 'Защита медданных', desc: 'Строгое разграничение доступа: каждый видит только свои медицинские записи' },
+    { icon: 'Users', title: 'Ролевая система', desc: 'Администратор, редактор, наблюдатель — на уровне семьи' },
+    { icon: 'Key', title: 'Аутентификация', desc: 'Аутентификация по токенам с контролем сессий' },
+    { icon: 'FileText', title: 'Аудит-логирование', desc: 'Полная история всех действий пользователей' },
+    { icon: 'Shield', title: 'Защита от атак', desc: 'Rate-limiter для DDoS и brute-force, валидация всех данных (Pydantic)' },
+    { icon: 'Scale', title: 'ФЗ-152', desc: 'Соответствие требованиям ФЗ-152 «О персональных данных»' },
+  ];
+
+  return (
+    <SectionCard>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full text-left group"
+      >
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0 bg-green-600">
+            <Icon name="ShieldCheck" size={22} className="text-white sm:hidden" />
+            <Icon name="ShieldCheck" size={28} className="text-white hidden sm:block" />
+          </div>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 flex-1">
+            Безопасность и защита данных
+          </h2>
+          <Icon
+            name={open ? 'ChevronUp' : 'ChevronDown'}
+            size={22}
+            className="text-gray-400 group-hover:text-gray-600 transition-colors flex-shrink-0"
+          />
+        </div>
+        {!open && (
+          <p className="text-xs sm:text-sm text-gray-500 mt-2 ml-13 sm:ml-16">
+            Нажмите, чтобы раскрыть подробности: данные в РФ, шифрование TLS 1.3, ролевая система, ФЗ-152 и др.
+          </p>
+        )}
+      </button>
+
+      {open && (
+        <div className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {items.map((item, i) => (
+              <div key={i} className="flex items-start gap-3 bg-green-50/60 rounded-xl p-3">
+                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <Icon name={item.icon} size={16} className="text-green-600" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-xs">{item.title}</h4>
+                  <p className="text-gray-500 text-xs">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 bg-blue-50 rounded-xl p-3 text-center">
+            <p className="text-xs text-blue-700 font-medium">
+              Готовность к прохождению аудита безопасности при интеграции с банковской инфраструктурой
+            </p>
+          </div>
+        </div>
+      )}
+    </SectionCard>
   );
 }
 
@@ -330,36 +397,7 @@ export function PresentationContentSections() {
       </SectionCard>
 
       {/* СЛАЙД: Безопасность */}
-      <SectionCard>
-        <SectionTitle icon="ShieldCheck" iconColor="bg-green-600" title="Безопасность и защита данных" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {[
-            { icon: 'MapPin', title: 'Данные в РФ (Yandex Cloud)', desc: 'Все данные хранятся исключительно на российской инфраструктуре Yandex Cloud' },
-            { icon: 'Lock', title: 'Шифрование', desc: 'Шифрование данных при передаче (TLS 1.3) и хранении' },
-            { icon: 'HeartPulse', title: 'Защита медданных', desc: 'Строгое разграничение доступа: каждый видит только свои медицинские записи' },
-            { icon: 'Users', title: 'Ролевая система', desc: 'Администратор, редактор, наблюдатель — на уровне семьи' },
-            { icon: 'Key', title: 'Аутентификация', desc: 'Аутентификация по токенам с контролем сессий' },
-            { icon: 'FileText', title: 'Аудит-логирование', desc: 'Полная история всех действий пользователей' },
-            { icon: 'Shield', title: 'Защита от атак', desc: 'Rate-limiter для DDoS и brute-force, валидация всех данных (Pydantic)' },
-            { icon: 'Scale', title: 'ФЗ-152', desc: 'Соответствие требованиям ФЗ-152 «О персональных данных»' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-start gap-3 bg-green-50/60 rounded-xl p-3">
-              <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                <Icon name={item.icon} size={16} className="text-green-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-800 text-xs">{item.title}</h4>
-                <p className="text-gray-500 text-xs">{item.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 bg-blue-50 rounded-xl p-3 text-center">
-          <p className="text-xs text-blue-700 font-medium">
-            Готовность к прохождению аудита безопасности при интеграции с банковской инфраструктурой
-          </p>
-        </div>
-      </SectionCard>
+      <SecuritySectionCollapsible />
 
       {/* СЛАЙД: Реестр ПО */}
       <SectionCard className="bg-gradient-to-br from-sky-50 to-blue-50">
