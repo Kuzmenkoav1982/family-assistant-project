@@ -24,20 +24,22 @@ export function PresentationTitleSlide() {
         Объединяем семьи. Укрепляем общество.
       </p>
 
-      {/* Концепция: Семья как единый клиент */}
+      {/* Концепция: Семейный ID — наследуемый ключ семьи */}
       <div className="max-w-2xl mx-auto mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-5 border border-blue-100 text-left">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-            <Icon name="Users" size={16} className="text-white" />
+            <Icon name="KeyRound" size={16} className="text-white" />
           </div>
-          <h3 className="font-bold text-blue-900 text-sm">Семья как единый клиент — Семейный ID</h3>
+          <h3 className="font-bold text-blue-900 text-sm">Семейный ID — наследуемый ключ семьи</h3>
         </div>
         <p className="text-xs text-slate-600 mb-3">
-          Единый цифровой профиль семьи открывает новое качество клиентского опыта: общие расходы, 
-          совместные счета, единый ID для банков и маркетплейсов.
+          Как банковский счёт открывает доступ к деньгам, так <strong>Семейный ID</strong> открывает доступ
+          ко всем данным, документам, истории и памяти семьи. Ключ передаётся поколениям —
+          под ним Домовой хранит и оркеструет весь семейный контекст: события, традиции, ценности,
+          финансы, развитие детей, документы.
         </p>
         <div className="flex flex-wrap gap-2">
-          {['Общие расходы и счета', 'Бонусные программы семьи', 'Единый клиентский опыт', 'Интеграция с маркетплейсами'].map((tag) => (
+          {['Наследуемый ключ', 'Общая память семьи', 'Единый клиентский опыт', 'Доступ для банков и сервисов', 'Хранилище под управлением Домового'].map((tag) => (
             <span key={tag} className="text-xs bg-white text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full font-medium">{tag}</span>
           ))}
         </div>

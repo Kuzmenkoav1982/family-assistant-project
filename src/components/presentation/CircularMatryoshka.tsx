@@ -67,7 +67,7 @@ const ringStrategy: RingItem[] = [
   { name: 'Многодетная', icon: 'Users', status: 'dev', moduleId: 'large-family' },
   { name: 'Беременность', icon: 'HeartHandshake', status: 'dev', moduleId: 'pregnancy' },
   { name: 'Кейс-менеджер', icon: 'GitBranch', status: 'planned', moduleId: 'case-manager' },
-  { name: 'Семья СВО', icon: 'Shield', status: 'dev', moduleId: 'svo-family' },
+  { name: 'Семья СВО', icon: 'Shield', status: 'planned', moduleId: 'svo-family' },
   { name: 'Студ. семья', icon: 'GraduationCap', status: 'planned', moduleId: 'student-family' },
   { name: 'Соцконтракт', icon: 'FileSignature', status: 'planned', moduleId: 'social-contract' },
   { name: 'ЗОЖ', icon: 'Activity', status: 'planned', moduleId: 'zog' },
@@ -86,7 +86,7 @@ const ringChannels: RingItem[] = [
   { name: 'Web', icon: 'Globe', status: 'live' },
   { name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
   { name: 'HR / B2B2C', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
-  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'dev', moduleId: 'rpo' }, // заявка подана, ждём включения
+  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'dev', moduleId: 'rpo' }, // Депонирование выполнено, реестр — документы поданы, ожидаем включения
 ];
 
 const rings: RingDef[] = [
@@ -547,7 +547,8 @@ export function CircularMatryoshka() {
           От ценностей — к каналам государства
         </h2>
         <p className="text-sm text-gray-600 mt-2 max-w-3xl mx-auto">
-          В центре — традиционные ценности по Указу № 809. Вокруг — наше работающее ядро,
+          В центре — традиционные ценности по Указу № 809. <strong>Домовой</strong> — живой носитель этих ценностей внутри
+          платформы: хранит память рода, передаёт традиции, поддерживает идентичность семьи. Вокруг — работающее ядро,
           прикладные сервисы Стратегии 615-р и каналы дистрибуции.
         </p>
       </div>

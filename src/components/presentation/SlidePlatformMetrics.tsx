@@ -69,9 +69,9 @@ export const SlidePlatformMetrics = () => {
     },
     {
       icon: 'Plug',
-      label: 'API-эндпоинтов',
-      value: formatNumber(snap?.endpoints_count, '90'),
-      hint: 'серверная логика и интеграции',
+      label: 'backend functions',
+      value: formatNumber(snap?.endpoints_count, '120+'),
+      hint: 'cloud functions и интеграции',
       color: 'from-indigo-50 to-blue-50',
       border: 'border-indigo-200',
       accent: 'text-indigo-700',

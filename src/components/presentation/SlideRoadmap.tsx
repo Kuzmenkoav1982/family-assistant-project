@@ -186,6 +186,16 @@ export function SlideRoadmap() {
         </div>
       </div>
 
+      {/* Disclaimer про milestone targets */}
+      <div className="mb-5 flex items-start gap-2 px-3 py-2 bg-blue-50 rounded-xl border border-blue-200">
+        <Icon name="Info" size={12} className="text-blue-600 mt-0.5 flex-shrink-0" />
+        <p className="text-[11px] text-blue-800 leading-relaxed">
+          <strong>Milestone targets · scenario plan.</strong> Цифры по семьям и выручке — это
+          стратегические ориентиры и сценарный план, а не жёсткие обязательства. Зависят от каналов
+          дистрибуции, партнёрств и темпов масштабирования.
+        </p>
+      </div>
+
       {/* Секции */}
       <div className="space-y-6">
         {SECTIONS.map((sectionStatus) => {

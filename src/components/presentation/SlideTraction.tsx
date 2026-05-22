@@ -1,4 +1,6 @@
 import Icon from '@/components/ui/icon';
+import { CANONICAL_METRICS } from './canonicalMetrics';
+import { ExpandableDetails } from './ExpandableDetails';
 
 /**
  * SlideTraction — proof of execution.
@@ -45,8 +47,8 @@ const shippedLayers = [
   },
   {
     icon: 'Bot',
-    title: 'AI-слой: «Домовой» + 11 AI-функций',
-    desc: '«Домовой» как верхний интерфейс платформы, 11 предметных AI-сценариев на орбите вокруг него',
+    title: 'AI-слой: «Домовой» + 11 live · 15 в roadmap',
+    desc: '«Домовой» — верхний интерфейс платформы. 11 AI-сценариев работают сегодня, 15 ролей агента в roadmap',
     status: 'shipped' as Status,
   },
   {
@@ -75,12 +77,12 @@ const shippedLayers = [
   },
 ];
 
-// Текущее состояние перед запуском
+// Текущее состояние перед запуском (canonical metrics)
 const currentState = [
-  { value: '146+', label: 'UI/бизнес-модулей платформы', icon: 'Layers' },
-  { value: '90+', label: 'API-эндпоинтов backend', icon: 'Plug' },
-  { value: '150+', label: 'таблиц данных в production', icon: 'Database' },
-  { value: '30+', label: 'ключевых сущностей домена', icon: 'Sparkles' },
+  { value: CANONICAL_METRICS.uiModules.formatted, label: 'UI/бизнес-модулей платформы', icon: 'Layers' },
+  { value: CANONICAL_METRICS.backendFunctions.formatted, label: 'backend functions', icon: 'Plug' },
+  { value: CANONICAL_METRICS.coreTables.formatted, label: 'продуктовых таблиц БД', icon: 'Database' },
+  { value: CANONICAL_METRICS.hubs.formatted, label: 'хабов · ' + CANONICAL_METRICS.sections.formatted + ' разделов', icon: 'LayoutGrid' },
 ];
 
 // Что доказывает способность исполнять
@@ -228,15 +230,48 @@ export function SlideTraction() {
         </div>
       </div>
 
-      {/* Honest disclaimer */}
+      {/* Где мы сейчас — честная позиция по closed beta */}
       <div className="mt-4 flex items-start gap-2 px-3 py-2 bg-slate-50 rounded-xl border border-slate-200">
         <Icon name="Info" size={12} className="text-slate-500 mt-0.5 flex-shrink-0" />
         <p className="text-[11px] text-slate-600 leading-relaxed">
-          Сейчас платформа в closed beta перед публичным запуском, поэтому показываем proof of
-          execution, а не пользовательские KPI. Метрики DAU/WAU/retention будут опубликованы после
-          Q3 2026.
+          Сейчас платформа в <strong>closed beta</strong>: {CANONICAL_METRICS.families.formatted} семей, {CANONICAL_METRICS.users.formatted} пользователей, MAU {CANONICAL_METRICS.mau30d.formatted}.
+          Мы сознательно строили <strong>breadth и связность</strong> платформы, а не growth-машину.
+          Публичный запуск — Q3 2026.
         </p>
       </div>
+
+      {/* Аккордеон с деталями для тех, кто захочет копнуть */}
+      <ExpandableDetails
+        label="Развернуть метрики closed beta"
+        labelOpen="Свернуть метрики closed beta"
+        tone="slate"
+      >
+        <div className="bg-white rounded-2xl p-4 border border-slate-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-200">
+              <p className="text-2xl font-black text-slate-800">{CANONICAL_METRICS.families.formatted}</p>
+              <p className="text-[10px] text-slate-600 mt-1">семей</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-3 text-center border border-slate-200">
+              <p className="text-2xl font-black text-slate-800">{CANONICAL_METRICS.users.formatted}</p>
+              <p className="text-[10px] text-slate-600 mt-1">пользователей</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-200">
+              <p className="text-2xl font-black text-amber-800">{CANONICAL_METRICS.mau30d.formatted}</p>
+              <p className="text-[10px] text-amber-700 mt-1">MAU (30 дней)</p>
+            </div>
+            <div className="bg-amber-50 rounded-xl p-3 text-center border border-amber-200">
+              <p className="text-2xl font-black text-amber-800">{CANONICAL_METRICS.wau7d.formatted}</p>
+              <p className="text-[10px] text-amber-700 mt-1">WAU (7 дней)</p>
+            </div>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            <strong>Контекст:</strong> на этом этапе мы оптимизировали не масштаб маркетинга, а глубину платформы:
+            семейный граф, cross-hub сценарии, кошелёк, AI-слой и связность хабов. Следующий этап —
+            превратить уже собранную платформенную глубину в повторяемое удержание и каналы дистрибуции.
+          </p>
+        </div>
+      </ExpandableDetails>
     </section>
   );
 }

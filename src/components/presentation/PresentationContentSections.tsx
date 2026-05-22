@@ -252,20 +252,21 @@ export function PresentationContentSections() {
         <SectionTitle icon="BarChart3" iconColor="bg-indigo-500" title="Текущие показатели" />
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-5">
           <StatCard value="146+" label="Экранов" icon="Monitor" />
-          <StatCard value="90" label="API-функций" icon="Server" />
+          <StatCard value="120+" label="Backend functions" icon="Server" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-5">
-          <StatCard value="151" label="Таблиц БД" icon="Database" />
-          <StatCard value="30K+" label="Аналитических событий" icon="Activity" />
-          <StatCard value="25" label="Сущностей" icon="Boxes" />
+          <StatCard value="151" label="Продуктовых таблиц БД" icon="Database" />
+          <StatCard value="290+" label="Всего таблиц (вкл. системные)" icon="Layers3" />
+          <StatCard value="30+" label="Ключевых сущностей" icon="Boxes" />
         </div>
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           <StatCard value="12" label="Хабов" icon="LayoutGrid" />
-          <StatCard value="72" label="Раздела" icon="Layers" />
+          <StatCard value="74" label="Раздела" icon="Layers" />
         </div>
         <div className="mt-5 bg-emerald-50 rounded-xl p-4 text-center">
           <p className="text-sm font-semibold text-emerald-800">
-            Статус: продукт полностью разработан и работает в production на домене nasha-semiya.ru
+            Статус: ядро платформы разработано и работает в production на домене nasha-semiya.ru.
+            Следующий слой — масштабирование каналов и AI-оркестрации.
           </p>
         </div>
       </SectionCard>

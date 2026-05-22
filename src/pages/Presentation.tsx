@@ -11,6 +11,7 @@ import { SlideOsArchitecture } from '@/components/presentation/SlideOsArchitectu
 import { SlideArchitectureCards } from '@/components/presentation/SlideArchitectureCards';
 import { SlideDevAgentStudio } from '@/components/presentation/SlideDevAgentStudio';
 import { SlideDomovoyAgent } from '@/components/presentation/SlideDomovoyAgent';
+import { SlideDomovoyMemoryKeeper } from '@/components/presentation/SlideDomovoyMemoryKeeper';
 import { SlidePlatformMetrics } from '@/components/presentation/SlidePlatformMetrics';
 import { SlideLiveLoops } from '@/components/presentation/SlideLiveLoops';
 import { SlidePortfolio } from '@/components/presentation/SlidePortfolio';
@@ -238,6 +239,7 @@ export default function Presentation() {
         {/* ============ БЛОК 2. ПРОДУКТ ============ */}
         <SlideHubs />
         <SlideDomovoyAgent />
+        <SlideDomovoyMemoryKeeper />
         <SlideAIMap />
         <SlidePortfolio />
         <SlideFamilyMemory />
