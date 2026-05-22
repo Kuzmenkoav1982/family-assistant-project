@@ -189,6 +189,46 @@ function MatryoshkaLegend() {
   );
 }
 
+function MatryoshkaPrintCardsCollapsible() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="mb-6 sm:mb-8">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-gray-200 px-5 py-5 sm:px-8 sm:py-6 text-center group hover:shadow-2xl transition-shadow"
+      >
+        <div className="inline-flex items-center gap-2 bg-amber-100 px-3 py-1 rounded-full mb-3 border border-amber-200">
+          <Icon name="FileText" size={14} className="text-amber-700" />
+          <span className="text-xs font-semibold text-amber-800 uppercase tracking-wide">
+            Печатная форма матрёшки
+          </span>
+        </div>
+        <div className="flex items-center justify-center gap-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Расшифровка всех ячеек матрёшки
+          </h2>
+          <Icon
+            name={open ? 'ChevronUp' : 'ChevronDown'}
+            size={22}
+            className="text-gray-400 group-hover:text-gray-600 transition-colors mt-0.5"
+          />
+        </div>
+        <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
+          {open
+            ? 'Сворачивайте обратно, когда закончите просматривать.'
+            : 'Нажмите, чтобы раскрыть полную расшифровку всех ячеек четырёх колец и центра.'}
+        </p>
+      </button>
+
+      {open && (
+        <div className="mt-4">
+          <MatryoshkaPrintCards />
+        </div>
+      )}
+    </section>
+  );
+}
+
 function MatryoshkaFooter() {
   return (
     <section className="text-center text-xs sm:text-sm text-gray-400 py-6">
@@ -355,7 +395,7 @@ export default function MatryoshkaDeck() {
         <MatryoshkaLegend />
         <SlideMatryoshkaAsk />
         <SlideMilitaryFocus />
-        <MatryoshkaPrintCards />
+        <MatryoshkaPrintCardsCollapsible />
         <SlidePlatformBeforeAfter />
         <MatryoshkaFooter />
       </div>

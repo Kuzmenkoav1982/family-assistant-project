@@ -294,8 +294,8 @@ export function PresentationContentSections() {
               Backend
             </h3>
             <div className="space-y-1.5 text-xs text-gray-600">
-              <p>• Python 3.11 — 90 облачных функций (serverless)</p>
-              <p>• PostgreSQL — 151 таблица</p>
+              <p>• Python 3.11 — 120+ облачных функций (serverless)</p>
+              <p>• PostgreSQL — 290+ таблиц</p>
               <p>• Cloud Functions — автомасштабирование</p>
               <p>• S3 Cloud Storage</p>
               <p>• Yandex Cloud — российская облачная инфраструктура</p>
