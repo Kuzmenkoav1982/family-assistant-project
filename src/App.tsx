@@ -142,7 +142,6 @@ const FinanceStrategy = lazy(() => import("./pages/FinanceStrategy"));
 const FinanceCashflow = lazy(() => import("./pages/FinanceCashflow"));
 const FamilyWallet = lazy(() => import("./pages/FamilyWallet"));
 const AntiScam = lazy(() => import("./pages/AntiScam"));
-const Pricing = lazy(() => import("./pages/Pricing"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 
 // ─── Nutrition / Meals ─────────────────────────────────────────────────────
