@@ -44,7 +44,6 @@ DEFAULT_WHITELIST = [
     'src/main.tsx',
     'src/pages/ProfileNew.tsx',
     'src/pages/Settings.tsx',
-    'src/pages/Pricing.tsx',
     'src/pages/DomovoyStudio.tsx',
     'src/pages/DevAgentStudio.tsx',
     'src/pages/AdminDashboard.tsx',

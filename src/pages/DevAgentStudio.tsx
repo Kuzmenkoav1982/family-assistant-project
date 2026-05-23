@@ -307,7 +307,7 @@ function GithubIndexDialog({
             </div>
           </div>
           <div className="text-[11px] text-slate-500 bg-slate-50 border rounded p-2">
-            Индексируем priority-whitelist V1.6 (App, Sidebar, Studio, Admin*, Pricing, ProfileNew,
+            Индексируем priority-whitelist V1.6 (App, Sidebar, Studio, Admin*, ProfileNew,
             FamilyMembersGrid, TasksWidget и т.д.) + func2url.json.
             Нужен секрет <code>GITHUB_TOKEN</code> с правом чтения репозитория.
           </div>
@@ -364,7 +364,6 @@ const DEFAULT_TARGET_PATHS = [
   'src/components/ProfileNew.tsx',
   'src/components/FamilyMembersGrid.tsx',
   'src/components/TasksWidget.tsx',
-  'src/pages/Pricing.tsx',
   'src/pages/DevAgentStudio.tsx',
 ].join('\n');
 
