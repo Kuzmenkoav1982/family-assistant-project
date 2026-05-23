@@ -124,11 +124,11 @@ function MatryoshkaPrintCardsCollapsible() {
             className="text-gray-400 group-hover:text-gray-600 transition-colors mt-0.5"
           />
         </div>
-        <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
-          {open
-            ? 'Сворачивайте обратно, когда закончите просматривать.'
-            : 'Нажмите, чтобы раскрыть полную расшифровку всех ячеек четырёх колец и центра.'}
-        </p>
+        {!open && (
+          <p className="text-sm text-gray-600 mt-2 max-w-2xl mx-auto">
+            Нажмите, чтобы раскрыть полную расшифровку всех ячеек четырёх колец и центра.
+          </p>
+        )}
       </button>
 
       {open && (
