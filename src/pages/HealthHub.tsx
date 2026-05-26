@@ -5,7 +5,7 @@ import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
 import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 
-const BANNER_URL = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/47bb70ad-a80f-4f77-8588-d3d8e12dff45.jpg';
+const BANNER_URL = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6c84d3fa-d5ff-4c58-9d6e-83cc5ea88993.jpg';
 
 export default function HealthHub() {
   const navigate = useNavigate();
