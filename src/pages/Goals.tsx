@@ -58,7 +58,7 @@ export default function Goals() {
       title="Цели семьи"
       subtitle="Долгосрочное планирование и контроль целей"
       backPath="/planning-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/aebca401-927f-4368-af40-780e294f101f.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/05ad516c-d4c5-4898-ad42-8a546c43ef69.jpg"
       backgroundClass="bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
     >
 

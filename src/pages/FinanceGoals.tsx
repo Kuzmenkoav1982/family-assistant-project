@@ -146,7 +146,7 @@ export default function FinanceGoals() {
   const totalSaved = activeGoals.reduce((s, g) => s + g.current_amount, 0);
 
   const BG = 'bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900';
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed60650e-aeba-4207-8ad6-870ec1760abf.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e1ea7d1b-010d-4f24-9c62-091e071a9a42.jpg';
 
   if (loading) {
     return (

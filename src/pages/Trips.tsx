@@ -318,7 +318,7 @@ export default function Trips() {
       title="Путешествия"
       subtitle="Планируйте незабываемые поездки"
       backPath="/leisure-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f7561c5b-e8e8-4ad0-bc38-e2a099d2e324.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/bc75855e-2516-4df1-afaf-70a4cd462f54.jpg"
       backgroundClass="bg-gradient-to-b from-blue-50 via-sky-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       rightAction={
         <Button

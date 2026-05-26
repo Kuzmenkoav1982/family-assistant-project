@@ -2,13 +2,13 @@ export const CDN = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d6
 export const CDN_FAITH = CDN;
 
 export const HERO_IMAGES: Record<string, string> = {
-  orthodox: `${CDN}/7f633617-56c0-4321-a54e-df1837492a98.jpg`,
-  islam: `${CDN}/18d91cd6-2b80-4bd6-b085-265dbd541d5c.jpg`,
-  catholic: `${CDN}/aad5ebfe-ac8e-4fa2-a935-f2a1dbda81fb.jpg`,
-  judaism: `${CDN}/e961e6cf-3406-4fb9-a38b-da36466cad03.jpg`,
-  buddhism: `${CDN}/a0c58a84-7aa1-42ff-bb15-57d1a21cbcfd.jpg`,
-  protestant: `${CDN}/dde09fa3-c8a2-49c7-a1b8-6caff16d1c7e.jpg`,
-  hinduism: `${CDN}/d42d2942-00fd-4a1b-8147-d61611c9312b.jpg`,
+  orthodox: `${CDN}/ccabfec6-3f8c-4979-bd69-8685363b2fb0.jpg`,
+  islam: `${CDN}/f9f494ef-d453-4112-afb0-c1e0afa7f85b.jpg`,
+  catholic: `${CDN}/371c1699-f41a-4092-bd82-91a32b8b8c9e.jpg`,
+  judaism: `${CDN}/4b4f0674-7288-475f-9ba1-b9c351c0a6e0.jpg`,
+  buddhism: `${CDN}/789ffe46-2893-4d70-b3fc-d590943e658d.jpg`,
+  protestant: `${CDN}/045fe9d6-9651-475d-874b-fbcd8978c1a6.jpg`,
+  hinduism: `${CDN}/1900062f-425f-4bee-9b00-348a033b33d5.jpg`,
 };
 
 export const RELIGIONS = [

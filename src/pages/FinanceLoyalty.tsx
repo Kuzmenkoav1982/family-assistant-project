@@ -144,7 +144,7 @@ export default function FinanceLoyalty() {
   const filteredCards = filter === 'all' ? activeCards : activeCards.filter(c => c.category === filter);
 
   const BG = 'bg-gradient-to-b from-violet-50 to-white dark:from-gray-950 dark:to-gray-900';
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0a4f80d7-d7e6-435f-809d-f93e457230b2.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0983932a-673d-4307-bb8f-5456f81bb4ab.jpg';
 
   if (loading) {
     return (

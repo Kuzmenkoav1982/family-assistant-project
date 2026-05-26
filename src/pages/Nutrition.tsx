@@ -50,7 +50,7 @@ export default function Nutrition() {
         title="Счётчик БЖУ"
         subtitle="Дневник питания с подсчётом калорий и нутриентов"
         backPath="/nutrition"
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3783739b-09dd-451c-9fac-a95c55db2792.jpg"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d4416563-1f5a-403a-88a0-eb189d54ba01.jpg"
         width="wide"
         backgroundClass={BG}
       >

@@ -76,7 +76,7 @@ export default function Culture() {
         title="Традиции и культура"
         subtitle="Национальные традиции, обычаи и культурное наследие"
         backPath="/values-hub"
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0401359d-d55d-4d29-89b0-22856cfb46d1.jpg"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a9a5f6a3-7c3d-414d-b087-a62eaea01cb6.jpg"
         backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       >
 

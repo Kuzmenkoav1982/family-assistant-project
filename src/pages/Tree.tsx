@@ -64,7 +64,7 @@ export default function Tree() {
         title="Семейное древо"
         subtitle={`${s.members.length} чел. · История вашего рода`}
         backPath="/family-hub"
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/31fb406a-b2d5-4056-9fea-d86fc4d06f58.jpg"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1ab17b24-58fd-4627-b0b8-a2f4e8dc88d4.jpg"
         backgroundClass={BG}
       >
       <MemoryAlbumBanner variant="tree" />

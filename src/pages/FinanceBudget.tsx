@@ -49,7 +49,7 @@ export default function FinanceBudget() {
       title="Бюджет"
       subtitle="Доходы, расходы и планирование"
       backPath="/finance"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3811fe85-aff5-47a9-8059-48190f4100e4.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/861e1c17-2843-4d9a-88c3-fbb2b7d76986.jpg"
       width="narrow"
       backgroundClass="bg-gradient-to-b from-emerald-50 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       rightAction={

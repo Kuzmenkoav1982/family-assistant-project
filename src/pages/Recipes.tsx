@@ -322,7 +322,7 @@ export default function Recipes() {
     <SectionPageFrame
       title="Рецепты"
       subtitle="Ваша семейная кулинарная книга"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/262a96a0-e48f-4449-a8bd-326f5cfb3657.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0f474099-5914-465e-8929-4633dda8c1df.jpg"
       backPath="/nutrition"
       width="wide"
       backgroundClass="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-gray-950 dark:to-gray-900"

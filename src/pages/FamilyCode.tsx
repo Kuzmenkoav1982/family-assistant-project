@@ -36,7 +36,7 @@ export default function FamilyCode() {
       title="Семейный кодекс РФ"
       subtitle="Изучайте права и обязанности членов семьи"
       backPath="/state-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4c141f31-45b8-4e12-ab84-49e81a80c64a.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/91468e3c-6180-4573-af9e-b03b657b6baf.jpg"
       width="wide"
       backgroundClass="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
     >

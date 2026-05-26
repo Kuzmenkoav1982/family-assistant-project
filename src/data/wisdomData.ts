@@ -39,7 +39,7 @@ export const CATEGORY_IMAGES: Record<string, string> = {
   children: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/864322a2-d2a6-4c05-9a79-a2938b029a89.jpg',
   work: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6c538e09-4299-4261-890c-12e703104874.jpg',
   friendship: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e2a56fb0-5317-48be-9ac6-249ef0d96ae2.jpg',
-  wisdom: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dcb3584d-4a12-4e40-ae35-4e5cd7a3583d.jpg',
+  wisdom: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d6dd3eb4-acb8-48e4-9c74-ebd55767c766.jpg',
   health: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/20a37c8f-2d81-401b-b69b-29ea3311ba65.jpg',
   money: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b980071b-b5dd-439a-bf94-773f820e56d6.jpg',
   life: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/11205d46-d45e-43a7-878f-619c27e3327a.jpg',

@@ -71,7 +71,7 @@ export default function FamilyMatrixCouple() {
     <SectionPageFrame
       title="Код пары"
       subtitle="Совместимость по нумерологии, астрологии, арканам и психологии"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/91271438-b023-4903-aaf0-b0cd976f2865.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fde9e9d2-e3da-45e6-85d5-82c15ed7cfa1.jpg"
       backPath="/family-matrix"
       backgroundClass={BG}
     >

@@ -48,7 +48,7 @@ export default function FamilyMatrixRituals() {
       title="Ритуалы примирения"
       subtitle="Персональные сценарии после ссор на основе ваших данных"
       backPath="/family-matrix"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b20738ad-2590-49b8-aedf-a34483b659c2.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0cbacaa5-8395-4f9c-ad95-74fa77cd9472.jpg"
       backgroundClass={BG}
     >
 

@@ -93,7 +93,7 @@ export default function FamilyMatrixName() {
     <SectionPageFrame
       title="Имя для малыша"
       subtitle="Нумерологическая совместимость имени с родителями"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b25dcedf-1426-49a5-bab9-8060c6d36ffc.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/98a9dae1-07e8-4e82-b816-93e7207002af.jpg"
       backPath="/family-matrix"
       backgroundClass={BG}
     >

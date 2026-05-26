@@ -269,7 +269,7 @@ export default function Analytics() {
       title="Аналитика"
       subtitle="Статистика семейной жизни"
       backPath="/planning-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/da6c71d4-ec37-479f-b5ad-08a52eadbe94.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f8890bd0-6585-41bc-9de1-ce5812bf5ea0.jpg"
       backgroundClass="bg-gradient-to-b from-indigo-50 via-indigo-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
     >
         <AnalyticsHeader

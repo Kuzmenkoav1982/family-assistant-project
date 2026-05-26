@@ -224,7 +224,7 @@ export default function FinanceLiteracy() {
   const ageGroups = [...new Set(courses.map(c => c.age_group))];
 
   const BG = 'bg-gradient-to-b from-purple-50 to-white dark:from-gray-950 dark:to-gray-900';
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dda844a8-299d-4e2a-9c95-2b173c84aeb8.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fa77dddd-b019-4fed-9424-ec9cc3c4428a.jpg';
 
   if (loading) {
     return (

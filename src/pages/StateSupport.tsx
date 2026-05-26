@@ -304,7 +304,7 @@ export default function StateSupport() {
     <SectionPageFrame
       title="Господдержка семей"
       subtitle="Меры поддержки от государства РФ для семей с детьми"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/837fd184-7adf-4cfa-9e10-87a2c24fc6f9.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/22de5b4f-5047-4a4f-9f68-166e3d9eda6e.jpg"
       backPath="/state-hub"
       width="wide"
       backgroundClass="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-950 dark:to-gray-900"

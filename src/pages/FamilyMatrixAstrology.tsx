@@ -64,7 +64,7 @@ export default function FamilyMatrixAstrology() {
     <SectionPageFrame
       title="Астрология семьи"
       subtitle="Звёздные карты, стихии и совместимость знаков зодиака"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/da280cc1-1f9a-4521-995f-1fab621c0a1b.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/5d6af312-e744-45eb-bc59-53f6e61698a0.jpg"
       backPath="/family-matrix"
       backgroundClass={BG}
     >
