@@ -27,7 +27,7 @@ export default function FamilyNews() {
         title="Новости и инициативы"
         subtitle="Актуальные новости семейного законодательства и политики"
         backPath="/family-hub"
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d5779686-8c50-4133-926f-a8290f3fab9b.jpg"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6f29ed16-c83c-4536-af97-d690659fa4a7.jpg"
         width="standard"
         backgroundClass="bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       >

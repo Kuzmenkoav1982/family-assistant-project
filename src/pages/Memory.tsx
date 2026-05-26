@@ -25,7 +25,7 @@ export default function Memory() {
       title="Альбом поколений"
       subtitle="Осмысленная семейная память для детей и внуков"
       backPath="/family-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7caf5914-dd0e-49ba-830b-c44b378c04ae.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/585301ea-0aa6-47e3-b285-75ae64de945f.jpg"
       backgroundClass="bg-gradient-to-b from-violet-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       rightAction={
         <Button

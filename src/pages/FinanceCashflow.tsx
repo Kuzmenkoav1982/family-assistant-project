@@ -20,7 +20,7 @@ import { CashFlowChart, BurndownChart, CashflowTable } from '@/components/financ
 import { CashflowAlerts } from '@/components/finance/cashflow/CashflowAlerts';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
-const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/93aa5f51-a753-462f-bb64-e7bd50d54c9f.jpg';
+const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/bb78e39a-51c4-478e-9404-d3835ef5ce20.jpg';
 const BG = 'bg-gradient-to-b from-blue-50 to-white dark:from-gray-950 dark:to-gray-900';
 
 function getHeaders() {

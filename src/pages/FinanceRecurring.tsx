@@ -16,7 +16,7 @@ import RecurringDialog from '@/components/finance/recurring/RecurringDialog';
 import { PRESETS } from '@/components/finance/recurring/recurringUtils';
 
 const API = 'https://functions.poehali.dev/ab0791d4-9fbe-4cda-a9af-cb18ecd662cd';
-const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/cf1049c8-3a33-48d3-9b33-e69aa6cdfcb6.jpg';
+const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/33db6959-0ba8-4234-ae74-71536adbd80b.jpg';
 const BG = 'bg-gradient-to-b from-emerald-50 to-white dark:from-gray-950 dark:to-gray-900';
 
 export default function FinanceRecurring() {

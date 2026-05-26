@@ -11,7 +11,7 @@ export default function WhatIsFamily() {
       title="Что такое семья"
       subtitle="Философия семьи, определения и исторический контекст"
       backPath="/state-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d77bd8eb-9221-4be3-b8ff-f125767fc2c2.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3ae84b44-768d-453b-b31f-ed3d6108148d.jpg"
       width="wide"
       backgroundClass="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
     >

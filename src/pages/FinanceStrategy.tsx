@@ -14,7 +14,7 @@ import SimulatorSection from '@/components/finance-strategy/SimulatorSection';
 import BonusPayoffPlanner from '@/components/finance-strategy/BonusPayoffPlanner';
 import { fm } from '@/data/financeStrategyTypes';
 
-const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg';
+const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/dd0f22c4-a6f2-4d3e-92c1-8ea98fc7b1dc.jpg';
 const BG = 'bg-gradient-to-b from-violet-50 to-white dark:from-gray-950 dark:to-gray-900';
 
 export default function FinanceStrategy() {

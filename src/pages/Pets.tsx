@@ -16,7 +16,7 @@ import PetSubSection, { type FieldDef } from '@/components/pets/PetSubSection';
 import PetsAI from '@/components/pets/PetsAI';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 
-const PETS_HERO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2bc52e5d-939f-4527-a03d-684e81ef60de.jpg';
+const PETS_HERO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ce21607d-b597-4f0f-86aa-4a2601f3abba.jpg';
 
 type TabKey = 'overview' | 'ai' | PetSubKind;
 

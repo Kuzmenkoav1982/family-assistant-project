@@ -7,7 +7,7 @@ import ProfileSelector from '@/components/health-new/ProfileSelector';
 import HealthTabs from '@/components/health-new/HealthTabs';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
-const IMAGE_URL = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/3582e086-831d-4801-9879-c46e56603a26.jpg';
+const IMAGE_URL = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/6c84d3fa-d5ff-4c58-9d6e-83cc5ea88993.jpg';
 
 function HealthNew() {
   const h = useHealthNew();

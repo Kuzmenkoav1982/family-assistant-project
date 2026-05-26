@@ -128,7 +128,7 @@ export default function Shopping() {
   const boughtCount = items.filter(i => i.bought).length;
 
   const BG = 'bg-gradient-to-b from-green-50 via-emerald-50/30 to-white dark:from-gray-950 dark:to-gray-900';
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a0559aa1-893a-44e6-84ca-315aec043fd9.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/357a2615-cdad-455f-aff5-3a04ba581d05.jpg';
 
   if (loading) {
     return (

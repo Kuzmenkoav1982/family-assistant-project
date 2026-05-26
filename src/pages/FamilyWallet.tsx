@@ -10,7 +10,7 @@ import WalletOverview from '@/components/wallet/WalletOverview';
 import WalletHistory from '@/components/wallet/WalletHistory';
 import { useWallet } from '@/components/wallet/useWallet';
 
-const WALLET_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/b500a1d4-8384-41cc-8a43-8eb7210924e8.jpg';
+const WALLET_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d19aef74-77ba-4fc2-8710-3fbba53c5da8.jpg';
 const BG = 'bg-gradient-to-b from-emerald-50 via-white to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
 
 export default function FamilyWallet() {

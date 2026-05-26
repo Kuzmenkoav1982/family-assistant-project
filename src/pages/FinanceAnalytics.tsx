@@ -14,7 +14,7 @@ import BudgetTab from '@/components/finance-analytics/BudgetTab';
 import AIAdvisor from '@/components/finance-analytics/AIAdvisor';
 import { fmCompact, MISSING_LINKS } from '@/data/financeAnalyticsTypes';
 
-const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ed32438d-48c6-4c91-a57e-42f73472a180.jpg';
+const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/42f7cca8-08db-40c3-b75a-aaa74bb1610f.jpg';
 const BG = 'bg-gradient-to-b from-amber-50 to-white dark:from-gray-950 dark:to-gray-900';
 
 export default function FinanceAnalytics() {

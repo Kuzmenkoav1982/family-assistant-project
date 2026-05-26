@@ -7,7 +7,7 @@ import ChatSidebar from '@/components/family-chat/ChatSidebar';
 import ChatMessages from '@/components/family-chat/ChatMessages';
 import ChatComposer from '@/components/family-chat/ChatComposer';
 
-const HERO_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/8e1ea98d-74bd-4232-979e-22fbb47b21db.jpg';
+const HERO_IMAGE = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7c144bec-dbf1-4290-b1b5-52ad243ab43f.jpg';
 
 export default function FamilyChat() {
   const {

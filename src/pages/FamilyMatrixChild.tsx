@@ -36,7 +36,7 @@ export default function FamilyMatrixChild() {
     <SectionPageFrame
       title="Детский код"
       subtitle="Таланты, склонности и рекомендации для родителей"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/fab06202-41cb-4c97-bb9b-1d03d9e95e8f.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/131e2eeb-db12-4d35-9e6d-f23128da4a0f.jpg"
       backPath="/family-matrix"
       backgroundClass={BG}
     >

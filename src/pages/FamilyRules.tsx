@@ -32,7 +32,7 @@ export default function FamilyRules() {
         title="Правила дома"
         subtitle="Семейный кодекс и договорённости"
         backPath="/values-hub"
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/75a69a6f-13ec-4fc0-ba7d-1b516fcf851e.jpg"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/d7eab07b-1925-4bdb-a7ad-9009ba37cd4a.jpg"
         backgroundClass="bg-gradient-to-b from-purple-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       >
 

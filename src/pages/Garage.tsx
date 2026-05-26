@@ -16,7 +16,7 @@ import RemindersTab from '@/components/garage/tabs/RemindersTab';
 import NotesTab from '@/components/garage/tabs/NotesTab';
 import InfoTab from '@/components/garage/tabs/InfoTab';
 
-const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/627133e5-d460-4cd0-9bcb-91e6f0f9ed48.jpg';
+const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9e14c8c7-f91a-4530-a23b-702745b36022.jpg';
 const BG = 'bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900';
 
 export default function Garage() {

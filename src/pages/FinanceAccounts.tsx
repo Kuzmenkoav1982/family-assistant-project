@@ -189,7 +189,7 @@ export default function FinanceAccounts() {
   const inactiveAccounts = accounts.filter(a => !a.is_active);
 
   const BG = 'bg-gradient-to-b from-blue-50 to-white dark:from-gray-950 dark:to-gray-900';
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/ccb6f09e-cd0b-4725-ada5-75300dace1fd.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/a51101d5-0464-4191-972d-45a2ba3eac82.jpg';
 
   if (loading) {
     return (

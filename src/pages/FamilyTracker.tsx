@@ -20,7 +20,7 @@ export default function FamilyTracker() {
     <SectionPageFrame
       title="Семейный маячок"
       subtitle="Местоположение членов семьи"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1f86cef7-8734-493e-bef6-12ac69e8a4b8.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1bbec536-aeae-494a-9ee8-25cbf0996b2c.jpg"
       backPath="/family-hub"
       backgroundClass="bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white dark:from-gray-950 dark:to-gray-900"
     >

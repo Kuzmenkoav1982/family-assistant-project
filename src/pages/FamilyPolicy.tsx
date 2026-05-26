@@ -197,7 +197,7 @@ export default function FamilyPolicy() {
     <SectionPageFrame
       title="Семейная политика"
       subtitle="Стратегические направления поддержки семей со стороны государства"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7857c96e-46f6-497c-8dd9-7e5a74ec7de3.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e627d36b-1fe9-49c6-93c8-617a5eb022b1.jpg"
       backPath="/state-hub"
       width="wide"
       backgroundClass="bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 dark:from-gray-950 dark:to-gray-900"

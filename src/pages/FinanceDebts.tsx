@@ -16,7 +16,7 @@ export default function FinanceDebts() {
   const d = useFinanceDebts();
 
   const BG = 'bg-gradient-to-b from-rose-50 to-white dark:from-gray-950 dark:to-gray-900';
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/4cd90e85-8966-4402-84ce-6475cc940f22.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/0acd4d99-bd01-4db0-adc3-a6d3bbc36f0f.jpg';
 
   if (d.loading) {
     return (

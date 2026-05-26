@@ -14,7 +14,7 @@ export default function DietProgress() {
   const navigate = useNavigate();
   const d = useDietProgress();
 
-  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/9b9c25c5-e1ad-46e1-8b47-77c770806985.jpg';
+  const HERO_IMG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/1621f11e-25f4-4c33-b9ca-106255a84cb8.jpg';
   const BG = 'bg-gradient-to-b from-violet-50 via-white to-white dark:from-gray-950 dark:to-gray-900';
 
   if (d.loading) {

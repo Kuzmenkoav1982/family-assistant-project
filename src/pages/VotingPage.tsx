@@ -17,7 +17,7 @@ export default function VotingPage() {
       title="Голосования"
       subtitle="Семейные решения демократично"
       backPath="/household-hub"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/7db4e4eb-f20a-44c7-81de-270d03d22da1.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f5dc6034-7b11-4e75-9ca2-09fd640e4784.jpg"
       backgroundClass="bg-gradient-to-b from-indigo-50 via-purple-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
     >
 

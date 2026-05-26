@@ -90,7 +90,7 @@ export default function PariTest() {
         <SectionPageFrame
           title="Зеркало родителя"
           subtitle="Диагностика родительских установок (PARI)"
-          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/364dd778-d8dc-4105-a314-da0ca595ed73.jpg"
+          imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/95343c53-e28e-4f62-9e3a-6a05e3a86595.jpg"
           backPath="/family-matrix"
           width="narrow"
           backgroundClass="bg-gradient-to-b from-purple-50 via-pink-50/40 to-white dark:from-gray-950 dark:to-gray-900"

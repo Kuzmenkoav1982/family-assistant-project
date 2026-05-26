@@ -79,7 +79,7 @@ export default function Children() {
         title="Дети"
         subtitle="Развитие и контроль"
         backPath="/family-hub"
-        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c284ef36-f2eb-45cb-95cc-7e8f735dbd0d.jpg"
+        imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/933056d5-34c6-478a-a0c8-e403c7778248.jpg"
         backgroundClass="bg-gradient-to-b from-amber-50 via-amber-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
       >
 
