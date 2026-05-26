@@ -4,7 +4,7 @@ export const CDN_FAITH = CDN;
 export const HERO_IMAGES: Record<string, string> = {
   orthodox: `${CDN}/ccabfec6-3f8c-4979-bd69-8685363b2fb0.jpg`,
   islam: `${CDN}/f9f494ef-d453-4112-afb0-c1e0afa7f85b.jpg`,
-  catholic: `${CDN}/371c1699-f41a-4092-bd82-91a32b8b8c9e.jpg`,
+  catholic: `${CDN}/b038c5e6-6537-4798-b83a-89d4ecf4e728.jpg`,
   judaism: `${CDN}/4b4f0674-7288-475f-9ba1-b9c351c0a6e0.jpg`,
   buddhism: `${CDN}/789ffe46-2893-4d70-b3fc-d590943e658d.jpg`,
   protestant: `${CDN}/045fe9d6-9651-475d-874b-fbcd8978c1a6.jpg`,

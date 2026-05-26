@@ -331,7 +331,7 @@ export default function Meals() {
     <SectionPageFrame
       title="Меню на неделю"
       subtitle="Планирование семейного меню на каждый день"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/54eba384-ad6c-4e5e-a0cc-9602a4bc17b9.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2271ffc2-432a-490b-90b9-1252ba298e10.jpg"
       backPath="/nutrition"
       width="wide"
       backgroundClass="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-gray-950 dark:to-gray-900"

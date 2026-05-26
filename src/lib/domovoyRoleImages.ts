@@ -14,7 +14,7 @@ export const DOMOVOY_ROLE_IMAGES: Record<string, string> = {
   nutritionist:       'https://cdn.poehali.dev/files/7025b47b-a916-4119-afb8-4842d0d35a97.jpg',
   'fitness-trainer':  'https://cdn.poehali.dev/files/c2f1e818-8424-4180-a6f7-ff53974b01d5.jpg',
   'travel-planner':   'https://cdn.poehali.dev/files/a67ca132-38e3-4063-b1c4-2f2d21e6a6b5.jpg',
-  vet:                'https://cdn.poehali.dev/files/913b8747-53e9-480f-b315-1e1227911862.jpg',
+  vet:                'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/c2f77b18-1f5f-4bc8-af87-1645282e0a47.jpg',
   psychologist:       'https://cdn.poehali.dev/files/8b102ef8-7799-48fc-98c0-e7f34033f7b9.jpg',
   artist:             'https://cdn.poehali.dev/files/b95d2735-80f4-49e4-8072-7a4d68a35d89.jpg',
   mentor:             'https://cdn.poehali.dev/files/724a6dc3-10f0-44de-ad67-7254220159b4.jpg',
