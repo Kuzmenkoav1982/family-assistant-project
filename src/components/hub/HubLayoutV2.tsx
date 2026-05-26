@@ -76,6 +76,10 @@ export interface HubLayoutV2Props {
   backgroundClass?: string;
   /** Ширина контейнера. По умолчанию standard = max-w-5xl. */
   width?: HubWidth;
+  /** URL тематического баннера сверху страницы */
+  bannerUrl?: string;
+  /** Alt-текст баннера */
+  bannerAlt?: string;
 }
 
 const HubLayoutV2 = ({
@@ -98,6 +102,8 @@ const HubLayoutV2 = ({
   relatedLinks = [],
   backgroundClass = 'bg-gradient-to-br from-gray-50 via-white to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900',
   width = 'standard',
+  bannerUrl,
+  bannerAlt,
 }: HubLayoutV2Props) => {
   const navigate = useNavigate();
   const containerWidth = WIDTH_CLASS[width];
@@ -107,6 +113,17 @@ const HubLayoutV2 = ({
 
   return (
     <div className={`min-h-screen ${backgroundClass}`}>
+      {/* ───────── Баннер ───────── */}
+      {bannerUrl && (
+        <div className="w-full h-40 sm:h-52 overflow-hidden relative">
+          <img
+            src={bannerUrl}
+            alt={bannerAlt || title}
+            className="w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30" />
+        </div>
+      )}
       <div className={`${containerWidth} mx-auto px-3 sm:px-4 pt-4`}>
         {/* ───────── Зона 1. Контекстный хедер ───────── */}
         <div className="rounded-3xl border bg-white dark:bg-gray-900 p-4 sm:p-6 mb-4">
