@@ -3,7 +3,7 @@ import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -105,6 +105,8 @@ export default function PlanningHub() {
         modalities={['service', 'ai']}
         cycleHint="Здесь договорённости становятся задачами и попадают в календарь"
         backgroundClass="bg-gradient-to-b from-indigo-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/626f0964-53ce-4b62-99f7-c88313e99023.jpg"
+        bannerAlt="Планирование — цели, задачи и календарь"
         quickFacts={[
           { label: 'Сервисов',   value: subSections.length, icon: 'LayoutGrid' },
           { label: 'Помощник',   value: 'ИИ-организатор',   icon: 'Brain' },
@@ -128,36 +130,19 @@ export default function PlanningHub() {
           { label: 'Развитие',  icon: 'Brain',   path: '/development-hub' },
         ]}
       >
-        <HowItWorksBlock
+        <HubInstructionBlock
           accent="indigo"
           intro="«Планирование» — превращает намерения семьи в конкретные шаги. Цели, задачи, календарь и аналитика — чтобы идеи не оставались на бумаге."
           steps={[
-            {
-              icon: 'Target',
-              title: 'Шаг 1. Поставьте цели',
-              description:
-                'Семейные и личные цели — от мелких до больших. Каждая разбивается на понятные шаги.',
-            },
-            {
-              icon: 'ListTodo',
-              title: 'Шаг 2. Задачи и шаги',
-              description:
-                'Декомпозируйте цели в задачи. Назначайте ответственных, ставьте дедлайны.',
-            },
-            {
-              icon: 'Calendar',
-              title: 'Шаг 3. Календарь и расписание',
-              description:
-                'Общий семейный календарь: события, задачи, напоминания — у всех на виду.',
-            },
-            {
-              icon: 'TrendingUp',
-              title: 'Шаг 4. Аналитика и прогресс',
-              description:
-                'Отслеживайте, что движется, а что застряло. ИИ-помощник подскажет, где ускориться.',
-            },
+            { number: 1, title: 'Поставьте цели', description: 'Семейные и личные цели — от мелких до больших. Каждая разбивается на понятные шаги.' },
+            { number: 2, title: 'Задачи и шаги', description: 'Декомпозируйте цели в задачи. Назначайте ответственных, ставьте дедлайны.' },
+            { number: 3, title: 'Календарь и расписание', description: 'Общий семейный календарь: события, задачи, напоминания — у всех на виду.' },
+            { number: 4, title: 'Аналитика и прогресс', description: 'Отслеживайте, что движется, а что застряло. ИИ-помощник подскажет, где ускориться.' },
           ]}
-          footer="Хороший план — не идеальный, а живой: его легко менять, когда меняется жизнь."
+          tips={[
+            { text: 'Хороший план — не идеальный, а живой: его легко менять, когда меняется жизнь.' },
+            { text: 'Связывайте задачи с календарём — так ничего не потеряется.' },
+          ]}
         />
 
         <SectionAIAdvisor

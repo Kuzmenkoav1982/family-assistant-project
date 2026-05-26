@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import { useHouseholdSignals } from '@/components/household/useHouseholdSignals';
 import HouseholdGroupedGrid from '@/components/household/HouseholdGroupedGrid';
-import { HOUSEHOLD_HOW_IT_WORKS_STEPS } from '@/components/household/howItWorks';
+
 import type { SubGroup } from '@/components/household/types';
 
 export default function HouseholdHub() {
@@ -44,6 +44,8 @@ export default function HouseholdHub() {
         modalities={['service', 'family']}
         cycleHint="Связан с Финансами и Планированием: расходы и задачи стекаются в общую картину"
         backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e059a05c-4936-4b0e-819a-98a00b4a8c3d.jpg"
+        bannerAlt="Дом и быт — организация семейного хозяйства"
         quickFacts={[
           { label: 'Сервисов',  value: totalSections,                 icon: 'LayoutGrid' },
           { label: 'К оплате',  value: unpaidCount > 0 ? `${unpaidCount} счёт${unpaidCount === 1 ? '' : 'ов'}` : '—', icon: 'Receipt' },
@@ -67,11 +69,19 @@ export default function HouseholdHub() {
           { label: 'Питание',     icon: 'Apple',   path: '/nutrition' },
         ]}
       >
-        <HowItWorksBlock
+        <HubInstructionBlock
           accent="amber"
           intro="«Дом» — операционная система быта. Покупки, голосования, транспорт, ремонт и хозяйство — всё, что делает дом удобным и организованным без хаоса."
-          steps={HOUSEHOLD_HOW_IT_WORKS_STEPS}
-          footer="«Дом» снимает с памяти бытовую нагрузку — освобождает время и силы для главного."
+          steps={[
+            { number: 1, title: 'Списки покупок', description: 'Общий список для всей семьи. Кто-то добавил молоко — другой увидит в магазине. Без чатов и звонков.' },
+            { number: 2, title: 'Семейные голосования', description: 'Спорный вопрос — куда поехать, что купить? Голосуем семьёй, решаем вместе.' },
+            { number: 3, title: 'Дом и транспорт', description: 'Учёт техники, ремонт, машины, ТО, страховки — все важные даты и документы в одном месте.' },
+            { number: 4, title: 'Быт без рутины', description: 'Графики уборки, дежурства, поручения — распределение задач, чтобы никто не выгорал.' },
+          ]}
+          tips={[
+            { text: '«Дом» снимает с памяти бытовую нагрузку — освобождает время и силы для главного.' },
+            { text: 'Расходы по дому автоматически попадают в хаб «Финансы».' },
+          ]}
         />
 
         <HouseholdGroupedGrid groups={subGroups} onSelect={navigate} />

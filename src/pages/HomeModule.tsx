@@ -322,6 +322,8 @@ export default function HomeModule() {
         cycleHint="Часть петли «Дом → Финансы»: оплаты попадают в расходы семьи"
         backPath="/household-hub"
         backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e059a05c-4936-4b0e-819a-98a00b4a8c3d.jpg"
+        bannerAlt="Дом — квартира и быт"
         quickFacts={[
           { label: 'Адрес',        value: apartment.address ? 'Указан' : '—', icon: 'Building' },
           { label: 'К оплате',     value: totalUnpaid > 0 ? `${totalUnpaid.toLocaleString('ru-RU')} ₽` : '—', icon: 'Receipt' },

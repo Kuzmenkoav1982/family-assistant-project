@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -151,6 +151,8 @@ export default function StateHub() {
         modalities={['gov', 'law', 'content']}
         cycleHint="Связь семьи с государством: данные → право → поддержка"
         backgroundClass="bg-gradient-to-b from-slate-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/97cc8aa5-347b-42c5-bb26-a5562ae0413e.jpg"
+        bannerAlt="Семья и государство — госуслуги и право"
         quickFacts={[
           { label: 'Сервисов',    value: totalServices,  icon: 'Sparkles' },
           { label: 'Материалов',  value: totalKnowledge, icon: 'BookOpen' },
@@ -179,36 +181,19 @@ export default function StateHub() {
           { label: 'Полезные статьи', icon: 'BookOpen', path: '/articles' },
         ]}
       >
-        <HowItWorksBlock
+        <HubInstructionBlock
           accent="slate"
           intro="«Госуслуги и право» — навигатор по господдержке и правовым вопросам семьи. Льготы, пособия, выплаты и юридические ориентиры — всё в одном месте, понятным языком."
           steps={[
-            {
-              icon: 'Search',
-              title: 'Шаг 1. Найдите свою поддержку',
-              description:
-                'Подберите положенные пособия и льготы по составу семьи: дети, многодетные, ипотека, материнский капитал.',
-            },
-            {
-              icon: 'FileText',
-              title: 'Шаг 2. Документы и сроки',
-              description:
-                'Что нужно оформить, где подать, когда обновить. Без блужданий по сайтам ведомств.',
-            },
-            {
-              icon: 'Scale',
-              title: 'Шаг 3. Правовые ориентиры',
-              description:
-                'Базовые знания о праве: семейном, налоговом, жилищном. Понятный язык — никакого юридического тумана.',
-            },
-            {
-              icon: 'Landmark',
-              title: 'Шаг 4. Связь с госуслугами',
-              description:
-                'Подсказки по получению услуг через портал Госуслуг и МФЦ — пошагово и без лишних звонков.',
-            },
+            { number: 1, title: 'Найдите свою поддержку', description: 'Подберите положенные пособия и льготы по составу семьи: дети, многодетные, ипотека, материнский капитал.' },
+            { number: 2, title: 'Документы и сроки', description: 'Что нужно оформить, где подать, когда обновить. Без блужданий по сайтам ведомств.' },
+            { number: 3, title: 'Правовые ориентиры', description: 'Базовые знания о праве: семейном, налоговом, жилищном. Понятный язык — никакого юридического тумана.' },
+            { number: 4, title: 'Связь с госуслугами', description: 'Подсказки по получению услуг через портал Госуслуг и МФЦ — пошагово и без лишних звонков.' },
           ]}
-          footer="Раздел не заменяет юриста и официальные ведомства, но помогает быстро сориентироваться и не пропустить важное."
+          tips={[
+            { text: 'Раздел не заменяет юриста, но помогает быстро сориентироваться и не пропустить важное.' },
+            { text: 'Начните с «Подбора мер поддержки» — займёт 2 минуты, а польза может быть значительной.' },
+          ]}
         />
 
         {subGroups.map(group => (

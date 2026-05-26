@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import { FamilyMembersGrid } from '@/components/FamilyMembersGrid';
 import { useFamilyHubData } from '@/components/family-hub/useFamilyHubData';
 import { useFamilyHubAttention } from '@/components/family-hub/useFamilyHubAttention';
 import FamilyHubSections from '@/components/family-hub/FamilyHubSections';
-import { FAMILY_HUB_HOW_IT_WORKS_STEPS } from '@/components/family-hub/howItWorks';
+
+const BANNER_URL = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/085ddc0a-aabd-4e26-ab31-0d1efb4f31bd.jpg';
 
 export default function FamilyHub() {
   const navigate = useNavigate();
@@ -46,6 +47,8 @@ export default function FamilyHub() {
         modalities={['family', 'service']}
         cycleHint="Здесь начинается семейная ОС: данные отсюда питают все остальные хабы"
         backgroundClass="bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl={BANNER_URL}
+        bannerAlt="Семья — профили и управление"
         quickFacts={[
           { label: 'Профилей',  value: familyCount,   icon: 'Users' },
           { label: 'Детей',     value: childrenCount, icon: 'Baby' },
@@ -72,11 +75,19 @@ export default function FamilyHub() {
         ]}
       >
         <div className="space-y-6">
-          <HowItWorksBlock
+          <HubInstructionBlock
             accent="blue"
             intro="«Семья» — центральное пространство, где живёт состав, связи и совместная жизнь. Добавьте близких, опишите отношения — и все остальные разделы оживут вашими реальными данными."
-            steps={FAMILY_HUB_HOW_IT_WORKS_STEPS}
-            footer="Чем подробнее заполнен профиль семьи — тем точнее работают ИИ-советы и персональные рекомендации во всех разделах."
+            steps={[
+              { number: 1, title: 'Добавьте членов семьи', description: 'Заполните имена, даты рождения и роли. Это база для всех расчётов: от планов до семейного кода.' },
+              { number: 2, title: 'Постройте дерево связей', description: 'Укажите родственные отношения — кто кому кем приходится. Это раскрывает картину семьи целиком.' },
+              { number: 3, title: 'Ведите общую жизнь', description: 'Календарь событий, задачи, праздники, традиции — всё, что объединяет семью в одном месте.' },
+              { number: 4, title: 'Связи с другими разделами', description: 'Данные о семье автоматически подтягиваются в «Развитие», «Семейный код», «Ценности» и другие хабы.' },
+            ]}
+            tips={[
+              { text: 'Чем подробнее заполнен профиль — тем точнее работают ИИ-советы во всех разделах.' },
+              { text: 'Укажите дату рождения каждого: это запускает нумерологию и астрологию в Семейном коде.' },
+            ]}
           />
 
           <div>

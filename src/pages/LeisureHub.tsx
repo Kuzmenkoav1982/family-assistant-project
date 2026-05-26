@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -79,6 +79,8 @@ export default function LeisureHub() {
         modalities={['service', 'family']}
         cycleHint="Связан с Финансами и Календарём: бюджет поездки и даты праздников"
         backgroundClass="bg-gradient-to-b from-sky-50 via-blue-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/daf09b29-0f17-4987-a3c9-1628d4ebd63a.jpg"
+        bannerAlt="Путешествия и досуг"
         quickFacts={[
           { label: 'Сервисов',  value: subSections.length, icon: 'LayoutGrid' },
           { label: 'Подход',    value: 'Семейный',         icon: 'Users' },
@@ -102,36 +104,19 @@ export default function LeisureHub() {
           { label: 'Госуслуги', icon: 'Landmark', path: '/state-hub' },
         ]}
       >
-        <HowItWorksBlock
+        <HubInstructionBlock
           accent="sky"
           intro="«Досуг» — пространство для совместных впечатлений. Путешествия, развлечения, праздники и семейные традиции — всё, что объединяет и оставляет тёплые воспоминания."
           steps={[
-            {
-              icon: 'Plane',
-              title: 'Шаг 1. Планируйте поездки',
-              description:
-                'Маршруты, бюджет, чек-листы и документы — всё, чтобы отдых прошёл без сюрпризов.',
-            },
-            {
-              icon: 'PartyPopper',
-              title: 'Шаг 2. Праздники и события',
-              description:
-                'Дни рождения, годовщины, праздники — календарь напомнит, идеи подскажет.',
-            },
-            {
-              icon: 'Calendar',
-              title: 'Шаг 3. Развлечения',
-              description:
-                'Подбирайте активности: кино, выставки, прогулки. Сохраняйте идеи на «когда-нибудь».',
-            },
-            {
-              icon: 'Heart',
-              title: 'Шаг 4. Семейные традиции',
-              description:
-                'Создавайте и поддерживайте традиции — то, что делает семью особенной и крепкой.',
-            },
+            { number: 1, title: 'Планируйте поездки', description: 'Маршруты, бюджет, чек-листы и документы — всё, чтобы отдых прошёл без сюрпризов.' },
+            { number: 2, title: 'Праздники и события', description: 'Дни рождения, годовщины, праздники — календарь напомнит, идеи подскажет.' },
+            { number: 3, title: 'Развлечения', description: 'Подбирайте активности: кино, выставки, прогулки. Сохраняйте идеи на «когда-нибудь».' },
+            { number: 4, title: 'Семейные традиции', description: 'Создавайте и поддерживайте традиции — то, что делает семью особенной и крепкой.' },
           ]}
-          footer="Время вместе — самая ценная инвестиция. «Досуг» помогает не откладывать её на потом."
+          tips={[
+            { text: 'Время вместе — самая ценная инвестиция. Не откладывайте на потом.' },
+            { text: 'Бюджет поездки автоматически связывается с хабом «Финансы».' },
+          ]}
         />
 
         <div>

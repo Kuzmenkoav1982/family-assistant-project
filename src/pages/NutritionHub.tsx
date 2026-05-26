@@ -3,7 +3,7 @@ import SEOHead from '@/components/SEOHead';
 import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -130,6 +130,8 @@ export default function NutritionHub() {
         modalities={['ai', 'service']}
         cycleHint="Связь с Здоровьем и Финансами: рацион → состояние → бюджет"
         backgroundClass="bg-gradient-to-b from-green-50 via-emerald-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/aabd519a-2dbd-40ee-96c8-75b76f19c04c.jpg"
+        bannerAlt="Питание — здоровое питание семьи"
         quickFacts={[
           { label: 'Сервисов',   value: subSections.length, icon: 'LayoutGrid' },
           { label: 'Программ',   value: 6,                  icon: 'ListChecks' },
@@ -153,36 +155,19 @@ export default function NutritionHub() {
           { label: 'Питомцы',   icon: 'PawPrint',   path: '/pets' },
         ]}
       >
-        <HowItWorksBlock
+        <HubInstructionBlock
           accent="emerald"
           intro="«Питание» — личный диетолог для всей семьи. Меню, рационы, рецепты и подсчёт калорий — с учётом возраста, целей и предпочтений каждого члена семьи."
           steps={[
-            {
-              icon: 'UserCircle2',
-              title: 'Шаг 1. Профиль питания',
-              description:
-                'Укажите возраст, вес, цели и предпочтения. Это основа персональных рекомендаций ИИ-диетолога.',
-            },
-            {
-              icon: 'ChefHat',
-              title: 'Шаг 2. Меню и рецепты',
-              description:
-                'Получайте готовые меню на неделю, выбирайте рецепты с учётом продуктов в холодильнике.',
-            },
-            {
-              icon: 'Apple',
-              title: 'Шаг 3. Считайте калории',
-              description:
-                'Дневник питания, КБЖУ и анализ привычек — без занудства, в формате семейного помощника.',
-            },
-            {
-              icon: 'ShoppingCart',
-              title: 'Шаг 4. Покупки автоматически',
-              description:
-                'Из меню формируется список покупок. Один клик — и в холодильнике всё, что нужно для рациона.',
-            },
+            { number: 1, title: 'Профиль питания', description: 'Укажите возраст, вес, цели и предпочтения. Это основа персональных рекомендаций ИИ-диетолога.' },
+            { number: 2, title: 'Меню и рецепты', description: 'Получайте готовые меню на неделю, выбирайте рецепты с учётом продуктов в холодильнике.' },
+            { number: 3, title: 'Считайте калории', description: 'Дневник питания, КБЖУ и анализ привычек — без занудства, в формате семейного помощника.' },
+            { number: 4, title: 'Покупки автоматически', description: 'Из меню формируется список покупок. Один клик — и в холодильнике всё, что нужно для рациона.' },
           ]}
-          footer="ИИ-диетолог учитывает диеты, аллергии и медицинские ограничения — не заменяет врача, но помогает выстроить здоровое питание."
+          tips={[
+            { text: 'ИИ-диетолог учитывает диеты, аллергии и медицинские ограничения.' },
+            { text: 'Список покупок из меню автоматически попадает в хаб «Дом».' },
+          ]}
         />
 
         <SectionAIAdvisor

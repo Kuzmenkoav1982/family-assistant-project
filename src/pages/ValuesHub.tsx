@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
-import HowItWorksBlock from '@/components/hub/HowItWorksBlock';
+import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
@@ -105,6 +105,8 @@ export default function ValuesHub() {
         modalities={['reflect', 'family', 'content']}
         cycleHint="Здесь хранится «зачем»: ценности рождают правила, а они — ежедневные действия"
         backgroundClass="bg-gradient-to-b from-amber-50 via-orange-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
+        bannerUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/10e32b8c-e9b3-4b5d-8a7d-fefc20e940cc.jpg"
+        bannerAlt="Ценности и культура семьи"
         quickFacts={[
           { label: 'Сервисов',  value: subSections.length, icon: 'LayoutGrid' },
           { label: 'Глубина',   value: 'Ценности · Вера', icon: 'Sparkles' },
@@ -128,36 +130,19 @@ export default function ValuesHub() {
           { label: 'Полезные статьи', icon: 'BookOpen', path: '/articles' },
         ]}
       >
-        <HowItWorksBlock
+        <HubInstructionBlock
           accent="pink"
           intro="«Ценности» — пространство, где семья определяет, что для неё по-настоящему важно. Здесь рождаются договорённости, правила и общий язык — основа для всех решений."
           steps={[
-            {
-              icon: 'Heart',
-              title: 'Шаг 1. Определите ценности',
-              description:
-                'Выберите и обсудите ключевые ценности семьи. Это не формальность — это компас для решений.',
-            },
-            {
-              icon: 'ScrollText',
-              title: 'Шаг 2. Превратите в правила',
-              description:
-                'Из ценностей рождаются простые семейные правила и договорённости — понятные каждому.',
-            },
-            {
-              icon: 'MessageCircle',
-              title: 'Шаг 3. Обсуждайте и уточняйте',
-              description:
-                'Возвращайтесь к ценностям, когда возникают спорные ситуации. Они помогают найти общий ответ.',
-            },
-            {
-              icon: 'Sparkles',
-              title: 'Шаг 4. Живите этим',
-              description:
-                'Ценности и правила становятся естественной частью жизни — а не списком на стене.',
-            },
+            { number: 1, title: 'Определите ценности', description: 'Выберите и обсудите ключевые ценности семьи. Это не формальность — это компас для решений.' },
+            { number: 2, title: 'Превратите в правила', description: 'Из ценностей рождаются простые семейные правила и договорённости — понятные каждому.' },
+            { number: 3, title: 'Обсуждайте и уточняйте', description: 'Возвращайтесь к ценностям, когда возникают спорные ситуации. Они помогают найти общий ответ.' },
+            { number: 4, title: 'Живите этим', description: 'Ценности и правила становятся естественной частью жизни — а не списком на стене.' },
           ]}
-          footer="Это смысловой слой семьи: всё, что вы делаете, опирается на ценности и договорённости."
+          tips={[
+            { text: 'Это смысловой слой семьи: всё, что вы делаете, опирается на ценности.' },
+            { text: 'Обсудите ценности со всей семьёй — дети тоже могут участвовать.' },
+          ]}
         />
 
         <div>
