@@ -114,11 +114,13 @@ def _fire_poll_request() -> None:
     if requests is None:
         return
     try:
+        internal_token = os.environ.get('INTERNAL_CRON_TOKEN', '')
         requests.post(
             f"{MAX_BOT_FUNCTION_URL}?action=poll-channel&limit=30",
             headers={
                 'Content-Type': 'application/json',
                 'X-Cron': '1',
+                'X-Internal-Token': internal_token,
             },
             timeout=20,
         )
