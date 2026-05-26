@@ -404,7 +404,7 @@ export default function RecipeFromProducts() {
     <SectionPageFrame
       title="Рецепт из продуктов"
       subtitle="Укажите что есть — ИИ предложит блюда"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/bce7c61c-1b5e-4743-a5d2-1c7a6ae4e868.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/f0d40ca4-1310-43a2-9050-04b4c9990e0c.jpg"
       backPath="/nutrition"
       width="narrow"
       backgroundClass="bg-gradient-to-b from-orange-50 via-amber-50/30 to-white dark:from-gray-950 dark:to-gray-900"
