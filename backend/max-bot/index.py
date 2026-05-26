@@ -189,8 +189,14 @@ def save_post_to_blog(parsed: Dict, source: str = 'max') -> Optional[int]:
         seo_desc = esc(parsed.get('seo_description'))
         seo_kw = esc(parsed.get('seo_keywords'))
         category_sql = str(category_id) if category_id else 'NULL'
-        msg_id = str(int(parsed['max_message_id'])) if parsed.get('max_message_id') else 'NULL'
-        chat_id = str(int(parsed['max_chat_id'])) if parsed.get('max_chat_id') else 'NULL'
+        try:
+            msg_id = str(int(parsed['max_message_id'])) if parsed.get('max_message_id') is not None else 'NULL'
+        except (TypeError, ValueError):
+            msg_id = 'NULL'
+        try:
+            chat_id = str(int(parsed['max_chat_id'])) if parsed.get('max_chat_id') is not None else 'NULL'
+        except (TypeError, ValueError):
+            chat_id = 'NULL'
         reading = int(parsed.get('reading_time_min', 3))
         source_sql = esc(source)
         published = esc(parsed['published_at'].isoformat() if isinstance(parsed.get('published_at'), datetime) else parsed.get('published_at'))
@@ -272,21 +278,36 @@ def handle_channel_post(message: Dict) -> Dict[str, Any]:
     chat_id = message.get('recipient', {}).get('chat_id')
     timestamp = message.get('timestamp')
 
+    print(f"[CHANNEL_POST] msg_id={msg_id} chat_id={chat_id} text_len={len(text)} timestamp={timestamp}")
+
     if not text or len(text) < 50:
+        print(f"[CHANNEL_POST] skipped_short: text_len={len(text)}")
         return {'ok': True, 'action': 'skipped_short'}
 
     image_url = extract_image_from_attachments(attachments)
     published_at = datetime.fromtimestamp(timestamp / 1000) if timestamp else datetime.now()
 
+    try:
+        msg_id_int = int(msg_id) if msg_id is not None else None
+    except (TypeError, ValueError):
+        msg_id_int = None
+
+    try:
+        chat_id_int = int(chat_id) if chat_id is not None else None
+    except (TypeError, ValueError):
+        chat_id_int = None
+
     parsed = parse_max_post(
         text=text,
         image_url=image_url,
-        max_message_id=int(msg_id) if msg_id else None,
-        max_chat_id=int(chat_id) if chat_id else None,
+        max_message_id=msg_id_int,
+        max_chat_id=chat_id_int,
         published_at=published_at,
     )
+    parsed['max_message_id_str'] = str(msg_id) if msg_id else None
 
     post_id = save_post_to_blog(parsed, source='max')
+    print(f"[CHANNEL_POST] save result: post_id={post_id} slug={parsed.get('slug')} title={parsed.get('title')}")
     if post_id:
         return {'ok': True, 'action': 'mirrored', 'post_id': post_id, 'slug': parsed['slug']}
     return {'ok': True, 'action': 'mirror_failed'}
@@ -315,6 +336,7 @@ def poll_channel_messages(chat_id: int, limit: int = 50) -> Dict[str, Any]:
         return {'ok': False, 'error': 'chat_id required'}
 
     api_resp = max_api_request('GET', f'/messages?chat_id={int(chat_id)}&count={int(limit)}')
+    print(f"[POLL] MAX API response ok={api_resp.get('ok')} status={api_resp.get('status')} data_keys={list((api_resp.get('data') or {}).keys())}")
     if not api_resp.get('ok'):
         return {
             'ok': False,
@@ -326,6 +348,13 @@ def poll_channel_messages(chat_id: int, limit: int = 50) -> Dict[str, Any]:
     data = api_resp.get('data') or {}
     messages = data.get('messages') or []
     fetched = len(messages)
+    print(f"[POLL] fetched={fetched} messages from chat_id={chat_id}")
+    if messages:
+        first_ts = messages[0].get('timestamp')
+        last_ts = messages[-1].get('timestamp')
+        first_mid = (messages[0].get('body') or {}).get('mid', 'n/a')
+        last_mid = (messages[-1].get('body') or {}).get('mid', 'n/a')
+        print(f"[POLL] first_msg ts={first_ts} mid={first_mid} | last_msg ts={last_ts} mid={last_mid}")
 
     saved: List[Dict[str, Any]] = []
     skipped_short = 0

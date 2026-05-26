@@ -138,7 +138,7 @@ export default function DietProgramCatalog() {
       title="Готовые режимы питания"
       subtitle="Выберите программу и получите план"
       backPath="/nutrition"
-      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/52c52961-1f8c-412e-ae26-f6fb0892ce43.jpg"
+      imageUrl="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/e99f4705-a57d-4efb-913a-421c9da27fc9.jpg"
       backgroundClass={BG}
     >
 

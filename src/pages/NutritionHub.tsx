@@ -4,6 +4,7 @@ import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import HubLayoutV2 from '@/components/hub/HubLayoutV2';
 import HubCardV2 from '@/components/hub/HubCardV2';
 import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
+import NutritionHubInstructions from '@/components/nutrition/NutritionHubInstructions';
 import type { Modality } from '@/components/hub/ModalityBadge';
 import type { CardStatus } from '@/components/hub/StatusBadge';
 
