@@ -147,28 +147,15 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 >
                   <div className="bg-gray-900 rounded-[2rem] p-2 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
                     <div className="bg-white rounded-[1.6rem] overflow-hidden w-32 lg:w-40 aspect-[9/19] relative">
-                      {idx === 0 ? (
                         <img
                           src={screen.src}
                           alt={screen.alt}
                           width="160"
                           height="338"
                           className="w-full h-full object-cover"
-                          loading="eager"
-                          fetchpriority="high"
+                          loading={idx === 0 ? 'eager' : 'lazy'}
                           decoding="async"
                         />
-                      ) : (
-                        <img
-                          src={screen.src}
-                          alt={screen.alt}
-                          width="160"
-                          height="338"
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      )}
                     </div>
                   </div>
                 </div>
