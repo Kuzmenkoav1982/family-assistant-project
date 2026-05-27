@@ -59,31 +59,23 @@ type GuardProps = { children: React.ReactNode };
  * При отсутствии — рендерит Welcome (НЕ редиректит на /welcome, чтобы не
  * терять текущий URL — это то же поведение, что было inline).
  */
+function checkAuthSync(): boolean {
+  try {
+    const token = storage.getItem('authToken');
+    const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+    return !!token || isDemoMode;
+  } catch {
+    return false;
+  }
+}
+
 export function ProtectedRoute({ children }: GuardProps) {
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(checkAuthSync);
 
   useEffect(() => {
-    const checkAuth = () => {
-      try {
-        const token = storage.getItem('authToken');
-        const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
-        setIsAuthenticated(!!token || isDemoMode);
-      } catch (error) {
-        // Storage недоступен (private mode / disabled cookies). Считаем юзера
-        // неавторизованным — это безопаснее, чем кидать.
-        console.warn('[ProtectedRoute] storage unavailable, treating as logged out:', error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsChecking(false);
-      }
-    };
-
-    checkAuth();
+    const checkAuth = () => setIsAuthenticated(checkAuthSync());
 
     const onStorage = (e: StorageEvent) => {
-      // Реагируем только на ключи, которые реально влияют на auth-state.
-      // Прочие изменения localStorage игнорируем — экономим re-render.
       if (!e.key || ['authToken', 'auth_token', 'isDemoMode'].includes(e.key)) {
         checkAuth();
       }
@@ -96,17 +88,6 @@ export function ProtectedRoute({ children }: GuardProps) {
       window.removeEventListener(AUTH_SESSION_EVENT, checkAuth);
     };
   }, []);
-
-  if (isChecking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-600">Проверка авторизации...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (!isAuthenticated) {
     return <Welcome />;
