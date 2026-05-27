@@ -155,7 +155,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                           height="338"
                           className="w-full h-full object-cover"
                           loading="eager"
-                          fetchPriority="high"
+                          fetchpriority="high"
                           decoding="async"
                         />
                       ) : (
@@ -186,7 +186,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                       height="405"
                       className="w-full h-full object-cover"
                       loading="eager"
-                      fetchPriority="high"
+                      fetchpriority="high"
                       decoding="async"
                     />
                   </div>

@@ -20,7 +20,7 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
               width="36"
               height="36"
               className="flex-shrink-0 w-9 h-9 rounded-xl object-cover shadow-md"
-              fetchPriority="high"
+              fetchpriority="high"
               decoding="async"
             />
             <div className="min-w-0">

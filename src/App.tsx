@@ -6,12 +6,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import PageWrapper from "@/components/PageWrapper";
 
-// Тяжёлые глобальные UI-компоненты — нужны только авторизованному пользователю.
-// Делаем ленивыми чтобы не блокировать первичный рендер лендинга (Welcome).
+// Welcome и NotFound — синхронные импорты: они отвечают за первый экран гостя и 404.
+// Lazy здесь напрямую убивает LCP — браузер ждёт JS-чанк до первой отрисовки.
+import Welcome from "./pages/Welcome";
+import NotFound404 from "./pages/NotFound404";
+
+// Тяжёлые UI-компоненты авторизованной части — лениво, гостям не нужны
 const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
 const AppUpdateBanner = lazy(() => import("@/components/AppUpdateBanner").then(m => ({ default: m.AppUpdateBanner })));
-const Welcome = lazy(() => import("./pages/Welcome"));
-const NotFound404 = lazy(() => import("./pages/NotFound404"));
 const AIAssistantWidget = lazy(() => import("@/components/AIAssistantWidget"));
 const GlobalTopBar = lazy(() => import("@/components/GlobalTopBar"));
 const GlobalStatusBanner = lazy(() => import("@/components/GlobalStatusBanner"));
