@@ -53,9 +53,9 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.08] tracking-tight text-gray-900">
-              Семейная<br />
+              Семейное приложение<br />
               <span className="bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                операционка
+                для планирования дел
               </span>
             </h1>
 
@@ -147,12 +147,24 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 >
                   <div className="bg-gray-900 rounded-[2rem] p-2 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
                     <div className="bg-white rounded-[1.6rem] overflow-hidden w-32 lg:w-40 aspect-[9/19] relative">
-                      <img
-                        src={screen.src}
-                        alt={screen.alt}
-                        className="w-full h-full object-cover"
-                        loading="eager"
-                      />
+                      {idx === 0 ? (
+                        <img
+                          src={screen.src}
+                          alt={screen.alt}
+                          className="w-full h-full object-cover"
+                          loading="eager"
+                          fetchPriority="high"
+                          decoding="async"
+                        />
+                      ) : (
+                        <img
+                          src={screen.src}
+                          alt={screen.alt}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -168,6 +180,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                       alt={MOBILE_HERO_SCREEN.alt}
                       className="w-full h-full object-cover"
                       loading="eager"
+                      decoding="async"
                     />
                   </div>
                 </div>

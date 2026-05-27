@@ -148,6 +148,8 @@ export default function WelcomeDomovoy() {
                 src={scene.image}
                 alt={scene.label}
                 className="w-full h-full max-h-[420px] object-contain transition-opacity duration-500 hover:scale-[1.02] transition-transform"
+                loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -233,6 +235,8 @@ export default function WelcomeDomovoy() {
             alt={scene.label}
             className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl"
             onClick={e => e.stopPropagation()}
+            loading="lazy"
+            decoding="async"
           />
         </div>
       )}

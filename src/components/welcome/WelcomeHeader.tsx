@@ -18,6 +18,8 @@ export default function WelcomeHeader({ isLoggedIn }: WelcomeHeaderProps) {
               src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG"
               alt="Наша Семья"
               className="flex-shrink-0 w-9 h-9 rounded-xl object-cover shadow-md"
+              fetchPriority="high"
+              decoding="async"
             />
             <div className="min-w-0">
               <span className="text-sm sm:text-lg font-bold text-gray-900 font-[Montserrat]">

@@ -61,6 +61,7 @@ export default function WelcomePWA() {
               alt="Приложение на телефоне"
               className="w-56 sm:w-64 rounded-3xl shadow-2xl"
               loading="lazy"
+              decoding="async"
             />
           </div>
 

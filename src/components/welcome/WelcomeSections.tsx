@@ -139,6 +139,8 @@ export default function WelcomeSections({
                     src={section.carousel[carouselIndexes[index] || 0]}
                     alt={`${section.title} - Слайд ${(carouselIndexes[index] || 0) + 1}`}
                     className="w-full h-full object-contain transition-opacity duration-500"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <button
                     onClick={(e) => {

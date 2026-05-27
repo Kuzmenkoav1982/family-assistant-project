@@ -22,6 +22,10 @@ export default function WelcomeAI() {
               <img
                 src={DOMOVOY_IMG}
                 alt="AI-ассистент Домовой"
+                loading="lazy"
+                decoding="async"
+                width="320"
+                height="320"
                 className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-[2.5rem] object-cover shadow-2xl ring-4 ring-white"
               />
               <div className="absolute -bottom-3 -right-3 bg-white rounded-2xl shadow-xl px-4 py-2.5 flex items-center gap-2">

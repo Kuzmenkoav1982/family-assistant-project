@@ -7,6 +7,8 @@ export default function WelcomePromo() {
             src="https://cdn.poehali.dev/files/60de9dee-ead5-4091-8871-69dba42ea135.jpg"
             alt="Домовёнок показывает все разделы приложения Наша Семья — ромашка с 12 направлениями"
             className="w-full sm:w-1/2 object-cover rounded-3xl"
+            loading="lazy"
+            decoding="async"
           />
           <div className="px-6 pb-6 sm:pb-0 sm:pr-8 flex flex-col justify-center gap-3">
             <p className="text-2xl font-extrabold text-gray-900 leading-snug">«И всё это — бесплатно. Для каждой семьи!»</p>

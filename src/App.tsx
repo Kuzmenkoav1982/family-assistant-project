@@ -269,8 +269,32 @@ const App = () => {
 
   useEffect(() => {
     const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    const path = window.location.pathname;
+    const search = window.location.search;
+
+    // Редирект с poehali.dev на основной домен
     if (hostname.includes('poehali.dev') && !hostname.includes('cdn')) {
-      window.location.href = `https://nasha-semiya.ru${window.location.pathname}${window.location.search}`;
+      window.location.replace(`https://nasha-semiya.ru${path}${search}`);
+      return;
+    }
+
+    // Редирект www → без www (канонический домен)
+    if (hostname === 'www.nasha-semiya.ru') {
+      window.location.replace(`https://nasha-semiya.ru${path}${search}`);
+      return;
+    }
+
+    // Редирект http → https
+    if (protocol === 'http:' && hostname === 'nasha-semiya.ru') {
+      window.location.replace(`https://nasha-semiya.ru${path}${search}`);
+      return;
+    }
+
+    // Убираем дублирующий слеш в конце URL (кроме корня)
+    if (path.length > 1 && path.endsWith('/')) {
+      const cleanPath = path.replace(/\/+$/, '');
+      window.history.replaceState(null, '', `${cleanPath}${search}`);
     }
   }, []);
 

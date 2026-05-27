@@ -32,6 +32,8 @@ export default function WelcomeCTA({ isLoggedIn }: WelcomeCTAProps) {
                     alt=""
                     className="w-12 h-12 rounded-full border-3 border-white object-cover shadow-lg"
                     style={{ zIndex: 5 - i }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 ))}
                 <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/50 text-sm font-bold">

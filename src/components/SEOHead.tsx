@@ -30,7 +30,11 @@ const SEOHead = ({
   breadcrumbs,
   keywords = DEFAULT_KEYWORDS,
 }: SEOHeadProps) => {
-  const fullTitle = title ? `${title} | ${SITE_NAME}` : `${SITE_NAME} — Управление семьей онлайн`;
+  // На главной странице не дублируем суффикс — title уже содержит ключевые фразы
+  const isHomePage = path === "/" || path === "";
+  const fullTitle = title
+    ? (isHomePage ? title : `${title} | ${SITE_NAME}`)
+    : `${SITE_NAME} — Управление семьей онлайн`;
   const canonicalUrl = `${BASE_URL}${path}`;
 
   const breadcrumbList = breadcrumbs && breadcrumbs.length > 0

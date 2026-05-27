@@ -20,6 +20,7 @@ Allow: /
 Allow: /blog
 Allow: /blog/
 Crawl-delay: 1
+Host: https://nasha-semiya.ru
 
 User-agent: Googlebot
 Allow: /

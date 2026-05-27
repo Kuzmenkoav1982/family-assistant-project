@@ -71,6 +71,8 @@ export default function WelcomeForWhom() {
                   src={role.image}
                   alt={role.title}
                   className="w-16 h-16 rounded-2xl object-cover shadow-lg ring-4 ring-white"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div>
                   <h3 className="text-xl font-bold text-gray-900">{role.title}</h3>
