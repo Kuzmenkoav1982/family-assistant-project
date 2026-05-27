@@ -969,7 +969,7 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         }
 
     if method == 'POST' and action == 'refetch-max-covers':
-        """Получает оригинальные картинки из MAX API для постов с files/ обложками."""
+        """Получает оригинальные картинки из MAX API для постов с files/ обложками (batch)."""
         if not _admin_authorized(event):
             return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'unauthorized'}), 'isBase64Encoded': False}
 
@@ -977,43 +977,82 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         if not conn:
             return {'statusCode': 500, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'db'}), 'isBase64Encoded': False}
         cur = conn.cursor()
+        # Берём все статьи с files/ обложкой
         cur.execute(f"""
             SELECT id, slug, max_message_id_str, max_chat_id FROM {SCHEMA}.public_blog_posts
-            WHERE cover_image_url LIKE '%cdn.poehali.dev%/files/%'
+            WHERE (cover_image_url IS NULL OR cover_image_url LIKE '%cdn.poehali.dev%/files/%')
               AND max_message_id_str IS NOT NULL
             ORDER BY id DESC
         """)
         rows = cur.fetchall()
+        if not rows:
+            cur.close()
+            conn.close()
+            return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': json.dumps({'ok': True, 'fixed': 0, 'note': 'nothing to fix'}), 'isBase64Encoded': False}
+
+        chat_id = rows[0][3]
+        # Простой запрос без курсора — должен вернуть последние сообщения
+        mid_to_image = {}
+        all_msgs = []
+        api_resp = max_api_request('GET', f'/messages?chat_id={int(chat_id)}&count=50')
+        batch = (api_resp.get('data') or {}).get('messages', []) or []
+        print(f"[REFETCH] simple call got={len(batch)} status={api_resp.get('status')}")
+        all_msgs.extend(batch)
+        for m in batch:
+            body_m = m.get('body') or {}
+            mid = body_m.get('mid')
+            if not mid:
+                continue
+            atts = body_m.get('attachments') or []
+            img = extract_image_from_attachments(atts)
+            if img:
+                mid_to_image[str(mid)] = img
+        # Если этого мало, идём дальше через `from` (timestamp от самого старого)
+        if batch and len(batch) >= 30:
+            oldest_ts = min((m.get('timestamp') or 0) for m in batch)
+            for _iter in range(8):
+                api_resp = max_api_request('GET', f'/messages?chat_id={int(chat_id)}&count=50&to={oldest_ts - 1}')
+                batch2 = (api_resp.get('data') or {}).get('messages', []) or []
+                print(f"[REFETCH] page {_iter} to={oldest_ts-1} got={len(batch2)}")
+                if not batch2:
+                    break
+                all_msgs.extend(batch2)
+                for m in batch2:
+                    body_m = m.get('body') or {}
+                    mid = body_m.get('mid')
+                    if not mid:
+                        continue
+                    atts = body_m.get('attachments') or []
+                    img = extract_image_from_attachments(atts)
+                    if img:
+                        mid_to_image[str(mid)] = img
+                new_oldest = min((m.get('timestamp') or oldest_ts) for m in batch2)
+                if new_oldest >= oldest_ts:
+                    break
+                oldest_ts = new_oldest
+        messages = all_msgs
+
         fixed = []
         failed = []
-        for (post_id, slug, msg_id_str, chat_id) in rows:
-            try:
-                resp = max_api_request('GET', f'/messages?message_ids={msg_id_str}&chat_id={chat_id}')
-                messages = (resp.get('data') or {}).get('messages', []) or []
-                image_url = None
-                if messages:
-                    body_msg = (messages[0].get('body') or {})
-                    atts = body_msg.get('attachments') or []
-                    image_url = extract_image_from_attachments(atts)
-                if image_url:
-                    s3_url = upload_image_to_s3(image_url, str(post_id))
-                    if s3_url:
-                        safe_url = s3_url.replace("'", "''")
-                        cur.execute(f"UPDATE {SCHEMA}.public_blog_posts SET cover_image_url = '{safe_url}' WHERE id = {post_id}")
-                        fixed.append({'id': post_id, 'slug': slug, 'img': s3_url})
-                    else:
-                        failed.append({'id': post_id, 'slug': slug, 'reason': 'upload_failed'})
-                else:
-                    failed.append({'id': post_id, 'slug': slug, 'reason': 'no_image_in_max'})
-            except Exception as e:
-                failed.append({'id': post_id, 'slug': slug, 'reason': str(e)})
+        for (post_id, slug, msg_id_str, _chat) in rows:
+            image_url = mid_to_image.get(str(msg_id_str))
+            if not image_url:
+                failed.append({'id': post_id, 'slug': slug, 'mid': msg_id_str, 'reason': 'not_found_in_batch'})
+                continue
+            s3_url = upload_image_to_s3(image_url, str(post_id))
+            if s3_url:
+                safe_url = s3_url.replace("'", "''")
+                cur.execute(f"UPDATE {SCHEMA}.public_blog_posts SET cover_image_url = '{safe_url}' WHERE id = {post_id}")
+                fixed.append({'id': post_id, 'slug': slug, 'img': s3_url, 'orig': image_url})
+            else:
+                failed.append({'id': post_id, 'slug': slug, 'reason': 'upload_failed'})
         conn.commit()
         cur.close()
         conn.close()
         return {
             'statusCode': 200,
             'headers': CORS_HEADERS,
-            'body': json.dumps({'ok': True, 'fixed': len(fixed), 'failed': len(failed), 'details': fixed, 'errors': failed}, ensure_ascii=False),
+            'body': json.dumps({'ok': True, 'fixed': len(fixed), 'failed': len(failed), 'fetched_msgs': len(messages), 'details': fixed, 'errors': failed}, ensure_ascii=False),
             'isBase64Encoded': False
         }
 
