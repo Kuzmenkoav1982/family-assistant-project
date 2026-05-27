@@ -4,18 +4,21 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { AppUpdateBanner } from "@/components/AppUpdateBanner";
-import Welcome from "./pages/Welcome";
-import NotFound404 from "./pages/NotFound404";
-import AIAssistantWidget from "@/components/AIAssistantWidget";
-import GlobalTopBar from "@/components/GlobalTopBar";
-import GlobalStatusBanner from "@/components/GlobalStatusBanner";
-import GlobalSidebar from "@/components/GlobalSidebar";
-import GlobalBottomBar from "@/components/GlobalBottomBar";
-import RecentHubsTracker from "@/components/RecentHubsTracker";
 import PageWrapper from "@/components/PageWrapper";
-import { DemoModeIndicator } from "@/components/DemoModeIndicator";
+
+// Тяжёлые глобальные UI-компоненты — нужны только авторизованному пользователю.
+// Делаем ленивыми чтобы не блокировать первичный рендер лендинга (Welcome).
+const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt").then(m => ({ default: m.PWAInstallPrompt })));
+const AppUpdateBanner = lazy(() => import("@/components/AppUpdateBanner").then(m => ({ default: m.AppUpdateBanner })));
+const Welcome = lazy(() => import("./pages/Welcome"));
+const NotFound404 = lazy(() => import("./pages/NotFound404"));
+const AIAssistantWidget = lazy(() => import("@/components/AIAssistantWidget"));
+const GlobalTopBar = lazy(() => import("@/components/GlobalTopBar"));
+const GlobalStatusBanner = lazy(() => import("@/components/GlobalStatusBanner"));
+const GlobalSidebar = lazy(() => import("@/components/GlobalSidebar"));
+const GlobalBottomBar = lazy(() => import("@/components/GlobalBottomBar"));
+const RecentHubsTracker = lazy(() => import("@/components/RecentHubsTracker"));
+const DemoModeIndicator = lazy(() => import("@/components/DemoModeIndicator").then(m => ({ default: m.DemoModeIndicator })));
 import { AuthProvider } from "@/lib/auth-context";
 import { queryClient } from "@/lib/queryClient";
 import { DialogLockProvider } from "@/contexts/DialogLockContext";
@@ -24,9 +27,11 @@ import { AIAssistantProvider } from "@/contexts/AIAssistantContext";
 import { DemoModeProvider } from "@/contexts/DemoModeContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { BlogCoverJobProvider } from "@/contexts/BlogCoverJobContext";
-import BlogCoverJobIndicator from "@/components/admin/blog/BlogCoverJobIndicator";
 import { FamilyTraditionsProvider } from "@/contexts/FamilyTraditionsContext";
 import { DEFAULT_TRADITIONS } from "@/data/defaultTraditions";
+
+// Админский индикатор фоновых задач — лениво, гостям не нужен
+const BlogCoverJobIndicator = lazy(() => import("@/components/admin/blog/BlogCoverJobIndicator"));
 import { clearAuthSession, AUTH_SESSION_EVENT } from "@/lib/authStorage";
 import { analyticsTracker } from "@/lib/analytics-tracker";
 import { installFetchInterceptor } from "@/lib/fetch-interceptor";

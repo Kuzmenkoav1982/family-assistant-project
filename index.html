@@ -15,17 +15,12 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#64748b">
     <link rel="apple-touch-icon" href="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG">
+    <!-- Только 2 критичных preconnect (Lighthouse рекомендует не больше 4) -->
     <link rel="preconnect" href="https://cdn.poehali.dev" crossorigin>
-    <link rel="preconnect" href="https://mc.yandex.ru" crossorigin>
     <link rel="preconnect" href="https://functions.poehali.dev" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdn.poehali.dev">
+    <!-- Остальные домены через dns-prefetch — дешевле и не блокирует поток -->
     <link rel="dns-prefetch" href="https://mc.yandex.ru">
-    <link rel="dns-prefetch" href="https://functions.poehali.dev">
-
-    <!-- Preload критичных ресурсов для ускорения первой отрисовки -->
-    <link rel="preload" as="image" href="https://cdn.poehali.dev/files/Логотип Наша Семья.JPG" fetchpriority="high">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
 
     <!-- Open Graph -->
     <meta property="og:type" content="website">
@@ -175,30 +170,48 @@
 <div id="root"></div>
 <script type="module" src="/src/main.tsx"></script>
 
-<!-- Yandex.Metrika counter -->
+<!-- Yandex.Metrika counter (отложенная загрузка для улучшения TBT) -->
 <script type="text/javascript">
-    (function (m, e, t, r, i, k, a) {
-        m[i] = m[i] || function () {
-            (m[i].a = m[i].a || []).push(arguments)
-        };
-        m[i].l = 1 * new Date();
-        for (var j = 0; j < document.scripts.length; j++) {
-            if (document.scripts[j].src === r) {
-                return;
-            }
-        }
-        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
-    })
-    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+    // Создаём заглушку, чтобы вызовы ym() из приложения не падали до загрузки скрипта
+    window.ym = window.ym || function () { (window.ym.a = window.ym.a || []).push(arguments) };
+    window.ym.l = 1 * new Date();
 
-    ym(106235112, "init", {
-        clickmap: true,
-        trackLinks: true,
-        accurateTrackBounce: true,
-        webvisor: true,
-        trackHash: true,
-        ecommerce: "dataLayer"
-    });
+    function loadYandexMetrika() {
+        if (window.__ymLoaded) return;
+        window.__ymLoaded = true;
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://mc.yandex.ru/metrika/tag.js';
+        s.onload = function () {
+            ym(106235112, 'init', {
+                clickmap: true,
+                trackLinks: true,
+                accurateTrackBounce: true,
+                webvisor: true,
+                trackHash: true,
+                ecommerce: 'dataLayer'
+            });
+        };
+        document.head.appendChild(s);
+    }
+
+    // Загружаем метрику после первого пользовательского взаимодействия
+    // или через 4 секунды простоя — что наступит раньше.
+    // Это разгружает основной поток на этапе LCP/TBT.
+    var events = ['scroll', 'mousemove', 'touchstart', 'keydown', 'click'];
+    var fired = false;
+    function fire() {
+        if (fired) return;
+        fired = true;
+        events.forEach(function (e) { window.removeEventListener(e, fire); });
+        loadYandexMetrika();
+    }
+    events.forEach(function (e) { window.addEventListener(e, fire, { once: true, passive: true }); });
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(fire, { timeout: 4000 });
+    } else {
+        setTimeout(fire, 4000);
+    }
 </script>
 <noscript>
     <div><img src="https://mc.yandex.ru/watch/106235112" style="position:absolute; left:-9999px;" alt=""/></div>

@@ -151,6 +151,8 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                         <img
                           src={screen.src}
                           alt={screen.alt}
+                          width="160"
+                          height="338"
                           className="w-full h-full object-cover"
                           loading="eager"
                           fetchPriority="high"
@@ -160,6 +162,8 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                         <img
                           src={screen.src}
                           alt={screen.alt}
+                          width="160"
+                          height="338"
                           className="w-full h-full object-cover"
                           loading="lazy"
                           decoding="async"
@@ -178,8 +182,11 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                     <img
                       src={MOBILE_HERO_SCREEN.src}
                       alt={MOBILE_HERO_SCREEN.alt}
+                      width="192"
+                      height="405"
                       className="w-full h-full object-cover"
                       loading="eager"
+                      fetchPriority="high"
                       decoding="async"
                     />
                   </div>
