@@ -7,7 +7,7 @@ import { useEffect, lazy, Suspense } from "react";
 import PageWrapper from "@/components/PageWrapper";
 
 // Публичные роуты — глобальные UI-компоненты там не нужны
-const PUBLIC_ROUTES = ['/', '/welcome', '/login', '/register', '/reset-password', '/demo'];
+const PUBLIC_ROUTES = ['/welcome', '/login', '/register', '/reset-password', '/demo'];
 
 function GlobalUI() {
   const { pathname } = useLocation();
