@@ -1,6 +1,13 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+
+// Синхронное определение breakpoint — без мигания, без useEffect
+function getIsMobile() {
+  if (typeof window === 'undefined') return false;
+  return window.innerWidth < 768;
+}
 
 interface WelcomeHeroProps {
   isLoggedIn: boolean;
@@ -37,6 +44,15 @@ const MOBILE_HERO_SCREEN = {
 
 export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
   const navigate = useNavigate();
+  // isMobile инициализируется синхронно — нет мигания при первом рендере
+  const [isMobile, setIsMobile] = useState(getIsMobile);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 767px)');
+    const handler = () => setIsMobile(mql.matches);
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  }, []);
 
   return (
     <section className="relative overflow-hidden pt-24 sm:pt-28 pb-16 sm:pb-24">
@@ -139,14 +155,16 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
           <div className="relative w-full max-w-md mx-auto lg:max-w-none lg:ml-auto">
             <div className="absolute -inset-8 bg-gradient-to-br from-orange-300/30 via-pink-300/30 to-purple-300/30 rounded-full blur-3xl -z-10" />
 
-            <div className="hidden md:flex items-center justify-center gap-2 lg:gap-3 py-8">
-              {PHONE_SCREENS.map((screen, idx) => (
-                <div
-                  key={idx}
-                  className={`relative ${screen.rotate} ${screen.z} ${screen.offset} transition-transform duration-300 hover:scale-105 hover:-translate-y-2 hover:rotate-0`}
-                >
-                  <div className="bg-gray-900 rounded-[2rem] p-2 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
-                    <div className="bg-white rounded-[1.6rem] overflow-hidden w-32 lg:w-40 aspect-[9/19] relative">
+            {/* Десктопные скриншоты — только в DOM на md+. CSS hidden недостаточно: браузер всё равно грузит img */}
+            {!isMobile && (
+              <div className="flex items-center justify-center gap-2 lg:gap-3 py-8">
+                {PHONE_SCREENS.map((screen, idx) => (
+                  <div
+                    key={idx}
+                    className={`relative ${screen.rotate} ${screen.z} ${screen.offset} transition-transform duration-300 hover:scale-105 hover:-translate-y-2 hover:rotate-0`}
+                  >
+                    <div className="bg-gray-900 rounded-[2rem] p-2 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
+                      <div className="bg-white rounded-[1.6rem] overflow-hidden w-32 lg:w-40 aspect-[9/19] relative">
                         <img
                           src={screen.src}
                           alt={screen.alt}
@@ -156,33 +174,36 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                           loading={idx === 0 ? 'eager' : 'lazy'}
                           decoding="async"
                         />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
-            <div className="md:hidden flex items-center justify-center py-4">
-              <div className="relative">
-                <div className="bg-gray-900 rounded-[2.5rem] p-2.5 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
-                  <div className="bg-white rounded-[2rem] overflow-hidden w-48 aspect-[9/19] relative">
-                    <img
-                      src={MOBILE_HERO_SCREEN.src}
-                      alt={MOBILE_HERO_SCREEN.alt}
-                      width="192"
-                      height="405"
-                      className="w-full h-full object-cover"
-                      loading="eager"
-                      fetchpriority="high"
-                      decoding="async"
-                    />
+            {isMobile && (
+              <div className="flex items-center justify-center py-4">
+                <div className="relative">
+                  <div className="bg-gray-900 rounded-[2.5rem] p-2.5 shadow-2xl shadow-orange-300/40 border-4 border-gray-800">
+                    <div className="bg-white rounded-[2rem] overflow-hidden w-48 aspect-[9/19] relative">
+                      <img
+                        src={MOBILE_HERO_SCREEN.src}
+                        alt={MOBILE_HERO_SCREEN.alt}
+                        width="192"
+                        height="405"
+                        className="w-full h-full object-cover"
+                        loading="eager"
+                        fetchpriority="high"
+                        decoding="async"
+                      />
+                    </div>
+                  </div>
+                  <div className="absolute -right-3 -top-3 bg-gradient-to-br from-orange-400 to-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg rotate-12">
+                    ✨ Это реально
                   </div>
                 </div>
-                <div className="absolute -right-3 -top-3 bg-gradient-to-br from-orange-400 to-pink-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg rotate-12">
-                  ✨ Это реально
-                </div>
               </div>
-            </div>
+            )}
 
             <div className="hidden lg:flex items-center justify-center gap-6 mt-6 text-xs text-gray-500">
               <div className="flex items-center gap-1.5">
