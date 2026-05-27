@@ -12,7 +12,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG"
+                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp"
                 alt="Наша семья"
                 className="h-12 w-12 object-cover rounded-lg"
                 loading="lazy"

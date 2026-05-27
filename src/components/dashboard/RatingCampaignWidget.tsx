@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import Icon from '@/components/ui/icon';
 
 const CAMPAIGN_API = 'https://functions.poehali.dev/e6ccd99c-a165-48c7-83cf-946941114931';
-const DEFAULT_FAMILY_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG';
+const DEFAULT_FAMILY_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp';
 
 interface Campaign {
   id: string;

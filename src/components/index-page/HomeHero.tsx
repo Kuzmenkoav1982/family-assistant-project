@@ -11,7 +11,7 @@ interface HomeHeroProps {
 }
 
 const DEFAULT_BG = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/569353b3-fbeb-4c15-8d69-c30f645cc3b1.png';
-const DEFAULT_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG';
+const DEFAULT_LOGO = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp';
 
 export default function HomeHero({ familyName, familyLogo, familyBanner, syncing }: HomeHeroProps) {
   const bannerSrc = familyBanner || DEFAULT_BG;

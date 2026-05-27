@@ -228,7 +228,7 @@ export default function DemoMode() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-3 mb-6 animate-bounce-in">
               <img 
-                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/90f87bac-e708-4551-b2dc-061dd3d7b0ed.JPG" 
+                src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp" 
                 alt="Наша Семья логотип" 
                 className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl shadow-xl"
               />
