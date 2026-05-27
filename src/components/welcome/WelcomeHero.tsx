@@ -40,7 +40,7 @@ const PHONE_SCREENS = [
 ];
 
 const MOBILE_HERO_SCREEN = {
-  src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/a56446e2-ef59-4c50-aecf-9ed9fb67b67c.jpeg',
+  src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/hero-mobile.webp',
   alt: 'Дашборд «Наша Семья» с 12 хабами',
 };
 
