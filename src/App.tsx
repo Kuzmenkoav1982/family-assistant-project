@@ -2,9 +2,32 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import PageWrapper from "@/components/PageWrapper";
+
+// Публичные роуты — глобальные UI-компоненты там не нужны
+const PUBLIC_ROUTES = ['/', '/welcome', '/login', '/register', '/reset-password', '/demo'];
+
+function GlobalUI() {
+  const { pathname } = useLocation();
+  const isPublic = PUBLIC_ROUTES.some(r => pathname === r || (pathname.startsWith(r + '/') && r !== '/'));
+  if (isPublic) return null;
+  return (
+    <Suspense fallback={null}>
+      <PWAInstallPrompt />
+      <AppUpdateBanner />
+      <AIAssistantWidget />
+      <DemoModeIndicator />
+      <BlogCoverJobIndicator />
+      <GlobalTopBar />
+      <GlobalStatusBanner />
+      <GlobalSidebar />
+      <GlobalBottomBar />
+      <RecentHubsTracker />
+    </Suspense>
+  );
+}
 
 // Welcome и NotFound — синхронные импорты: они отвечают за первый экран гостя и 404.
 // Lazy здесь напрямую убивает LCP — браузер ждёт JS-чанк до первой отрисовки.
@@ -328,7 +351,11 @@ const App = () => {
 
     window.addEventListener('popstate', trackPageChange);
 
-    medicationNotificationService.start();
+    // Сервис уведомлений нужен только авторизованным — на публичных роутах не запускаем
+    const isPublicRoute = PUBLIC_ROUTES.some(r => window.location.pathname === r);
+    if (!isPublicRoute) {
+      medicationNotificationService.start();
+    }
 
     const onAuthChanged = () => medicationNotificationService.onAuthChanged();
     window.addEventListener(AUTH_SESSION_EVENT, onAuthChanged);
@@ -358,16 +385,7 @@ const App = () => {
                   <Toaster />
                   <Sonner />
                   <BrowserRouter>
-                    <PWAInstallPrompt />
-                    <AppUpdateBanner />
-                    <AIAssistantWidget />
-                    <DemoModeIndicator />
-                    <BlogCoverJobIndicator />
-                    <GlobalTopBar />
-                    <GlobalStatusBanner />
-                    <GlobalSidebar />
-                    <GlobalBottomBar />
-                    <RecentHubsTracker />
+                    <GlobalUI />
                     <PageWrapper>
                     <Suspense fallback={<PageLoader />}>
                     <Routes>
