@@ -968,6 +968,55 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
 
+    if method == 'POST' and action == 'refetch-max-covers':
+        """Получает оригинальные картинки из MAX API для постов с files/ обложками."""
+        if not _admin_authorized(event):
+            return {'statusCode': 401, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'unauthorized'}), 'isBase64Encoded': False}
+
+        conn = db_connect()
+        if not conn:
+            return {'statusCode': 500, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'db'}), 'isBase64Encoded': False}
+        cur = conn.cursor()
+        cur.execute(f"""
+            SELECT id, slug, max_message_id_str, max_chat_id FROM {SCHEMA}.public_blog_posts
+            WHERE cover_image_url LIKE '%cdn.poehali.dev%/files/%'
+              AND max_message_id_str IS NOT NULL
+            ORDER BY id DESC
+        """)
+        rows = cur.fetchall()
+        fixed = []
+        failed = []
+        for (post_id, slug, msg_id_str, chat_id) in rows:
+            try:
+                resp = max_api_request('GET', f'/messages?message_ids={msg_id_str}&chat_id={chat_id}')
+                messages = (resp.get('data') or {}).get('messages', []) or []
+                image_url = None
+                if messages:
+                    body_msg = (messages[0].get('body') or {})
+                    atts = body_msg.get('attachments') or []
+                    image_url = extract_image_from_attachments(atts)
+                if image_url:
+                    s3_url = upload_image_to_s3(image_url, str(post_id))
+                    if s3_url:
+                        safe_url = s3_url.replace("'", "''")
+                        cur.execute(f"UPDATE {SCHEMA}.public_blog_posts SET cover_image_url = '{safe_url}' WHERE id = {post_id}")
+                        fixed.append({'id': post_id, 'slug': slug, 'img': s3_url})
+                    else:
+                        failed.append({'id': post_id, 'slug': slug, 'reason': 'upload_failed'})
+                else:
+                    failed.append({'id': post_id, 'slug': slug, 'reason': 'no_image_in_max'})
+            except Exception as e:
+                failed.append({'id': post_id, 'slug': slug, 'reason': str(e)})
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'ok': True, 'fixed': len(fixed), 'failed': len(failed), 'details': fixed, 'errors': failed}, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
     return {
         'statusCode': 200,
         'headers': CORS_HEADERS,
