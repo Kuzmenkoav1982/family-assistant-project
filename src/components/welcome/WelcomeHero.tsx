@@ -5,7 +5,9 @@ import Icon from '@/components/ui/icon';
 
 // Синхронное определение breakpoint — без мигания, без useEffect
 function getIsMobile() {
-  if (typeof window === 'undefined') return false;
+  // SSR / prerender: окна нет — считаем мобильным по умолчанию.
+  // Так десктопные JPEG не попадают в статический HTML и не грузятся краулерами.
+  if (typeof window === 'undefined') return true;
   return window.innerWidth < 768;
 }
 
