@@ -12,6 +12,8 @@ from datetime import datetime
 import requests
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import boto3
+import time
 
 from blog_parser import parse_max_post, make_slug
 
@@ -175,6 +177,13 @@ def save_post_to_blog(parsed: Dict, source: str = 'max') -> Optional[int]:
         slug = get_unique_slug(cur, parsed['slug'])
         category_id = get_category_id(cur, parsed.get('category_slug', 'psychology'))
 
+        # Если картинка с внешнего сервера — скачиваем в S3
+        raw_cover = parsed.get('cover_image_url')
+        if raw_cover and 'cdn.poehali.dev' not in raw_cover:
+            s3_url = upload_image_to_s3(raw_cover, parsed.get('slug', '')[:20])
+            if s3_url:
+                parsed['cover_image_url'] = s3_url
+
         def esc(v):
             if v is None:
                 return 'NULL'
@@ -247,6 +256,26 @@ def save_post_to_blog(parsed: Dict, source: str = 'max') -> Optional[int]:
             conn.close()
         except:
             pass
+        return None
+
+
+def upload_image_to_s3(image_url: str, post_id_hint: str = '') -> Optional[str]:
+    """Скачивает картинку по URL и загружает в S3. Возвращает CDN URL или None."""
+    try:
+        resp = requests.get(image_url, timeout=15, headers={'User-Agent': 'Mozilla/5.0'})
+        if resp.status_code != 200 or len(resp.content) < 1000:
+            return None
+        content_type = resp.headers.get('Content-Type', 'image/jpeg')
+        ext = 'jpg' if 'jpeg' in content_type or 'jpg' in content_type else 'png' if 'png' in content_type else 'jpg'
+        key = f'blog-covers/max-{post_id_hint}-{int(time.time())}.{ext}'
+        aws_key = os.environ.get('AWS_ACCESS_KEY_ID', '')
+        aws_secret = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
+        s3 = boto3.client('s3', endpoint_url='https://bucket.poehali.dev',
+                          aws_access_key_id=aws_key, aws_secret_access_key=aws_secret)
+        s3.put_object(Bucket='files', Key=key, Body=resp.content, ContentType=content_type)
+        return f'https://cdn.poehali.dev/projects/{aws_key}/bucket/{key}'
+    except Exception as e:
+        print(f'[WARN] upload_image_to_s3 failed: {e}')
         return None
 
 
@@ -898,6 +927,44 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 'removed': removed,
                 'kept': kept,
             }, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+
+    if method == 'POST' and action == 'fix-external-covers':
+        if not _admin_authorized(event):
+            return {
+                'statusCode': 401,
+                'headers': CORS_HEADERS,
+                'body': json.dumps({'error': 'Требуются права администратора'}),
+                'isBase64Encoded': False
+            }
+        conn = db_connect()
+        if not conn:
+            return {'statusCode': 500, 'headers': CORS_HEADERS, 'body': json.dumps({'error': 'db'}), 'isBase64Encoded': False}
+        cur = conn.cursor()
+        cur.execute(f"""
+            SELECT id, slug, cover_image_url FROM {SCHEMA}.public_blog_posts
+            WHERE cover_image_url IS NOT NULL AND cover_image_url NOT LIKE '%cdn.poehali.dev%'
+            ORDER BY id DESC
+        """)
+        rows = cur.fetchall()
+        fixed = []
+        failed = []
+        for (post_id, slug, old_url) in rows:
+            s3_url = upload_image_to_s3(old_url, str(post_id))
+            if s3_url:
+                safe_url = s3_url.replace("'", "''")
+                cur.execute(f"UPDATE {SCHEMA}.public_blog_posts SET cover_image_url = '{safe_url}' WHERE id = {post_id}")
+                fixed.append({'id': post_id, 'slug': slug})
+            else:
+                failed.append({'id': post_id, 'slug': slug, 'url': old_url})
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {
+            'statusCode': 200,
+            'headers': CORS_HEADERS,
+            'body': json.dumps({'ok': True, 'fixed': len(fixed), 'failed': len(failed), 'details': fixed}, ensure_ascii=False),
             'isBase64Encoded': False
         }
 
