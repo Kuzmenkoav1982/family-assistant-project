@@ -83,7 +83,7 @@ const FamilyOsCycleWidget = () => {
               <Icon name="Sparkles" size={14} className="text-white" />
             </div>
             <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
-              Семейная ОС: 5 циклов
+              Экосистема: 5 циклов
             </h3>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400">

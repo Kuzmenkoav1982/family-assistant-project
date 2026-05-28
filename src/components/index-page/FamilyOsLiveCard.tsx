@@ -186,7 +186,7 @@ const FamilyOsLiveCard = () => {
               <Icon name="Activity" size={14} className="text-white" />
             </div>
             <h3 className="text-[15px] font-bold text-gray-900 dark:text-white">
-              Семейная ОС в реальном времени
+              Экосистема в реальном времени
             </h3>
             <span className="relative inline-flex flex-shrink-0">
               <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />

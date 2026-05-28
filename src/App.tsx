@@ -113,6 +113,7 @@ const FamilyPolicy = lazy(() => import("./pages/FamilyPolicy"));
 const FamilyNews = lazy(() => import("./pages/FamilyNews"));
 const WhatIsFamily = lazy(() => import("./pages/WhatIsFamily"));
 const Tree = lazy(() => import("./pages/Tree"));
+const FamilyId = lazy(() => import("./pages/FamilyId"));
 const Memory = lazy(() => import("./pages/Memory"));
 const Children = lazy(() => import("./pages/Children"));
 const AssessmentReport = lazy(() => import("./pages/AssessmentReport"));
@@ -448,6 +449,7 @@ const App = () => {
                       <Route path="/faith" element={<Faith />} />
                       {/* SEC-1.2b: MEDIUM-risk — семейное древо */}
                       <Route path="/tree" element={<ProtectedRoute><Tree /></ProtectedRoute>} />
+                      <Route path="/family-id" element={<FamilyId />} />
                       <Route path="/memory" element={
                         <ProtectedRoute>
                           <Memory />

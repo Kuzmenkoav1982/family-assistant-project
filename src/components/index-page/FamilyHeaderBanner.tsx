@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { getDailyMotto } from '@/utils/dailyMottos';
 import { Link } from 'react-router-dom';
+import FamilyIdCard from '@/components/family-id/FamilyIdCard';
 import {
   Tooltip,
   TooltipContent,
@@ -82,6 +83,17 @@ export function FamilyHeaderBanner({ familyName, familyLogo, syncing }: FamilyHe
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+              </div>
+              {/* Компактный Семейный ID */}
+              <div className="mt-2">
+                <Link to="/family-id">
+                  <FamilyIdCard
+                    familyName={familyName}
+                    familyId={(() => { try { const ud = localStorage.getItem('userData'); return ud ? (JSON.parse(ud).family_id || 'demo_family_1') : 'demo_family_1'; } catch { return 'demo_family_1'; } })()}
+                    logoUrl={familyLogo}
+                    compact
+                  />
+                </Link>
               </div>
             </div>
           </div>
