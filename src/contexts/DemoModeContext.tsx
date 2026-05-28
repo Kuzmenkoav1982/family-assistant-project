@@ -21,6 +21,7 @@ import {
 import { DEMO_CALENDAR_EVENTS } from '@/data/demoChildrenData';
 import { demoCourses, demoLessons, demoTests, demoLessonsProgress, demoTestResults as demoEduTestResults } from '@/data/demoFinancialLiteracy';
 import { demoLoyaltyCards } from '@/data/demoLoyaltyCards';
+import { demoLifeEvents, demoFamilyTreeMembers, demoMemoryEntries, demoMemoryAlbums } from '@/data/demoLifeRoadData';
 import type { FamilyMember, Task, ShoppingItem } from '@/types/family.types';
 
 export interface DemoLocation {
@@ -71,6 +72,10 @@ interface DemoModeContextType {
   demoEduLessonsProgress: typeof demoLessonsProgress;
   demoEduTestResults: typeof demoEduTestResults;
   demoLoyaltyCards: typeof demoLoyaltyCards;
+  demoLifeEvents: typeof demoLifeEvents;
+  demoFamilyTreeMembers: typeof demoFamilyTreeMembers;
+  demoMemoryEntries: typeof demoMemoryEntries;
+  demoMemoryAlbums: typeof demoMemoryAlbums;
   updateDemoTask: (taskId: string, updates: Partial<Task>) => void;
   toggleDemoTask: (taskId: string) => void;
 }
@@ -197,6 +202,10 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
         demoEduLessonsProgress: demoLessonsProgress,
         demoEduTestResults: demoEduTestResults,
         demoLoyaltyCards: demoLoyaltyCards,
+        demoLifeEvents,
+        demoFamilyTreeMembers,
+        demoMemoryEntries,
+        demoMemoryAlbums,
         updateDemoTask,
         toggleDemoTask,
       }}
@@ -232,6 +241,10 @@ export function useDemoMode() {
       demoEduLessonsProgress: [],
       demoEduTestResults: [],
       demoLoyaltyCards: [],
+      demoLifeEvents: [],
+      demoFamilyTreeMembers: [],
+      demoMemoryEntries: [],
+      demoMemoryAlbums: [],
       updateDemoTask: () => {},
       toggleDemoTask: () => {}
     };

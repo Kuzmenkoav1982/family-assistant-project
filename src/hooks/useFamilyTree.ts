@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import func2url from '../../backend/func2url.json';
+import { demoFamilyTreeMembers } from '@/data/demoLifeRoadData';
 
 const API_URL = func2url['family-tree'];
 
@@ -45,11 +46,20 @@ interface NewTreeMember {
 const getAuthToken = () => localStorage.getItem('authToken') || '';
 
 export function useFamilyTree() {
-  const [members, setMembers] = useState<TreeMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isDemoMode = localStorage.getItem('isDemoMode') === 'true';
+
+  const [members, setMembers] = useState<TreeMember[]>(
+    isDemoMode ? (demoFamilyTreeMembers as unknown as TreeMember[]) : []
+  );
+  const [loading, setLoading] = useState(!isDemoMode);
   const [error, setError] = useState<string | null>(null);
 
   const fetchTree = useCallback(async () => {
+    if (localStorage.getItem('isDemoMode') === 'true') {
+      setMembers(demoFamilyTreeMembers as unknown as TreeMember[]);
+      setLoading(false);
+      return;
+    }
     const token = getAuthToken();
     if (!token) {
       setLoading(false);

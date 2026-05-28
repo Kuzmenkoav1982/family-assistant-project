@@ -1,5 +1,6 @@
 import func2url from '../../../backend/func2url.json';
 import { readActorMemberId } from '@/lib/identity';
+import { demoMemoryEntries, demoMemoryAlbums } from '@/data/demoLifeRoadData';
 import type {
   MemoryEntry,
   MemoryAlbum,
@@ -8,6 +9,10 @@ import type {
   MemoryAsset,
   MemorySort,
 } from './types';
+
+function isDemoMode() {
+  return localStorage.getItem('isDemoMode') === 'true';
+}
 
 const API_URL = (func2url as Record<string, string>)['memory'];
 
@@ -55,6 +60,19 @@ export const memoryApi = {
     year?: number | string;
     sort?: MemorySort;
   }) => {
+    if (isDemoMode()) {
+      let entries = demoMemoryEntries as unknown as MemoryEntry[];
+      if (params?.album_id) entries = entries.filter(e => e.album_ids?.includes(params.album_id!));
+      if (params?.member_id != null) entries = entries.filter(e => e.member_ids.includes(params.member_id!));
+      if (params?.q) {
+        const q = params.q.toLowerCase();
+        entries = entries.filter(e => e.title.toLowerCase().includes(q) || (e.story || '').toLowerCase().includes(q));
+      }
+      if (params?.year) entries = entries.filter(e => e.memory_date?.startsWith(String(params.year)));
+      if (params?.sort === 'memory_date_asc') entries = [...entries].sort((a, b) => (a.memory_date || '').localeCompare(b.memory_date || ''));
+      else entries = [...entries].sort((a, b) => (b.memory_date || '').localeCompare(a.memory_date || ''));
+      return Promise.resolve(entries);
+    }
     const sp = new URLSearchParams({ resource: 'entries' });
     if (params?.event_id) sp.set('event_id', params.event_id);
     if (params?.member_id != null) sp.set('member_id', String(params.member_id));
@@ -65,8 +83,13 @@ export const memoryApi = {
     return call<{ entries: MemoryEntry[] }>('GET', `?${sp.toString()}`).then(r => r.entries);
   },
 
-  getEntry: (id: string) =>
-    call<MemoryEntry>('GET', `?resource=entries&id=${encodeURIComponent(id)}`),
+  getEntry: (id: string) => {
+    if (isDemoMode()) {
+      const entry = (demoMemoryEntries as unknown as MemoryEntry[]).find(e => e.id === id);
+      if (entry) return Promise.resolve(entry);
+    }
+    return call<MemoryEntry>('GET', `?resource=entries&id=${encodeURIComponent(id)}`);
+  },
 
   createEntry: (input: CreateMemoryEntryInput & { status?: 'draft' | 'published' }) =>
     call<MemoryEntry>('POST', '?resource=entries', input),
@@ -117,11 +140,18 @@ export const memoryApi = {
     }),
 
   // Albums
-  listAlbums: () =>
-    call<{ albums: MemoryAlbum[] }>('GET', '?resource=albums').then(r => r.albums),
+  listAlbums: () => {
+    if (isDemoMode()) return Promise.resolve(demoMemoryAlbums as unknown as MemoryAlbum[]);
+    return call<{ albums: MemoryAlbum[] }>('GET', '?resource=albums').then(r => r.albums);
+  },
 
-  getAlbum: (id: string) =>
-    call<MemoryAlbum>('GET', `?resource=albums&id=${encodeURIComponent(id)}`),
+  getAlbum: (id: string) => {
+    if (isDemoMode()) {
+      const album = (demoMemoryAlbums as unknown as MemoryAlbum[]).find(a => a.id === id);
+      if (album) return Promise.resolve(album);
+    }
+    return call<MemoryAlbum>('GET', `?resource=albums&id=${encodeURIComponent(id)}`);
+  },
 
   createAlbum: (input: { title: string; description?: string | null; cover_asset_id?: string | null }) =>
     call<MemoryAlbum>('POST', '?resource=albums', input),
