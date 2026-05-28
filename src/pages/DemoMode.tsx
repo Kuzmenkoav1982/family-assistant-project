@@ -16,9 +16,60 @@ export default function DemoMode() {
   const [timeLeft, setTimeLeft] = useState(600); // 10 минут
 
   useEffect(() => {
-    // Устанавливаем флаг демо-режима
+    // Флаг и время
     localStorage.setItem('isDemoMode', 'true');
     localStorage.setItem('demoStartTime', demoStartTime.toString());
+
+    // Профиль семьи — отображается на главной и в хедере
+    localStorage.setItem('familyName', 'Кузнецовы');
+    localStorage.setItem('familyLogo', 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp');
+    localStorage.setItem('familyBanner', 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=1200&q=80');
+
+    // Данные текущего пользователя (Алексей — «отец»)
+    // member_id нужен для readActorMemberId() → useLifeEvents, memory и т.д.
+    localStorage.setItem('userData', JSON.stringify({
+      id: 'demo_user_1',
+      member_id: 'demo_member_1',
+      name: 'Алексей',
+      email: 'demo@nasha-semiya.ru',
+      role: 'Отец',
+      family_id: 'demo_family_1',
+      family_name: 'Кузнецовы',
+      logo_url: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp',
+      banner_url: 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=1200&q=80',
+      avatar_url: 'https://cdn.poehali.dev/files/fb82400e-4e48-4d25-9de7-a9991f13aa29.png',
+    }));
+
+    // Семейный код — девиз и ценности
+    localStorage.setItem('familyMotto', 'Вместе — сильнее. Любовь — наша опора.');
+    localStorage.setItem('familyValues', JSON.stringify([
+      { id: '1', title: 'Любовь', description: 'Мы любим безусловно и поддерживаем друг друга в любой ситуации' },
+      { id: '2', title: 'Честность', description: 'Говорим правду даже когда это сложно' },
+      { id: '3', title: 'Развитие', description: 'Каждый из нас растёт и помогает расти другим' },
+      { id: '4', title: 'Традиции', description: 'Бережём семейные традиции и создаём новые' },
+      { id: '5', title: 'Здоровье', description: 'Заботимся о здоровье каждого члена семьи' },
+    ]));
+
+    // Семейные традиции
+    localStorage.setItem('familyTraditions', JSON.stringify([
+      { id: '1', title: 'Воскресный завтрак', description: 'Каждое воскресенье завтракаем вместе — блины, каша и обсуждение планов на неделю', frequency: 'weekly', emoji: '🥞' },
+      { id: '2', title: 'Летний лагерь', description: 'Каждое лето выезжаем на дачу на две недели всей семьёй', frequency: 'yearly', emoji: '⛺' },
+      { id: '3', title: 'Игровая пятница', description: 'По пятницам играем в настольные игры после ужина', frequency: 'weekly', emoji: '🎲' },
+      { id: '4', title: 'День рождения по-особому', description: 'Именинник выбирает любое место для праздника и блюдо на ужин', frequency: 'yearly', emoji: '🎂' },
+    ]));
+
+    // Семейные правила
+    localStorage.setItem('familyRules', JSON.stringify([
+      { id: '1', title: 'Телефон за стол не берём', category: 'Быт' },
+      { id: '2', title: 'Убираем за собой сразу', category: 'Быт' },
+      { id: '3', title: 'Говорим «спасибо» и «пожалуйста»', category: 'Общение' },
+      { id: '4', title: 'Не перебиваем друг друга', category: 'Общение' },
+      { id: '5', title: 'Деньги на карманные расходы по субботам', category: 'Финансы' },
+    ]));
+
+    // Настройки внешнего вида
+    localStorage.setItem('hasSeenWelcome', 'true');
+    localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
 
     // Таймер обратного отсчёта
     const timer = setInterval(() => {
@@ -134,8 +185,10 @@ export default function DemoMode() {
   };
 
   const exitDemo = () => {
-    localStorage.removeItem('isDemoMode');
-    localStorage.removeItem('demoStartTime');
+    // Чистим все демо-данные из localStorage
+    ['isDemoMode', 'demoStartTime', 'familyName', 'familyLogo', 'familyBanner',
+     'userData', 'familyMotto', 'familyValues', 'familyTraditions', 'familyRules',
+     'hasSeenWelcome', 'hasSeenFirstLoginWelcome'].forEach(k => localStorage.removeItem(k));
     navigate('/welcome');
   };
 

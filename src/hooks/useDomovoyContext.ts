@@ -69,7 +69,32 @@ const getAuthToken = (): string => {
   return localStorage.getItem('authToken') || localStorage.getItem('token') || '';
 };
 
+const DEMO_CONTEXT: DomovoyContextResult = {
+  summary: 'Семья Кузнецовых активна: 8 задач выполнено на этой неделе, 3 события в ближайшие дни, бюджет в норме.',
+  data: {
+    family: { members_count: 4, members: [
+      { name: 'Алексей', role: 'Отец' },
+      { name: 'Анастасия', role: 'Мать' },
+      { name: 'Матвей', role: 'Сын' },
+      { name: 'Даша', role: 'Дочь' },
+    ]},
+    finance: { month_income: 185000, month_expense: 124300, month_balance: 60700, top_expense_categories: [
+      { category: 'Продукты', total: 38400 },
+      { category: 'Транспорт', total: 22100 },
+      { category: 'Развлечения', total: 18700 },
+    ], active_goals_count: 3, active_debts_count: 1 },
+    shopping: { pending_count: 7, urgent_count: 2 },
+    tasks: { open_count: 9, overdue_count: 1 },
+    goals: { active_count: 4 },
+    calendar: { upcoming_count: 3 },
+    home: { apartment_filled: true, unpaid_utilities_count: 0, unpaid_utilities_total: 0, unpaid_utilities: [], active_repairs_count: 0 },
+    generated_at: new Date().toISOString(),
+  },
+};
+
 const fetchContext = async (): Promise<DomovoyContextResult | null> => {
+  if (localStorage.getItem('isDemoMode') === 'true') return DEMO_CONTEXT;
+
   const token = getAuthToken();
   if (!token) return null;
 

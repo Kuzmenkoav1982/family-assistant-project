@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { demoDashboardData } from '@/data/demoDashboardData';
 import type { DashboardData, Hub } from './types';
 
 const DASHBOARD_API = 'https://functions.poehali.dev/e5fa4039-2f5c-437c-a147-7efe71d06f23';
@@ -7,15 +8,22 @@ const DASHBOARD_API = 'https://functions.poehali.dev/e5fa4039-2f5c-437c-a147-7ef
 export function useDashboard() {
   const { currentUser } = useAuth();
   const userId = currentUser?.id || '1';
+  const isDemo = localStorage.getItem('isDemoMode') === 'true';
 
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<DashboardData | null>(isDemo ? demoDashboardData : null);
+  const [loading, setLoading] = useState(!isDemo);
   const [error, setError] = useState<string | null>(null);
-  const [activeHubId, setActiveHubId] = useState<number | null>(null);
+  const [activeHubId, setActiveHubId] = useState<number | null>(isDemo ? demoDashboardData.hubs[0].id : null);
   const [confettiTrigger, setConfettiTrigger] = useState(0);
   const completedHubsRef = useRef<Set<number>>(new Set());
 
   const loadDashboard = useCallback(async () => {
+    if (localStorage.getItem('isDemoMode') === 'true') {
+      setData(demoDashboardData);
+      setActiveHubId((prev) => prev ?? demoDashboardData.hubs[0].id);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(DASHBOARD_API, {
         headers: { 'X-User-Id': String(userId) },
@@ -94,6 +102,8 @@ export function useDashboard() {
       }
 
       setData(next);
+
+      if (localStorage.getItem('isDemoMode') === 'true') return;
 
       try {
         await fetch(DASHBOARD_API, {
