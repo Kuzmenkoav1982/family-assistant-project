@@ -11,6 +11,7 @@ import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { readActorMemberId } from '@/lib/identity';
 import { CATEGORY_CONFIG, IMPORTANCE_CONFIG, type LifeEvent, type LifeEventCategory, type LifeEventImportance } from './types';
 import EventMemorySection from '@/components/memory/EventMemorySection';
+import AlbumPhotoPicker from './AlbumPhotoPicker';
 import func2url from '../../../backend/func2url.json';
 
 const API_URL = (func2url as Record<string, string>)['life-road'];
@@ -38,6 +39,7 @@ export default function LifeEventDialog({ open, onOpenChange, initialEvent, onSa
   const [photos, setPhotos] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [albumPickerOpen, setAlbumPickerOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -198,7 +200,17 @@ export default function LifeEventDialog({ open, onOpenChange, initialEvent, onSa
           </div>
 
           <div className="space-y-1.5">
-            <Label>Фотографии</Label>
+            <div className="flex items-center justify-between">
+              <Label>Фотографии</Label>
+              <button
+                type="button"
+                onClick={() => setAlbumPickerOpen(true)}
+                className="flex items-center gap-1 text-[11px] text-purple-600 hover:text-purple-800 transition-colors"
+              >
+                <Icon name="BookImage" size={13} />
+                Из альбома
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {photos.map((p, i) => (
                 <div key={p + i} className="relative group">
@@ -215,7 +227,7 @@ export default function LifeEventDialog({ open, onOpenChange, initialEvent, onSa
               ))}
               <label className="w-20 h-20 rounded-lg border-2 border-dashed border-purple-300 hover:border-purple-500 flex flex-col items-center justify-center cursor-pointer text-purple-600 text-[10px] gap-1">
                 <Icon name={uploading ? 'Loader2' : 'ImagePlus'} size={20} className={uploading ? 'animate-spin' : ''} />
-                <span>{uploading ? 'Загрузка…' : 'Добавить'}</span>
+                <span>{uploading ? 'Загрузка…' : 'С устройства'}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -230,6 +242,19 @@ export default function LifeEventDialog({ open, onOpenChange, initialEvent, onSa
               </label>
             </div>
           </div>
+
+          <AlbumPhotoPicker
+            open={albumPickerOpen}
+            onOpenChange={setAlbumPickerOpen}
+            selectedUrls={photos}
+            onSelect={(urls) => setPhotos((prev) => {
+              const merged = [...prev];
+              for (const u of urls) {
+                if (!merged.includes(u)) merged.push(u);
+              }
+              return merged;
+            })}
+          />
 
           <div className="space-y-1.5">
             <Label>Участники события</Label>

@@ -220,6 +220,9 @@ export default function LifeRoad() {
                     if (!confirm(`Удалить событие «${ev.title}»?`)) return;
                     await removeEvent(ev.id);
                   }}
+                  onQuickPhoto={async (eventId, photos) => {
+                    await updateEvent(eventId, { photos });
+                  }}
                 />
               )}
             </>

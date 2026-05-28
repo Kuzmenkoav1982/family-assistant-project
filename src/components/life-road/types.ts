@@ -258,16 +258,16 @@ export const LIFE_SEASONS: LifeSeason[] = [
   },
 ];
 
-export const CATEGORY_CONFIG: Record<LifeEventCategory, { label: string; icon: string; color: string; ring: string }> = {
-  birth:       { label: 'Рождение',     icon: 'Baby',          color: 'bg-pink-500',    ring: 'ring-pink-300' },
-  wedding:     { label: 'Свадьба',      icon: 'Heart',         color: 'bg-rose-500',    ring: 'ring-rose-300' },
-  education:   { label: 'Образование',  icon: 'GraduationCap', color: 'bg-blue-500',    ring: 'ring-blue-300' },
-  career:      { label: 'Карьера',      icon: 'Briefcase',     color: 'bg-purple-500',  ring: 'ring-purple-300' },
-  achievement: { label: 'Достижение',   icon: 'Trophy',        color: 'bg-amber-500',   ring: 'ring-amber-300' },
-  travel:      { label: 'Путешествие',  icon: 'Plane',         color: 'bg-cyan-500',    ring: 'ring-cyan-300' },
-  family:      { label: 'Семейное',     icon: 'Users',         color: 'bg-emerald-500', ring: 'ring-emerald-300' },
-  health:      { label: 'Здоровье',     icon: 'HeartPulse',    color: 'bg-orange-500',  ring: 'ring-orange-300' },
-  other:       { label: 'Другое',       icon: 'Star',          color: 'bg-slate-500',   ring: 'ring-slate-300' },
+export const CATEGORY_CONFIG: Record<LifeEventCategory, { label: string; icon: string; color: string; ring: string; gradient: string }> = {
+  birth:       { label: 'Рождение',     icon: 'Baby',          color: 'bg-pink-500',    ring: 'ring-pink-300',    gradient: 'from-pink-400 to-rose-400' },
+  wedding:     { label: 'Свадьба',      icon: 'Heart',         color: 'bg-rose-500',    ring: 'ring-rose-300',    gradient: 'from-rose-400 to-pink-500' },
+  education:   { label: 'Образование',  icon: 'GraduationCap', color: 'bg-blue-500',    ring: 'ring-blue-300',    gradient: 'from-blue-400 to-indigo-500' },
+  career:      { label: 'Карьера',      icon: 'Briefcase',     color: 'bg-purple-500',  ring: 'ring-purple-300',  gradient: 'from-purple-400 to-violet-500' },
+  achievement: { label: 'Достижение',   icon: 'Trophy',        color: 'bg-amber-500',   ring: 'ring-amber-300',   gradient: 'from-amber-400 to-orange-400' },
+  travel:      { label: 'Путешествие',  icon: 'Plane',         color: 'bg-cyan-500',    ring: 'ring-cyan-300',    gradient: 'from-cyan-400 to-teal-500' },
+  family:      { label: 'Семейное',     icon: 'Users',         color: 'bg-emerald-500', ring: 'ring-emerald-300', gradient: 'from-emerald-400 to-green-500' },
+  health:      { label: 'Здоровье',     icon: 'HeartPulse',    color: 'bg-orange-500',  ring: 'ring-orange-300',  gradient: 'from-orange-400 to-red-400' },
+  other:       { label: 'Другое',       icon: 'Star',          color: 'bg-slate-500',   ring: 'ring-slate-300',   gradient: 'from-slate-400 to-gray-500' },
 };
 
 export const IMPORTANCE_CONFIG: Record<LifeEventImportance, { label: string; dot: string; size: string }> = {
