@@ -164,12 +164,7 @@ export default function GlobalTopBar() {
                 <Icon name="Menu" size={20} className="text-gray-600 dark:text-gray-400" />
               </button>
               {isDemoMode && (
-                <div className="absolute top-full left-0 mt-2 whitespace-nowrap z-50 animate-fade-in pointer-events-none">
-                  <div className="relative bg-orange-500 text-white px-3 py-1.5 rounded-xl text-sm font-medium shadow-lg">
-                    <div className="absolute -top-1.5 left-4 w-3 h-3 bg-orange-500 rotate-45 rounded-sm" />
-                    Все разделы тут
-                  </div>
-                </div>
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-orange-400 ring-2 ring-white" />
               )}
             </div>
 

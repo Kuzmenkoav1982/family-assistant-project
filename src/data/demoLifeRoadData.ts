@@ -1,23 +1,24 @@
 import type { LifeEvent } from '@/components/life-road/types';
 
-// Реальные Unsplash-фото по категориям (свободные лицензии)
+// Фото через wsrv.nl прокси — работает без ограничений hotlink во всех браузерах
+const u = (id: string) => `https://wsrv.nl/?url=images.unsplash.com/photo-${id}&w=800&output=jpg&q=80`;
 const PHOTOS = {
-  birth: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=800&q=80',
-  childhood: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&q=80',
-  school: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=800&q=80',
-  university: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&q=80',
-  wedding: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80',
-  wedding2: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80',
-  baby: 'https://images.unsplash.com/photo-1491013516836-7db643ee125a?w=800&q=80',
-  baby2: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?w=800&q=80',
-  career: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80',
-  apartment: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80',
-  travel_paris: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&q=80',
-  travel_rome: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=80',
-  family_dinner: 'https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=800&q=80',
-  dacha: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
-  sport: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80',
-  future_house: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  birth:        u('1519689373023-dd07c7988603'),
+  childhood:    u('1503454537195-1dcabb73ffb9'),
+  school:       u('1580582932707-520aed937b7b'),
+  university:   u('1523050854058-8df90110c9f1'),
+  wedding:      u('1519741497674-611481863552'),
+  wedding2:     u('1465495976277-4387d4b0b4c6'),
+  baby:         u('1491013516836-7db643ee125a'),
+  baby2:        u('1555252333-9f8e92e65df9'),
+  career:       u('1454165804606-c3d57bc86b40'),
+  apartment:    u('1560448204-e02f11c3d0e2'),
+  travel_paris: u('1511739001486-6bfe10ce785f'),
+  travel_rome:  u('1552832230-c0197dd311b5'),
+  family_dinner:u('1529543544282-ea669407fca3'),
+  dacha:        u('1416879595882-3373a0480b5b'),
+  sport:        u('1571019613454-1cb2f99b2d8b'),
+  future_house: u('1558618666-fcd25c85cd64'),
 };
 
 export const demoLifeEvents: LifeEvent[] = [
@@ -189,7 +190,7 @@ export const demoFamilyTreeMembers: DemoTreeMember[] = [
     id: 101, family_id: 1, name: 'Иван Петрович Кузнецов', relation: 'Дедушка',
     birth_year: 1928, death_year: 2001, gender: 'male',
     bio: 'Ветеран Великой Отечественной войны. Работал инженером на заводе «Серп и Молот» 40 лет. Любил рыбалку и шахматы.',
-    photo_url: 'https://images.unsplash.com/photo-1556157382-97eda2f9e2bf?w=400&q=80',
+    photo_url: 'https://wsrv.nl/?url=images.unsplash.com/photo-1556157382-97eda2f9e2bf&w=400&output=jpg&q=80',
     parent_id: null, parent2_id: null, spouse_id: 102,
     birth_date: '1928-05-09', death_date: '2001-11-14', occupation: 'Инженер',
     avatar: '👴', photos: [], created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
@@ -198,7 +199,7 @@ export const demoFamilyTreeMembers: DemoTreeMember[] = [
     id: 102, family_id: 1, name: 'Мария Ивановна Кузнецова', relation: 'Бабушка',
     birth_year: 1932, death_year: 2018, gender: 'female',
     bio: 'Учитель начальных классов. 35 лет в школе. Её ученики до сих пор приходили на юбилей. Великолепно пекла пироги.',
-    photo_url: 'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=400&q=80',
+    photo_url: 'https://wsrv.nl/?url=images.unsplash.com/photo-1566616213894-2d4e1baee5d8&w=400&output=jpg&q=80',
     parent_id: null, parent2_id: null, spouse_id: 101,
     birth_date: '1932-08-20', death_date: '2018-03-12', occupation: 'Учитель',
     avatar: '👵', photos: [], created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
@@ -208,7 +209,7 @@ export const demoFamilyTreeMembers: DemoTreeMember[] = [
     id: 103, family_id: 1, name: 'Сергей Иванович Кузнецов', relation: 'Папа',
     birth_year: 1958, death_year: null, gender: 'male',
     bio: 'Строитель, мастер на все руки. Построил дачу своими руками. Увлекается садоводством и рыбалкой как дед.',
-    photo_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
+    photo_url: 'https://wsrv.nl/?url=images.unsplash.com/photo-1472099645785-5658abf4ff4e&w=400&output=jpg&q=80',
     parent_id: 101, parent2_id: 102, spouse_id: 104,
     birth_date: '1958-04-22', death_date: null, occupation: 'Строитель',
     avatar: '👨', photos: [], created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
@@ -217,7 +218,7 @@ export const demoFamilyTreeMembers: DemoTreeMember[] = [
     id: 104, family_id: 1, name: 'Татьяна Николаевна Кузнецова', relation: 'Мама',
     birth_year: 1962, death_year: null, gender: 'female',
     bio: 'Врач-педиатр с 30-летним стажем. Посвятила себя детям — и своим, и чужим. Любит цветы и читает детективы.',
-    photo_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&q=80',
+    photo_url: 'https://wsrv.nl/?url=images.unsplash.com/photo-1438761681033-6461ffad8d80&w=400&output=jpg&q=80',
     parent_id: null, parent2_id: null, spouse_id: 103,
     birth_date: '1962-11-07', death_date: null, occupation: 'Врач-педиатр',
     avatar: '👩', photos: [], created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
@@ -337,7 +338,7 @@ export const demoMemoryEntries = [
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     assets: [
-      { id: 'demo-asset-7', file_url: 'https://images.unsplash.com/photo-1561488111-5d800fd56b8a?w=800&q=80', sort_order: 0, width: 800, height: 600, mime_type: 'image/jpeg' },
+      { id: 'demo-asset-7', file_url: 'https://wsrv.nl/?url=images.unsplash.com/photo-1561488111-5d800fd56b8a&w=800&output=jpg&q=80', sort_order: 0, width: 800, height: 600, mime_type: 'image/jpeg' },
     ],
     member_ids: [],
     album_ids: ['demo-album-2'],
@@ -372,7 +373,7 @@ export const demoMemoryAlbums = [
   },
   {
     id: 'demo-album-2', title: 'Предки', description: 'История рода',
-    cover_asset: { id: 'demo-asset-7', file_url: 'https://images.unsplash.com/photo-1561488111-5d800fd56b8a?w=800&q=80', width: 800, height: 600, source: 'manual' as const },
+    cover_asset: { id: 'demo-asset-7', file_url: 'https://wsrv.nl/?url=images.unsplash.com/photo-1561488111-5d800fd56b8a&w=800&output=jpg&q=80', width: 800, height: 600, source: 'manual' as const },
     entry_count: 2, created_at: '2024-01-01T00:00:00Z', updated_at: '2024-01-01T00:00:00Z',
   },
   {

@@ -34,20 +34,14 @@ export function DemoModeIndicator() {
   if (HIDDEN_PAGES.includes(location.pathname)) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-40 animate-fade-in">
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl shadow-lg p-3 flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Icon name="Eye" className="w-5 h-5" />
-          <span className="text-sm font-medium">Гостевой просмотр</span>
-        </div>
-        <Button
-          size="sm"
-          onClick={() => navigate('/register')}
-          className="bg-white text-orange-600 hover:bg-gray-100 h-7 text-xs font-semibold"
-        >
-          Создать аккаунт
-        </Button>
-      </div>
+    <div className="fixed bottom-6 right-4 z-40 animate-fade-in">
+      <button
+        onClick={() => navigate('/register')}
+        className="flex items-center gap-2 px-3 py-2 bg-orange-500/90 hover:bg-orange-600 backdrop-blur-sm text-white rounded-full shadow-lg transition-all text-xs font-semibold"
+      >
+        <Icon name="UserPlus" className="w-3.5 h-3.5 flex-shrink-0" />
+        Создать аккаунт
+      </button>
     </div>
   );
 }
