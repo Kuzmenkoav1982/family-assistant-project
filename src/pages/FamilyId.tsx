@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import FamilyIdCard from '@/components/family-id/FamilyIdCard';
@@ -13,6 +13,22 @@ interface FamilyInfo {
   membersCount: number;
   foundedYear: number;
   motto: string;
+}
+
+function generateFamilyCode(id: string): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0;
+  }
+  let code = '';
+  let n = Math.abs(hash);
+  for (let i = 0; i < 8; i++) {
+    code += chars[n % chars.length];
+    n = Math.floor(n / chars.length) + (i * 7919);
+  }
+  return `${code.slice(0, 4)}-${code.slice(4, 8)}`;
 }
 
 const WHAT_IS_ID = [
@@ -40,10 +56,17 @@ export default function FamilyId() {
     foundedYear: new Date().getFullYear(),
     motto: 'Вместе — сильнее',
   });
-  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Анимация появления карточки
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 80);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
-    // Читаем данные из localStorage
     try {
       const ud = localStorage.getItem('userData');
       if (ud) {
@@ -64,16 +87,32 @@ export default function FamilyId() {
     } catch { /* ignore */ }
   }, []);
 
-  if (isDemoMode) {
-    Object.assign(info, {
-      familyName: 'Кузнецовы',
-      familyId: 'demo_family_1',
-      logoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp',
-      membersCount: 4,
-      foundedYear: 2009,
-      motto: 'Вместе — сильнее. Любовь — наша опора.',
-    });
-  }
+  // Демо-данные — перекрываем после загрузки
+  const displayInfo = isDemoMode ? {
+    familyName: 'Кузнецовы',
+    familyId: 'demo_family_1',
+    logoUrl: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/optimized/logo-36.webp',
+    membersCount: 4,
+    foundedYear: 2009,
+    motto: 'Вместе — сильнее. Любовь — наша опора.',
+  } : info;
+
+  const code = generateFamilyCode(displayInfo.familyId);
+
+  const handleShare = async () => {
+    const shareText = `Семейный ID: ${code}\n\nПрисоединяйся к нашей семье «${displayInfo.familyName}» в приложении «Наша Семья» → nasha-semiya.ru`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Семейный ID — ${displayInfo.familyName}`, text: shareText });
+      } catch { /* отменено */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      } catch { /* ignore */ }
+    }
+  };
 
   return (
     <SectionPageFrame
@@ -86,7 +125,10 @@ export default function FamilyId() {
       <div className="max-w-lg mx-auto px-4 py-6 space-y-8">
 
         {/* Заголовок */}
-        <div className="text-center">
+        <div
+          className="text-center transition-all duration-500"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(12px)' }}
+        >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-100 text-violet-700 text-sm font-medium mb-4">
             <Icon name="Fingerprint" size={15} />
             Уникальный идентификатор семьи
@@ -99,28 +141,43 @@ export default function FamilyId() {
           </p>
         </div>
 
-        {/* Карточка */}
-        <FamilyIdCard
-          familyName={info.familyName}
-          familyId={info.familyId}
-          logoUrl={info.logoUrl}
-          membersCount={info.membersCount}
-          foundedYear={info.foundedYear}
-          motto={info.motto}
-        />
+        {/* Карточка с анимацией */}
+        <div
+          ref={cardRef}
+          className="transition-all duration-700 ease-out"
+          style={{
+            opacity: visible ? 1 : 0,
+            transform: visible
+              ? 'translateY(0) scale(1) rotateX(0deg)'
+              : 'translateY(32px) scale(0.92) rotateX(6deg)',
+            transitionDelay: '120ms',
+          }}
+        >
+          <FamilyIdCard
+            familyName={displayInfo.familyName}
+            familyId={displayInfo.familyId}
+            logoUrl={displayInfo.logoUrl}
+            membersCount={displayInfo.membersCount}
+            foundedYear={displayInfo.foundedYear}
+            motto={displayInfo.motto}
+          />
+        </div>
 
         {/* Кнопки действий */}
-        <div className="grid grid-cols-2 gap-3">
+        <div
+          className="grid grid-cols-2 gap-3 transition-all duration-500"
+          style={{ opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(16px)', transitionDelay: '280ms' }}
+        >
           <Button
-            onClick={() => setShareOpen(true)}
+            onClick={handleShare}
             className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white gap-2"
           >
-            <Icon name="Share2" size={16} />
-            Поделиться
+            <Icon name={copied ? 'Check' : 'Share2'} size={16} />
+            {copied ? 'Скопировано!' : 'Поделиться'}
           </Button>
           <Button
             variant="outline"
-            onClick={() => navigate('/family-tree')}
+            onClick={() => navigate('/tree')}
             className="border-violet-200 text-violet-700 hover:bg-violet-50 gap-2"
           >
             <Icon name="GitBranch" size={16} />
@@ -128,40 +185,11 @@ export default function FamilyId() {
           </Button>
         </div>
 
-        {/* Диалог «Поделиться» */}
-        {shareOpen && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-4" onClick={() => setShareOpen(false)}>
-            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">Поделиться Семейным ID</h3>
-              <p className="text-sm text-gray-500 mb-5">Отправьте код родственникам, чтобы они могли присоединиться к вашей семье</p>
-
-              <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-5">
-                <Icon name="Fingerprint" size={16} className="text-violet-500 flex-shrink-0" />
-                <span className="font-mono font-bold text-gray-900 flex-1 tracking-wider">{info.familyId.slice(0, 9)}</span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {[
-                  { icon: 'MessageCircle', label: 'WhatsApp', color: 'bg-green-50 text-green-700' },
-                  { icon: 'Send', label: 'Telegram', color: 'bg-blue-50 text-blue-700' },
-                  { icon: 'Mail', label: 'Email', color: 'bg-orange-50 text-orange-700' },
-                ].map(s => (
-                  <button key={s.label} className={`flex flex-col items-center gap-1.5 p-3 rounded-xl ${s.color} hover:opacity-80 transition-opacity`}>
-                    <Icon name={s.icon as 'Send'} size={20} />
-                    <span className="text-xs font-medium">{s.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <Button variant="ghost" className="w-full text-gray-500" onClick={() => setShareOpen(false)}>
-                Закрыть
-              </Button>
-            </div>
-          </div>
-        )}
-
         {/* Что такое Семейный ID */}
-        <div>
+        <div
+          className="transition-all duration-500"
+          style={{ opacity: visible ? 1 : 0, transitionDelay: '380ms' }}
+        >
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Icon name="HelpCircle" size={18} className="text-violet-500" />
             Что такое Семейный ID?
@@ -182,13 +210,15 @@ export default function FamilyId() {
         </div>
 
         {/* Как использовать */}
-        <div>
+        <div
+          className="transition-all duration-500"
+          style={{ opacity: visible ? 1 : 0, transitionDelay: '450ms' }}
+        >
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Icon name="Zap" size={18} className="text-amber-500" />
             Как пригласить родственника?
           </h2>
           <div className="relative">
-            {/* Вертикальная линия */}
             <div className="absolute left-[18px] top-5 bottom-5 w-0.5 bg-gradient-to-b from-violet-300 via-purple-200 to-violet-100" />
             <div className="space-y-3">
               {HOW_TO_USE.map((item, i) => (
@@ -207,11 +237,14 @@ export default function FamilyId() {
         </div>
 
         {/* Связанные разделы */}
-        <div>
+        <div
+          className="transition-all duration-500"
+          style={{ opacity: visible ? 1 : 0, transitionDelay: '520ms' }}
+        >
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Связанные разделы</h2>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { icon: 'GitBranch', label: 'Семейное древо', path: '/family-tree', color: 'text-amber-600', bg: 'bg-amber-50' },
+              { icon: 'GitBranch', label: 'Семейное древо', path: '/tree', color: 'text-amber-600', bg: 'bg-amber-50' },
               { icon: 'BookImage', label: 'Альбом памяти', path: '/memory', color: 'text-pink-600', bg: 'bg-pink-50' },
               { icon: 'Route', label: 'Дорога жизни', path: '/life-road', color: 'text-violet-600', bg: 'bg-violet-50' },
               { icon: 'Users', label: 'Члены семьи', path: '/family-management', color: 'text-blue-600', bg: 'bg-blue-50' },
