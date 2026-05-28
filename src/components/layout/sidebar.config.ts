@@ -96,6 +96,7 @@ export const menuSections: MenuSection[] = [
     topBadge: 'Новое',
     items: [
       { id: 'profiles', label: 'Профили семьи', icon: 'Users', path: '/?section=family' },
+      { id: 'family-id', label: 'Семейный ID', icon: 'Fingerprint', path: '/family-id', badge: 'Новое' },
       { id: 'tree', label: 'Семейное древо', icon: 'GitBranch', path: '/tree' },
       { id: 'children', label: 'Дети', icon: 'Baby', path: '/children' },
       { id: 'family-tracker', label: 'Семейный маячок', icon: 'MapPin', path: '/family-tracker' },
