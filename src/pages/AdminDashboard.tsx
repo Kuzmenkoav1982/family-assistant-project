@@ -173,6 +173,7 @@ export default function AdminDashboard() {
     { icon: 'DollarSign', label: 'Оценка стоимости', short: 'Оценка', href: '/admin/valuation' },
     { icon: 'Megaphone', label: 'Стратегия развития', short: 'Развитие', href: '/admin/marketing' },
     { icon: 'Handshake', label: 'Стратегия продажи', short: 'Продажа', href: '/admin/marketing-sale' },
+    { icon: 'Headphones', label: 'Support Desk', short: 'Desk', href: '/admin/support-desk' },
     { icon: 'ArrowLeft', label: 'На главную', short: 'Главная', href: '/' },
   ];
 
@@ -185,6 +186,7 @@ export default function AdminDashboard() {
   }> = [
     { icon: 'Brain', label: 'Кабинет Домового', tab: 'domovoy-studio', color: 'from-amber-400 to-orange-500', href: '/admin/domovoy/studio' },
     { icon: 'Bot', label: 'AgentStudio', tab: 'dev-agent', color: 'from-violet-500 to-fuchsia-600', href: '/admin/dev-agent' },
+    { icon: 'Headphones', label: 'Support Desk', tab: 'support-desk', color: 'from-indigo-500 to-purple-600', href: '/admin/support-desk' },
     { icon: 'Home', label: 'Семьи', tab: 'families', color: 'from-blue-400 to-indigo-500' },
     { icon: 'DollarSign', label: 'Финансы', tab: 'finance', color: 'from-green-400 to-emerald-500' },
     { icon: 'Ticket', label: 'Промокоды', tab: 'promo', color: 'from-pink-400 to-rose-500' },

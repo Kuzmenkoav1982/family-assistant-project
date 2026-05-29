@@ -23,14 +23,15 @@ TYPE_LABELS = {
 
 def notify_support(feedback_type: str, user_name: str, user_email: str, title: str, description: str, feedback_id: str):
     label = TYPE_LABELS.get(feedback_type, feedback_type)
+    desk_url = f"https://nasha-semiya.ru/admin/support-desk?id={feedback_id}"
     text = (
-        f"{label} — новое обращение\n\n"
+        f"{label} — новое обращение #{feedback_id}\n\n"
         f"От: {user_name}"
         + (f" ({user_email})" if user_email else "") + "\n"
         f"Тема: {title}\n"
-        f"Текст: {description[:300]}"
-        + ("..." if len(description) > 300 else "") + "\n\n"
-        f"ID: {feedback_id}"
+        f"Текст: {description[:250]}"
+        + ("..." if len(description) > 250 else "") + "\n\n"
+        f"Открыть карточку: {desk_url}"
     )
     if MAX_BOT_TOKEN and MAX_ADMIN_CHAT_ID:
         try:
@@ -197,10 +198,16 @@ def handler(event, context):
     action = params.get('action') or (json.loads(event.get('body') or '{}').get('action') if method == 'POST' else None)
 
     if method == 'GET':
+        if params.get('id') and params.get('detail') == '1':
+            return get_ticket(event)
         return get_feedback(event)
     elif method == 'POST':
         if action == 'reply':
             return reply_feedback(event)
+        if action == 'note':
+            return add_note(event)
+        if action == 'ai_analyze':
+            return ai_analyze(event)
         return create_feedback(event)
     elif method == 'PUT':
         return update_feedback(event)
@@ -597,6 +604,172 @@ def delete_feedback(event):
         return response(404, {'error': 'Отзыв не найден'})
 
     return response(200, {'success': True})
+
+
+def get_ticket(event):
+    """Получить одну карточку обращения с историей сообщений"""
+    if not is_admin(event):
+        return response(403, {'error': 'Доступ запрещён'})
+    params = event.get('queryStringParameters') or {}
+    feedback_id = params.get('id')
+    if not feedback_id:
+        return response(400, {'error': 'Укажите id'})
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT f.id, f.type, f.user_name, f.user_email, f.title, f.description,
+               f.rating, f.status, f.priority, f.source,
+               f.ai_summary, f.ai_draft, f.ai_category, f.ai_priority,
+               f.created_at, f.updated_at, f.user_id, f.family_id
+        FROM {SCHEMA}.feedback f
+        WHERE f.id = {int(feedback_id)}
+    """)
+    ticket = cur.fetchone()
+    if not ticket:
+        cur.close()
+        conn.close()
+        return response(404, {'error': 'Не найдено'})
+
+    # История сообщений
+    cur.execute(f"""
+        SELECT id, message_type, body, author, created_at
+        FROM {SCHEMA}.feedback_messages
+        WHERE feedback_id = {int(feedback_id)}
+        ORDER BY created_at ASC
+    """)
+    messages = [dict(r) for r in cur.fetchall()]
+
+    # Контекст пользователя
+    user_context = {}
+    if ticket.get('user_id') and ticket['user_id'] != 'guest':
+        cur.execute(f"""
+            SELECT u.email, u.phone, fm.role, fm.access_role, f.name as family_name,
+                   (SELECT COUNT(*) FROM {SCHEMA}.feedback fb WHERE fb.user_id = u.id::text) as total_tickets
+            FROM {SCHEMA}.users u
+            LEFT JOIN {SCHEMA}.family_members fm ON fm.user_id = u.id
+            LEFT JOIN {SCHEMA}.families f ON f.id = fm.family_id
+            WHERE u.id::text = {escape_string(str(ticket['user_id']))}
+            LIMIT 1
+        """)
+        u = cur.fetchone()
+        if u:
+            user_context = dict(u)
+
+    cur.close()
+    conn.close()
+    return response(200, {'ticket': dict(ticket), 'messages': messages, 'user_context': user_context})
+
+
+def add_note(event):
+    """Добавить внутреннюю заметку к обращению"""
+    if not is_admin(event):
+        return response(403, {'error': 'Доступ запрещён'})
+    body = json.loads(event.get('body', '{}'))
+    feedback_id = body.get('id')
+    note_text = body.get('note', '').strip()
+    if not feedback_id or not note_text:
+        return response(400, {'error': 'Укажите id и note'})
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        INSERT INTO {SCHEMA}.feedback_messages (feedback_id, message_type, body, author)
+        VALUES ({int(feedback_id)}, 'note', {escape_string(note_text)}, 'admin')
+        RETURNING id, message_type, body, author, created_at
+    """)
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return response(201, dict(row))
+
+
+def ai_analyze(event):
+    """AI-анализ обращения: резюме, категория, приоритет, черновик ответа"""
+    if not is_admin(event):
+        return response(403, {'error': 'Доступ запрещён'})
+    body = json.loads(event.get('body', '{}'))
+    feedback_id = body.get('id')
+    if not feedback_id:
+        return response(400, {'error': 'Укажите id'})
+
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT id, type, user_name, title, description, status, created_at
+        FROM {SCHEMA}.feedback WHERE id = {int(feedback_id)}
+    """)
+    ticket = cur.fetchone()
+    if not ticket:
+        cur.close()
+        conn.close()
+        return response(404, {'error': 'Не найдено'})
+
+    api_key = os.environ.get('YANDEX_GPT_API_KEY', '')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID', '')
+    if not api_key or not folder_id:
+        cur.close()
+        conn.close()
+        return response(500, {'error': 'AI не настроен'})
+
+    type_labels = {'support': 'техподдержка', 'review': 'отзыв', 'suggestion': 'предложение'}
+    type_label = type_labels.get(ticket.get('type', ''), 'обращение')
+
+    prompt = f"""Ты — помощник оператора службы поддержки приложения «Наша Семья» (семейный органайзер).
+
+Обращение пользователя:
+Тип: {type_label}
+Имя: {ticket['user_name']}
+Тема: {ticket['title']}
+Текст: {ticket['description']}
+
+Выполни следующие задачи и верни JSON строго в формате:
+{{
+  "summary": "краткое резюме в 1-2 предложения, что хочет пользователь",
+  "category": "одна из: auth | payment | bug | feature | content | account | family | other",
+  "priority": "одна из: low | medium | high | critical",
+  "priority_reason": "почему такой приоритет, 1 предложение",
+  "draft_reply": "готовый вежливый ответ пользователю от имени поддержки Наша Семья, 3-5 предложений",
+  "operator_hint": "внутренняя подсказка оператору: что проверить, что сделать, 2-3 пункта"
+}}"""
+
+    try:
+        resp = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={'Authorization': f'Api-Key {api_key}', 'Content-Type': 'application/json'},
+            json={
+                'modelUri': f'gpt://{folder_id}/yandexgpt-lite',
+                'completionOptions': {'stream': False, 'temperature': 0.3, 'maxTokens': 800},
+                'messages': [{'role': 'user', 'text': prompt}]
+            },
+            timeout=20
+        )
+        raw = resp.json()
+        text = raw.get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+        import re
+        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        ai_result = json.loads(json_match.group()) if json_match else {}
+    except Exception as e:
+        print(f'[ERROR] AI analyze: {e}')
+        ai_result = {}
+
+    if ai_result:
+        cur.execute(f"""
+            UPDATE {SCHEMA}.feedback
+            SET ai_summary = {escape_string(ai_result.get('summary', ''))},
+                ai_draft = {escape_string(ai_result.get('draft_reply', ''))},
+                ai_category = {escape_string(ai_result.get('category', ''))},
+                ai_priority = {escape_string(ai_result.get('priority', ''))},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = {int(feedback_id)}
+        """)
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.feedback_messages (feedback_id, message_type, body, author)
+            VALUES ({int(feedback_id)}, 'ai_draft',
+                {escape_string(json.dumps(ai_result, ensure_ascii=False))}, 'ai')
+        """)
+
+    cur.close()
+    conn.close()
+    return response(200, {'success': True, 'result': ai_result})
 
 
 def reply_feedback(event):
