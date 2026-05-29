@@ -61,16 +61,15 @@ interface Request {
 }
 
 interface Props {
-  userRole: string;
+  /** true если пользователь является владельцем или администратором семьи (проверено через API-контекст) */
+  isOwnerOrAdmin: boolean;
 }
 
-export default function TreeLinkRequests({ userRole }: Props) {
+export default function TreeLinkRequests({ isOwnerOrAdmin }: Props) {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-
-  const isOwnerOrAdmin = userRole === 'Владелец' || userRole === 'Администратор';
 
   const load = useCallback(async () => {
     if (!isOwnerOrAdmin) return;
@@ -127,7 +126,7 @@ export default function TreeLinkRequests({ userRole }: Props) {
           <div className="w-7 h-7 rounded-lg bg-amber-200 flex items-center justify-center flex-shrink-0">
             <Icon name="Clock" size={14} className="text-amber-700" />
           </div>
-          <span className="text-sm font-semibold text-amber-900">Ожидают привязки к древу</span>
+          <span className="text-sm font-semibold text-amber-900">Запросы на добавление в древо</span>
           {requests.length > 0 && (
             <span className="text-xs font-bold bg-amber-500 text-white rounded-full px-2 py-0.5">
               {requests.length}
@@ -139,9 +138,8 @@ export default function TreeLinkRequests({ userRole }: Props) {
 
       {!collapsed && (
         <div className="px-4 pb-4 space-y-3">
-          {/* Честный дисклеймер */}
           <p className="text-[11px] text-amber-700 bg-amber-100 rounded-lg px-3 py-2 leading-relaxed">
-            Здесь — запросы от вступивших родственников. Привязку к узлу древа нужно выполнить вручную в разделе ниже.
+            Родственники вступили в семью и указали, кем приходятся. Рассмотрите запрос — привязку к узлу древа выполните вручную.
           </p>
 
           {loading && (

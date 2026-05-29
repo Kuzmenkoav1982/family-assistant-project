@@ -146,7 +146,7 @@ export default function SectionPageFrame({
         )}
 
         {/* ── Content ─────────────────────────────────────────────── */}
-        <div className="space-y-6">
+        <div className="space-y-6 pb-24">
           {children}
         </div>
       </div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 
 const HIDDEN_PAGES = ['/welcome', '/login', '/register', '/reset-password'];
@@ -34,12 +33,12 @@ export function DemoModeIndicator() {
   if (HIDDEN_PAGES.includes(location.pathname)) return null;
 
   return (
-    <div className="fixed bottom-6 right-4 z-40 animate-fade-in">
+    <div className="fixed bottom-[72px] right-3 z-40 animate-fade-in">
       <button
         onClick={() => navigate('/register')}
-        className="flex items-center gap-2 px-3 py-2 bg-orange-500/90 hover:bg-orange-600 backdrop-blur-sm text-white rounded-full shadow-lg transition-all text-xs font-semibold"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/95 hover:bg-orange-600 backdrop-blur-sm text-white rounded-full shadow-lg transition-all text-xs font-semibold"
       >
-        <Icon name="UserPlus" className="w-3.5 h-3.5 flex-shrink-0" />
+        <Icon name="UserPlus" className="w-3 h-3 flex-shrink-0" />
         Создать аккаунт
       </button>
     </div>
