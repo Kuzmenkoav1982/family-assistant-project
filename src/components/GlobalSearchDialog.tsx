@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CommandDialog,
@@ -15,6 +15,7 @@ import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useTasks } from '@/hooks/useTasks';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import { useRecipes } from '@/hooks/useRecipes';
+import func2url from '../../backend/func2url.json';
 
 interface GlobalSearchDialogProps {
   open: boolean;
@@ -42,13 +43,29 @@ const QUICK_LINKS: Omit<SearchEntry, 'keywords'>[] = [
 ];
 
 const GROUP_META: Record<string, { title: string; icon: string; color: string }> = {
-  'Разделы': { title: 'Разделы',        icon: 'LayoutGrid',  color: 'text-violet-600' },
-  'Люди':    { title: 'Члены семьи',    icon: 'Users',       color: 'text-blue-600' },
-  'События': { title: 'События',        icon: 'Calendar',    color: 'text-indigo-600' },
-  'Задачи':  { title: 'Задачи',         icon: 'CheckSquare', color: 'text-emerald-600' },
-  'Рецепты': { title: 'Рецепты',        icon: 'ChefHat',     color: 'text-amber-600' },
-  'Быстрые': { title: 'Быстрые ссылки', icon: 'Zap',         color: 'text-pink-600' },
+  'Разделы':       { title: 'Разделы',        icon: 'LayoutGrid',  color: 'text-violet-600' },
+  'Люди':          { title: 'Члены семьи',    icon: 'Users',       color: 'text-blue-600' },
+  'События':       { title: 'События',        icon: 'Calendar',    color: 'text-indigo-600' },
+  'Задачи':        { title: 'Задачи',         icon: 'CheckSquare', color: 'text-emerald-600' },
+  'Рецепты':       { title: 'Рецепты',        icon: 'ChefHat',     color: 'text-amber-600' },
+  'Быстрые':       { title: 'Быстрые ссылки', icon: 'Zap',         color: 'text-pink-600' },
+  'Блог':          { title: 'Блог',           icon: 'BookOpen',    color: 'text-rose-600' },
+  'Покупки':       { title: 'Покупки',        icon: 'ShoppingCart',color: 'text-teal-600' },
+  'Воспоминания':  { title: 'Воспоминания',   icon: 'Images',      color: 'text-orange-600' },
 };
+
+interface ServerResult {
+  type: string;
+  id: string;
+  title: string;
+  snippet: string;
+  url: string;
+  icon: string;
+  group: string;
+  completed?: boolean;
+}
+
+const SEARCH_URL = (func2url as Record<string, string>)['global-search'] ?? '';
 
 function useStaticEntries(): SearchEntry[] {
   return useMemo(() => {
@@ -163,25 +180,75 @@ function useDynamicEntries(): SearchEntry[] {
 function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [serverResults, setServerResults] = useState<ServerResult[]>([]);
+  const [serverLoading, setServerLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const familyCtx = useContext(FamilyMembersContext);
   const staticEntries = useStaticEntries();
   const dynamicEntries = useDynamicEntries();
 
   useEffect(() => {
-    if (!open) setQuery('');
+    if (!open) { setQuery(''); setServerResults([]); }
   }, [open]);
 
+  // Серверный поиск с дебаунсом 400ms
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (query.length < 2) { setServerResults([]); return; }
+
+    debounceRef.current = setTimeout(async () => {
+      if (!SEARCH_URL) return;
+      setServerLoading(true);
+      try {
+        const userData = localStorage.getItem('userData');
+        const familyId = userData ? JSON.parse(userData).family_id || '' : '';
+        const url = `${SEARCH_URL}?q=${encodeURIComponent(query)}${familyId ? `&family_id=${familyId}` : ''}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setServerResults(data.results || []);
+      } catch {
+        setServerResults([]);
+      } finally {
+        setServerLoading(false);
+      }
+    }, 400);
+  }, [query]);
+
   const grouped = useMemo(() => {
-    const order = ['Разделы', 'Люди', 'События', 'Задачи', 'Рецепты', 'Быстрые'];
+    const order = ['Разделы', 'Люди', 'События', 'Задачи', 'Рецепты', 'Блог', 'Покупки', 'Воспоминания', 'Быстрые'];
     const map = new Map<string, SearchEntry[]>();
+
+    // Локальные записи
     for (const e of [...staticEntries, ...dynamicEntries]) {
       if (!map.has(e.groupKey)) map.set(e.groupKey, []);
       map.get(e.groupKey)!.push(e);
     }
+
+    // Серверные результаты — добавляем как SearchEntry в свои группы
+    for (const r of serverResults) {
+      const groupKey = r.group;
+      const entry: SearchEntry = {
+        id: `srv:${r.type}:${r.id}`,
+        label: r.title,
+        sublabel: r.snippet || undefined,
+        icon: r.icon,
+        path: r.url,
+        groupKey,
+        keywords: r.title.toLowerCase(),
+      };
+      // Не дублируем то, что уже есть в локальных
+      const existing = map.get(groupKey);
+      if (!existing?.find(e => e.path === r.url && e.label === r.title)) {
+        if (!map.has(groupKey)) map.set(groupKey, []);
+        map.get(groupKey)!.push(entry);
+      }
+    }
+
     return order
       .filter(k => map.has(k))
       .map(k => [k, map.get(k)!] as const);
-  }, [staticEntries, dynamicEntries]);
+  }, [staticEntries, dynamicEntries, serverResults, familyCtx]);
 
   const go = (path: string) => {
     onOpenChange(false);
@@ -191,16 +258,23 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Поиск по сайту: разделы, люди, события, задачи, рецепты…"
+        placeholder="Поиск: разделы, блог, задачи, события, рецепты…"
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
         <CommandEmpty>
-          <div className="py-6 text-center text-sm text-muted-foreground">
-            Ничего не найдено.<br />
-            <span className="text-xs">Попробуйте «Альбом», «Финансы», «Дети», «Рецепты»…</span>
-          </div>
+          {serverLoading ? (
+            <div className="py-6 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <Icon name="Loader2" size={16} className="animate-spin" />
+              Ищу...
+            </div>
+          ) : (
+            <div className="py-6 text-center text-sm text-muted-foreground">
+              Ничего не найдено.<br />
+              <span className="text-xs">Попробуйте «Альбом», «Финансы», «Дети», «Рецепты»…</span>
+            </div>
+          )}
         </CommandEmpty>
         {grouped.map(([groupKey, items], idx) => {
           const meta = GROUP_META[groupKey] || { title: groupKey, icon: 'Folder', color: 'text-gray-500' };
@@ -213,6 +287,9 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
                     <Icon name={meta.icon} size={12} className={meta.color} />
                     <span>{meta.title}</span>
                     <span className="text-[10px] text-muted-foreground/70 font-normal">{items.length}</span>
+                    {serverLoading && ['Блог', 'Задачи', 'События', 'Рецепты', 'Покупки', 'Воспоминания'].includes(groupKey) && (
+                      <Icon name="Loader2" size={10} className="animate-spin text-muted-foreground/50" />
+                    )}
                   </span>
                 }
               >

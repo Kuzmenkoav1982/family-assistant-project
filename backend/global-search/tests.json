@@ -1,0 +1,26 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Short query rejected",
+      "method": "GET",
+      "path": "/?q=а",
+      "expectedStatus": 400,
+      "expectedBody": {"error": "string"},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Blog search works",
+      "method": "GET",
+      "path": "/?q=семья",
+      "expectedStatus": 200,
+      "expectedBody": {"results": []},
+      "bodyMatcher": "partial"
+    }
+  ]
+}
