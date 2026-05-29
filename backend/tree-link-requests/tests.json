@@ -18,6 +18,12 @@
       "path": "/?action=create",
       "body": { "action": "create", "requested_role": "child", "action_type": "create_new_person" },
       "expectedStatus": 401
+    },
+    {
+      "name": "Count pending without auth",
+      "method": "GET",
+      "path": "/?action=count",
+      "expectedStatus": 401
     }
   ]
 }

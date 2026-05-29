@@ -203,6 +203,27 @@ def list_requests(member: dict, status_filter: Optional[str]) -> dict:
         return {'error': str(e)}
 
 
+def count_pending(member: dict) -> dict:
+    """Быстрый счётчик pending-заявок для badge. Доступен только owner/admin."""
+    if member['role'] not in ('Владелец', 'Администратор'):
+        return {'success': True, 'count': 0}  # не ошибка, просто 0
+
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute(f"""
+            SELECT COUNT(*) as cnt
+            FROM {SCHEMA}.tree_link_requests
+            WHERE family_id = {q(member['family_id'])} AND status = 'pending'
+        """)
+        row = cur.fetchone()
+        cur.close(); conn.close()
+        return {'success': True, 'count': int(row['cnt'])}
+    except Exception as e:
+        cur.close(); conn.close()
+        return {'error': str(e)}
+
+
 def review_request(member: dict, body: dict) -> dict:
     """Обработка заявки: link / create / postpone / reject. Помечает уведомления resolved."""
     if member['role'] not in ('Владелец', 'Администратор'):
@@ -279,6 +300,8 @@ def handler(event: dict, context) -> dict:
         result = create_request(member, body)
     elif method == 'GET' and action == 'list':
         result = list_requests(member, params.get('status'))
+    elif method == 'GET' and action == 'count':
+        result = count_pending(member)
     elif method == 'POST' and action == 'review':
         result = review_request(member, body)
     else:

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { isShellHiddenRoute } from '@/lib/shellRoutes';
+import { usePendingTreeRequests } from '@/hooks/usePendingTreeRequests';
 
 type NavItem = { id: string; path?: string; icon: string; label: string; type?: 'nav' | 'domovoy' };
 
@@ -42,6 +43,7 @@ const MAX_MIDDLE = 8;
 export default function GlobalBottomBar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { count: pendingTreeCount, isOwnerOrAdmin } = usePendingTreeRequests();
 
   // SSR-safe lazy init: на prerender localStorage отсутствует.
   const hasLS = typeof localStorage !== 'undefined';
@@ -185,19 +187,27 @@ export default function GlobalBottomBar() {
               const isActive = item.path && (currentPath === item.path ||
                 (item.path !== '/' && currentPath.startsWith(item.path)));
 
+              const isTree = item.path === '/tree';
+              const showBadge = isTree && isOwnerOrAdmin && pendingTreeCount > 0;
+
               return (
                 <button
                   key={item.id}
                   onClick={() => item.path && navigate(item.path)}
                   onContextMenu={(e) => { e.preventDefault(); setSettingsOpen(true); }}
                   title={item.label}
-                  className={`flex flex-col items-center justify-center gap-0.5 w-10 h-12 rounded-lg flex-shrink-0 transition-colors ${
+                  className={`relative flex flex-col items-center justify-center gap-0.5 w-10 h-12 rounded-lg flex-shrink-0 transition-colors ${
                     isActive
                       ? 'bg-white/25 text-white'
                       : 'text-white/75 hover:text-white hover:bg-white/15'
                   }`}
                 >
                   <Icon name={item.icon} size={22} />
+                  {showBadge && (
+                    <span className="absolute top-1 right-1 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-amber-400 text-[9px] font-bold text-gray-900 px-1 ring-1 ring-blue-600 leading-none">
+                      {pendingTreeCount > 9 ? '9+' : pendingTreeCount}
+                    </span>
+                  )}
                 </button>
               );
             })}

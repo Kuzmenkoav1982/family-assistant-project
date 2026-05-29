@@ -111,12 +111,12 @@ export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRe
       });
       const data = await res.json();
       if (data.success) {
-        // Postponed — убираем из списка только визуально до следующей загрузки
-        // Link/Create — убираем насовсем (статус изменился)
         if (action !== 'postpone') {
           setRequests(prev => prev.filter(r => r.id !== requestId));
         }
         toast.success(TOAST_MESSAGES[action]);
+        // Сигнал для badge — обновить счётчик pending
+        window.dispatchEvent(new Event('tree-link-reviewed'));
       } else {
         toast.error(data.error || 'Ошибка при обработке заявки');
       }
