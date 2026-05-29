@@ -6,6 +6,9 @@ import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { useDemoMode } from '@/contexts/DemoModeContext';
 
+const INVITE_API = 'https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d';
+const BASE_URL = 'https://nasha-semiya.ru';
+
 interface FamilyInfo {
   familyName: string;
   familyId: string;
@@ -16,24 +19,24 @@ interface FamilyInfo {
 }
 
 const CONNECTIONS = [
-  { icon: 'GitBranch', label: 'Семейное древо', desc: 'Все ветви рода', path: '/tree',              color: 'text-amber-500',  bg: 'bg-amber-50',  border: 'border-amber-200',  delay: 0   },
-  { icon: 'BookImage', label: 'Альбом памяти',  desc: 'История в фото', path: '/memory',            color: 'text-pink-500',   bg: 'bg-pink-50',   border: 'border-pink-200',   delay: 90  },
-  { icon: 'Route',     label: 'Дорога жизни',   desc: 'Путь каждого',   path: '/life-road',         color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', delay: 180 },
-  { icon: 'Users',     label: 'Члены семьи',    desc: 'Профили близких', path: '/family-management', color: 'text-blue-500',   bg: 'bg-blue-50',   border: 'border-blue-200',   delay: 270 },
+  { icon: 'GitBranch', label: 'Семейное древо', desc: 'Все ветви рода',    path: '/tree',              color: 'text-amber-500',  bg: 'bg-amber-50',  border: 'border-amber-200',  delay: 0   },
+  { icon: 'BookImage', label: 'Альбом памяти',  desc: 'История в фото',   path: '/memory',            color: 'text-pink-500',   bg: 'bg-pink-50',   border: 'border-pink-200',   delay: 90  },
+  { icon: 'Route',     label: 'Дорога жизни',   desc: 'Путь каждого',     path: '/life-road',         color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-200', delay: 180 },
+  { icon: 'Users',     label: 'Члены семьи',    desc: 'Профили близких',  path: '/family-management', color: 'text-blue-500',   bg: 'bg-blue-50',   border: 'border-blue-200',   delay: 270 },
 ];
 
 const WHAT_IS_ID = [
-  { icon: 'Key',      color: 'text-violet-600', bg: 'bg-violet-50', title: 'Ключ к наследию рода',       desc: 'Один код открывает всю память семьи: древо, альбом, дорогу жизни и профили близких' },
-  { icon: 'GitBranch',color: 'text-emerald-600', bg: 'bg-emerald-50', title: 'Связь поколений',          desc: 'Передайте код детям и внукам — они получат доступ к истории рода и продолжат её' },
-  { icon: 'UserPlus', color: 'text-blue-600',   bg: 'bg-blue-50',   title: 'Объединение родственников',  desc: 'По этому коду дальние родственники присоединяются к древу и становятся частью общей истории' },
-  { icon: 'Shield',   color: 'text-amber-600',  bg: 'bg-amber-50',  title: 'Безопасность',               desc: 'ID принадлежит только вашей семье. Никто не получит доступ без вашего разрешения' },
+  { icon: 'Fingerprint', color: 'text-violet-600', bg: 'bg-violet-50', title: 'Идентификатор семьи',      desc: 'Уникальный код, который идентифицирует вашу семью в системе. Постоянный — не меняется.' },
+  { icon: 'UserPlus',    color: 'text-blue-600',   bg: 'bg-blue-50',   title: 'Объединение родственников', desc: 'Близкие могут присоединиться к семье по ссылке-приглашению — отдельному временному коду доступа.' },
+  { icon: 'Shield',      color: 'text-amber-600',  bg: 'bg-amber-50',  title: 'Безопасность',              desc: 'Сам по себе Family ID не даёт доступа к данным. Для вступления нужна отдельная ссылка-приглашение.' },
+  { icon: 'GitBranch',   color: 'text-emerald-600',bg: 'bg-emerald-50',title: 'Передача истории',          desc: 'Передайте ID детям и внукам — они найдут вашу семью и смогут запросить доступ.' },
 ];
 
-const HOW_TO_USE = [
-  { step: '1', text: 'Нажмите «Пригласить родственника»',      icon: 'Share2'    },
-  { step: '2', text: 'Система отправит ссылку с вашим кодом', icon: 'Send'      },
-  { step: '3', text: 'Родственник регистрируется по ссылке',  icon: 'UserPlus'  },
-  { step: '4', text: 'Новая ветвь появляется в древе рода',   icon: 'GitBranch' },
+const HOW_TO_INVITE = [
+  { step: '1', text: 'Нажмите «Пригласить» — система создаст ссылку',         icon: 'Share2'   },
+  { step: '2', text: 'Скопируйте ссылку и отправьте родственнику',            icon: 'Send'     },
+  { step: '3', text: 'Родственник регистрируется и присоединяется к семье',   icon: 'UserPlus' },
+  { step: '4', text: 'После этого вы сможете добавить его в семейное древо',  icon: 'GitBranch'},
 ];
 
 export default function FamilyId() {
@@ -48,12 +51,13 @@ export default function FamilyId() {
     foundedYear: new Date().getFullYear(),
     motto: 'Вместе — сильнее',
   });
+  const [inviteState, setInviteState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+  const [inviteLink, setInviteLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [visible, setVisible] = useState(false);
   const [linesVisible, setLinesVisible] = useState(false);
   const [chipsVisible, setChipsVisible] = useState([false, false, false, false]);
 
-  // refs для SVG-линий
   const svgRef = useRef<SVGSVGElement>(null);
   const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [chipCenters, setChipCenters] = useState<{ x: number; y: number }[]>([]);
@@ -79,7 +83,6 @@ export default function FamilyId() {
     } catch { /* ignore */ }
   }, []);
 
-  // Каскадная анимация появления
   useEffect(() => {
     const t1 = setTimeout(() => setVisible(true), 80);
     const t2 = setTimeout(() => setLinesVisible(true), 500);
@@ -91,7 +94,6 @@ export default function FamilyId() {
     return () => { clearTimeout(t1); clearTimeout(t2); timers.forEach(clearTimeout); };
   }, []);
 
-  // Позиции чипов для SVG-линий
   useEffect(() => {
     if (!linesVisible) return;
     const svg = svgRef.current;
@@ -114,13 +116,60 @@ export default function FamilyId() {
 
   const code = generateFamilyCode(displayInfo.familyId);
 
-  const handleShare = async () => {
-    const text = `Присоединяйся к семье «${displayInfo.familyName}» в «Наша Семья».\n\nСемейный ID: ${code}\n\nnasha-semiya.ru`;
-    if (navigator.share) {
-      try { await navigator.share({ title: `Семья ${displayInfo.familyName}`, text }); } catch { /* отменено */ }
-    } else {
-      try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2500); } catch { /* ignore */ }
+  const handleCreateInvite = async () => {
+    if (isDemoMode) {
+      const demoLink = `${BASE_URL}/register?code=DEMO1234`;
+      setInviteLink(demoLink);
+      setInviteState('done');
+      return;
     }
+    setInviteState('loading');
+    try {
+      const token = localStorage.getItem('authToken') || '';
+      const res = await fetch(INVITE_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
+        body: JSON.stringify({ action: 'create', max_uses: 1, days_valid: 7 }),
+      });
+      const data = await res.json();
+      if (data.success && data.invite?.code) {
+        const link = `${BASE_URL}/register?code=${data.invite.code}`;
+        setInviteLink(link);
+        setInviteState('done');
+      } else {
+        setInviteState('error');
+      }
+    } catch {
+      setInviteState('error');
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch { /* ignore */ }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Присоединяйся к семье «${displayInfo.familyName}»`,
+          text: `Привет! Присоединяйся к нашей семье в «Наша Семья»:`,
+          url: inviteLink,
+        });
+      } catch { /* отменено */ }
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const handleReset = () => {
+    setInviteState('idle');
+    setInviteLink('');
+    setCopied(false);
   };
 
   return (
@@ -144,7 +193,7 @@ export default function FamilyId() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Семейный ID</h1>
           <p className="text-gray-500 text-sm leading-relaxed max-w-xs mx-auto">
-            Один код, который связывает память семьи, древо рода и доступ для близких.
+            Уникальный идентификатор вашей семьи. Для приглашения родственников используйте отдельную ссылку-приглашение.
           </p>
         </div>
 
@@ -167,16 +216,14 @@ export default function FamilyId() {
           />
         </div>
 
-        {/* ── Блок связей: «Этот ID открывает» ── */}
+        {/* Блок связей */}
         <div
           className="transition-all duration-500"
           style={{ opacity: visible ? 1 : 0, transitionDelay: '350ms' }}
         >
           <p className="text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">
-            Этот ID открывает доступ к
+            Семейное пространство включает
           </p>
-
-          {/* Обёртка с SVG-линиями поверх чипов */}
           <div className="relative">
             <svg
               ref={svgRef}
@@ -193,32 +240,23 @@ export default function FamilyId() {
                 if (!svgRef.current) return null;
                 const svgRect = svgRef.current.getBoundingClientRect();
                 const cx = svgRect.width / 2;
-                const cy = 0;
-                const len = Math.sqrt((to.x - cx) ** 2 + (to.y - cy) ** 2);
+                const cy = svgRect.height / 2;
+                if (!to.x && !to.y) return null;
                 return (
-                  <line key={i}
+                  <line
+                    key={i}
                     x1={cx} y1={cy} x2={to.x} y2={to.y}
                     stroke="url(#lg1)"
                     strokeWidth="1.5"
-                    strokeDasharray={len}
-                    strokeDashoffset={linesVisible ? 0 : len}
-                    style={{ transition: `stroke-dashoffset 0.65s ease ${300 + CONNECTIONS[i].delay}ms` }}
+                    strokeDasharray="4 4"
+                    style={{
+                      opacity: linesVisible && chipsVisible[i] ? 0.6 : 0,
+                      transition: `opacity 0.5s ease ${150 + i * 80}ms`,
+                    }}
                   />
                 );
               })}
             </svg>
-
-            {/* Пульсирующий центр */}
-            <div className="flex justify-center mb-4 relative z-10">
-              <div style={{ opacity: linesVisible ? 1 : 0, transition: 'opacity 0.4s ease 250ms' }}>
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-50" />
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/40" />
-                </span>
-              </div>
-            </div>
-
-            {/* 4 чипа */}
             <div className="grid grid-cols-2 gap-2.5 relative z-10">
               {CONNECTIONS.map((item, i) => (
                 <div
@@ -249,36 +287,80 @@ export default function FamilyId() {
           </div>
         </div>
 
-        {/* Кнопки */}
+        {/* Блок приглашения */}
         <div
-          className="grid grid-cols-2 gap-3 transition-all duration-500"
+          className="transition-all duration-500"
           style={{ opacity: visible ? 1 : 0, transitionDelay: '500ms' }}
         >
-          <Button
-            onClick={handleShare}
-            className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white gap-2"
-          >
-            <Icon name={copied ? 'Check' : 'UserPlus'} size={16} />
-            {copied ? 'Скопировано!' : 'Пригласить'}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleShare}
-            className="border-violet-200 text-violet-700 hover:bg-violet-50 gap-2"
-          >
-            <Icon name="Share2" size={16} />
-            Поделиться ID
-          </Button>
+          {inviteState === 'idle' && (
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={handleCreateInvite}
+                className="bg-gradient-to-r from-violet-600 to-purple-700 hover:from-violet-700 hover:to-purple-800 text-white gap-2"
+              >
+                <Icon name="UserPlus" size={16} />
+                Пригласить
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/family-invite')}
+                className="border-violet-200 text-violet-700 hover:bg-violet-50 gap-2"
+              >
+                <Icon name="Settings2" size={16} />
+                Все приглашения
+              </Button>
+            </div>
+          )}
+
+          {inviteState === 'loading' && (
+            <div className="flex items-center justify-center gap-2 py-3 text-violet-600 text-sm font-medium">
+              <Icon name="Loader" size={16} className="animate-spin" />
+              Создаём ссылку-приглашение…
+            </div>
+          )}
+
+          {inviteState === 'error' && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+              <Icon name="AlertCircle" size={18} className="text-red-500 flex-shrink-0" />
+              <div className="flex-1 text-sm text-red-700">Не удалось создать приглашение. Попробуйте снова.</div>
+              <button onClick={handleReset} className="text-xs text-red-500 underline">Снова</button>
+            </div>
+          )}
+
+          {inviteState === 'done' && (
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-2 text-violet-700 text-sm font-semibold">
+                <Icon name="CheckCircle" size={16} className="text-emerald-500" />
+                Ссылка создана — действует 7 дней
+              </div>
+              <div className="bg-white border border-violet-100 rounded-lg px-3 py-2 text-xs text-gray-600 font-mono break-all">
+                {inviteLink}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button size="sm" onClick={handleCopyLink} className="bg-violet-600 hover:bg-violet-700 text-white gap-1.5">
+                  <Icon name={copied ? 'Check' : 'Copy'} size={14} />
+                  {copied ? 'Скопировано!' : 'Скопировать'}
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleNativeShare} className="border-violet-200 text-violet-700 gap-1.5">
+                  <Icon name="Share2" size={14} />
+                  Поделиться
+                </Button>
+              </div>
+              <button onClick={handleReset} className="w-full text-xs text-gray-400 hover:text-gray-600 transition-colors">
+                Создать новую ссылку
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Что открывает ID */}
+        {/* Что такое Family ID */}
         <div
           className="transition-all duration-500"
           style={{ opacity: visible ? 1 : 0, transitionDelay: '580ms' }}
         >
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Icon name="HelpCircle" size={18} className="text-violet-500" />
-            Что открывает Семейный ID?
+            Что такое Семейный ID?
           </h2>
           <div className="space-y-3">
             {WHAT_IS_ID.map(item => (
@@ -295,19 +377,19 @@ export default function FamilyId() {
           </div>
         </div>
 
-        {/* Как подключить родственника */}
+        {/* Как пригласить */}
         <div
           className="transition-all duration-500"
           style={{ opacity: visible ? 1 : 0, transitionDelay: '640ms' }}
         >
           <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Icon name="Zap" size={18} className="text-amber-500" />
-            Как подключить родственника?
+            Как пригласить родственника?
           </h2>
           <div className="relative">
             <div className="absolute left-[18px] top-5 bottom-5 w-0.5 bg-gradient-to-b from-violet-400 via-purple-200 to-violet-100" />
             <div className="space-y-3">
-              {HOW_TO_USE.map((item, i) => (
+              {HOW_TO_INVITE.map((item, i) => (
                 <div key={i} className="flex items-center gap-4 pl-1">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md z-10">
                     <Icon name={item.icon as 'Send'} size={16} className="text-white" />
@@ -320,6 +402,9 @@ export default function FamilyId() {
               ))}
             </div>
           </div>
+          <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
+            После вступления родственника вы сможете вручную добавить его в семейное древо и указать родство.
+          </p>
         </div>
 
       </div>
