@@ -196,6 +196,11 @@ export default function TopBar({
                 <span>Написать в поддержку</span>
               </DropdownMenuItem>
 
+              <DropdownMenuItem onClick={() => navigate('/my-tickets')} className="rounded-lg">
+                <Icon name="ListChecks" size={16} className="mr-2.5 text-indigo-500" />
+                <span>Мои обращения</span>
+              </DropdownMenuItem>
+
               <DropdownMenuItem onClick={() => navigate('/feedback')} className="rounded-lg">
                 <Icon name="MessageSquareText" size={16} className="mr-2.5 text-gray-500" />
                 <span>Отзывы</span>

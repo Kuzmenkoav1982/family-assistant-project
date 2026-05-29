@@ -107,15 +107,12 @@ export default function SupportPage() {
           </div>
 
           <div className="space-y-2">
-            <Button onClick={() => navigate('/')} className="w-full">
-              На главную
+            <Button onClick={() => navigate('/my-tickets')} className="w-full gap-2">
+              <Icon name="ListChecks" size={18} />
+              Мои обращения
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setSuccessData(null)}
-            >
-              Отправить ещё одно обращение
+            <Button variant="outline" className="w-full" onClick={() => navigate('/')}>
+              На главную
             </Button>
           </div>
         </Card>

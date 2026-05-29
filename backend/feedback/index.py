@@ -484,6 +484,8 @@ def get_feedback(event):
     params = event.get('queryStringParameters') or {}
     feedback_type = params.get('type', 'review')
     all_statuses = params.get('all_statuses', 'false') == 'true'
+    my_tickets = params.get('my_tickets', 'false') == 'true'
+    user_id = params.get('user_id', '')
 
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -494,6 +496,15 @@ def get_feedback(event):
             FROM {SCHEMA}.feedback
             WHERE type = {escape_string(feedback_type)}
             ORDER BY created_at DESC
+        """)
+    elif my_tickets and user_id:
+        # Пользователь видит свои обращения всех типов
+        cur.execute(f"""
+            SELECT id, type, title, description, rating, status, created_at
+            FROM {SCHEMA}.feedback
+            WHERE user_id = {escape_string(user_id)}
+            ORDER BY created_at DESC
+            LIMIT 50
         """)
     else:
         cur.execute(f"""

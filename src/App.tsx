@@ -245,6 +245,7 @@ const IdeasBoard = lazy(() => import("./pages/IdeasBoard"));
 const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
 const SuggestionsPage = lazy(() => import("./pages/SuggestionsPage"));
 const SupportPage = lazy(() => import("./pages/SupportPage"));
+const MyTicketsPage = lazy(() => import("./pages/MyTicketsPage"));
 
 // ─── Marketing / Articles / Blog ───────────────────────────────────────────
 const MarketingStrategy = lazy(() => import("./pages/MarketingStrategy"));
@@ -529,6 +530,7 @@ const App = () => {
                       <Route path="/feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
                       <Route path="/suggestions" element={<ProtectedRoute><SuggestionsPage /></ProtectedRoute>} />
                       <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+                      <Route path="/my-tickets" element={<ProtectedRoute><MyTicketsPage /></ProtectedRoute>} />
                       <Route path="/admin/login" element={<AdminLogin />} />
                       <Route path="/admin/support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
                       <Route path="/admin/support-desk" element={<AdminRoute><AdminSupportDesk /></AdminRoute>} />
