@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import { useAuth } from '@/lib/auth-context';
 import func2url from '../../backend/func2url.json';
 
 export default function SupportPage() {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);

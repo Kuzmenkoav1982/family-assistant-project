@@ -266,13 +266,9 @@ export default function GlobalTopBar() {
                   <span>Инвесторам</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.open('https://t.me/Nasha7iya', '_blank')} className="rounded-lg">
-                  <Icon name="MessageCircle" size={16} className="mr-2.5 text-blue-500" />
-                  <span>Онлайн поддержка</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/support')} className="rounded-lg">
-                  <Icon name="HelpCircle" size={16} className="mr-2.5 text-gray-500" />
-                  <span>Тех. поддержка</span>
+                  <Icon name="Headphones" size={16} className="mr-2.5 text-blue-500" />
+                  <span>Написать в поддержку</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate('/feedback')} className="rounded-lg">
                   <Icon name="MessageSquareText" size={16} className="mr-2.5 text-gray-500" />

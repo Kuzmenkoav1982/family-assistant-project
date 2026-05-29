@@ -40,10 +40,6 @@ export default function TopBar({
   const t = (key: keyof typeof import('@/translations').translations.ru) => getTranslation(currentLanguage, key);
   const isDarkMode = currentTheme === 'dark';
 
-  const openTelegramSupport = () => {
-    window.open('https://t.me/Nasha7iya', '_blank');
-  };
-
   const toggleDarkMode = () => {
     const newTheme = isDarkMode ? 'middle' : 'dark';
     onThemeChange(newTheme);
@@ -195,14 +191,9 @@ export default function TopBar({
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem onClick={openTelegramSupport} className="rounded-lg">
-                <Icon name="MessageCircle" size={16} className="mr-2.5 text-blue-500" />
-                <span>Онлайн поддержка</span>
-              </DropdownMenuItem>
-
               <DropdownMenuItem onClick={() => navigate('/support')} className="rounded-lg">
-                <Icon name="HelpCircle" size={16} className="mr-2.5 text-gray-500" />
-                <span>Тех. поддержка</span>
+                <Icon name="Headphones" size={16} className="mr-2.5 text-blue-500" />
+                <span>Написать в поддержку</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={() => navigate('/feedback')} className="rounded-lg">
