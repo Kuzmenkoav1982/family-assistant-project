@@ -28,7 +28,7 @@ export default function JoinFamily() {
   const codeFromUrl = searchParams.get('code');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [familyInfo, setFamilyInfo] = useState<any>(null);
+  const [familyInfo, setFamilyInfo] = useState<{ name?: string; members_count?: number } | null>(null);
   const [formData, setFormData] = useState({
     inviteCode: searchParams.get('code') || '',
     memberName: '',
@@ -177,11 +177,12 @@ export default function JoinFamily() {
           member_id: data.family.member_id,
         });
         
-        localStorage.setItem('onboarding_completed', 'true');
         localStorage.setItem('hasSeenFirstLoginWelcome', 'true');
+        localStorage.setItem('joined_via_invite', 'true');
+        localStorage.setItem('joined_family_name', data.family.name || '');
 
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.href = '/invite-onboarding';
         }, 1000);
       } else {
         toast({

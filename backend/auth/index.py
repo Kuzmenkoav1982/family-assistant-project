@@ -1042,8 +1042,11 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
     except Exception as e:
         return {'error': f'Ошибка VK OAuth: {str(e)}'}
 
-def register_user_email(email: str, password: str, name: str = '') -> Dict[str, Any]:
-    """Регистрация через email"""
+def register_user_email(email: str, password: str, name: str = '',
+                        invite_code: Optional[str] = None,
+                        member_name: Optional[str] = None,
+                        relationship: Optional[str] = None) -> Dict[str, Any]:
+    """Регистрация через email. Если передан invite_code — присоединяет к существующей семье."""
     if not email or '@' not in email:
         return {'error': 'Некорректный email'}
     
@@ -1073,6 +1076,80 @@ def register_user_email(email: str, password: str, name: str = '') -> Dict[str, 
         cur.execute(insert_user)
         user = cur.fetchone()
         
+        # Если есть invite_code — присоединяем к существующей семье
+        if invite_code:
+            invite_query = f"""
+                SELECT id, family_id, max_uses, uses_count, expires_at, is_active
+                FROM {SCHEMA}.family_invites
+                WHERE invite_code = {escape_string(invite_code.upper())} AND is_active = TRUE
+            """
+            cur.execute(invite_query)
+            invite = cur.fetchone()
+            
+            if not invite:
+                cur.close(); conn.close()
+                return {'error': 'Приглашение не найдено или уже недействительно'}
+            
+            if invite['expires_at'] and invite['expires_at'] < datetime.now():
+                cur.close(); conn.close()
+                return {'error': 'Срок действия приглашения истёк'}
+            
+            if invite['uses_count'] >= invite['max_uses']:
+                cur.close(); conn.close()
+                return {'error': 'Приглашение исчерпано'}
+            
+            family_query = f"SELECT id, name FROM {SCHEMA}.families WHERE id = {escape_string(invite['family_id'])}"
+            cur.execute(family_query)
+            family = cur.fetchone()
+            
+            display_name = member_name or name or email.split('@')[0]
+            insert_member = f"""
+                INSERT INTO {SCHEMA}.family_members
+                (family_id, user_id, name, relationship, role, points, level, workload, avatar, avatar_type)
+                VALUES (
+                    {escape_string(invite['family_id'])},
+                    {escape_string(user['id'])},
+                    {escape_string(display_name)},
+                    {escape_string(relationship or 'Член семьи')},
+                    'Участник',
+                    0, 1, 0, '👤', 'emoji'
+                )
+                RETURNING id
+            """
+            cur.execute(insert_member)
+            member = cur.fetchone()
+            
+            cur.execute(f"""
+                UPDATE {SCHEMA}.family_invites
+                SET uses_count = uses_count + 1
+                WHERE id = {escape_string(invite['id'])}
+            """)
+            
+            token = generate_token()
+            expires_at = datetime.now() + timedelta(days=30)
+            cur.execute(f"""
+                INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at)
+                VALUES ({escape_string(user['id'])}, {escape_string(token)}, {escape_string(expires_at.isoformat())})
+            """)
+            
+            conn.commit()
+            cur.close(); conn.close()
+            
+            return {
+                'success': True,
+                'token': token,
+                'joined_via_invite': True,
+                'user': {
+                    'id': str(user['id']),
+                    'email': user['email'],
+                    'name': user['name'],
+                    'family_id': str(family['id']),
+                    'family_name': family['name'],
+                    'member_id': str(member['id'])
+                }
+            }
+        
+        # Без инвайта — создаём новую семью
         family_name = "Моя семья"
         insert_family = f"""
             INSERT INTO {SCHEMA}.families (name) 
@@ -1090,9 +1167,7 @@ def register_user_email(email: str, password: str, name: str = '') -> Dict[str, 
                 {escape_string(user['id'])},
                 {escape_string(name or email.split('@')[0])},
                 'Владелец',
-                0, 1, 0,
-                '👤',
-                'emoji'
+                0, 1, 0, '👤', 'emoji'
             )
             RETURNING id
         """
@@ -1102,16 +1177,12 @@ def register_user_email(email: str, password: str, name: str = '') -> Dict[str, 
         token = generate_token()
         expires_at = datetime.now() + timedelta(days=30)
         
-        insert_session = f"""
+        cur.execute(f"""
             INSERT INTO {SCHEMA}.sessions (user_id, token, expires_at)
-            VALUES (
-                {escape_string(user['id'])},
-                {escape_string(token)},
-                {escape_string(expires_at.isoformat())}
-            )
-        """
-        cur.execute(insert_session)
+            VALUES ({escape_string(user['id'])}, {escape_string(token)}, {escape_string(expires_at.isoformat())})
+        """)
         
+        conn.commit()
         cur.close()
         conn.close()
         
@@ -1128,6 +1199,7 @@ def register_user_email(email: str, password: str, name: str = '') -> Dict[str, 
             }
         }
     except Exception as e:
+        conn.rollback()
         cur.close()
         conn.close()
         return {'error': f'Ошибка регистрации: {str(e)}'}
@@ -1558,7 +1630,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = register_user_email(
                     email=body.get('email'),
                     password=body.get('password'),
-                    name=body.get('name', '')
+                    name=body.get('name', ''),
+                    invite_code=body.get('invite_code'),
+                    member_name=body.get('member_name'),
+                    relationship=body.get('relationship')
                 )
             else:
                 result = register_user(

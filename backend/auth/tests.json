@@ -35,6 +35,23 @@
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
+    },
+    {
+      "name": "Register with email + invalid invite_code",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "register",
+        "email": "invitetest_smoke@example.com",
+        "password": "password123",
+        "name": "Тест",
+        "invite_code": "INVALID1"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

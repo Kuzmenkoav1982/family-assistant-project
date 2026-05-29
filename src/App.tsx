@@ -95,6 +95,7 @@ const Register = lazy(() => import("./pages/Register"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const ResetPasswordConfirm = lazy(() => import("./pages/ResetPasswordConfirm"));
 const JoinFamily = lazy(() => import("./pages/JoinFamily"));
+const InviteOnboarding = lazy(() => import("./pages/InviteOnboarding"));
 const ActivateChild = lazy(() => import("./pages/ActivateChild"));
 const ActivateCallback = lazy(() => import("./pages/ActivateCallback"));
 const OAuthDebug = lazy(() => import("./pages/OAuthDebug"));
@@ -399,6 +400,7 @@ const App = () => {
                       <Route path="/reset-password" element={<ResetPassword />} />
                       <Route path="/reset-password/confirm" element={<ResetPasswordConfirm />} />
                       <Route path="/join" element={<JoinFamily />} />
+                      <Route path="/invite-onboarding" element={<InviteOnboarding />} />
                       <Route path="/activate/:inviteToken" element={<ActivateChild />} />
                       <Route path="/activate-callback" element={<ActivateCallback />} />
                       {/* SEC-1.4: debug routes только в dev-сборке, не попадают в prod bundle. */}
