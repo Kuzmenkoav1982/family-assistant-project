@@ -99,14 +99,7 @@ export default function Dashboard() {
         <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-orange-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
           Наша Семья
         </h1>
-        <button
-          onClick={() => navigate('/notifications')}
-          className="w-11 h-11 rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_-4px_rgba(251,146,60,0.2)] flex items-center justify-center relative hover:shadow-[0_6px_25px_-4px_rgba(251,146,60,0.3)] hover:scale-105 transition-all"
-          aria-label="Уведомления"
-        >
-          <Icon name="Bell" size={20} className="text-slate-700" />
-          <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse" />
-        </button>
+        <div className="w-11 h-11" />
       </div>
 
       <div className="mb-3">
