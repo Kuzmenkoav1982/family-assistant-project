@@ -60,13 +60,10 @@ export default function DomovoyTip({ hubs, overall }: Props) {
   return (
     <div className="relative mb-3 animate-fade-in">
       <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-gradient-to-br from-orange-50 via-amber-50 to-pink-50 border border-orange-200/60 shadow-[0_4px_20px_-6px_rgba(251,146,60,0.3)]">
-        <div className="relative flex-shrink-0">
+        <div className="flex-shrink-0">
           <div className="w-9 h-9 rounded-full bg-white ring-2 ring-orange-200 flex items-center justify-center">
             <Icon name="Lightbulb" size={18} className="text-orange-500" />
           </div>
-          <span className="absolute -top-1 -right-1 text-base animate-bounce-gentle">
-            {tip.emoji}
-          </span>
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
           <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-0.5">
@@ -82,16 +79,7 @@ export default function DomovoyTip({ hubs, overall }: Props) {
           <Icon name="X" size={14} />
         </button>
       </div>
-      <style>{`
-        @keyframes bounceGentle {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
-        .animate-bounce-gentle {
-          animation: bounceGentle 2s ease-in-out infinite;
-          display: inline-block;
-        }
-      `}</style>
+
     </div>
   );
 }
