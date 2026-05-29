@@ -1066,40 +1066,43 @@ function MiniStat({ label, value, color }: { label: string; value: string | numb
 const INDEXER_URL = (func2url as Record<string, string>)['search-indexer'];
 
 function SearchIndexTab({ toast }: { toast: ReturnType<typeof useToast>['toast'] }) {
-  const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem('adminToken') || '');
   const [loading, setLoading] = useState<string | null>(null);
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
-  const [indexCount, setIndexCount] = useState<number | null>(null);
+  const [stats, setStats] = useState<{ total: number; by_type: Array<{ entity_type: string; cnt: number; visibility: string }> } | null>(null);
 
   const callIndexer = async (action: string) => {
-    if (!adminToken) { toast({ title: 'Укажите ADMIN_TOKEN', variant: 'destructive' }); return; }
     setLoading(action);
     setResult(null);
     try {
-      const res = await fetch(`${INDEXER_URL}?action=${action}&token=${encodeURIComponent(adminToken)}`);
+      // adminFetch автоматически добавляет X-Admin-Session-Token из localStorage
+      const res = await adminFetch(`${INDEXER_URL}?action=${action}`);
       const data = await res.json();
       setResult(data);
-      if (res.ok) toast({ title: action === 'setup' ? 'Расширения установлены' : 'Индексирование завершено' });
-      else toast({ title: 'Ошибка', description: data.error, variant: 'destructive' });
-    } catch (e) {
-      toast({ title: 'Ошибка сети', variant: 'destructive' });
+      const titles: Record<string, string> = {
+        setup: 'Расширения установлены',
+        index_all: 'Индексирование завершено',
+        stats: 'Статистика загружена',
+      };
+      toast({ title: titles[action] || 'Готово' });
+      if (action === 'stats' && data.total !== undefined) setStats(data);
+      if (action === 'index_all') loadStats();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Ошибка';
+      toast({ title: 'Ошибка', description: msg, variant: 'destructive' });
     } finally {
       setLoading(null);
     }
   };
 
-  const loadCount = async () => {
-    if (!adminToken) return;
+  const loadStats = async () => {
     try {
-      const res = await fetch(`${INDEXER_URL}?action=count&token=${encodeURIComponent(adminToken)}`);
+      const res = await adminFetch(`${INDEXER_URL}?action=stats`);
       const data = await res.json();
-      if (data.count !== undefined) setIndexCount(data.count);
+      if (data.total !== undefined) setStats(data);
     } catch { /* ignore */ }
   };
 
-  useEffect(() => {
-    if (adminToken) { sessionStorage.setItem('adminToken', adminToken); loadCount(); }
-  }, [adminToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { loadStats(); }, []);  
 
   return (
     <div className="space-y-4 max-w-2xl">
@@ -1111,21 +1114,21 @@ function SearchIndexTab({ toast }: { toast: ReturnType<typeof useToast>['toast']
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <label className="text-xs text-gray-500 mb-1 block">ADMIN_TOKEN</label>
-            <Input
-              type="password"
-              placeholder="Вставьте значение из секретов"
-              value={adminToken}
-              onChange={e => setAdminToken(e.target.value)}
-            />
-          </div>
 
-          {indexCount !== null && (
-            <div className="flex items-center gap-2 text-sm">
-              <Icon name="Database" size={15} className="text-gray-400" />
-              <span className="text-gray-600">Записей в индексе:</span>
-              <Badge variant="secondary" className="font-mono">{indexCount}</Badge>
+          {stats && (
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Database" size={15} className="text-gray-400" />
+                <span className="text-gray-600">Записей в индексе:</span>
+                <Badge variant="secondary" className="font-mono">{stats.total}</Badge>
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {stats.by_type.map(r => (
+                  <Badge key={`${r.entity_type}-${r.visibility}`} variant="outline" className="text-[10px] font-mono">
+                    {r.entity_type}: {r.cnt}
+                  </Badge>
+                ))}
+              </div>
             </div>
           )}
 
@@ -1138,20 +1141,24 @@ function SearchIndexTab({ toast }: { toast: ReturnType<typeof useToast>['toast']
                 disabled={!!loading}
                 onClick={() => callIndexer('setup')}
               >
-                {loading === 'setup' ? <Icon name="Loader2" size={15} className="animate-spin" /> : <Icon name="Wrench" size={15} />}
+                {loading === 'setup'
+                  ? <Icon name="Loader2" size={15} className="animate-spin" />
+                  : <Icon name="Wrench" size={15} />}
                 Установить расширения
               </Button>
               <p className="text-[11px] text-gray-400">pg_trgm + unaccent + trgm-индексы</p>
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-medium text-gray-700">Шаг 2 — полная переиндексация</p>
+              <p className="text-xs font-medium text-gray-700">Шаг 2 — переиндексация</p>
               <Button
                 className="w-full gap-2 bg-violet-600 hover:bg-violet-700"
                 disabled={!!loading}
                 onClick={() => callIndexer('index_all')}
               >
-                {loading === 'index_all' ? <Icon name="Loader2" size={15} className="animate-spin" /> : <Icon name="RefreshCw" size={15} />}
+                {loading === 'index_all'
+                  ? <Icon name="Loader2" size={15} className="animate-spin" />
+                  : <Icon name="RefreshCw" size={15} />}
                 Индексировать всё
               </Button>
               <p className="text-[11px] text-gray-400">Блог, задачи, события, рецепты, покупки, воспоминания</p>
@@ -1173,10 +1180,11 @@ function SearchIndexTab({ toast }: { toast: ReturnType<typeof useToast>['toast']
           <CardTitle className="text-sm text-gray-600">Как это работает</CardTitle>
         </CardHeader>
         <CardContent className="text-xs text-gray-500 space-y-1.5">
-          <p>• <b>Шаг 1</b> — установить один раз: создаёт расширения pg_trgm + unaccent и триграм-индексы</p>
-          <p>• <b>Шаг 2</b> — запускать после крупных изменений контента (или настроить крон)</p>
+          <p>• <b>Шаг 1</b> — один раз: создаёт расширения pg_trgm + unaccent и триграм-индексы</p>
+          <p>• <b>Шаг 2</b> — запускать после крупных изменений контента</p>
           <p>• Поиск автоматически переключается на FTS-движок когда индекс не пуст</p>
-          <p>• Ранжирование: точное совпадение в заголовке → FTS-ранг → триграм → подстрока</p>
+          <p>• Ранжирование: заголовок → FTS-ранг → триграм → подстрока</p>
+          <p>• При создании/обновлении задач и событий индекс обновляется автоматически</p>
         </CardContent>
       </Card>
     </div>
