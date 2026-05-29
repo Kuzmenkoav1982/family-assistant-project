@@ -46,7 +46,7 @@ const REVIEW_BUTTONS = [
 const TOAST_MESSAGES: Record<string, string> = {
   link:     'Заявка отмечена — свяжите человека в древе',
   create:   'Заявка принята — добавьте запись в древо',
-  postpone: 'Отложено. Заявка остаётся в списке',
+  postpone: 'Отложено. Заявка убрана из списка до следующей сессии',
 };
 
 interface Request {
@@ -113,9 +113,8 @@ export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRe
       });
       const data = await res.json();
       if (data.success) {
-        if (action !== 'postpone') {
-          setRequests(prev => prev.filter(r => r.id !== requestId));
-        }
+        // Все действия убирают карточку из UI — postponed тоже уходит из pending
+        setRequests(prev => prev.filter(r => r.id !== requestId));
         toast.success(TOAST_MESSAGES[action]);
         // Сигнал для badge + callback родителя — обновить счётчик pending
         window.dispatchEvent(new Event('tree-link-reviewed'));
