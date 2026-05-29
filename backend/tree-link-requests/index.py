@@ -1,6 +1,8 @@
 """
 Управление заявками на привязку участника семьи к узлу в семейном древе.
-Actions: create, list, review (approve/link/postpone/reject)
+Actions: create, list, review (link/create/postpone/reject)
+При создании заявки — уведомление всем owner/admin семьи (дедупликация: 1 pending = 1 уведомление).
+При обработке — уведомление помечается resolved.
 """
 
 import json
@@ -17,6 +19,12 @@ CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
+}
+
+ROLE_LABELS = {
+    'parent': 'Родитель', 'spouse': 'Супруг / супруга', 'child': 'Сын / дочь',
+    'sibling': 'Брат / сестра', 'grandp': 'Бабушка / дедушка',
+    'grandch': 'Внук / внучка', 'other': 'Другой родственник',
 }
 
 
@@ -49,6 +57,58 @@ def get_member(cur, token: str) -> Optional[dict]:
     return cur.fetchone()
 
 
+def notify_owners(cur, conn, family_id: str, requester_name: str,
+                  requested_role: str, request_id: str) -> None:
+    """Отправляет уведомление всем owner/admin семьи о новой заявке."""
+    cur.execute(f"""
+        SELECT user_id FROM {SCHEMA}.family_members
+        WHERE family_id = {q(family_id)}
+          AND role IN ('Владелец', 'Администратор')
+    """)
+    owners = cur.fetchall()
+
+    role_label = ROLE_LABELS.get(requested_role, requested_role or 'Не указано')
+    title = 'Новая заявка на добавление в древо'
+    message = f'{requester_name} присоединился к семье и отправил заявку на модерацию. Роль: {role_label}.'
+    target_url = f'/tree?panel=requests&requestId={request_id}'
+
+    for owner in owners:
+        # Дедупликация: если уже есть непрочитанное уведомление для этого request_id — не дублируем
+        cur.execute(f"""
+            SELECT id FROM {SCHEMA}.notifications
+            WHERE user_id = {q(owner['user_id'])}
+              AND type = 'tree_link_request_created'
+              AND target_url = {q(target_url)}
+              AND status = 'sent'
+            LIMIT 1
+        """)
+        if cur.fetchone():
+            continue
+
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.notifications
+                (user_id, family_id, type, title, message, target_url, channel, status, sent_at, created_at)
+            VALUES
+                ({q(owner['user_id'])}, {q(family_id)},
+                 'tree_link_request_created',
+                 {q(title)}, {q(message)}, {q(target_url)},
+                 'push', 'sent', NOW(), NOW())
+        """)
+
+
+def resolve_notifications(cur, family_id: str, request_id: str) -> None:
+    """Помечает уведомления по заявке как прочитанные (resolved после review)."""
+    target_url = f'/tree?panel=requests&requestId={request_id}'
+    cur.execute(f"""
+        UPDATE {SCHEMA}.notifications
+        SET status = 'read', read_at = NOW()
+        WHERE family_id = {q(family_id)}
+          AND type = 'tree_link_request_created'
+          AND target_url = {q(target_url)}
+          AND status = 'sent'
+    """)
+
+
 def create_request(member: dict, body: dict) -> dict:
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -63,7 +123,7 @@ def create_request(member: dict, body: dict) -> dict:
         """)
         existing = cur.fetchone()
         if existing:
-            # Обновляем существующую
+            # Обновляем существующую — уведомление уже отправлено, не дублируем
             cur.execute(f"""
                 UPDATE {SCHEMA}.tree_link_requests
                 SET requested_role = {q(body.get('requested_role'))},
@@ -75,8 +135,10 @@ def create_request(member: dict, body: dict) -> dict:
             """)
             req = cur.fetchone()
             conn.commit()
+            cur.close(); conn.close()
             return {'success': True, 'request_id': str(req['id']), 'updated': True}
 
+        # Новая заявка
         cur.execute(f"""
             INSERT INTO {SCHEMA}.tree_link_requests
                 (family_id, user_id, member_id, requested_role, action_type, note, status)
@@ -87,9 +149,16 @@ def create_request(member: dict, body: dict) -> dict:
             RETURNING id
         """)
         req = cur.fetchone()
+        request_id = str(req['id'])
+
+        # Уведомляем всех owner/admin семьи
+        requester_name = member.get('name') or member.get('user_name') or 'Новый участник'
+        notify_owners(cur, conn, member['family_id'], requester_name,
+                      body.get('requested_role', ''), request_id)
+
         conn.commit()
         cur.close(); conn.close()
-        return {'success': True, 'request_id': str(req['id'])}
+        return {'success': True, 'request_id': request_id}
     except Exception as e:
         conn.rollback()
         cur.close(); conn.close()
@@ -135,20 +204,18 @@ def list_requests(member: dict, status_filter: Optional[str]) -> dict:
 
 
 def review_request(member: dict, body: dict) -> dict:
-    """Обработка заявки владельцем: link / create / postpone / reject"""
+    """Обработка заявки: link / create / postpone / reject. Помечает уведомления resolved."""
     if member['role'] not in ('Владелец', 'Администратор'):
         return {'error': 'Недостаточно прав'}
 
     request_id = body.get('request_id')
-    action = body.get('action')  # link | create | postpone | reject
+    action = body.get('action')
     if not request_id or action not in ('link', 'create', 'postpone', 'reject'):
         return {'error': 'Укажите request_id и action (link|create|postpone|reject)'}
 
     status_map = {
-        'link': 'linked',
-        'create': 'created',
-        'postpone': 'postponed',
-        'reject': 'rejected',
+        'link': 'linked', 'create': 'created',
+        'postpone': 'postponed', 'reject': 'rejected',
     }
 
     conn = get_db()
@@ -168,6 +235,10 @@ def review_request(member: dict, body: dict) -> dict:
         if not updated:
             conn.rollback(); cur.close(); conn.close()
             return {'error': 'Заявка не найдена'}
+
+        # Помечаем уведомления по этой заявке как прочитанные
+        resolve_notifications(cur, member['family_id'], request_id)
+
         conn.commit()
         cur.close(); conn.close()
         return {'success': True, 'id': str(updated['id']), 'status': updated['status']}
@@ -177,7 +248,7 @@ def review_request(member: dict, body: dict) -> dict:
 
 
 def handler(event: dict, context) -> dict:
-    """Tree Link Requests — управление заявками на привязку к древу"""
+    """Tree Link Requests — заявки на добавление в семейное древо"""
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': {**CORS_HEADERS, 'Access-Control-Max-Age': '86400'}, 'body': ''}
 
@@ -192,8 +263,8 @@ def handler(event: dict, context) -> dict:
     if not member:
         return {
             'statusCode': 401,
-            'headers': {'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Требуется авторизация'})
+            'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'Требуется авторизация'}, ensure_ascii=False)
         }
 
     try:

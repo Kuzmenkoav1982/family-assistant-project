@@ -1,4 +1,5 @@
 import { useContext } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SEOHead from '@/components/SEOHead';
 import { Card, CardContent } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -27,6 +28,11 @@ const GEN_LABELS: Record<number, string> = {
 export default function Tree() {
   const s = useTreePageState();
   const familyCtx = useContext(FamilyMembersContext);
+  const [searchParams] = useSearchParams();
+
+  // Deep link из уведомления: /tree?panel=requests&requestId=uuid
+  const panelFromUrl = searchParams.get('panel');
+  const highlightRequestId = searchParams.get('requestId') || undefined;
 
   // Роль из контекста (данные API), fallback — localStorage для SSR
   const currentAccessRole = familyCtx?.currentAccessRole || (() => {
@@ -135,7 +141,11 @@ export default function Tree() {
             />
           )}
 
-          <TreeLinkRequests isOwnerOrAdmin={isOwnerOrAdmin} />
+          <TreeLinkRequests
+            isOwnerOrAdmin={isOwnerOrAdmin}
+            autoOpen={panelFromUrl === 'requests'}
+            highlightRequestId={highlightRequestId}
+          />
 
           {s.error && (
             <Card className="border-red-200 bg-red-50 mb-4">

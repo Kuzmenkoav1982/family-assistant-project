@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -61,15 +61,19 @@ interface Request {
 }
 
 interface Props {
-  /** true если пользователь является владельцем или администратором семьи (проверено через API-контекст) */
   isOwnerOrAdmin: boolean;
+  /** Автоматически раскрыть блок (при переходе из уведомления) */
+  autoOpen?: boolean;
+  /** ID заявки для highlight (из URL ?requestId=) */
+  highlightRequestId?: string;
 }
 
-export default function TreeLinkRequests({ isOwnerOrAdmin }: Props) {
+export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRequestId }: Props) {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(!autoOpen);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const highlightRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
     if (!isOwnerOrAdmin) return;
@@ -86,6 +90,15 @@ export default function TreeLinkRequests({ isOwnerOrAdmin }: Props) {
   }, [isOwnerOrAdmin]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Scroll to highlighted card after load
+  useEffect(() => {
+    if (!highlightRequestId || loading || collapsed) return;
+    const timer = setTimeout(() => {
+      highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [highlightRequestId, loading, collapsed]);
 
   const review = async (requestId: string, action: 'link' | 'create' | 'postpone') => {
     setActionLoading(requestId + action);
@@ -148,8 +161,18 @@ export default function TreeLinkRequests({ isOwnerOrAdmin }: Props) {
             </div>
           )}
 
-          {requests.map(req => (
-            <div key={req.id} className="bg-white rounded-xl border border-amber-100 p-4 space-y-3">
+          {requests.map(req => {
+            const isHighlighted = req.id === highlightRequestId;
+            return (
+            <div
+              key={req.id}
+              ref={isHighlighted ? highlightRef : null}
+              className={`bg-white rounded-xl border p-4 space-y-3 transition-all duration-500 ${
+                isHighlighted
+                  ? 'border-violet-400 ring-2 ring-violet-300/50 shadow-md'
+                  : 'border-amber-100'
+              }`}
+            >
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center flex-shrink-0 text-white text-sm font-bold">
                   {(req.member_name || req.user_name || '?').charAt(0).toUpperCase()}
@@ -194,7 +217,8 @@ export default function TreeLinkRequests({ isOwnerOrAdmin }: Props) {
                 ))}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
