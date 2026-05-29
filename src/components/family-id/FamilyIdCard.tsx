@@ -177,7 +177,7 @@ export default function FamilyIdCard({
             >
               <div>
                 <div className="text-[9px] uppercase tracking-[0.15em] text-violet-300/50 mb-1">
-                  Ключ доступа к роду
+                  Идентификатор семьи
                 </div>
                 <div className="font-mono text-[22px] font-black text-white tracking-[0.12em] leading-none">
                   {code}
