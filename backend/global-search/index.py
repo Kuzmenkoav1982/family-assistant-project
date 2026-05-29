@@ -1,10 +1,11 @@
 """
-Глобальный поиск по экосистеме Наша Семья.
-- Публичный: блог (без авторизации)
-- Приватный: задачи, события, рецепты, покупки, воспоминания
-  family_id берётся ТОЛЬКО из серверной сессии по X-Auth-Token, не от клиента.
+Global Search v2 — PostgreSQL FTS + pg_trgm + ранжирование.
+Ищет по таблице search_index (заполняется search-indexer).
+Fallback на прямые ILIKE-запросы если search_index пуст.
+
 GET /?q=текст&limit=20
-Returns: {results: [{type, id, title, snippet, url, icon, group}]}
+Headers: X-Auth-Token (опционально, для приватного поиска)
+Returns: {results, total, authenticated, engine}
 """
 
 import json
@@ -15,20 +16,35 @@ from psycopg2.extras import RealDictCursor
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
-CORS_HEADERS = {
+CORS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
     'Content-Type': 'application/json',
 }
 
+ICON_MAP = {
+    'blog':     'BookOpen',
+    'task':     'CheckSquare',
+    'event':    'Calendar',
+    'recipe':   'ChefHat',
+    'shopping': 'ShoppingCart',
+    'memory':   'Images',
+}
 
-def resp(status: int, body: dict) -> dict:
-    return {
-        'statusCode': status,
-        'headers': CORS_HEADERS,
-        'body': json.dumps(body, ensure_ascii=False, default=str),
-    }
+GROUP_MAP = {
+    'blog':     'Блог',
+    'task':     'Задачи',
+    'event':    'События',
+    'recipe':   'Рецепты',
+    'shopping': 'Покупки',
+    'memory':   'Воспоминания',
+}
+
+
+def resp(status, body):
+    return {'statusCode': status, 'headers': CORS,
+            'body': json.dumps(body, ensure_ascii=False, default=str)}
 
 
 def get_db():
@@ -37,8 +53,7 @@ def get_db():
     return conn
 
 
-def get_family_id_from_token(token: str):
-    """Получает family_id из БД по токену сессии. Не доверяет клиенту."""
+def get_family_id_from_token(token):
     if not token:
         return None
     conn = get_db()
@@ -52,38 +67,132 @@ def get_family_id_from_token(token: str):
         LIMIT 1
     """)
     row = cur.fetchone()
-    cur.close()
-    conn.close()
+    cur.close(); conn.close()
     return str(row['family_id']) if row and row.get('family_id') else None
 
 
-def snippet(text: str, q: str, length: int = 120) -> str:
-    if not text:
-        return ''
-    text = text.replace('\n', ' ').strip()
-    lower = text.lower()
-    word = q.lower().split()[0] if q.split() else ''
-    pos = lower.find(word) if word else -1
-    if pos == -1:
-        return text[:length] + ('…' if len(text) > length else '')
-    start = max(0, pos - 30)
-    end = min(len(text), start + length)
-    result = text[start:end]
-    if start > 0:
-        result = '…' + result
-    if end < len(text):
-        result += '…'
-    return result
+def normalize(q):
+    return q.replace('ё', 'е').replace('Ё', 'Е').lower().strip()
 
 
-def escape_like(q: str) -> str:
+def escape_like(q):
     return q.replace("'", "''").replace('%', '\\%').replace('_', '\\_')
 
 
+def snippet(text, length=120):
+    if not text:
+        return ''
+    text = text.replace('\n', ' ').strip()
+    return text[:length] + ('…' if len(text) > length else '')
+
+
+def search_v2(cur, q, family_id, limit):
+    """FTS + trigram поиск по search_index с ранжированием"""
+    qn = normalize(q)
+    qe = qn.replace("'", "''")
+    like = f'%{escape_like(qn)}%'
+    fid_filter = f"AND (family_id = '{family_id}' OR visibility = 'public')" if family_id else "AND visibility = 'public'"
+
+    # Формируем tsquery — пробуем plainto_tsquery, при пустом результате — trgm
+    cur.execute(f"""
+        SELECT
+          entity_type, entity_id, title, content, url, visibility, family_id,
+          -- score: FTS-ранг (A=title важнее) + тrigram по title + boost за точное вхождение
+          (
+            ts_rank_cd(search_vector, plainto_tsquery('russian', '{qe}'), 32) * 4.0
+            + similarity(title_norm, '{qe}') * 2.0
+            + CASE WHEN title_norm LIKE '{escape_like(qn)}%' THEN 1.0 ELSE 0.0 END
+          ) AS score
+        FROM {SCHEMA}.search_index
+        WHERE (
+          -- FTS поиск
+          search_vector @@ plainto_tsquery('russian', '{qe}')
+          -- Trigram по title (опечатки, частичные совпадения)
+          OR title_norm % '{qe}'
+          -- ILIKE подстрока — fallback
+          OR title_norm LIKE '{like}'
+          OR content_norm LIKE '{like}'
+        )
+        {fid_filter}
+        ORDER BY score DESC, updated_at DESC
+        LIMIT {limit}
+    """)
+    return cur.fetchall()
+
+
+def search_fallback(cur, q, family_id, limit):
+    """Прямые ILIKE-запросы если search_index пуст"""
+    qn = normalize(q)
+    like = f'%{escape_like(qn)}%'
+    results = []
+
+    # Блог
+    cur.execute(f"""
+        SELECT id, title, excerpt, slug FROM {SCHEMA}.public_blog_posts
+        WHERE is_published = true
+          AND (lower(replace(title,'ё','е')) LIKE %s OR lower(replace(excerpt,'ё','е')) LIKE %s
+               OR lower(replace(content,'ё','е')) LIKE %s)
+        ORDER BY published_at DESC LIMIT %s
+    """, (like, like, like, limit))
+    for row in cur.fetchall():
+        results.append(dict(entity_type='blog', entity_id=str(row['id']),
+                            title=row['title'], content=row.get('excerpt') or '',
+                            url=f"/blog/{row['slug']}"))
+
+    if family_id:
+        cur.execute(f"""
+            SELECT id, title, description FROM {SCHEMA}.tasks_v2
+            WHERE family_id = %s
+              AND (lower(replace(title,'ё','е')) LIKE %s OR lower(replace(coalesce(description,''),'ё','е')) LIKE %s)
+            LIMIT %s
+        """, (family_id, like, like, limit))
+        for row in cur.fetchall():
+            results.append(dict(entity_type='task', entity_id=str(row['id']),
+                                title=row['title'], content=row.get('description') or '',
+                                url=f"/tasks?id={row['id']}"))
+
+        cur.execute(f"""
+            SELECT id, title, description FROM {SCHEMA}.calendar_events
+            WHERE family_id = %s
+              AND (lower(replace(title,'ё','е')) LIKE %s OR lower(replace(coalesce(description,''),'ё','е')) LIKE %s)
+            LIMIT %s
+        """, (family_id, like, like, limit))
+        for row in cur.fetchall():
+            results.append(dict(entity_type='event', entity_id=str(row['id']),
+                                title=row['title'], content=row.get('description') or '',
+                                url=f"/events/{row['id']}"))
+
+        cur.execute(f"""
+            SELECT id, name, description FROM {SCHEMA}.recipes
+            WHERE (family_id = %s OR family_id IS NULL)
+              AND (lower(replace(name,'ё','е')) LIKE %s OR lower(replace(coalesce(description,''),'ё','е')) LIKE %s)
+            LIMIT %s
+        """, (family_id, like, like, limit))
+        for row in cur.fetchall():
+            results.append(dict(entity_type='recipe', entity_id=str(row['id']),
+                                title=row['name'], content=row.get('description') or '',
+                                url=f"/recipes?id={row['id']}"))
+
+    return results
+
+
+def format_result(row, entity_type=None):
+    et = entity_type or row.get('entity_type', '')
+    return {
+        'type':    et,
+        'id':      str(row.get('entity_id', row.get('id', ''))),
+        'title':   row.get('title', ''),
+        'snippet': snippet(row.get('content') or ''),
+        'url':     row.get('url', ''),
+        'icon':    ICON_MAP.get(et, 'Search'),
+        'group':   GROUP_MAP.get(et, et),
+    }
+
+
 def handler(event: dict, context) -> dict:
-    """Глобальный поиск. Приватные данные — только по токену сессии."""
+    """Global Search v2: FTS + trigram + ранжирование"""
     if event.get('httpMethod') == 'OPTIONS':
-        return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
+        return {'statusCode': 200, 'headers': CORS, 'body': ''}
 
     params = event.get('queryStringParameters') or {}
     q = (params.get('q') or '').strip()
@@ -92,167 +201,37 @@ def handler(event: dict, context) -> dict:
     if not q or len(q) < 2:
         return resp(400, {'error': 'Запрос слишком короткий'})
 
-    # P0: family_id берём только из сессии на сервере
     headers = event.get('headers') or {}
     token = headers.get('X-Auth-Token') or headers.get('x-auth-token') or ''
     family_id = get_family_id_from_token(token) if token else None
 
-    like = f'%{escape_like(q)}%'
-    results = []
-
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # 1. Блог — публичный, без авторизации
-    try:
-        cur.execute(f"""
-            SELECT id, title, excerpt, slug
-            FROM {SCHEMA}.public_blog_posts
-            WHERE is_published = true
-              AND (title ILIKE %s OR excerpt ILIKE %s OR content ILIKE %s)
-            ORDER BY published_at DESC
-            LIMIT %s
-        """, (like, like, like, limit))
-        for row in cur.fetchall():
-            results.append({
-                'type': 'blog',
-                'id': str(row['id']),
-                'title': row['title'],
-                'snippet': snippet(row.get('excerpt') or '', q),
-                'url': f"/blog/{row['slug']}",
-                'icon': 'BookOpen',
-                'group': 'Блог',
-            })
-    except Exception as e:
-        print(f'[WARN] blog search: {e}')
+    # Проверяем — есть ли что-то в search_index
+    cur.execute(f"SELECT COUNT(*) as cnt FROM {SCHEMA}.search_index LIMIT 1")
+    index_count = (cur.fetchone() or {}).get('cnt', 0)
 
-    # 2–6. Приватные разделы — только если токен валиден и семья найдена
-    if family_id:
+    results = []
+    engine = 'fts'
 
-        # Задачи
-        try:
-            cur.execute(f"""
-                SELECT id, title, description, completed
-                FROM {SCHEMA}.tasks_v2
-                WHERE family_id = %s
-                  AND (title ILIKE %s OR description ILIKE %s)
-                ORDER BY created_at DESC
-                LIMIT %s
-            """, (family_id, like, like, limit))
-            for row in cur.fetchall():
-                results.append({
-                    'type': 'task',
-                    'id': str(row['id']),
-                    'title': row['title'],
-                    'snippet': snippet(row.get('description') or '', q),
-                    'url': f"/tasks?id={row['id']}",
-                    'icon': 'CheckSquare',
-                    'group': 'Задачи',
-                    'completed': row.get('completed', False),
-                })
-        except Exception as e:
-            print(f'[WARN] tasks search: {e}')
-
-        # События
-        try:
-            cur.execute(f"""
-                SELECT id, title, description, event_date
-                FROM {SCHEMA}.calendar_events
-                WHERE family_id = %s
-                  AND (title ILIKE %s OR description ILIKE %s)
-                ORDER BY event_date DESC
-                LIMIT %s
-            """, (family_id, like, like, limit))
-            for row in cur.fetchall():
-                date_str = str(row['event_date'])[:10] if row.get('event_date') else ''
-                results.append({
-                    'type': 'event',
-                    'id': str(row['id']),
-                    'title': row['title'],
-                    'snippet': date_str,
-                    'url': f"/events/{row['id']}",
-                    'icon': 'Calendar',
-                    'group': 'События',
-                })
-        except Exception as e:
-            print(f'[WARN] events search: {e}')
-
-        # Рецепты
-        try:
-            cur.execute(f"""
-                SELECT id, name, description
-                FROM {SCHEMA}.recipes
-                WHERE (family_id = %s OR family_id IS NULL)
-                  AND (name ILIKE %s OR description ILIKE %s)
-                ORDER BY created_at DESC
-                LIMIT %s
-            """, (family_id, like, like, limit))
-            for row in cur.fetchall():
-                results.append({
-                    'type': 'recipe',
-                    'id': str(row['id']),
-                    'title': row['name'],
-                    'snippet': snippet(row.get('description') or '', q),
-                    'url': f"/recipes?id={row['id']}",
-                    'icon': 'ChefHat',
-                    'group': 'Рецепты',
-                })
-        except Exception as e:
-            print(f'[WARN] recipes search: {e}')
-
-        # Покупки
-        try:
-            cur.execute(f"""
-                SELECT id, name, category
-                FROM {SCHEMA}.shopping_items_v2
-                WHERE family_id = %s
-                  AND name ILIKE %s
-                  AND purchased = false
-                ORDER BY created_at DESC
-                LIMIT %s
-            """, (family_id, like, limit))
-            for row in cur.fetchall():
-                results.append({
-                    'type': 'shopping',
-                    'id': str(row['id']),
-                    'title': row['name'],
-                    'snippet': row.get('category') or 'Покупка',
-                    'url': '/shopping',
-                    'icon': 'ShoppingCart',
-                    'group': 'Покупки',
-                })
-        except Exception as e:
-            print(f'[WARN] shopping search: {e}')
-
-        # Воспоминания
-        try:
-            cur.execute(f"""
-                SELECT id, title, description
-                FROM {SCHEMA}.memory_entries
-                WHERE family_id = %s
-                  AND (title ILIKE %s OR description ILIKE %s)
-                ORDER BY created_at DESC
-                LIMIT %s
-            """, (family_id, like, like, limit))
-            for row in cur.fetchall():
-                results.append({
-                    'type': 'memory',
-                    'id': str(row['id']),
-                    'title': row['title'],
-                    'snippet': snippet(row.get('description') or '', q),
-                    'url': '/memory',
-                    'icon': 'Images',
-                    'group': 'Воспоминания',
-                })
-        except Exception as e:
-            print(f'[WARN] memory search: {e}')
+    if index_count > 0:
+        # v2: FTS + trgm
+        rows = search_v2(cur, q, family_id, limit)
+        results = [format_result(r) for r in rows]
+    else:
+        # fallback: прямые запросы
+        engine = 'ilike'
+        rows = search_fallback(cur, q, family_id, limit)
+        results = [format_result(r) for r in rows]
 
     cur.close()
     conn.close()
 
     return resp(200, {
-        'q': q,
-        'total': len(results),
+        'q':             q,
+        'total':         len(results),
         'authenticated': bool(family_id),
-        'results': results,
+        'engine':        engine,
+        'results':       results,
     })

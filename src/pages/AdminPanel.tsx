@@ -170,6 +170,7 @@ export default function AdminPanel() {
             <TabsTrigger value="campaigns" className="text-xs md:text-sm px-2 py-1.5">Рейтинги и акции</TabsTrigger>
             <TabsTrigger value="referrals" className="text-xs md:text-sm px-2 py-1.5">Реферальная программа</TabsTrigger>
             <TabsTrigger value="hubs" className="text-xs md:text-sm px-2 py-1.5">Хабы</TabsTrigger>
+            <TabsTrigger value="search" className="text-xs md:text-sm px-2 py-1.5">Поиск</TabsTrigger>
           </TabsList>
 
           <TabsContent value="families" className="mt-4">
@@ -207,6 +208,9 @@ export default function AdminPanel() {
           </TabsContent>
           <TabsContent value="hubs" className="mt-4">
             <HubsTab />
+          </TabsContent>
+          <TabsContent value="search" className="mt-4">
+            <SearchIndexTab toast={toast} />
           </TabsContent>
         </Tabs>
       </div>
@@ -1055,6 +1059,126 @@ function MiniStat({ label, value, color }: { label: string; value: string | numb
     <div className={`p-3 bg-gradient-to-br rounded-lg ${colors[color] || colors.slate}`}>
       <p className="text-[10px] md:text-xs font-medium opacity-70">{label}</p>
       <p className="text-lg md:text-xl font-bold mt-1 truncate">{value}</p>
+    </div>
+  );
+}
+
+const INDEXER_URL = (func2url as Record<string, string>)['search-indexer'];
+
+function SearchIndexTab({ toast }: { toast: ReturnType<typeof useToast>['toast'] }) {
+  const [adminToken, setAdminToken] = useState(() => sessionStorage.getItem('adminToken') || '');
+  const [loading, setLoading] = useState<string | null>(null);
+  const [result, setResult] = useState<Record<string, unknown> | null>(null);
+  const [indexCount, setIndexCount] = useState<number | null>(null);
+
+  const callIndexer = async (action: string) => {
+    if (!adminToken) { toast({ title: 'Укажите ADMIN_TOKEN', variant: 'destructive' }); return; }
+    setLoading(action);
+    setResult(null);
+    try {
+      const res = await fetch(`${INDEXER_URL}?action=${action}&token=${encodeURIComponent(adminToken)}`);
+      const data = await res.json();
+      setResult(data);
+      if (res.ok) toast({ title: action === 'setup' ? 'Расширения установлены' : 'Индексирование завершено' });
+      else toast({ title: 'Ошибка', description: data.error, variant: 'destructive' });
+    } catch (e) {
+      toast({ title: 'Ошибка сети', variant: 'destructive' });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const loadCount = async () => {
+    if (!adminToken) return;
+    try {
+      const res = await fetch(`${INDEXER_URL}?action=count&token=${encodeURIComponent(adminToken)}`);
+      const data = await res.json();
+      if (data.count !== undefined) setIndexCount(data.count);
+    } catch { /* ignore */ }
+  };
+
+  useEffect(() => {
+    if (adminToken) { sessionStorage.setItem('adminToken', adminToken); loadCount(); }
+  }, [adminToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div className="space-y-4 max-w-2xl">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Icon name="Search" size={18} className="text-violet-600" />
+            Search v2 — управление индексом
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">ADMIN_TOKEN</label>
+            <Input
+              type="password"
+              placeholder="Вставьте значение из секретов"
+              value={adminToken}
+              onChange={e => setAdminToken(e.target.value)}
+            />
+          </div>
+
+          {indexCount !== null && (
+            <div className="flex items-center gap-2 text-sm">
+              <Icon name="Database" size={15} className="text-gray-400" />
+              <span className="text-gray-600">Записей в индексе:</span>
+              <Badge variant="secondary" className="font-mono">{indexCount}</Badge>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-700">Шаг 1 — один раз</p>
+              <Button
+                variant="outline"
+                className="w-full gap-2"
+                disabled={!!loading}
+                onClick={() => callIndexer('setup')}
+              >
+                {loading === 'setup' ? <Icon name="Loader2" size={15} className="animate-spin" /> : <Icon name="Wrench" size={15} />}
+                Установить расширения
+              </Button>
+              <p className="text-[11px] text-gray-400">pg_trgm + unaccent + trgm-индексы</p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-gray-700">Шаг 2 — полная переиндексация</p>
+              <Button
+                className="w-full gap-2 bg-violet-600 hover:bg-violet-700"
+                disabled={!!loading}
+                onClick={() => callIndexer('index_all')}
+              >
+                {loading === 'index_all' ? <Icon name="Loader2" size={15} className="animate-spin" /> : <Icon name="RefreshCw" size={15} />}
+                Индексировать всё
+              </Button>
+              <p className="text-[11px] text-gray-400">Блог, задачи, события, рецепты, покупки, воспоминания</p>
+            </div>
+          </div>
+
+          {result && (
+            <div className="bg-slate-50 rounded-lg p-3 text-xs font-mono overflow-x-auto">
+              <pre className="whitespace-pre-wrap text-slate-700">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm text-gray-600">Как это работает</CardTitle>
+        </CardHeader>
+        <CardContent className="text-xs text-gray-500 space-y-1.5">
+          <p>• <b>Шаг 1</b> — установить один раз: создаёт расширения pg_trgm + unaccent и триграм-индексы</p>
+          <p>• <b>Шаг 2</b> — запускать после крупных изменений контента (или настроить крон)</p>
+          <p>• Поиск автоматически переключается на FTS-движок когда индекс не пуст</p>
+          <p>• Ранжирование: точное совпадение в заголовке → FTS-ранг → триграм → подстрока</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
