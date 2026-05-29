@@ -33,23 +33,26 @@ def notify_support(feedback_type: str, user_name: str, user_email: str, title: s
         + ("..." if len(description) > 250 else "") + "\n\n"
         f"Открыть карточку: {desk_url}"
     )
+    print(f"[NOTIFY] token={'ok' if MAX_BOT_TOKEN else 'MISSING'} chat={'ok' if MAX_ADMIN_CHAT_ID else 'MISSING'} id={feedback_id}")
     if MAX_BOT_TOKEN and MAX_ADMIN_CHAT_ID:
         try:
-            requests.post(
+            resp = requests.post(
                 f'https://platform-api.max.ru/messages?chat_id={MAX_ADMIN_CHAT_ID}',
                 headers={'Content-Type': 'application/json', 'Authorization': MAX_BOT_TOKEN},
                 json={'text': text},
                 timeout=5
             )
+            print(f"[NOTIFY] MAX status={resp.status_code} body={resp.text[:200]}")
         except Exception as e:
             print(f"[WARN] MAX notify failed: {e}")
     if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
         try:
-            requests.post(
+            resp = requests.post(
                 f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage',
                 json={'chat_id': TELEGRAM_ADMIN_CHAT_ID, 'text': text},
                 timeout=5
             )
+            print(f"[NOTIFY] TG status={resp.status_code}")
         except Exception as e:
             print(f"[WARN] TG notify failed: {e}")
 
