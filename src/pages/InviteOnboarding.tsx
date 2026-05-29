@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 
-const TREE_API = 'https://functions.poehali.dev/';
+const TREE_LINK_API = 'https://functions.poehali.dev/1c2b8fba-a386-476a-a78e-dd0d78f1aa61';
 
 type Screen = 'welcome' | 'relation' | 'link-to-whom' | 'tree-action' | 'done';
 
@@ -61,13 +61,27 @@ export default function InviteOnboarding() {
     welcome: 0, relation: 1, 'link-to-whom': 2, 'tree-action': 3, done: 4,
   };
 
-  const handleFinish = () => {
-    // Сохраняем статус — tree_link_pending или tree_linked
-    const status = treeAction === 'later' || !treeAction ? 'tree_link_pending' : 'tree_link_pending';
+  const handleFinish = async () => {
     localStorage.setItem('invite_onboarding_completed', 'true');
-    localStorage.setItem('tree_link_status', status);
     localStorage.setItem('onboarding_completed', 'true');
     localStorage.removeItem('joined_via_invite');
+
+    // POST заявки на привязку в backend (если не «пропустить»)
+    if (relation && relation !== 'skip' && treeAction && treeAction !== 'later') {
+      try {
+        const token = localStorage.getItem('authToken') || '';
+        await fetch(`${TREE_LINK_API}?action=create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
+          body: JSON.stringify({
+            action: 'create',
+            requested_role: relation,
+            action_type: treeAction === 'link' ? 'link_existing' : 'create_new_person',
+          }),
+        });
+      } catch { /* не блокируем переход */ }
+    }
+
     navigate('/', { replace: true });
   };
 

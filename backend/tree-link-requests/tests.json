@@ -1,0 +1,23 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unauthorized request",
+      "method": "GET",
+      "path": "/?action=list",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Create request without auth",
+      "method": "POST",
+      "path": "/?action=create",
+      "body": { "action": "create", "requested_role": "child", "action_type": "create_new_person" },
+      "expectedStatus": 401
+    }
+  ]
+}

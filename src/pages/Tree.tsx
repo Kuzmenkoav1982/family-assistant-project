@@ -11,6 +11,7 @@ import TreeToolbar from './tree/TreeToolbar';
 import ClanInviteBanner from './tree/ClanInviteBanner';
 import ClanPanel from './tree/ClanPanel';
 import TreeEmptyState from './tree/TreeEmptyState';
+import TreeLinkRequests from './tree/TreeLinkRequests';
 
 const GEN_LABELS: Record<number, string> = {
   0: 'Прадеды',
@@ -21,8 +22,17 @@ const GEN_LABELS: Record<number, string> = {
   5: 'Внуки',
 };
 
+function getUserRole(): string {
+  try {
+    const ud = localStorage.getItem('userData');
+    if (ud) return JSON.parse(ud).role || '';
+  } catch { /* ignore */ }
+  return '';
+}
+
 export default function Tree() {
   const s = useTreePageState();
+  const userRole = getUserRole();
 
   const generations = new Map<number, typeof s.members[0][]>();
   s.members.forEach(member => {
@@ -123,6 +133,8 @@ export default function Tree() {
               }}
             />
           )}
+
+          <TreeLinkRequests userRole={userRole} />
 
           {s.error && (
             <Card className="border-red-200 bg-red-50 mb-4">
