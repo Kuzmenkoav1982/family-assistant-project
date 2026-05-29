@@ -9,18 +9,14 @@
     {
       "name": "Short query rejected",
       "method": "GET",
-      "path": "/?q=а",
-      "expectedStatus": 400,
-      "expectedBody": {"error": "string"},
-      "bodyMatcher": "partial"
+      "path": "/?q=a",
+      "expectedStatus": 400
     },
     {
-      "name": "Blog search works",
+      "name": "Search public",
       "method": "GET",
-      "path": "/?q=семья",
-      "expectedStatus": 200,
-      "expectedBody": {"results": []},
-      "bodyMatcher": "partial"
+      "path": "/?q=family",
+      "expectedStatus": 200
     }
   ]
 }

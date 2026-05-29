@@ -1,8 +1,10 @@
 """
-Глобальный полнотекстовый поиск по экосистеме Наша Семья.
-Ищет по блогу (публично), задачам, событиям, рецептам, покупкам (приватно — по family_id).
-GET /?q=текст&family_id=...&limit=20
-Returns: {results: [{type, id, title, snippet, url, icon}]}
+Глобальный поиск по экосистеме Наша Семья.
+- Публичный: блог (без авторизации)
+- Приватный: задачи, события, рецепты, покупки, воспоминания
+  family_id берётся ТОЛЬКО из серверной сессии по X-Auth-Token, не от клиента.
+GET /?q=текст&limit=20
+Returns: {results: [{type, id, title, snippet, url, icon, group}]}
 """
 
 import json
@@ -35,12 +37,33 @@ def get_db():
     return conn
 
 
+def get_family_id_from_token(token: str):
+    """Получает family_id из БД по токену сессии. Не доверяет клиенту."""
+    if not token:
+        return None
+    conn = get_db()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT fm.family_id
+        FROM {SCHEMA}.sessions s
+        JOIN {SCHEMA}.family_members fm ON fm.user_id = s.user_id
+        WHERE s.token = '{token.replace("'", "''")}'
+          AND s.expires_at > CURRENT_TIMESTAMP
+        LIMIT 1
+    """)
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    return str(row['family_id']) if row and row.get('family_id') else None
+
+
 def snippet(text: str, q: str, length: int = 120) -> str:
     if not text:
         return ''
     text = text.replace('\n', ' ').strip()
     lower = text.lower()
-    pos = lower.find(q.lower().split()[0] if q else '')
+    word = q.lower().split()[0] if q.split() else ''
+    pos = lower.find(word) if word else -1
     if pos == -1:
         return text[:length] + ('…' if len(text) > length else '')
     start = max(0, pos - 30)
@@ -58,17 +81,21 @@ def escape_like(q: str) -> str:
 
 
 def handler(event: dict, context) -> dict:
-    """Глобальный поиск по контенту экосистемы"""
+    """Глобальный поиск. Приватные данные — только по токену сессии."""
     if event.get('httpMethod') == 'OPTIONS':
         return {'statusCode': 200, 'headers': CORS_HEADERS, 'body': ''}
 
     params = event.get('queryStringParameters') or {}
     q = (params.get('q') or '').strip()
-    family_id = (params.get('family_id') or '').strip()
     limit = min(int(params.get('limit') or 20), 50)
 
     if not q or len(q) < 2:
         return resp(400, {'error': 'Запрос слишком короткий'})
+
+    # P0: family_id берём только из сессии на сервере
+    headers = event.get('headers') or {}
+    token = headers.get('X-Auth-Token') or headers.get('x-auth-token') or ''
+    family_id = get_family_id_from_token(token) if token else None
 
     like = f'%{escape_like(q)}%'
     results = []
@@ -76,7 +103,7 @@ def handler(event: dict, context) -> dict:
     conn = get_db()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
-    # 1. Блог — публичный, без фильтра по family
+    # 1. Блог — публичный, без авторизации
     try:
         cur.execute(f"""
             SELECT id, title, excerpt, slug
@@ -99,10 +126,10 @@ def handler(event: dict, context) -> dict:
     except Exception as e:
         print(f'[WARN] blog search: {e}')
 
-    # Приватные разделы — только если передан family_id
+    # 2–6. Приватные разделы — только если токен валиден и семья найдена
     if family_id:
 
-        # 2. Задачи
+        # Задачи
         try:
             cur.execute(f"""
                 SELECT id, title, description, completed
@@ -126,7 +153,7 @@ def handler(event: dict, context) -> dict:
         except Exception as e:
             print(f'[WARN] tasks search: {e}')
 
-        # 3. События календаря
+        # События
         try:
             cur.execute(f"""
                 SELECT id, title, description, event_date
@@ -150,7 +177,7 @@ def handler(event: dict, context) -> dict:
         except Exception as e:
             print(f'[WARN] events search: {e}')
 
-        # 4. Рецепты
+        # Рецепты
         try:
             cur.execute(f"""
                 SELECT id, name, description
@@ -173,7 +200,7 @@ def handler(event: dict, context) -> dict:
         except Exception as e:
             print(f'[WARN] recipes search: {e}')
 
-        # 5. Список покупок
+        # Покупки
         try:
             cur.execute(f"""
                 SELECT id, name, category
@@ -197,7 +224,7 @@ def handler(event: dict, context) -> dict:
         except Exception as e:
             print(f'[WARN] shopping search: {e}')
 
-        # 6. Воспоминания
+        # Воспоминания
         try:
             cur.execute(f"""
                 SELECT id, title, description
@@ -213,7 +240,7 @@ def handler(event: dict, context) -> dict:
                     'id': str(row['id']),
                     'title': row['title'],
                     'snippet': snippet(row.get('description') or '', q),
-                    'url': f"/memory",
+                    'url': '/memory',
                     'icon': 'Images',
                     'group': 'Воспоминания',
                 })
@@ -226,5 +253,6 @@ def handler(event: dict, context) -> dict:
     return resp(200, {
         'q': q,
         'total': len(results),
+        'authenticated': bool(family_id),
         'results': results,
     })

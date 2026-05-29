@@ -1,4 +1,5 @@
-import { useContext, useEffect, useMemo, useState, useRef } from 'react';
+import { useContext, useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   CommandDialog,
@@ -43,15 +44,15 @@ const QUICK_LINKS: Omit<SearchEntry, 'keywords'>[] = [
 ];
 
 const GROUP_META: Record<string, { title: string; icon: string; color: string }> = {
-  'Разделы':       { title: 'Разделы',        icon: 'LayoutGrid',  color: 'text-violet-600' },
-  'Люди':          { title: 'Члены семьи',    icon: 'Users',       color: 'text-blue-600' },
-  'События':       { title: 'События',        icon: 'Calendar',    color: 'text-indigo-600' },
-  'Задачи':        { title: 'Задачи',         icon: 'CheckSquare', color: 'text-emerald-600' },
-  'Рецепты':       { title: 'Рецепты',        icon: 'ChefHat',     color: 'text-amber-600' },
-  'Быстрые':       { title: 'Быстрые ссылки', icon: 'Zap',         color: 'text-pink-600' },
-  'Блог':          { title: 'Блог',           icon: 'BookOpen',    color: 'text-rose-600' },
-  'Покупки':       { title: 'Покупки',        icon: 'ShoppingCart',color: 'text-teal-600' },
-  'Воспоминания':  { title: 'Воспоминания',   icon: 'Images',      color: 'text-orange-600' },
+  'Разделы':       { title: 'Разделы',        icon: 'LayoutGrid',   color: 'text-violet-600' },
+  'Люди':          { title: 'Члены семьи',    icon: 'Users',        color: 'text-blue-600' },
+  'События':       { title: 'События',        icon: 'Calendar',     color: 'text-indigo-600' },
+  'Задачи':        { title: 'Задачи',         icon: 'CheckSquare',  color: 'text-emerald-600' },
+  'Рецепты':       { title: 'Рецепты',        icon: 'ChefHat',      color: 'text-amber-600' },
+  'Быстрые':       { title: 'Быстрые ссылки', icon: 'Zap',          color: 'text-pink-600' },
+  'Блог':          { title: 'Блог',           icon: 'BookOpen',     color: 'text-rose-600' },
+  'Покупки':       { title: 'Покупки',        icon: 'ShoppingCart', color: 'text-teal-600' },
+  'Воспоминания':  { title: 'Воспоминания',   icon: 'Images',       color: 'text-orange-600' },
 };
 
 interface ServerResult {
@@ -62,10 +63,10 @@ interface ServerResult {
   url: string;
   icon: string;
   group: string;
-  completed?: boolean;
 }
 
 const SEARCH_URL = (func2url as Record<string, string>)['global-search'] ?? '';
+const SERVER_GROUPS = ['Блог', 'Задачи', 'События', 'Рецепты', 'Покупки', 'Воспоминания'];
 
 function useStaticEntries(): SearchEntry[] {
   return useMemo(() => {
@@ -177,13 +178,14 @@ function useDynamicEntries(): SearchEntry[] {
   }, [familyCtx?.members, tasksApi, calApi, recipesApi]);
 }
 
-function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
+// ── Общая логика (shared between desktop/mobile) ──────────────────────────────
+
+function useSearchLogic(open: boolean, onOpenChange: (v: boolean) => void) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [serverResults, setServerResults] = useState<ServerResult[]>([]);
   const [serverLoading, setServerLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const familyCtx = useContext(FamilyMembersContext);
   const staticEntries = useStaticEntries();
   const dynamicEntries = useDynamicEntries();
@@ -192,7 +194,6 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
     if (!open) { setQuery(''); setServerResults([]); }
   }, [open]);
 
-  // Серверный поиск с дебаунсом 400ms
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (query.length < 2) { setServerResults([]); return; }
@@ -201,10 +202,11 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
       if (!SEARCH_URL) return;
       setServerLoading(true);
       try {
-        const userData = localStorage.getItem('userData');
-        const familyId = userData ? JSON.parse(userData).family_id || '' : '';
-        const url = `${SEARCH_URL}?q=${encodeURIComponent(query)}${familyId ? `&family_id=${familyId}` : ''}`;
-        const res = await fetch(url);
+        const token = localStorage.getItem('authToken') || '';
+        const url = `${SEARCH_URL}?q=${encodeURIComponent(query)}`;
+        const res = await fetch(url, {
+          headers: token ? { 'X-Auth-Token': token } : {},
+        });
         const data = await res.json();
         setServerResults(data.results || []);
       } catch {
@@ -219,46 +221,48 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
     const order = ['Разделы', 'Люди', 'События', 'Задачи', 'Рецепты', 'Блог', 'Покупки', 'Воспоминания', 'Быстрые'];
     const map = new Map<string, SearchEntry[]>();
 
-    // Локальные записи
     for (const e of [...staticEntries, ...dynamicEntries]) {
       if (!map.has(e.groupKey)) map.set(e.groupKey, []);
       map.get(e.groupKey)!.push(e);
     }
 
-    // Серверные результаты — добавляем как SearchEntry в свои группы
     for (const r of serverResults) {
-      const groupKey = r.group;
       const entry: SearchEntry = {
         id: `srv:${r.type}:${r.id}`,
         label: r.title,
         sublabel: r.snippet || undefined,
         icon: r.icon,
         path: r.url,
-        groupKey,
+        groupKey: r.group,
         keywords: r.title.toLowerCase(),
       };
-      // Не дублируем то, что уже есть в локальных
-      const existing = map.get(groupKey);
-      if (!existing?.find(e => e.path === r.url && e.label === r.title)) {
-        if (!map.has(groupKey)) map.set(groupKey, []);
-        map.get(groupKey)!.push(entry);
+      if (!map.has(r.group)) map.set(r.group, []);
+      const existing = map.get(r.group)!;
+      if (!existing.find(e => e.path === r.url && e.label === r.title)) {
+        existing.push(entry);
       }
     }
 
-    return order
-      .filter(k => map.has(k))
-      .map(k => [k, map.get(k)!] as const);
+    return order.filter(k => map.has(k)).map(k => [k, map.get(k)!] as const);
   }, [staticEntries, dynamicEntries, serverResults, familyCtx]);
 
-  const go = (path: string) => {
+  const go = useCallback((path: string) => {
     onOpenChange(false);
     navigate(path);
-  };
+  }, [navigate, onOpenChange]);
+
+  return { query, setQuery, grouped, go, serverLoading };
+}
+
+// ── Desktop (CommandDialog) ───────────────────────────────────────────────────
+
+function DesktopSearch({ open, onOpenChange }: GlobalSearchDialogProps) {
+  const { query, setQuery, grouped, go, serverLoading } = useSearchLogic(open, onOpenChange);
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Поиск: разделы, блог, задачи, события, рецепты…"
+        placeholder="Поиск по сайту…"
         value={query}
         onValueChange={setQuery}
       />
@@ -267,7 +271,7 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
           {serverLoading ? (
             <div className="py-6 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
               <Icon name="Loader2" size={16} className="animate-spin" />
-              Ищу...
+              Ищу…
             </div>
           ) : (
             <div className="py-6 text-center text-sm text-muted-foreground">
@@ -287,8 +291,8 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
                     <Icon name={meta.icon} size={12} className={meta.color} />
                     <span>{meta.title}</span>
                     <span className="text-[10px] text-muted-foreground/70 font-normal">{items.length}</span>
-                    {serverLoading && ['Блог', 'Задачи', 'События', 'Рецепты', 'Покупки', 'Воспоминания'].includes(groupKey) && (
-                      <Icon name="Loader2" size={10} className="animate-spin text-muted-foreground/50" />
+                    {serverLoading && SERVER_GROUPS.includes(groupKey) && (
+                      <Icon name="Loader2" size={10} className="animate-spin text-muted-foreground/40" />
                     )}
                   </span>
                 }
@@ -328,8 +332,190 @@ function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
   );
 }
 
+// ── Mobile fullscreen overlay ─────────────────────────────────────────────────
+
+function MobileSearch({ open, onOpenChange }: GlobalSearchDialogProps) {
+  const { query, setQuery, grouped, go, serverLoading } = useSearchLogic(open, onOpenChange);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Блокируем скролл фона
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!open) return null;
+
+  const overlay = (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: '#fff',
+        width: '100vw',
+        height: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {/* Sticky header */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 2,
+          background: '#fff',
+          borderBottom: '1px solid #e5e7eb',
+          display: 'grid',
+          gridTemplateColumns: '1fr 44px',
+          gap: '8px',
+          alignItems: 'center',
+          paddingTop: 'calc(12px + env(safe-area-inset-top))',
+          paddingBottom: '12px',
+          paddingLeft: 'calc(16px + env(safe-area-inset-left))',
+          paddingRight: 'calc(8px + env(safe-area-inset-right))',
+        }}
+      >
+        {/* Input */}
+        <div style={{ position: 'relative', minWidth: 0 }}>
+          <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }}>
+            <Icon name={serverLoading ? 'Loader2' : 'Search'} size={18} className={serverLoading ? 'animate-spin' : ''} />
+          </div>
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Поиск"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            style={{
+              width: '100%',
+              height: '44px',
+              paddingLeft: '42px',
+              paddingRight: '14px',
+              border: '1.5px solid #d1d5db',
+              borderRadius: '12px',
+              fontSize: '16px',
+              lineHeight: '1.2',
+              boxSizing: 'border-box',
+              outline: 'none',
+              background: '#f9fafb',
+            }}
+          />
+        </div>
+        {/* Close */}
+        <button
+          onClick={() => onOpenChange(false)}
+          aria-label="Закрыть поиск"
+          style={{
+            width: '44px',
+            height: '44px',
+            border: 'none',
+            background: '#f3f4f6',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <Icon name="X" size={20} className="text-gray-600" />
+        </button>
+      </div>
+
+      {/* Scrollable results */}
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          paddingLeft: 'calc(12px + env(safe-area-inset-left))',
+          paddingRight: 'calc(12px + env(safe-area-inset-right))',
+          paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
+          paddingTop: '8px',
+        }}
+      >
+        {grouped.length === 0 && !serverLoading && query.length >= 2 && (
+          <div className="py-12 text-center text-sm text-gray-400">
+            Ничего не найдено
+          </div>
+        )}
+        {grouped.length === 0 && query.length < 2 && (
+          <div className="py-8 text-center text-sm text-gray-400">
+            Введите хотя бы 2 символа
+          </div>
+        )}
+
+        {grouped.map(([groupKey, items]) => {
+          const meta = GROUP_META[groupKey] || { title: groupKey, icon: 'Folder', color: 'text-gray-500' };
+          return (
+            <div key={groupKey} className="mb-4">
+              {/* Group heading */}
+              <div className="flex items-center gap-1.5 px-1 mb-1.5">
+                <Icon name={meta.icon} size={12} className={meta.color} />
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{meta.title}</span>
+                <span className="text-[10px] text-gray-400">{items.length}</span>
+                {serverLoading && SERVER_GROUPS.includes(groupKey) && (
+                  <Icon name="Loader2" size={10} className="animate-spin text-gray-300" />
+                )}
+              </div>
+
+              {/* Items */}
+              {items.slice(0, 30).map(entry => (
+                <button
+                  key={entry.id}
+                  onClick={() => go(entry.path)}
+                  className="w-full flex items-center gap-3 text-left rounded-xl px-3 py-2.5 mb-1 active:bg-gray-100 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                    <Icon name={entry.icon} size={17} className="text-gray-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
+                      {entry.label}
+                      {entry.badge && (
+                        <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-semibold">
+                          {entry.badge}
+                        </span>
+                      )}
+                    </div>
+                    {entry.sublabel && (
+                      <div className="text-xs text-gray-400 truncate">{entry.sublabel}</div>
+                    )}
+                  </div>
+                  <Icon name="ChevronRight" size={15} className="text-gray-300 shrink-0" />
+                </button>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  return createPortal(overlay, document.body);
+}
+
+// ── Root export ───────────────────────────────────────────────────────────────
+
+function GlobalSearchInner({ open, onOpenChange }: GlobalSearchDialogProps) {
+  const isMobile = window.innerWidth < 768;
+  if (isMobile) {
+    return <MobileSearch open={open} onOpenChange={onOpenChange} />;
+  }
+  return <DesktopSearch open={open} onOpenChange={onOpenChange} />;
+}
+
 export default function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogProps) {
-  // Горячая клавиша Ctrl/⌘+K — всегда активна, без подгрузки данных.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.key === 'k' || e.key === 'K' || e.key === 'л' || e.key === 'Л') && (e.metaKey || e.ctrlKey)) {
@@ -341,8 +527,6 @@ export default function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchD
     return () => window.removeEventListener('keydown', handler);
   }, [open, onOpenChange]);
 
-  // Inner-компонент монтируется только после первого открытия — чтобы хуки данных
-  // не дёргали сеть на каждой странице.
   const [everOpen, setEverOpen] = useState(false);
   useEffect(() => {
     if (open) setEverOpen(true);
