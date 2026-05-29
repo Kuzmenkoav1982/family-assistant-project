@@ -194,9 +194,13 @@ def handler(event, context):
     if resource == 'ideas':
         return handle_ideas(event, method, params, body_parsed)
 
+    action = params.get('action') or (json.loads(event.get('body') or '{}').get('action') if method == 'POST' else None)
+
     if method == 'GET':
         return get_feedback(event)
     elif method == 'POST':
+        if action == 'reply':
+            return reply_feedback(event)
         return create_feedback(event)
     elif method == 'PUT':
         return update_feedback(event)
@@ -593,3 +597,108 @@ def delete_feedback(event):
         return response(404, {'error': 'Отзыв не найден'})
 
     return response(200, {'success': True})
+
+
+def reply_feedback(event):
+    """Отправка email-ответа пользователю на обращение из админки"""
+    if not is_admin(event):
+        return response(403, {'error': 'Доступ запрещён'})
+
+    body = json.loads(event.get('body', '{}'))
+    feedback_id = body.get('id')
+    reply_text = body.get('reply_text', '').strip()
+
+    if not feedback_id or not reply_text:
+        return response(400, {'error': 'Укажите id и reply_text'})
+
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(f"""
+        SELECT id, user_name, user_email, title, type, user_id
+        FROM {SCHEMA}.feedback
+        WHERE id = {int(feedback_id)}
+    """)
+    ticket = cur.fetchone()
+
+    if not ticket:
+        cur.close()
+        conn.close()
+        return response(404, {'error': 'Обращение не найдено'})
+
+    user_email = ticket.get('user_email') or ''
+
+    # Если email не указан в форме — пробуем взять из профиля пользователя
+    if not user_email and ticket.get('user_id') and ticket['user_id'] != 'guest':
+        cur.execute(f"""
+            SELECT email FROM {SCHEMA}.users
+            WHERE id::text = {escape_string(str(ticket['user_id']))}
+            LIMIT 1
+        """)
+        user_row = cur.fetchone()
+        if user_row:
+            user_email = user_row.get('email') or ''
+
+    if not user_email:
+        cur.close()
+        conn.close()
+        return response(400, {'error': 'У пользователя нет email для ответа'})
+
+    # Сохраняем ответ и меняем статус на resolved
+    cur.execute(f"""
+        UPDATE {SCHEMA}.feedback
+        SET status = 'resolved', updated_at = CURRENT_TIMESTAMP
+        WHERE id = {int(feedback_id)}
+    """)
+    cur.close()
+    conn.close()
+
+    # Отправляем письмо пользователю
+    smtp_login = os.environ.get('YANDEX_SMTP_LOGIN', '')
+    smtp_password = os.environ.get('YANDEX_SMTP_PASSWORD', '')
+
+    if not smtp_login or not smtp_password:
+        return response(500, {'error': 'SMTP не настроен'})
+
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+
+    type_labels = {'support': 'Техподдержка', 'review': 'Отзыв', 'suggestion': 'Предложение'}
+    type_label = type_labels.get(ticket.get('type', ''), 'Обращение')
+
+    html_body = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 30px; border-radius: 10px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 22px;">Ответ на ваше обращение</h1>
+        <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0;">Наша Семья — служба поддержки</p>
+      </div>
+      <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-top: 20px;">
+        <p style="color: #555; margin-bottom: 8px;">Здравствуйте, <strong>{ticket['user_name']}</strong>!</p>
+        <p style="color: #555;">Мы получили ваше обращение <em>«{ticket['title']}»</em> и подготовили ответ:</p>
+        <div style="background: white; border-left: 4px solid #4f46e5; padding: 20px; border-radius: 0 8px 8px 0; margin: 20px 0;">
+          <p style="margin: 0; color: #333; white-space: pre-wrap;">{reply_text}</p>
+        </div>
+        <p style="color: #888; font-size: 13px;">Если у вас остались вопросы, напишите нам снова через форму на сайте или на <a href="mailto:support@nasha-semiya.ru" style="color: #4f46e5;">support@nasha-semiya.ru</a></p>
+      </div>
+      <div style="text-align: center; margin-top: 20px; color: #aaa; font-size: 12px;">
+        С уважением, команда Наша Семья · nasha-semiya.ru
+      </div>
+    </div>
+    """
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f'Re: {ticket["title"]} — Наша Семья'
+        msg['From'] = f'Поддержка Наша Семья <{smtp_login}>'
+        msg['To'] = user_email
+        msg.attach(MIMEText(reply_text, 'plain', 'utf-8'))
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+
+        with smtplib.SMTP_SSL('smtp.yandex.ru', 465) as server:
+            server.login(smtp_login, smtp_password)
+            server.sendmail(smtp_login, user_email, msg.as_string())
+
+        return response(200, {'success': True, 'sent_to': user_email})
+    except Exception as e:
+        print(f'[ERROR] reply email: {e}')
+        return response(500, {'error': f'Ошибка отправки: {str(e)}'})
