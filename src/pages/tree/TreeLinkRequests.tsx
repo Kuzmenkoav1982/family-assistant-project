@@ -62,13 +62,15 @@ interface Request {
 
 interface Props {
   isOwnerOrAdmin: boolean;
-  /** Автоматически раскрыть блок (при переходе из уведомления) */
   autoOpen?: boolean;
-  /** ID заявки для highlight (из URL ?requestId=) */
   highlightRequestId?: string;
+  /** Внешний счётчик pending — синхронизирован с badge в навбаре */
+  pendingCount?: number;
+  /** Вызывается после успешного review — чтобы обновить badge */
+  onReviewed?: () => void;
 }
 
-export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRequestId }: Props) {
+export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRequestId, pendingCount, onReviewed }: Props) {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(!autoOpen);
@@ -115,8 +117,9 @@ export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRe
           setRequests(prev => prev.filter(r => r.id !== requestId));
         }
         toast.success(TOAST_MESSAGES[action]);
-        // Сигнал для badge — обновить счётчик pending
+        // Сигнал для badge + callback родителя — обновить счётчик pending
         window.dispatchEvent(new Event('tree-link-reviewed'));
+        onReviewed?.();
       } else {
         toast.error(data.error || 'Ошибка при обработке заявки');
       }
@@ -140,11 +143,14 @@ export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRe
             <Icon name="Clock" size={14} className="text-amber-700" />
           </div>
           <span className="text-sm font-semibold text-amber-900">Запросы на добавление в древо</span>
-          {requests.length > 0 && (
-            <span className="text-xs font-bold bg-amber-500 text-white rounded-full px-2 py-0.5">
-              {requests.length}
-            </span>
-          )}
+          {(() => {
+            const displayCount = loading ? (pendingCount ?? 0) : requests.length;
+            return displayCount > 0 ? (
+              <span className="text-xs font-bold bg-amber-500 text-white rounded-full px-2 py-0.5">
+                {displayCount}
+              </span>
+            ) : null;
+          })()}
         </div>
         <Icon name={collapsed ? 'ChevronDown' : 'ChevronUp'} size={16} className="text-amber-600" />
       </button>

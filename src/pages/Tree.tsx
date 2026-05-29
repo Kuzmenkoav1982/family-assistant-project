@@ -15,6 +15,7 @@ import ClanPanel from './tree/ClanPanel';
 import TreeEmptyState from './tree/TreeEmptyState';
 import TreeLinkRequests from './tree/TreeLinkRequests';
 import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { usePendingTreeRequests } from '@/hooks/usePendingTreeRequests';
 
 const GEN_LABELS: Record<number, string> = {
   0: 'Прадеды',
@@ -40,6 +41,9 @@ export default function Tree() {
   })();
   const isOwnerOrAdmin = currentAccessRole === 'admin' || currentAccessRole === 'owner'
     || currentAccessRole === 'Владелец' || currentAccessRole === 'Администратор';
+
+  // Счётчик pending-заявок — тот же источник что и badge в навбаре
+  const { count: pendingCount, refetch: refetchPending } = usePendingTreeRequests();
 
   const generations = new Map<number, typeof s.members[0][]>();
   s.members.forEach(member => {
@@ -145,6 +149,8 @@ export default function Tree() {
             isOwnerOrAdmin={isOwnerOrAdmin}
             autoOpen={panelFromUrl === 'requests'}
             highlightRequestId={highlightRequestId}
+            pendingCount={pendingCount}
+            onReviewed={refetchPending}
           />
 
           {s.error && (

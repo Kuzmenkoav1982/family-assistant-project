@@ -308,8 +308,11 @@ def handler(event: dict, context) -> dict:
         result = {'error': f'Неизвестное действие: {method} {action}'}
 
     status_code = 200 if result.get('success') else (403 if 'прав' in result.get('error', '') else 400)
+    headers = {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'}
+    if action == 'count':
+        headers['Cache-Control'] = 'no-store'
     return {
         'statusCode': status_code,
-        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+        'headers': headers,
         'body': json.dumps(result, ensure_ascii=False, default=str)
     }
