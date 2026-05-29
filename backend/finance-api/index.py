@@ -65,7 +65,7 @@ def get_user_and_family(event):
         if not fm:
             return user_id, None, None
         family_id = fm[0]
-        access_role = fm[1] or 'viewer'
+        access_role = fm[1] or 'admin'
         return user_id, family_id, access_role
     finally:
         conn.close()

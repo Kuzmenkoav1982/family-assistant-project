@@ -713,12 +713,13 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
             
             insert_member = f"""
                 INSERT INTO {SCHEMA}.family_members
-                (family_id, user_id, name, role, points, level, workload, avatar, avatar_type)
+                (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type)
                 VALUES (
                     {escape_string(family_id)},
                     {escape_string(user_id)},
                     {escape_string(name)},
                     'Владелец',
+                    'admin',
                     0, 1, 0,
                     '👤',
                     'emoji'
@@ -763,7 +764,7 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
             user_data['family_name'] = member['family_name']
             user_data['logo_url'] = member.get('logo_url')
             user_data['member_id'] = str(member['id'])
-            user_data['access_role'] = member.get('access_role', 'viewer')
+            user_data['access_role'] = member.get('access_role') or 'admin'
         
         cur.close()
         conn.close()
@@ -977,12 +978,13 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
             
             insert_member = f"""
                 INSERT INTO {SCHEMA}.family_members
-                (family_id, user_id, name, role, points, level, workload, avatar, avatar_type)
+                (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type)
                 VALUES (
                     {escape_string(family_id)},
                     {escape_string(user_id)},
                     {escape_string(name)},
                     'Владелец',
+                    'admin',
                     0, 1, 0,
                     '👤',
                     'emoji'
@@ -1027,7 +1029,7 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
             user_data['family_name'] = member['family_name']
             user_data['logo_url'] = member.get('logo_url')
             user_data['member_id'] = str(member['id'])
-            user_data['access_role'] = member.get('access_role', 'viewer')
+            user_data['access_role'] = member.get('access_role') or 'admin'
         
         cur.close()
         conn.close()
