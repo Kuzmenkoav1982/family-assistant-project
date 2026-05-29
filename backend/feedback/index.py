@@ -5,9 +5,52 @@ import os
 from typing import Optional, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import requests
 
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
+
+MAX_BOT_TOKEN = os.environ.get('MAX_BOT_TOKEN', '')
+MAX_ADMIN_CHAT_ID = os.environ.get('MAX_ADMIN_CHAT_ID', '')
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
+TELEGRAM_ADMIN_CHAT_ID = os.environ.get('TELEGRAM_ADMIN_CHAT_ID', '')
+
+TYPE_LABELS = {
+    'support': '🆘 Поддержка',
+    'review': '⭐ Отзыв',
+    'suggestion': '💡 Предложение',
+}
+
+def notify_support(feedback_type: str, user_name: str, user_email: str, title: str, description: str, feedback_id: str):
+    label = TYPE_LABELS.get(feedback_type, feedback_type)
+    text = (
+        f"{label} — новое обращение\n\n"
+        f"От: {user_name}"
+        + (f" ({user_email})" if user_email else "") + "\n"
+        f"Тема: {title}\n"
+        f"Текст: {description[:300]}"
+        + ("..." if len(description) > 300 else "") + "\n\n"
+        f"ID: {feedback_id}"
+    )
+    if MAX_BOT_TOKEN and MAX_ADMIN_CHAT_ID:
+        try:
+            requests.post(
+                f'https://platform-api.max.ru/messages?chat_id={MAX_ADMIN_CHAT_ID}',
+                headers={'Content-Type': 'application/json', 'Authorization': MAX_BOT_TOKEN},
+                json={'text': text},
+                timeout=5
+            )
+        except Exception as e:
+            print(f"[WARN] MAX notify failed: {e}")
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_ADMIN_CHAT_ID:
+        try:
+            requests.post(
+                f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage',
+                json={'chat_id': TELEGRAM_ADMIN_CHAT_ID, 'text': text},
+                timeout=5
+            )
+        except Exception as e:
+            print(f"[WARN] TG notify failed: {e}")
 
 IDEA_CATEGORIES = [
     {'id': 'feature', 'name': 'Новая функция', 'icon': 'Sparkles', 'color': 'bg-purple-500'},
@@ -479,6 +522,15 @@ def create_feedback(event):
     row = cur.fetchone()
     cur.close()
     conn.close()
+
+    notify_support(
+        feedback_type=body.get('type', 'review'),
+        user_name=body.get('user_name', 'Гость'),
+        user_email=body.get('user_email', ''),
+        title=body.get('title', ''),
+        description=body.get('description', ''),
+        feedback_id=str(row['id'])
+    )
 
     return response(201, dict(row))
 
