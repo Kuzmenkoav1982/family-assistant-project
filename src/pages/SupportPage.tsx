@@ -49,7 +49,7 @@ export default function SupportPage() {
         setFormData({ title: '', description: '', email: currentUser?.email || '' });
         setSuccess(true);
         setTimeout(() => {
-          navigate(-1);
+          navigate('/');
         }, 3000);
       } else {
         alert('Ошибка при отправке обращения');
@@ -73,8 +73,8 @@ export default function SupportPage() {
           <p className="text-gray-600 mb-4">
             Мы получили ваше сообщение и свяжемся с вами в ближайшее время
           </p>
-          <Button onClick={() => navigate(-1)} className="w-full">
-            Вернуться назад
+          <Button onClick={() => navigate('/')} className="w-full">
+            На главную
           </Button>
         </Card>
       </div>

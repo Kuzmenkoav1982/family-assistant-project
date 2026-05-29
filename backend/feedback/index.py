@@ -863,9 +863,11 @@ def reply_feedback(event):
     """
 
     try:
+        from email.header import Header
         msg = MIMEMultipart('alternative')
         msg['Subject'] = f'Re: {ticket["title"]} — Наша Семья'
-        msg['From'] = f'Поддержка Наша Семья <{smtp_login}>'
+        sender_name = Header('Поддержка Наша Семья', 'utf-8')
+        msg['From'] = f'{sender_name} <{smtp_login}>'
         msg['To'] = user_email
         msg.attach(MIMEText(reply_text, 'plain', 'utf-8'))
         msg.attach(MIMEText(html_body, 'html', 'utf-8'))
