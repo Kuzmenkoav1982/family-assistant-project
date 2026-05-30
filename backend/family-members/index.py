@@ -71,7 +71,8 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
                photo_url, points, level, workload, age, birth_date, birth_time, 
-               account_type, permissions, access_role, profile_data, created_at, updated_at
+               account_type, permissions, access_role, profile_data,
+               tree_node_id, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
           AND name NOT LIKE '[ДУБЛИКАТ%'

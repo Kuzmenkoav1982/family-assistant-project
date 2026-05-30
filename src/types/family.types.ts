@@ -37,6 +37,7 @@ export interface FamilyMember {
   birth_time?: string;
   birthDate?: string;
   birthTime?: string;
+  tree_node_id?: number;
   created_at: string;
   updated_at: string;
   dreams?: Dream[];

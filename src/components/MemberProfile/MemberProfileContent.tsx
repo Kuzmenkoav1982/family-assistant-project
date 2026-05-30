@@ -14,7 +14,6 @@ import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionna
 import { usePermissions } from '@/hooks/usePermissions';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { calculateMemberWorkload } from '@/utils/memberWorkload';
-import { useFamilyTree } from '@/hooks/useFamilyTree';
 import MemberMemorySection from '@/components/memory/MemberMemorySection';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task, CalendarEvent } from '@/types/family.types';
 import type { LifeEvent } from '@/components/life-road/types';
@@ -56,13 +55,11 @@ export function MemberProfileContent({
 }: MemberProfileContentProps) {
   const navigate = useNavigate();
   const { canDo, loading: permissionsLoading, role } = usePermissions();
-  const { members: treeMembers } = useFamilyTree();
   const [activeTab, setActiveTab] = useState('overview');
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
 
-  // Числовой ID в family_tree (нужен для фильтрации памятей)
-  const treeMember = treeMembers.find(t => t.name.trim() === member.name.trim());
-  const treeId = treeMember?.id ?? null;
+  // Числовой ID в family_tree — берём из поля tree_node_id, без поиска по имени
+  const treeId = member.tree_node_id ?? null;
 
   console.log('[MemberProfile] Permissions state:', { 
     loading: permissionsLoading, 
