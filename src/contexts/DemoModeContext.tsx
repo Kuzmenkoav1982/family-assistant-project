@@ -157,10 +157,13 @@ export function DemoModeProvider({ children }: { children: React.ReactNode }) {
     };
 
     checkDemoMode();
-    
-    // Подписываемся на изменения localStorage
-    const interval = setInterval(checkDemoMode, 500);
-    return () => clearInterval(interval);
+
+    // Слушаем storage-события вместо polling каждые 500мс
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'isDemoMode' || e.key === 'authToken') checkDemoMode();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   const updateDemoTask = (taskId: string, updates: Partial<Task>) => {

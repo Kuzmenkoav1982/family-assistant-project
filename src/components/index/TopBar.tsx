@@ -68,7 +68,7 @@ export function TopBar({
 
   useEffect(() => {
     fetchBalance();
-    const iv = setInterval(fetchBalance, 60000);
+    const iv = setInterval(fetchBalance, 300000); // 5 минут вместо 1
     return () => clearInterval(iv);
   }, [fetchBalance]);
 
