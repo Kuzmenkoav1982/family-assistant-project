@@ -16,9 +16,15 @@ import MemoryEmptyState from '@/components/memory/MemoryEmptyState';
 import HubInstructionBlock from '@/components/hub/HubInstructionBlock';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { resolveAlbumCover } from '@/components/memory/coverResolver';
+import { useQuickPhotoUpload } from '@/components/memory/useQuickPhotoUpload';
 
 export default function Memory() {
   const p = useMemoryPageState();
+
+  const quickUpload = useQuickPhotoUpload({
+    albumId: p.filterAlbum?.id,
+    onDone: () => p.reload(),
+  });
 
   return (
     <SectionPageFrame
@@ -152,6 +158,9 @@ export default function Memory() {
           onBulkAdd={() => p.setBulkAddOpen(true)}
           onPickCover={() => p.setCoverDialogOpen(true)}
           onStartSelection={() => p.setSelectionMode(true)}
+          onQuickUpload={quickUpload.openPicker}
+          quickUploading={quickUpload.uploading}
+          quickUploadInputProps={quickUpload.inputProps}
         />
       )}
 

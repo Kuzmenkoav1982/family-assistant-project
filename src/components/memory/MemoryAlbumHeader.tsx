@@ -1,3 +1,4 @@
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,6 +20,9 @@ interface MemoryAlbumHeaderProps {
   onBulkAdd: () => void;
   onPickCover: () => void;
   onStartSelection: () => void;
+  onQuickUpload?: () => void;
+  quickUploading?: boolean;
+  quickUploadInputProps?: React.InputHTMLAttributes<HTMLInputElement> & { ref?: React.Ref<HTMLInputElement> };
 }
 
 export default function MemoryAlbumHeader({
@@ -31,6 +35,9 @@ export default function MemoryAlbumHeader({
   onBulkAdd,
   onPickCover,
   onStartSelection,
+  onQuickUpload,
+  quickUploading,
+  quickUploadInputProps,
 }: MemoryAlbumHeaderProps) {
   return (
     <div className="mb-4 rounded-xl border-2 border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
@@ -89,6 +96,20 @@ export default function MemoryAlbumHeader({
         </div>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">
+        {quickUploadInputProps && <input {...quickUploadInputProps} />}
+        <Button
+          size="sm"
+          onClick={onQuickUpload}
+          disabled={quickUploading}
+          className="bg-amber-500 hover:bg-amber-600 text-white"
+        >
+          {quickUploading ? (
+            <Icon name="Loader" size={14} className="mr-1.5 animate-spin" />
+          ) : (
+            <Icon name="ImagePlus" size={14} className="mr-1.5" />
+          )}
+          {quickUploading ? 'Загружаем…' : 'Добавить фото'}
+        </Button>
         <Button
           size="sm"
           variant="outline"
@@ -96,7 +117,7 @@ export default function MemoryAlbumHeader({
           className="border-amber-300 bg-white text-amber-900 hover:bg-amber-50"
         >
           <Icon name="FolderPlus" size={14} className="mr-1.5" />
-          Добавить существующие
+          Существующие
         </Button>
         {canSelect && (
           <Button
