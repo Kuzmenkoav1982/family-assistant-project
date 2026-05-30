@@ -170,6 +170,17 @@ def add_member(family_id: str, data: Dict) -> Dict:
             WHERE id = {int(member['spouse_id'])} AND family_id::text = {escape_string(family_id)} AND (spouse_id IS NULL OR spouse_id != {member['id']})
         """)
 
+    # Авто-линковка: если в family_members есть участник с таким же именем — ставим ему tree_node_id
+    name_val = member.get('name', '')
+    cur.execute(f"""
+        UPDATE {SCHEMA}.family_members
+        SET tree_node_id = {member['id']}
+        WHERE family_id::text = {escape_string(family_id)}
+          AND lower(trim(name)) = lower(trim({escape_string(name_val)}))
+          AND tree_node_id IS NULL
+    """)
+
+    conn.commit()
     cur.close()
     conn.close()
     return member

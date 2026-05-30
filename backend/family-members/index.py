@@ -108,11 +108,16 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         # Определяем тип аккаунта: если user_id непустой - full, иначе child_profile
         user_id = data.get('user_id')
         account_type = 'full' if (user_id and user_id != 'null') else data.get('account_type', 'child_profile')
+
+        # tree_node_id — явная связь с узлом семейного дерева
+        raw_tree_node_id = data.get('tree_node_id')
+        tree_node_id_val = int(raw_tree_node_id) if raw_tree_node_id is not None else None
+        tree_node_sql = str(tree_node_id_val) if tree_node_id_val is not None else 'NULL'
         
         query = f"""
             INSERT INTO {SCHEMA}.family_members
             (family_id, name, role, relationship, avatar, avatar_type, 
-             photo_url, points, level, workload, age, account_type)
+             photo_url, points, level, workload, age, account_type, tree_node_id)
             VALUES (
                 {escape_string(family_id)},
                 {escape_string(data.get('name', ''))},
@@ -125,18 +130,40 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 {escape_string(data.get('level', 1))},
                 {escape_string(data.get('workload', 0))},
                 {escape_string(data.get('age'))},
-                {escape_string(account_type)}
+                {escape_string(account_type)},
+                {tree_node_sql}
             )
-            RETURNING id, name, role, relationship, avatar, points, level, workload, account_type
+            RETURNING id, name, role, relationship, avatar, points, level, workload, account_type, tree_node_id
         """
         cur.execute(query)
-        member = cur.fetchone()
+        member = dict(cur.fetchone())
+
+        # Авто-линковка: если tree_node_id не передан явно — ищем совпадение по имени в дереве этой семьи
+        if member.get('tree_node_id') is None:
+            name_val = member.get('name', '')
+            cur.execute(f"""
+                SELECT id FROM {SCHEMA}.family_tree
+                WHERE family_id::text = {escape_string(family_id)}
+                  AND lower(trim(name)) = lower(trim({escape_string(name_val)}))
+                LIMIT 1
+            """)
+            tree_row = cur.fetchone()
+            if tree_row:
+                found_tree_id = tree_row['id']
+                cur.execute(f"""
+                    UPDATE {SCHEMA}.family_members
+                    SET tree_node_id = {int(found_tree_id)}
+                    WHERE id::text = {escape_string(str(member['id']))}
+                """)
+                member['tree_node_id'] = found_tree_id
+
+        conn.commit()
         cur.close()
         conn.close()
         
         return {
             'success': True,
-            'member': dict(member)
+            'member': member
         }
     except Exception as e:
         cur.close()
@@ -183,6 +210,13 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], r
                       'photo_url', 'points', 'level', 'workload', 'age', 'account_type']:
             if field in data:
                 fields.append(f"{field} = {escape_string(data[field])}")
+
+        if 'tree_node_id' in data:
+            raw_tree_id = data['tree_node_id']
+            if raw_tree_id is None:
+                fields.append("tree_node_id = NULL")
+            else:
+                fields.append(f"tree_node_id = {int(raw_tree_id)}")
         
         if 'access_role' in data:
             fields.append(f"access_role = {escape_string(data['access_role'])}")
