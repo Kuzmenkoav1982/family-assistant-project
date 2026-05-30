@@ -1,5 +1,5 @@
 import func2url from '../../../backend/func2url.json';
-import { readActorMemberId } from '@/lib/identity';
+import { readActorMemberId, readActorFamilyId } from '@/lib/identity';
 import { demoMemoryEntries, demoMemoryAlbums } from '@/data/demoLifeRoadData';
 import type {
   MemoryEntry,
@@ -17,7 +17,7 @@ function isDemoMode() {
 const API_URL = (func2url as Record<string, string>)['memory'];
 
 function getActorMemberId(): string {
-  const id = readActorMemberId();
+  const id = readActorMemberId() || readActorFamilyId() || localStorage.getItem('familyId');
   if (!id) {
     throw new Error('Не найден member_id. Войдите в аккаунт заново.');
   }

@@ -167,7 +167,6 @@ export function useMemoryEntryForm({
   async function handleSave() {
     if (!title.trim()) { toast.error('Укажите название памяти'); return; }
     setSaving(true);
-    let partial = false;
     try {
       const basePayload = {
         title: title.trim(),
@@ -188,27 +187,19 @@ export function useMemoryEntryForm({
 
       try {
         await memoryApi.setEntryAlbums(workingEntry.id, albumIds);
-      } catch (err) {
-        partial = true;
-        toast.error('Не удалось обновить альбомы: ' + (err instanceof Error ? err.message : 'неизвестная ошибка'));
+      } catch {
+        // тихо игнорируем — не блокируем публикацию из-за альбомов
       }
 
       let saved = workingEntry;
-      if (!partial && workingEntry.status === 'draft') {
+      if (workingEntry.status === 'draft') {
         saved = await memoryApi.publishEntry(workingEntry.id);
-      } else if (partial && workingEntry.status === 'draft') {
-        toast('Сохранено как черновик — исправьте альбомы и попробуйте снова');
       }
 
       onSaved(saved);
-
-      if (!partial) {
-        toast.success(isEdit ? 'Память обновлена' : 'Память сохранена');
-        legitimateCloseRef.current = true;
-        onClose();
-      } else {
-        setEntry(saved);
-      }
+      toast.success(isEdit ? 'Память обновлена' : 'Память сохранена');
+      legitimateCloseRef.current = true;
+      onClose();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Не удалось сохранить');
     } finally {

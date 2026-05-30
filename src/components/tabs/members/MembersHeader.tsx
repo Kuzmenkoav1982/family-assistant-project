@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Icon from '@/components/ui/icon';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { FamilyMember } from '@/types/family.types';
 
 interface MembersHeaderProps {
@@ -28,6 +30,7 @@ export function MembersHeader({
   setEditingMember,
 }: MembersHeaderProps) {
   const navigate = useNavigate();
+  const ctx = useContext(FamilyMembersContext);
 
   return (
     <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
@@ -68,11 +71,11 @@ export function MembersHeader({
                 </DialogHeader>
                 <AddFamilyMemberForm
                   editingMember={editingMember}
-                  onSubmit={(newMember) => {
+                  onSubmit={async (newMember) => {
                     if (editingMember) {
-                      setFamilyMembers(familyMembers.map(m => m.id === newMember.id ? newMember : m));
+                      await ctx?.updateMember({ ...newMember, id: newMember.id });
                     } else {
-                      setFamilyMembers([...familyMembers, newMember]);
+                      await ctx?.addMember(newMember);
                     }
                     setAddMemberDialogOpen(false);
                     setEditingMember(undefined);
@@ -101,8 +104,8 @@ export function MembersHeader({
                 <AddFamilyMemberForm
                   editingMember={undefined}
                   isChild={true}
-                  onSubmit={(newChild) => {
-                    setFamilyMembers([...familyMembers, { ...newChild, relationship: 'Ребёнок' }]);
+                  onSubmit={async (newChild) => {
+                    await ctx?.addMember({ ...newChild, relationship: 'Ребёнок' });
                     setAddChildDialogOpen(false);
                   }}
                 />
