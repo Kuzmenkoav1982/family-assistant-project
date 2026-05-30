@@ -21,6 +21,9 @@ import LifeShareDialog from '@/components/life-road/LifeShareDialog';
 import { useSwipe } from '@/components/life-road/useSwipe';
 import { useLifeEvents } from '@/components/life-road/useLifeEvents';
 import { useLifeGoals } from '@/components/life-road/useLifeGoals';
+import { useFamilyTree } from '@/hooks/useFamilyTree';
+import { readActorMemberId } from '@/lib/identity';
+import MemberMemorySection from '@/components/memory/MemberMemorySection';
 import type { LifeEvent, LifeEventCategory, LifeGoal } from '@/components/life-road/types';
 
 const BANNER_URL =
@@ -40,6 +43,16 @@ export default function LifeRoad() {
   const { members, loading: familyLoading } = useFamilyMembersContext();
   const { events, loading: eventsLoading, error, create: createEvent, update: updateEvent, remove: removeEvent } = useLifeEvents();
   const { goals, create: createGoal, update: updateGoal, remove: removeGoal } = useLifeGoals();
+  const { members: treeMembers } = useFamilyTree();
+
+  // Числовой ID текущего пользователя в family_tree (для фильтрации памятей)
+  const myTreeId = useMemo(() => {
+    const actorId = readActorMemberId();
+    const me = members?.find(m => m.id === actorId || m.user_id === actorId);
+    if (!me) return null;
+    const treeMember = treeMembers.find(t => t.name.trim() === me.name.trim());
+    return treeMember?.id ?? null;
+  }, [members, treeMembers]);
 
   const [tab, setTab] = useState<TabId>('road');
   const [category, setCategory] = useState<'all' | LifeEventCategory>('all');
@@ -188,6 +201,10 @@ export default function LifeRoad() {
 
           {tab === 'road' && (
             <>
+              {myTreeId !== null && (
+                <MemberMemorySection memberId={myTreeId} previewLimit={3} />
+              )}
+
               <LifeFiltersBar
                 total={events.length}
                 shown={filtered.length}
