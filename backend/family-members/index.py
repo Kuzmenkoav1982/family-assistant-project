@@ -100,6 +100,29 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     print(f"[DEBUG] get_family_members returning: {result}")
     return result
 
+def validate_tree_node_id(cur, tree_node_id: int, family_id: str, exclude_member_id: str = None) -> Optional[str]:
+    """Проверяет tree_node_id: существует, в той же семье, не занят другим member. Возвращает ошибку или None."""
+    cur.execute(f"""
+        SELECT id FROM {SCHEMA}.family_tree
+        WHERE id = {int(tree_node_id)}
+          AND family_id::text = {escape_string(family_id)}
+    """)
+    if not cur.fetchone():
+        return 'tree_node_id не существует или принадлежит другой семье'
+    # Проверяем, не занят ли этот узел другим профилем
+    excl = f"AND id::text != {escape_string(exclude_member_id)}" if exclude_member_id else ""
+    cur.execute(f"""
+        SELECT id FROM {SCHEMA}.family_members
+        WHERE tree_node_id = {int(tree_node_id)}
+          AND family_id::text = {escape_string(family_id)}
+          {excl}
+        LIMIT 1
+    """)
+    if cur.fetchone():
+        return 'tree_node_id уже привязан к другому участнику'
+    return None
+
+
 def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -113,6 +136,13 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         raw_tree_node_id = data.get('tree_node_id')
         tree_node_id_val = int(raw_tree_node_id) if raw_tree_node_id is not None else None
         tree_node_sql = str(tree_node_id_val) if tree_node_id_val is not None else 'NULL'
+
+        if tree_node_id_val is not None:
+            err = validate_tree_node_id(cur, tree_node_id_val, family_id)
+            if err:
+                cur.close()
+                conn.close()
+                return {'error': err}
         
         query = f"""
             INSERT INTO {SCHEMA}.family_members
@@ -138,24 +168,27 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         cur.execute(query)
         member = dict(cur.fetchone())
 
-        # Авто-линковка: если tree_node_id не передан явно — ищем совпадение по имени в дереве этой семьи
+        # Авто-линковка: если tree_node_id не передан явно — ищем совпадение по имени в дереве этой семьи.
+        # Срабатывает только при ровно 1 совпадении (неоднозначность = не связываем).
         if member.get('tree_node_id') is None:
             name_val = member.get('name', '')
             cur.execute(f"""
                 SELECT id FROM {SCHEMA}.family_tree
                 WHERE family_id::text = {escape_string(family_id)}
                   AND lower(trim(name)) = lower(trim({escape_string(name_val)}))
-                LIMIT 1
             """)
-            tree_row = cur.fetchone()
-            if tree_row:
-                found_tree_id = tree_row['id']
+            tree_rows = cur.fetchall()
+            if len(tree_rows) == 1:
+                found_tree_id = tree_rows[0]['id']
                 cur.execute(f"""
                     UPDATE {SCHEMA}.family_members
                     SET tree_node_id = {int(found_tree_id)}
                     WHERE id::text = {escape_string(str(member['id']))}
                 """)
                 member['tree_node_id'] = found_tree_id
+                print(f"[auto-link] member {member['id']} linked to tree node {found_tree_id}")
+            elif len(tree_rows) > 1:
+                print(f"[auto-link] ambiguous: {len(tree_rows)} tree nodes match name '{name_val}', skipping")
 
         conn.commit()
         cur.close()
@@ -216,7 +249,13 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], r
             if raw_tree_id is None:
                 fields.append("tree_node_id = NULL")
             else:
-                fields.append(f"tree_node_id = {int(raw_tree_id)}")
+                validated_tree_id = int(raw_tree_id)
+                err = validate_tree_node_id(cur, validated_tree_id, family_id, exclude_member_id=member_id)
+                if err:
+                    cur.close()
+                    conn.close()
+                    return {'error': err}
+                fields.append(f"tree_node_id = {validated_tree_id}")
         
         if 'access_role' in data:
             fields.append(f"access_role = {escape_string(data['access_role'])}")

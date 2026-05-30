@@ -170,15 +170,25 @@ def add_member(family_id: str, data: Dict) -> Dict:
             WHERE id = {int(member['spouse_id'])} AND family_id::text = {escape_string(family_id)} AND (spouse_id IS NULL OR spouse_id != {member['id']})
         """)
 
-    # Авто-линковка: если в family_members есть участник с таким же именем — ставим ему tree_node_id
+    # Авто-линковка: если в family_members есть ровно один участник с таким же именем — ставим ему tree_node_id.
+    # При неоднозначности (2+ совпадений) не связываем.
     name_val = member.get('name', '')
     cur.execute(f"""
-        UPDATE {SCHEMA}.family_members
-        SET tree_node_id = {member['id']}
+        SELECT id FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
           AND lower(trim(name)) = lower(trim({escape_string(name_val)}))
           AND tree_node_id IS NULL
     """)
+    candidates = cur.fetchall()
+    if len(candidates) == 1:
+        cur.execute(f"""
+            UPDATE {SCHEMA}.family_members
+            SET tree_node_id = {member['id']}
+            WHERE id::text = {escape_string(str(candidates[0]['id']))}
+        """)
+        print(f"[auto-link] tree node {member['id']} linked to member {candidates[0]['id']}")
+    elif len(candidates) > 1:
+        print(f"[auto-link] ambiguous: {len(candidates)} members match name '{name_val}', skipping")
 
     conn.commit()
     cur.close()
@@ -235,6 +245,7 @@ def update_member(family_id: str, member_id: str, data: Dict) -> Optional[Dict]:
 def delete_member(family_id: str, member_id: str) -> bool:
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
+    # Снимаем ссылки внутри дерева
     cur.execute(f"""
         UPDATE {SCHEMA}.family_tree SET parent_id = NULL 
         WHERE parent_id::text = {escape_string(member_id)} 
@@ -250,6 +261,12 @@ def delete_member(family_id: str, member_id: str) -> bool:
         WHERE spouse_id::text = {escape_string(member_id)} 
           AND family_id::text = {escape_string(family_id)}
     """)
+    # Снимаем tree_node_id у связанных профилей — чтобы не было битых FK
+    cur.execute(f"""
+        UPDATE {SCHEMA}.family_members SET tree_node_id = NULL
+        WHERE tree_node_id::text = {escape_string(member_id)}
+          AND family_id::text = {escape_string(family_id)}
+    """)
     cur.execute(f"""
         DELETE FROM {SCHEMA}.family_tree_photos
         WHERE member_id::text = {escape_string(member_id)}
@@ -260,6 +277,7 @@ def delete_member(family_id: str, member_id: str) -> bool:
           AND family_id::text = {escape_string(family_id)}
     """)
     deleted = cur.rowcount > 0
+    conn.commit()
     cur.close()
     conn.close()
     return deleted
