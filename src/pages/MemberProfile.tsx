@@ -6,6 +6,7 @@ import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { useMemberProfile } from '@/hooks/useMemberProfile';
 import { useTasks } from '@/hooks/useTasks';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
+import { useLifeEvents } from '@/components/life-road/useLifeEvents';
 import { MemberProfileHeader } from '@/components/MemberProfile/MemberProfileHeader';
 import { MemberProfileInstruction } from '@/components/MemberProfile/MemberProfileInstruction';
 import { MemberProfileContent } from '@/components/MemberProfile/MemberProfileContent';
@@ -18,6 +19,7 @@ export default function MemberProfile() {
   const { saveProfile } = useMemberProfile();
   const { tasks, toggleTask, deleteTask } = useTasks();
   const { events } = useCalendarEvents();
+  const { events: lifeEvents } = useLifeEvents();
   const [memberProfile, setMemberProfile] = useState<MemberProfileType | null>(null);
   const loadedMemberRef = useRef<string | null>(null);
   
@@ -28,14 +30,18 @@ export default function MemberProfile() {
   
   const memberTasks = member ? tasks.filter(task => task.assignee_id === memberId) : [];
   
-  // Фильтруем события члена семьи
+  // Фильтруем CalendarEvents члена семьи
   const memberEvents = member ? events.filter(event => 
     event.assignedTo === memberId || 
     event.assignedTo === member.name ||
-    event.attendees?.includes(memberId) ||
-    event.attendees?.includes(member.name) ||
-    event.participants?.includes(memberId) ||
-    event.participants?.includes(member.name)
+    event.attendees?.includes(memberId!) ||
+    event.attendees?.includes(member.name)
+  ) : [];
+
+  // Фильтруем LifeEvents по участникам
+  const memberLifeEvents = member ? lifeEvents.filter(e =>
+    e.participants?.includes(memberId!) ||
+    e.participants?.includes(member.name)
   ) : [];
 
   useEffect(() => {
@@ -142,6 +148,7 @@ export default function MemberProfile() {
           isOwner={isOwner}
           memberTasks={memberTasks}
           memberEvents={memberEvents}
+          memberLifeEvents={memberLifeEvents}
           memberProfile={memberProfile}
           toggleTask={toggleTask}
           deleteTask={deleteTask}

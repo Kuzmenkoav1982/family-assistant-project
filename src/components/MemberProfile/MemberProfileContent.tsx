@@ -15,6 +15,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { calculateMemberWorkload } from '@/utils/memberWorkload';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task, CalendarEvent } from '@/types/family.types';
+import type { LifeEvent } from '@/components/life-road/types';
 
 interface MemberProfileContentProps {
   member: FamilyMember;
@@ -22,6 +23,7 @@ interface MemberProfileContentProps {
   isOwner: boolean;
   memberTasks: Task[];
   memberEvents: CalendarEvent[];
+  memberLifeEvents?: LifeEvent[];
   memberProfile: MemberProfileType | null;
   toggleTask: (taskId: string) => Promise<void>;
   deleteTask: (taskId: string) => Promise<void>;
@@ -39,6 +41,7 @@ export function MemberProfileContent({
   isOwner,
   memberTasks,
   memberEvents,
+  memberLifeEvents = [],
   memberProfile,
   toggleTask,
   deleteTask,
@@ -261,7 +264,60 @@ export function MemberProfileContent({
               )}
             </div>
 
-            {/* События */}
+            {/* LifeEvents — события жизненного пути */}
+            {memberLifeEvents.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                  <Icon name="BookHeart" className="text-pink-500" />
+                  Важные события жизни
+                </h3>
+                <div className="space-y-3">
+                  {memberLifeEvents.map(event => {
+                    const categoryColors: Record<string, string> = {
+                      birth: 'bg-pink-100 text-pink-700',
+                      wedding: 'bg-red-100 text-red-700',
+                      education: 'bg-blue-100 text-blue-700',
+                      career: 'bg-green-100 text-green-700',
+                      achievement: 'bg-yellow-100 text-yellow-700',
+                      travel: 'bg-cyan-100 text-cyan-700',
+                      family: 'bg-purple-100 text-purple-700',
+                      health: 'bg-orange-100 text-orange-700',
+                      other: 'bg-gray-100 text-gray-700',
+                    };
+                    const categoryLabels: Record<string, string> = {
+                      birth: 'Рождение', wedding: 'Свадьба', education: 'Образование',
+                      career: 'Карьера', achievement: 'Достижение', travel: 'Путешествие',
+                      family: 'Семья', health: 'Здоровье', other: 'Прочее',
+                    };
+                    return (
+                      <Card key={event.id} className="hover:shadow-md transition-shadow border-l-4 border-l-pink-400">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className="font-semibold">{event.title}</h4>
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${categoryColors[event.category] || categoryColors.other}`}>
+                                  {categoryLabels[event.category] || event.category}
+                                </span>
+                              </div>
+                              {event.description && (
+                                <p className="text-sm text-gray-600 mb-1">{event.description}</p>
+                              )}
+                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <Icon name="Calendar" size={12} />
+                                {new Date(event.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Календарные события */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
