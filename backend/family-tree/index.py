@@ -186,9 +186,9 @@ def add_member(family_id: str, data: Dict) -> Dict:
             SET tree_node_id = {member['id']}
             WHERE id::text = {escape_string(str(candidates[0]['id']))}
         """)
-        print(f"[auto-link] tree node {member['id']} linked to member {candidates[0]['id']}")
+        print(f"[auto-link] family={family_id} tree_node={member['id']} name='{name_val}' linked to member={candidates[0]['id']}")
     elif len(candidates) > 1:
-        print(f"[auto-link] ambiguous: {len(candidates)} members match name '{name_val}', skipping")
+        print(f"[auto-link] AMBIGUOUS family={family_id} name='{name_val}' match_count={len(candidates)} — skipped")
 
     conn.commit()
     cur.close()
