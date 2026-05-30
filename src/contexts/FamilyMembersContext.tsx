@@ -213,22 +213,6 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
 
   const addMember = async (memberData: Partial<FamilyMember>) => {
     try {
-      const familyId = localStorage.getItem('familyId');
-      if (familyId) {
-        try {
-          const limitsResponse = await fetch('https://functions.poehali.dev/b92c4b01-02db-4805-95d0-c79df5b10d1a', {
-            headers: { 'X-Family-Id': familyId }
-          });
-          const limitsData = await limitsResponse.json();
-          
-          if (!limitsData.limits.family_members.allowed) {
-            return { success: false, error: 'Лимит членов семьи исчерпан. Перейдите на Premium.' };
-          }
-        } catch {
-          // ignore
-        }
-      }
-
       const backendData: Record<string, unknown> = { ...memberData };
       if (memberData.photoUrl) {
         backendData.photo_url = memberData.photoUrl;
