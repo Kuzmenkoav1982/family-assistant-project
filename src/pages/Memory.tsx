@@ -45,58 +45,6 @@ export default function Memory() {
       }
     >
 
-      <div className="mb-4">
-        <HubInstructionBlock
-          accent="violet"
-          intro="Альбом поколений — третий слой семейного кода. Древо отвечает «кто мы», Дорога жизни — «что мы прошли», а Альбом — «что мы чувствовали». Через 30 лет внуки откроют профиль прабабушки и увидят живые мгновения."
-          steps={[
-            { number: 1, title: 'Добавьте память', description: 'Загрузите до 10 фото, напишите историю, поставьте дату и место — это превращает снимок в свидетельство эпохи.' },
-            { number: 2, title: 'Свяжите с Древом', description: 'Отметьте, кто на фото. Память автоматически появится в карточке каждого человека в Древе семьи.' },
-            { number: 3, title: 'Привяжите к Дороге жизни', description: 'Выберите событие — память встанет на свою точку на Дороге жизни и обогатит общую хронику семьи.' },
-            { number: 4, title: 'Соберите альбом', description: 'Группируйте карточки в тематические альбомы: «Лето на даче», «Школа», «90-е». Готовая глава вашей истории.' },
-            { number: 5, title: 'Находите за секунды', description: 'Фильтры по человеку, событию, году и полнотекстовый поиск — найдёте нужный момент даже через 20 лет.' },
-          ]}
-          tips={[
-            { text: 'Память хранится приватно — доступна только членам вашей семьи.' },
-            { text: 'Архив скрывает карточку из ленты, но связи с Древом и Дорогой жизни сохраняются навсегда.' },
-          ]}
-        />
-
-        <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Link to="/tree" className="group relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-green-950/30 p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
-            <div className="flex items-start gap-3">
-              <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Icon name="GitBranch" size={22} className="text-emerald-600 dark:text-emerald-300" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Связанный раздел</span>
-                </div>
-                <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-50 leading-tight">Древо семьи</h3>
-                <p className="text-xs text-emerald-800/80 dark:text-emerald-200/80 leading-relaxed mt-1">Отметьте людей на фото — и память появится в карточке каждого из них.</p>
-              </div>
-              <Icon name="ArrowRight" size={18} className="text-emerald-600 dark:text-emerald-300 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1" />
-            </div>
-          </Link>
-
-          <Link to="/life-road" className="group relative overflow-hidden rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-red-950/30 p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
-            <div className="flex items-start gap-3">
-              <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
-                <Icon name="Milestone" size={22} className="text-amber-600 dark:text-amber-300" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">Связанный раздел</span>
-                </div>
-                <h3 className="text-base font-bold text-amber-900 dark:text-amber-50 leading-tight">Дорога жизни</h3>
-                <p className="text-xs text-amber-800/80 dark:text-amber-200/80 leading-relaxed mt-1">Привяжите фото к событию — и оно встанет на свою точку семейной хроники.</p>
-              </div>
-              <Icon name="ArrowRight" size={18} className="text-amber-600 dark:text-amber-300 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1" />
-            </div>
-          </Link>
-        </div>
-      </div>
-
       {p.showAlbumShelf && (
         <div className="mb-4 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50/60 via-white to-fuchsia-50/40 dark:from-violet-950/20 dark:via-gray-900 dark:to-fuchsia-950/20 dark:border-violet-900/40 p-4 sm:p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2">
@@ -115,6 +63,60 @@ export default function Memory() {
             onOpen={p.openAlbum}
             onCreate={() => { p.setEditingAlbum(null); p.setAlbumDialogOpen(true); }}
           />
+        </div>
+      )}
+
+      {p.albums.length === 0 && !p.albumsLoading && (
+        <div className="mb-4">
+          <HubInstructionBlock
+            accent="violet"
+            intro="Альбом поколений — третий слой семейного кода. Древо отвечает «кто мы», Дорога жизни — «что мы прошли», а Альбом — «что мы чувствовали». Через 30 лет внуки откроют профиль прабабушки и увидят живые мгновения."
+            steps={[
+              { number: 1, title: 'Добавьте память', description: 'Загрузите до 10 фото, напишите историю, поставьте дату и место — это превращает снимок в свидетельство эпохи.' },
+              { number: 2, title: 'Свяжите с Древом', description: 'Отметьте, кто на фото. Память автоматически появится в карточке каждого человека в Древе семьи.' },
+              { number: 3, title: 'Привяжите к Дороге жизни', description: 'Выберите событие — память встанет на свою точку на Дороге жизни и обогатит общую хронику семьи.' },
+              { number: 4, title: 'Соберите альбом', description: 'Группируйте карточки в тематические альбомы: «Лето на даче», «Школа», «90-е». Готовая глава вашей истории.' },
+              { number: 5, title: 'Находите за секунды', description: 'Фильтры по человеку, событию, году и полнотекстовый поиск — найдёте нужный момент даже через 20 лет.' },
+            ]}
+            tips={[
+              { text: 'Память хранится приватно — доступна только членам вашей семьи.' },
+              { text: 'Архив скрывает карточку из ленты, но связи с Древом и Дорогой жизни сохраняются навсегда.' },
+            ]}
+          />
+
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Link to="/tree" className="group relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-900/50 bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-green-950/30 p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Icon name="GitBranch" size={22} className="text-emerald-600 dark:text-emerald-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300">Связанный раздел</span>
+                  </div>
+                  <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-50 leading-tight">Древо семьи</h3>
+                  <p className="text-xs text-emerald-800/80 dark:text-emerald-200/80 leading-relaxed mt-1">Отметьте людей на фото — и память появится в карточке каждого из них.</p>
+                </div>
+                <Icon name="ArrowRight" size={18} className="text-emerald-600 dark:text-emerald-300 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1" />
+              </div>
+            </Link>
+
+            <Link to="/life-road" className="group relative overflow-hidden rounded-2xl border border-amber-200 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/30 dark:via-orange-950/20 dark:to-red-950/30 p-4 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5">
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <Icon name="Milestone" size={22} className="text-amber-600 dark:text-amber-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">Связанный раздел</span>
+                  </div>
+                  <h3 className="text-base font-bold text-amber-900 dark:text-amber-50 leading-tight">Дорога жизни</h3>
+                  <p className="text-xs text-amber-800/80 dark:text-amber-200/80 leading-relaxed mt-1">Привяжите фото к событию — и оно встанет на свою точку семейной хроники.</p>
+                </div>
+                <Icon name="ArrowRight" size={18} className="text-amber-600 dark:text-amber-300 flex-shrink-0 mt-1 transition-transform group-hover:translate-x-1" />
+              </div>
+            </Link>
+          </div>
         </div>
       )}
 
