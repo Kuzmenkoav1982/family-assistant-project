@@ -92,9 +92,20 @@ export function MemberProfileContent({
               </Badge>
             </div>
             <div>
-              <CardTitle className="text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                {member.name}
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                  {member.name}
+                </CardTitle>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-xs border-purple-200 text-purple-600 hover:bg-purple-50"
+                  onClick={() => setActiveTab('edit')}
+                >
+                  <Icon name="Pencil" size={12} className="mr-1" />
+                  Изменить
+                </Button>
+              </div>
               <div className="flex gap-2 mt-2">
                 <Badge variant="secondary">{member.role}</Badge>
                 {member.age && <Badge variant="outline">{member.age} лет</Badge>}
