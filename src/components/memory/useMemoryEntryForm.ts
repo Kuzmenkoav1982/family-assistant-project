@@ -166,10 +166,6 @@ export function useMemoryEntryForm({
 
   async function handleSave() {
     if (!title.trim()) { toast.error('Укажите название памяти'); return; }
-    if (memberIds.length === 0 && !eventId) {
-      toast.error('Привяжите хотя бы одного человека или событие');
-      return;
-    }
     setSaving(true);
     let partial = false;
     try {
