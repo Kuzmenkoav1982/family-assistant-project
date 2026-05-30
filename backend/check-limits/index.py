@@ -5,7 +5,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 
 def handler(event: dict, context) -> dict:
-    '''Проверка лимитов подписки: AI-запросы (5/день на Free), фото (10 на Free), члены семьи (2 на Free)'''
+    '''Проверка лимитов: только AI-запросы (5/день на Free). Члены семьи и фото — безлимитно для всех.'''
     
     method = event.get('httpMethod', 'GET')
     
@@ -86,13 +86,13 @@ def handler(event: dict, context) -> dict:
             },
             'photos': {
                 'used': subscription.get('photos_used', 0),
-                'limit': None if is_premium else 10,
-                'allowed': is_premium or (subscription.get('photos_used', 0) < 10)
+                'limit': None,
+                'allowed': True
             },
             'family_members': {
                 'used': subscription.get('family_members_count', 0),
-                'limit': None if is_premium else 2,
-                'allowed': is_premium or (subscription.get('family_members_count', 0) < 2)
+                'limit': None,
+                'allowed': True
             }
         }
         
