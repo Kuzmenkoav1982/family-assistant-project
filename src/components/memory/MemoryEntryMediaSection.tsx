@@ -28,7 +28,7 @@ export default function MemoryEntryMediaSection({
     <div>
       <div className="mb-2 flex items-center justify-between">
         <Label>Фото ({assets.length}/{MAX_PHOTOS_PER_MEMORY})</Label>
-        {photosLeft > 0 && (
+        {assets.length > 0 && photosLeft > 0 && (
           <label className="cursor-pointer">
             <input
               type="file"
@@ -87,10 +87,29 @@ export default function MemoryEntryMediaSection({
           })}
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground">
-          <Icon name="Image" size={24} className="mx-auto mb-2 opacity-50" />
-          Добавьте 1–10 важных фото
-        </div>
+        <label className="cursor-pointer block">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={e => { onFiles(e.target.files); e.target.value = ''; }}
+            disabled={uploading}
+          />
+          <div className="rounded-lg border border-dashed bg-muted/30 p-6 text-center text-sm text-muted-foreground hover:bg-muted/50 hover:border-primary/40 transition-colors">
+            {uploading ? (
+              <>
+                <Icon name="Loader2" size={24} className="mx-auto mb-2 animate-spin opacity-60" />
+                Загрузка {progress}%
+              </>
+            ) : (
+              <>
+                <Icon name="ImagePlus" size={24} className="mx-auto mb-2 opacity-50" />
+                Нажмите, чтобы добавить фото
+              </>
+            )}
+          </div>
+        </label>
       )}
     </div>
   );
