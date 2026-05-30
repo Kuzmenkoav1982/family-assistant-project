@@ -14,6 +14,8 @@ import { MemberProfileQuestionnaire } from '@/components/MemberProfileQuestionna
 import { usePermissions } from '@/hooks/usePermissions';
 import { CreateTaskDialog } from '@/components/CreateTaskDialog';
 import { calculateMemberWorkload } from '@/utils/memberWorkload';
+import { useFamilyTree } from '@/hooks/useFamilyTree';
+import MemberMemorySection from '@/components/memory/MemberMemorySection';
 import type { Dream, FamilyMember, MemberProfile as MemberProfileType, Task, CalendarEvent } from '@/types/family.types';
 import type { LifeEvent } from '@/components/life-road/types';
 
@@ -54,8 +56,13 @@ export function MemberProfileContent({
 }: MemberProfileContentProps) {
   const navigate = useNavigate();
   const { canDo, loading: permissionsLoading, role } = usePermissions();
+  const { members: treeMembers } = useFamilyTree();
   const [activeTab, setActiveTab] = useState('overview');
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+
+  // Числовой ID в family_tree (нужен для фильтрации памятей)
+  const treeMember = treeMembers.find(t => t.name.trim() === member.name.trim());
+  const treeId = treeMember?.id ?? null;
 
   console.log('[MemberProfile] Permissions state:', { 
     loading: permissionsLoading, 
@@ -178,6 +185,11 @@ export function MemberProfileContent({
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
+            {/* Фото и воспоминания из Альбома поколений */}
+            {treeId !== null && (
+              <MemberMemorySection memberId={treeId} memberName={member.name} previewLimit={4} />
+            )}
+
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold flex items-center gap-2">
