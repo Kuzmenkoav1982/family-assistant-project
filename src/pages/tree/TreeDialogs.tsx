@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
+import { useContext, useState } from 'react';
+import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { TreeMember, NewTreeMember } from '@/hooks/useFamilyTree';
 import { RELATION_OPTIONS, AVATAR_OPTIONS, MONTHS, calculateAge, getAgeText, isImageUrl } from './treeUtils';
 import MemberMemorySection from '@/components/memory/MemberMemorySection';
@@ -200,6 +202,54 @@ export function MemberDetailDialog({
   );
 }
 
+function FamilyProfilePicker({ showEditForm, onPick }: {
+  showEditForm: boolean;
+  onPick: (name: string, photo_url: string | undefined, avatar: string | undefined) => void;
+}) {
+  const ctx = useContext(FamilyMembersContext);
+  const [expanded, setExpanded] = useState(false);
+  if (showEditForm || !ctx || ctx.members.length === 0) return null;
+
+  return (
+    <div className="mb-2">
+      <button
+        type="button"
+        className="flex items-center gap-2 text-sm text-amber-700 hover:text-amber-900 transition-colors font-medium"
+        onClick={() => setExpanded(v => !v)}
+      >
+        <Icon name="Users" size={15} className="text-amber-600" />
+        Выбрать из профилей семьи
+        <Icon name={expanded ? 'ChevronUp' : 'ChevronDown'} size={14} />
+      </button>
+      {expanded && (
+        <div className="mt-2 flex flex-col gap-1 border border-amber-200 rounded-lg overflow-hidden bg-amber-50/60">
+          {ctx.members.map(m => (
+            <button
+              key={m.id}
+              type="button"
+              className="flex items-center gap-3 px-3 py-2 hover:bg-amber-100 transition-colors text-left"
+              onClick={() => {
+                onPick(m.name, m.photo_url, m.avatar_type === 'emoji' ? m.avatar : undefined);
+                setExpanded(false);
+              }}
+            >
+              {m.photo_url ? (
+                <img src={m.photo_url} alt={m.name} className="w-8 h-8 rounded-full object-cover border border-amber-300 shrink-0" />
+              ) : (
+                <span className="w-8 h-8 flex items-center justify-center text-xl shrink-0">{m.avatar || '👤'}</span>
+              )}
+              <div>
+                <p className="text-sm font-medium leading-tight">{m.name}</p>
+                {m.role && <p className="text-xs text-muted-foreground">{m.role}</p>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function MemberFormDialog({
   open,
   showEditForm,
@@ -263,6 +313,8 @@ export function MemberFormDialog({
             </div>
           ) : null;
         })()}
+
+        <FamilyProfilePicker showEditForm={showEditForm} onPick={(name, photo_url, avatar) => setFormData(prev => ({ ...prev, name, photo_url, avatar }))} />
 
         <div className="space-y-4">
           <div>
