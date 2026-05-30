@@ -3,8 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Icon from '@/components/ui/icon';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { WidgetSettingsDialog } from '@/components/WidgetSettingsDialog';
-import { useContext } from 'react';
-import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { FamilyMember } from '@/types/family.types';
 
 interface MembersToolbarProps {
@@ -28,7 +27,7 @@ export function MembersToolbar({
   editingMember,
   setEditingMember,
 }: MembersToolbarProps) {
-  const ctx = useContext(FamilyMembersContext);
+  const { addMember, updateMember } = useFamilyMembersContext();
   return (
     <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
       <h3 className="text-xl font-semibold">Все члены семьи</h3>
@@ -55,9 +54,9 @@ export function MembersToolbar({
               editingMember={editingMember}
               onSubmit={async (newMember) => {
                 if (editingMember) {
-                  await ctx?.updateMember({ ...newMember, id: newMember.id });
+                  await updateMember({ ...newMember, id: newMember.id });
                 } else {
-                  await ctx?.addMember(newMember);
+                  await addMember(newMember);
                 }
                 setAddMemberDialogOpen(false);
                 setEditingMember(undefined);
@@ -85,7 +84,7 @@ export function MembersToolbar({
               editingMember={undefined}
               isChild={true}
               onSubmit={async (newChild) => {
-                await ctx?.addMember({ ...newChild, relationship: 'Ребёнок' });
+                await addMember({ ...newChild, relationship: 'Ребёнок' });
                 setAddChildDialogOpen(false);
               }}
             />

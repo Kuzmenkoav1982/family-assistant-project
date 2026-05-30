@@ -4,8 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Icon from '@/components/ui/icon';
 import { AddFamilyMemberForm } from '@/components/AddFamilyMemberForm';
 import { useNavigate } from 'react-router-dom';
-import { useContext } from 'react';
-import { FamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { FamilyMember } from '@/types/family.types';
 
 interface MembersHeaderProps {
@@ -30,7 +29,7 @@ export function MembersHeader({
   setEditingMember,
 }: MembersHeaderProps) {
   const navigate = useNavigate();
-  const ctx = useContext(FamilyMembersContext);
+  const { addMember, updateMember } = useFamilyMembersContext();
 
   return (
     <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200">
@@ -73,9 +72,9 @@ export function MembersHeader({
                   editingMember={editingMember}
                   onSubmit={async (newMember) => {
                     if (editingMember) {
-                      await ctx?.updateMember({ ...newMember, id: newMember.id });
+                      await updateMember({ ...newMember, id: newMember.id });
                     } else {
-                      await ctx?.addMember(newMember);
+                      await addMember(newMember);
                     }
                     setAddMemberDialogOpen(false);
                     setEditingMember(undefined);
@@ -105,7 +104,7 @@ export function MembersHeader({
                   editingMember={undefined}
                   isChild={true}
                   onSubmit={async (newChild) => {
-                    await ctx?.addMember({ ...newChild, relationship: 'Ребёнок' });
+                    await addMember({ ...newChild, relationship: 'Ребёнок' });
                     setAddChildDialogOpen(false);
                   }}
                 />

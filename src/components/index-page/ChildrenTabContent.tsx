@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +14,7 @@ interface ChildrenTabContentProps {
   familyMembers: FamilyMember[];
   setEducationChild: (member: FamilyMember | null) => void;
   navigate: (path: string) => void;
-  addMember?: (member: any) => void;
+  addMember?: (member: Partial<FamilyMember>) => Promise<unknown> | void;
 }
 
 export default function ChildrenTabContent({
@@ -24,6 +25,7 @@ export default function ChildrenTabContent({
   navigate,
   addMember,
 }: ChildrenTabContentProps) {
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   return (
     <TabsContent value="children">
       <Card className="border-2 border-pink-200 bg-pink-50/50 mb-4">
@@ -314,7 +316,7 @@ export default function ChildrenTabContent({
               <Icon name="Baby" size={48} className="mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">Нет профилей детей</h3>
               <p className="text-sm text-muted-foreground mb-4">Добавьте первый профиль ребенка, чтобы отслеживать развитие и достижения</p>
-              <Dialog>
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-gradient-to-r from-blue-500 to-purple-500">
                     <Icon name="Plus" className="mr-2" size={16} />
@@ -328,10 +330,11 @@ export default function ChildrenTabContent({
                   <AddFamilyMemberForm 
                     editingMember={undefined}
                     isChild={true}
-                    onSubmit={(newChild) => {
+                    onSubmit={async (newChild) => {
                       if (addMember) {
-                        addMember(newChild);
+                        await addMember({ ...newChild, relationship: 'Ребёнок' });
                       }
+                      setAddDialogOpen(false);
                     }}
                   />
                 </DialogContent>
