@@ -8,6 +8,7 @@ import { RealMoneyPiggyBank } from './RealMoneyPiggyBank';
 import { ChildCalendar } from './ChildCalendar';
 import ChildMasterScreen from './ChildMasterScreen';
 import GrowthScreen from './GrowthScreen';
+import AchievementsScreen from './AchievementsScreen';
 
 interface ChildProfileProps {
   child: {
@@ -78,6 +79,7 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
           child={child as Parameters<typeof ChildMasterScreen>[0]['child']}
           onTabChange={setTabValue}
           onGrowthOpen={() => setTabValue('growth')}
+          onAchievementsOpen={() => setTabValue('achievements')}
         />
       </TabsContent>
 
@@ -96,8 +98,11 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
         />
       </TabsContent>
 
-      <TabsContent value="achievements">
-        <AchievementsBadges childId={child.id} />
+      <TabsContent value="achievements" className="mt-0">
+        <AchievementsScreen
+          child={child as Parameters<typeof AchievementsScreen>[0]['child']}
+          onBack={() => setTabValue('home')}
+        />
       </TabsContent>
 
       <TabsContent value="shop">

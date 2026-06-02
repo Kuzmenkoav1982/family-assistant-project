@@ -41,6 +41,7 @@ interface ChildMasterScreenProps {
   };
   onTabChange?: (tab: string) => void;
   onGrowthOpen?: () => void;
+  onAchievementsOpen?: () => void;
 }
 
 const AREA_CONFIG: Record<string, {
@@ -95,6 +96,7 @@ export default function ChildMasterScreen({
   childData,
   onTabChange,
   onGrowthOpen,
+  onAchievementsOpen,
 }: ChildMasterScreenProps) {
   const tipIndex = useState(() => Math.floor(Math.random() * SAFETY_TIPS.length))[0];
   const [weekSteps, setWeekSteps] = useState(() =>
@@ -287,7 +289,7 @@ export default function ChildMasterScreen({
                         </div>
                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-slate-300 transition-all"
+                            className={`h-full rounded-full ${cfg.bar} opacity-60 transition-all`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -405,7 +407,7 @@ export default function ChildMasterScreen({
         {/* ── БЛОК 6: МОИ ДОСТИЖЕНИЯ ── */}
         <section>
           <button
-            onClick={() => onTabChange?.("achievements")}
+            onClick={() => onAchievementsOpen ? onAchievementsOpen() : onTabChange?.("achievements")}
             className="w-full text-left relative overflow-hidden rounded-2xl p-5 border border-sky-100/80"
             style={{ background: "linear-gradient(135deg, #f7fbff 0%, #eef6ff 100%)" }}
           >
