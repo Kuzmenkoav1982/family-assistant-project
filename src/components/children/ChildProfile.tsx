@@ -6,11 +6,7 @@ import { AchievementsBadges } from './AchievementsBadges';
 import { RewardsShop } from './RewardsShop';
 import { RealMoneyPiggyBank } from './RealMoneyPiggyBank';
 import { ChildCalendar } from './ChildCalendar';
-import { HomeTabContent } from './profile-tabs/HomeTabContent';
-import { Game } from './profile-tabs/GamesSection';
-import { Book } from './profile-tabs/BooksSection';
-import { Dream } from './profile-tabs/DreamsSection';
-import { getDailyFact } from '@/data/interestingFacts';
+import ChildMasterScreen from './ChildMasterScreen';
 
 interface ChildProfileProps {
   child: {
@@ -30,32 +26,7 @@ interface ChildProfileProps {
 
 export function ChildProfile({ child, initialTab, initialAction, onActionHandled }: ChildProfileProps) {
   const piggyBank = child.piggyBank || 0;
-  // bug45: убраны хардкод-демо данные. Теперь карточка ребёнка пуста по умолчанию,
-  // пользователь сам наполняет играми / книгами / мечтами.
-  const [games, setGames] = useState<Game[]>([]);
-  const [books, setBooks] = useState<Book[]>([]);
-  const [dreams, setDreams] = useState<Dream[]>([]);
 
-  const [newGameDialog, setNewGameDialog] = useState(false);
-  const [editGameDialog, setEditGameDialog] = useState(false);
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
-  const [newGameData, setNewGameData] = useState({ name: '', type: 'video' as const, favorite: false });
-  
-  const [newBookDialog, setNewBookDialog] = useState(false);
-  const [editBookDialog, setEditBookDialog] = useState(false);
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-  const [newBookData, setNewBookData] = useState({ title: '', author: '', status: 'planned' as const, rating: undefined as number | undefined });
-  
-  const [newDreamDialog, setNewDreamDialog] = useState(false);
-  const [editDreamDialog, setEditDreamDialog] = useState(false);
-  const [selectedDream, setSelectedDream] = useState<Dream | null>(null);
-  const [newDreamData, setNewDreamData] = useState({ dream: '', category: 'other' as const, priority: 'medium' as const, notes: '' });
-  
-  const [moodDialog, setMoodDialog] = useState(false);
-  const [selectedMood, setSelectedMood] = useState('😊');
-  const [challengeCompleted, setChallengeCompleted] = useState(false);
-
-  // D.1: контролируемая вкладка + программное открытие диалога настроения по action.
   const [tabValue, setTabValue] = useState<string>(initialTab || 'home');
   const [moodDiaryOpen, setMoodDiaryOpen] = useState(false);
 
@@ -72,184 +43,39 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialAction]);
 
-  const currentStreak = 5;
-  const todayChallenge = 'Прочитай 10 страниц любимой книги 📖';
-  const dailyFact = getDailyFact();
-  
-  const moodOptions = ['😊', '😄', '🥳', '😎', '🤔', '😔', '😢', '😡'];
-
-  const handleAddGame = () => {
-    if (!newGameData.name) return;
-    const newGame: Game = {
-      id: Date.now().toString(),
-      ...newGameData,
-    };
-    setGames([...games, newGame]);
-    setNewGameData({ name: '', type: 'video', favorite: false });
-    setNewGameDialog(false);
-  };
-
-  const handleEditGame = (game: Game) => {
-    setSelectedGame(game);
-    setNewGameData({ name: game.name, type: game.type, favorite: game.favorite });
-    setEditGameDialog(true);
-  };
-
-  const handleUpdateGame = () => {
-    if (!selectedGame || !newGameData.name) return;
-    setGames(games.map(g => g.id === selectedGame.id ? { ...selectedGame, ...newGameData } : g));
-    setSelectedGame(null);
-    setNewGameData({ name: '', type: 'video', favorite: false });
-    setEditGameDialog(false);
-  };
-
-  const handleDeleteGame = (id: string) => {
-    if (confirm('Удалить эту игру?')) {
-      setGames(games.filter(g => g.id !== id));
-    }
-  };
-
-  const handleAddBook = () => {
-    if (!newBookData.title) return;
-    const newBook: Book = {
-      id: Date.now().toString(),
-      ...newBookData,
-    };
-    setBooks([...books, newBook]);
-    setNewBookData({ title: '', author: '', status: 'planned', rating: undefined });
-    setNewBookDialog(false);
-  };
-
-  const handleEditBook = (book: Book) => {
-    setSelectedBook(book);
-    setNewBookData({ title: book.title, author: book.author, status: book.status, rating: book.rating });
-    setEditBookDialog(true);
-  };
-
-  const handleUpdateBook = () => {
-    if (!selectedBook || !newBookData.title) return;
-    setBooks(books.map(b => b.id === selectedBook.id ? { ...selectedBook, ...newBookData } : b));
-    setSelectedBook(null);
-    setNewBookData({ title: '', author: '', status: 'planned', rating: undefined });
-    setEditBookDialog(false);
-  };
-
-  const handleDeleteBook = (id: string) => {
-    if (confirm('Удалить эту книгу?')) {
-      setBooks(books.filter(b => b.id !== id));
-    }
-  };
-
-  const handleAddDream = () => {
-    if (!newDreamData.dream) return;
-    const newDream: Dream = {
-      id: Date.now().toString(),
-      ...newDreamData,
-    };
-    setDreams([...dreams, newDream]);
-    setNewDreamData({ dream: '', category: 'other', priority: 'medium', notes: '' });
-    setNewDreamDialog(false);
-  };
-
-  const handleEditDream = (dream: Dream) => {
-    setSelectedDream(dream);
-    setNewDreamData({ dream: dream.dream, category: dream.category, priority: dream.priority, notes: dream.notes || '' });
-    setEditDreamDialog(true);
-  };
-
-  const handleUpdateDream = () => {
-    if (!selectedDream || !newDreamData.dream) return;
-    setDreams(dreams.map(d => d.id === selectedDream.id ? { ...selectedDream, ...newDreamData } : d));
-    setSelectedDream(null);
-    setNewDreamData({ dream: '', category: 'other', priority: 'medium', notes: '' });
-    setEditDreamDialog(false);
-  };
-
-  const handleDeleteDream = (id: string) => {
-    if (confirm('Удалить эту мечту?')) {
-      setDreams(dreams.filter(d => d.id !== id));
-    }
-  };
-
   return (
-    <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-6">
-      <TabsList className="grid grid-cols-2 sm:grid-cols-3 grid-rows-3 sm:grid-rows-2 h-auto w-full gap-1 bg-gray-100 p-1.5 rounded-xl">
-        <TabsTrigger value="home" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-          <Icon name="Home" size={15} />
+    <Tabs value={tabValue} onValueChange={setTabValue} className="space-y-3">
+      <TabsList className="grid grid-cols-6 h-auto w-full gap-0 bg-white/80 border border-slate-100 p-1 rounded-2xl shadow-sm">
+        <TabsTrigger value="home" className="flex-col gap-0.5 rounded-xl py-2 text-[10px] font-medium data-[state=active]:bg-sky-50 data-[state=active]:text-sky-700 data-[state=active]:shadow-none">
+          <Icon name="Home" size={16} />
           Главная
         </TabsTrigger>
-        <TabsTrigger value="diary" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-          <Icon name="BookOpen" size={15} />
+        <TabsTrigger value="diary" className="flex-col gap-0.5 rounded-xl py-2 text-[10px] font-medium data-[state=active]:bg-violet-50 data-[state=active]:text-violet-700 data-[state=active]:shadow-none">
+          <Icon name="BookOpen" size={16} />
           Дневник
         </TabsTrigger>
-        <TabsTrigger value="achievements" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-          <Icon name="Award" size={15} />
-          Достижения
+        <TabsTrigger value="achievements" className="flex-col gap-0.5 rounded-xl py-2 text-[10px] font-medium data-[state=active]:bg-amber-50 data-[state=active]:text-amber-700 data-[state=active]:shadow-none">
+          <Icon name="Award" size={16} />
+          Награды
         </TabsTrigger>
-        <TabsTrigger value="shop" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-          <Icon name="ShoppingCart" size={15} />
+        <TabsTrigger value="shop" className="flex-col gap-0.5 rounded-xl py-2 text-[10px] font-medium data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 data-[state=active]:shadow-none">
+          <Icon name="ShoppingBag" size={16} />
           Магазин
         </TabsTrigger>
-        <TabsTrigger value="money" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-          <Icon name="Wallet" size={15} />
+        <TabsTrigger value="money" className="flex-col gap-0.5 rounded-xl py-2 text-[10px] font-medium data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:shadow-none">
+          <Icon name="Wallet" size={16} />
           Копилка
         </TabsTrigger>
-        <TabsTrigger value="calendar" className="gap-1.5 rounded-lg py-2.5 text-sm font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm">
-          <Icon name="Calendar" size={15} />
-          Календарь
+        <TabsTrigger value="calendar" className="flex-col gap-0.5 rounded-xl py-2 text-[10px] font-medium data-[state=active]:bg-rose-50 data-[state=active]:text-rose-700 data-[state=active]:shadow-none">
+          <Icon name="Calendar" size={16} />
+          Дни
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="home">
-        <HomeTabContent
-          selectedMood={selectedMood}
-          currentStreak={currentStreak}
-          piggyBank={piggyBank}
-          moodOptions={moodOptions}
-          moodDialog={moodDialog}
-          todayChallenge={todayChallenge}
-          challengeCompleted={challengeCompleted}
-          dailyFact={dailyFact}
-          games={games}
-          books={books}
-          dreams={dreams}
-          newGameDialog={newGameDialog}
-          editGameDialog={editGameDialog}
-          newGameData={newGameData}
-          newBookDialog={newBookDialog}
-          editBookDialog={editBookDialog}
-          selectedBook={selectedBook}
-          newBookData={newBookData}
-          newDreamDialog={newDreamDialog}
-          editDreamDialog={editDreamDialog}
-          selectedDream={selectedDream}
-          newDreamData={newDreamData}
-          onMoodDialogChange={setMoodDialog}
-          onMoodChange={setSelectedMood}
-          onChallengeComplete={() => setChallengeCompleted(true)}
-          onNewGameDialogChange={setNewGameDialog}
-          onEditGameDialogChange={setEditGameDialog}
-          onNewGameDataChange={setNewGameData}
-          onAddGame={handleAddGame}
-          onEditGame={handleEditGame}
-          onUpdateGame={handleUpdateGame}
-          onDeleteGame={handleDeleteGame}
-          onNewBookDialogChange={setNewBookDialog}
-          onEditBookDialogChange={setEditBookDialog}
-          onSelectedBookChange={setSelectedBook}
-          onNewBookDataChange={setNewBookData}
-          onAddBook={handleAddBook}
-          onEditBook={handleEditBook}
-          onUpdateBook={handleUpdateBook}
-          onDeleteBook={handleDeleteBook}
-          onNewDreamDialogChange={setNewDreamDialog}
-          onEditDreamDialogChange={setEditDreamDialog}
-          onSelectedDreamChange={setSelectedDream}
-          onNewDreamDataChange={setNewDreamData}
-          onAddDream={handleAddDream}
-          onEditDream={handleEditDream}
-          onUpdateDream={handleUpdateDream}
-          onDeleteDream={handleDeleteDream}
+      <TabsContent value="home" className="mt-0">
+        <ChildMasterScreen
+          child={child as Parameters<typeof ChildMasterScreen>[0]['child']}
+          onTabChange={setTabValue}
         />
       </TabsContent>
 
