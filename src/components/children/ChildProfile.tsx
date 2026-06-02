@@ -10,6 +10,7 @@ import ChildMasterScreen from './ChildMasterScreen';
 import GrowthScreen from './GrowthScreen';
 import AchievementsScreen from './AchievementsScreen';
 import ActivitiesScreen from './ActivitiesScreen';
+import FamilyRootsScreen from './FamilyRootsScreen';
 
 interface ChildProfileProps {
   child: {
@@ -82,6 +83,14 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
           onGrowthOpen={() => setTabValue('growth')}
           onAchievementsOpen={() => setTabValue('achievements')}
           onActivitiesOpen={() => setTabValue('activities')}
+          onFamilyOpen={() => setTabValue('family')}
+        />
+      </TabsContent>
+
+      <TabsContent value="family" className="mt-0">
+        <FamilyRootsScreen
+          child={child as Parameters<typeof FamilyRootsScreen>[0]['child']}
+          onBack={() => setTabValue('home')}
         />
       </TabsContent>
 

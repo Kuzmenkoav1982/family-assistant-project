@@ -43,6 +43,7 @@ interface ChildMasterScreenProps {
   onGrowthOpen?: () => void;
   onAchievementsOpen?: () => void;
   onActivitiesOpen?: () => void;
+  onFamilyOpen?: () => void;
 }
 
 const AREA_CONFIG: Record<string, {
@@ -99,6 +100,7 @@ export default function ChildMasterScreen({
   onGrowthOpen,
   onAchievementsOpen,
   onActivitiesOpen,
+  onFamilyOpen,
 }: ChildMasterScreenProps) {
   const tipIndex = useState(() => Math.floor(Math.random() * SAFETY_TIPS.length))[0];
   const [weekSteps, setWeekSteps] = useState(() =>
@@ -462,16 +464,21 @@ export default function ChildMasterScreen({
         {/* ── БЛОК 7: МОЯ СЕМЬЯ — реальные аватары из контекста ── */}
         <section>
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center">
-                <Heart size={14} className="text-rose-400" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center">
+                  <Heart size={14} className="text-rose-400" />
+                </div>
+                <h2 className="text-[15px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
+                  Моя семья
+                </h2>
               </div>
-              <h2
-                className="text-[15px] font-bold text-slate-800"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
+              <button
+                onClick={() => onFamilyOpen ? onFamilyOpen() : onTabChange?.("family")}
+                className="text-xs text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-0.5"
               >
-                Моя семья
-              </h2>
+                Открыть <ChevronRight size={12} />
+              </button>
             </div>
 
             <div className="flex items-center gap-3 mb-3">
