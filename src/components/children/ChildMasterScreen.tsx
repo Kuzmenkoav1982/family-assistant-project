@@ -42,6 +42,7 @@ interface ChildMasterScreenProps {
   onTabChange?: (tab: string) => void;
   onGrowthOpen?: () => void;
   onAchievementsOpen?: () => void;
+  onActivitiesOpen?: () => void;
 }
 
 const AREA_CONFIG: Record<string, {
@@ -97,6 +98,7 @@ export default function ChildMasterScreen({
   onTabChange,
   onGrowthOpen,
   onAchievementsOpen,
+  onActivitiesOpen,
 }: ChildMasterScreenProps) {
   const tipIndex = useState(() => Math.floor(Math.random() * SAFETY_TIPS.length))[0];
   const [weekSteps, setWeekSteps] = useState(() =>
@@ -373,7 +375,10 @@ export default function ChildMasterScreen({
                     Мои занятия
                   </h2>
                 </div>
-                <button className="text-xs text-slate-400 flex items-center gap-0.5">
+                <button
+                  onClick={() => onActivitiesOpen ? onActivitiesOpen() : onTabChange?.("activities")}
+                  className="text-xs text-slate-400 hover:text-sky-600 transition-colors flex items-center gap-0.5"
+                >
                   Все <ChevronRight size={12} />
                 </button>
               </div>
@@ -386,6 +391,7 @@ export default function ChildMasterScreen({
                   return (
                     <div
                       key={area.id}
+                      onClick={() => onActivitiesOpen ? onActivitiesOpen() : onTabChange?.("activities")}
                       className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5 cursor-pointer hover:bg-slate-100 transition-colors"
                     >
                       <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>

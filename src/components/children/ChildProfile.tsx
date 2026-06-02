@@ -9,6 +9,7 @@ import { ChildCalendar } from './ChildCalendar';
 import ChildMasterScreen from './ChildMasterScreen';
 import GrowthScreen from './GrowthScreen';
 import AchievementsScreen from './AchievementsScreen';
+import ActivitiesScreen from './ActivitiesScreen';
 
 interface ChildProfileProps {
   child: {
@@ -80,12 +81,20 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
           onTabChange={setTabValue}
           onGrowthOpen={() => setTabValue('growth')}
           onAchievementsOpen={() => setTabValue('achievements')}
+          onActivitiesOpen={() => setTabValue('activities')}
         />
       </TabsContent>
 
       <TabsContent value="growth" className="mt-0">
         <GrowthScreen
           child={child as Parameters<typeof GrowthScreen>[0]['child']}
+          onBack={() => setTabValue('home')}
+        />
+      </TabsContent>
+
+      <TabsContent value="activities" className="mt-0">
+        <ActivitiesScreen
+          child={child as Parameters<typeof ActivitiesScreen>[0]['child']}
           onBack={() => setTabValue('home')}
         />
       </TabsContent>
