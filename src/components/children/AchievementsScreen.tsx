@@ -1,6 +1,25 @@
 import { useState } from "react";
-import { ChevronLeft, Plus, X, Camera } from "lucide-react";
+import { Plus } from "lucide-react";
 import Icon from "@/components/ui/icon";
+import {
+  ScreenPage,
+  ScreenHeader,
+  ScreenBody,
+  SectionCard,
+  AdaptiveDialog,
+  DialogSubmit,
+  FormField,
+  FormInput,
+  FormTextarea,
+  EmojiPicker,
+  FilterRow,
+  FilterChip,
+  WarmQuote,
+  EmptyState,
+  InlineEmpty,
+  AddRowButton,
+  MONTSERRAT,
+} from "@/components/children/ui";
 
 // ─── Типы ────────────────────────────────────────────────────────────────────
 
@@ -26,12 +45,12 @@ interface AchievementsScreenProps {
 // ─── Конфиг категорий ────────────────────────────────────────────────────────
 
 const CAT_CONFIG: Record<AchievementCategory, { label: string; icon: string }> = {
-  all:        { label: "Все",           icon: "Sparkles" },
-  sport:      { label: "Спорт",         icon: "Dumbbell" },
-  education:  { label: "Учёба",         icon: "BookOpen" },
-  creativity: { label: "Творчество",    icon: "Palette" },
+  all:        { label: "Все",               icon: "Sparkles" },
+  sport:      { label: "Спорт",             icon: "Dumbbell" },
+  education:  { label: "Учёба",             icon: "BookOpen" },
+  creativity: { label: "Творчество",        icon: "Palette" },
   self:       { label: "Самостоятельность", icon: "Star" },
-  family:     { label: "Семья",         icon: "Heart" },
+  family:     { label: "Семья",             icon: "Heart" },
 };
 
 // ─── Demo-данные (пока API не реализован) ────────────────────────────────────
@@ -121,7 +140,7 @@ function BigAchievementCard({ item }: { item: Achievement }) {
           </p>
           <h3
             className="text-[16px] font-bold text-slate-800 leading-snug mb-1"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
+            style={MONTSERRAT}
           >
             {item.title}
           </h3>
@@ -132,9 +151,8 @@ function BigAchievementCard({ item }: { item: Achievement }) {
         </div>
       </div>
       {item.familyNote && (
-        <div className="relative mt-4 flex items-start gap-2 bg-white/70 rounded-xl px-3 py-2.5 border border-amber-100/60">
-          <span className="text-base flex-shrink-0">💬</span>
-          <p className="text-sm text-slate-700 leading-snug italic">«{item.familyNote}»</p>
+        <div className="relative mt-4">
+          <WarmQuote text={item.familyNote} />
         </div>
       )}
     </div>
@@ -175,7 +193,7 @@ function MomentCard({ item }: { item: Achievement }) {
           </p>
           <p
             className="text-[15px] font-bold text-slate-800 leading-snug"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
+            style={MONTSERRAT}
           >
             {item.title}
           </p>
@@ -186,9 +204,8 @@ function MomentCard({ item }: { item: Achievement }) {
         </div>
       </div>
       {item.familyNote && (
-        <div className="mt-3 flex items-start gap-2 bg-white/70 rounded-xl px-3 py-2 border border-sky-100/60">
-          <span className="text-sm flex-shrink-0">💬</span>
-          <p className="text-xs text-slate-600 leading-snug italic">«{item.familyNote}»</p>
+        <div className="mt-3">
+          <WarmQuote text={item.familyNote} gradient="sky" />
         </div>
       )}
     </div>
@@ -218,145 +235,119 @@ function AddAchievementDialog({
 
   const handleAdd = () => {
     if (!canSubmit) return;
-    onAdd({ type, category: category as Exclude<AchievementCategory, "all">, title: title.trim(), description: description.trim() || undefined, date: today, emoji, familyNote: familyNote.trim() || undefined });
+    onAdd({
+      type,
+      category: category as Exclude<AchievementCategory, "all">,
+      title: title.trim(),
+      description: description.trim() || undefined,
+      date: today,
+      emoji,
+      familyNote: familyNote.trim() || undefined,
+    });
     onClose();
   };
 
   const TYPE_OPTS: { value: AchievementType; label: string; desc: string }[] = [
-    { value: "big",    label: "Большое",  desc: "Диплом, медаль, серьёзный результат" },
+    { value: "big",    label: "Большое",         desc: "Диплом, медаль, серьёзный результат" },
     { value: "small",  label: "Маленькая победа", desc: "Привычка, усилие, шаг вперёд" },
-    { value: "moment", label: "Момент",   desc: "Памятное событие или семейный опыт" },
+    { value: "moment", label: "Момент",           desc: "Памятное событие или семейный опыт" },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-lg rounded-t-3xl p-5 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2
-            className="text-[17px] font-bold text-slate-800"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            Добавить достижение
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center"
-          >
-            <X size={15} className="text-slate-500" />
-          </button>
-        </div>
-
-        {/* Тип */}
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Тип</p>
-          <div className="grid grid-cols-3 gap-2">
-            {TYPE_OPTS.map(opt => (
-              <button
-                key={opt.value}
-                onClick={() => setType(opt.value)}
-                className={`rounded-xl p-2.5 text-left border transition-colors ${
-                  type === opt.value
-                    ? "border-amber-300 bg-amber-50"
-                    : "border-slate-100 bg-slate-50 hover:bg-slate-100"
-                }`}
-              >
-                <p className={`text-xs font-semibold mb-0.5 ${type === opt.value ? "text-amber-700" : "text-slate-700"}`}>
-                  {opt.label}
-                </p>
-                <p className="text-[10px] text-slate-400 leading-tight">{opt.desc}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Категория */}
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Категория</p>
-          <div className="flex flex-wrap gap-1.5">
-            {(Object.keys(CAT_CONFIG) as AchievementCategory[]).filter(k => k !== "all").map(k => (
-              <button
-                key={k}
-                onClick={() => setCategory(k)}
-                className={`text-xs px-3 py-1.5 rounded-xl border font-medium transition-colors ${
-                  category === k
-                    ? "border-sky-300 bg-sky-50 text-sky-700"
-                    : "border-slate-100 bg-slate-50 text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {CAT_CONFIG[k].label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Эмодзи */}
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Значок</p>
-          <div className="flex flex-wrap gap-2">
-            {EMOJI_OPTIONS.map(e => (
-              <button
-                key={e}
-                onClick={() => setEmoji(e)}
-                className={`w-9 h-9 rounded-xl text-xl border transition-colors ${
-                  emoji === e
-                    ? "border-amber-300 bg-amber-50"
-                    : "border-slate-100 bg-slate-50 hover:bg-slate-100"
-                }`}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Название */}
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Название *</p>
-          <input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Например: Первое место на соревновании"
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-sky-300 focus:bg-white transition-colors"
-          />
-        </div>
-
-        {/* Описание */}
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Подробности</p>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            placeholder="Расскажи, что произошло..."
-            rows={2}
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-sky-300 focus:bg-white transition-colors resize-none"
-          />
-        </div>
-
-        {/* Слово семьи */}
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Слово семьи</p>
-          <input
-            value={familyNote}
-            onChange={e => setFamilyNote(e.target.value)}
-            placeholder="Мы тобой гордимся!"
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-sky-300 focus:bg-white transition-colors"
-          />
-        </div>
-
-        <button
-          onClick={handleAdd}
+    <AdaptiveDialog
+      title="Добавить достижение"
+      onClose={onClose}
+      footer={
+        <DialogSubmit
+          label="Сохранить достижение"
           disabled={!canSubmit}
-          className="w-full py-3 rounded-2xl text-sm font-bold transition-colors disabled:opacity-40"
-          style={{
-            background: canSubmit ? "linear-gradient(135deg, #fef9e8 0%, #fde8b8 100%)" : undefined,
-            backgroundColor: canSubmit ? undefined : "#f1f5f9",
-            color: canSubmit ? "#92400e" : "#94a3b8",
-          }}
-        >
-          Сохранить достижение
-        </button>
-      </div>
-    </div>
+          onClick={handleAdd}
+          variant="warm"
+        />
+      }
+    >
+      {/* Тип */}
+      <FormField label="Тип">
+        <div className="grid grid-cols-3 gap-2">
+          {TYPE_OPTS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setType(opt.value)}
+              className={`rounded-xl p-2.5 text-left border transition-colors ${
+                type === opt.value
+                  ? "border-amber-300 bg-amber-50"
+                  : "border-slate-100 bg-slate-50 hover:bg-slate-100"
+              }`}
+            >
+              <p className={`text-xs font-semibold mb-0.5 ${type === opt.value ? "text-amber-700" : "text-slate-700"}`}>
+                {opt.label}
+              </p>
+              <p className="text-[10px] text-slate-400 leading-tight">{opt.desc}</p>
+            </button>
+          ))}
+        </div>
+      </FormField>
+
+      {/* Категория */}
+      <FormField label="Категория">
+        <div className="flex flex-wrap gap-1.5">
+          {(Object.keys(CAT_CONFIG) as AchievementCategory[]).filter(k => k !== "all").map(k => (
+            <button
+              key={k}
+              onClick={() => setCategory(k)}
+              className={`text-xs px-3 py-1.5 rounded-xl border font-medium transition-colors ${
+                category === k
+                  ? "border-sky-300 bg-sky-50 text-sky-700"
+                  : "border-slate-100 bg-slate-50 text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              {CAT_CONFIG[k].label}
+            </button>
+          ))}
+        </div>
+      </FormField>
+
+      {/* Эмодзи */}
+      <FormField label="Значок">
+        <EmojiPicker
+          options={EMOJI_OPTIONS}
+          value={emoji}
+          onChange={setEmoji}
+          activeClass="border-amber-300 bg-amber-50"
+        />
+      </FormField>
+
+      {/* Название */}
+      <FormField label="Название" required>
+        <FormInput
+          value={title}
+          onChange={setTitle}
+          placeholder="Например: Первое место на соревновании"
+          focusColor="focus:border-sky-300"
+        />
+      </FormField>
+
+      {/* Описание */}
+      <FormField label="Подробности">
+        <FormTextarea
+          value={description}
+          onChange={setDescription}
+          placeholder="Расскажи, что произошло..."
+          rows={2}
+          focusColor="focus:border-sky-300"
+        />
+      </FormField>
+
+      {/* Слово семьи */}
+      <FormField label="Слово семьи">
+        <FormInput
+          value={familyNote}
+          onChange={setFamilyNote}
+          placeholder="Мы тобой гордимся!"
+          focusColor="focus:border-sky-300"
+        />
+      </FormField>
+    </AdaptiveDialog>
   );
 }
 
@@ -381,96 +372,53 @@ export default function AchievementsScreen({ child, onBack }: AchievementsScreen
   const hero = items.find(a => a.type === "big") ?? items[0];
   const rest = filtered.filter(a => a.id !== hero?.id);
 
-  const bigItems  = rest.filter(a => a.type === "big");
-  const smallItems = rest.filter(a => a.type === "small");
+  const bigItems    = rest.filter(a => a.type === "big");
+  const smallItems  = rest.filter(a => a.type === "small");
   const momentItems = rest.filter(a => a.type === "moment");
+
+  // Кнопка «Добавить» в хедере
+  const headerRight = (
+    <button
+      onClick={() => setShowAdd(true)}
+      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
+    >
+      <Plus size={13} />
+      Добавить
+    </button>
+  );
 
   // ─── Empty state ─────────────────────────────────────────────────────────
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex flex-col">
-        <div className="bg-white px-4 pt-5 pb-4 rounded-b-3xl shadow-sm">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center"
-            >
-              <ChevronLeft size={16} className="text-slate-500" />
-            </button>
-            <h1
-              className="text-[18px] font-bold text-slate-800"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Мои достижения
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-24">
-          <div className="text-5xl mb-4">🌟</div>
-          <h2
-            className="text-[17px] font-bold text-slate-700 mb-2"
-            style={{ fontFamily: "Montserrat, sans-serif" }}
-          >
-            Здесь появятся первые успехи
-          </h2>
-          <p className="text-sm text-slate-400 leading-relaxed mb-6">
-            Добавьте маленькую победу, грамоту или памятный момент — и начнётся история роста
-          </p>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl text-sm font-semibold text-amber-800 border border-amber-200"
-            style={{ background: "linear-gradient(135deg, #fffdf5 0%, #fef9e8 100%)" }}
-          >
-            <Plus size={15} />
-            Добавить первое достижение
-          </button>
-        </div>
-
+      <ScreenPage>
+        <ScreenHeader title="Достижения" onBack={onBack} />
+        <EmptyState
+          emoji="🌟"
+          title="Здесь появятся первые успехи"
+          description="Добавьте маленькую победу, грамоту или памятный момент — и начнётся история роста"
+          action="Добавить первое достижение"
+          onAction={() => setShowAdd(true)}
+        />
         {showAdd && (
           <AddAchievementDialog onClose={() => setShowAdd(false)} onAdd={handleAdd} />
         )}
-      </div>
+      </ScreenPage>
     );
   }
 
   // ─── Основной экран ───────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
+    <ScreenPage>
+      <ScreenHeader
+        title="Достижения"
+        subtitle={`${firstName} · ${items.length} побед`}
+        onBack={onBack}
+        right={headerRight}
+      />
 
-      {/* Хедер */}
-      <div className="bg-white px-4 pt-5 pb-4 rounded-b-3xl shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center"
-            >
-              <ChevronLeft size={16} className="text-slate-500" />
-            </button>
-            <div>
-              <h1
-                className="text-[18px] font-bold text-slate-800"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                Достижения
-              </h1>
-              <p className="text-xs text-slate-400">{firstName} · {items.length} побед</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors"
-          >
-            <Plus size={13} />
-            Добавить
-          </button>
-        </div>
-      </div>
-
-      <div className="px-4 pt-3 space-y-3 pb-20">
+      <ScreenBody>
 
         {/* Hero — главное достижение */}
         {hero && activeCategory === "all" && (
@@ -481,64 +429,46 @@ export default function AchievementsScreen({ child, onBack }: AchievementsScreen
 
         {/* Фильтры-чипы */}
         <section>
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
-            {(Object.keys(CAT_CONFIG) as AchievementCategory[]).map(k => {
-              const isActive = activeCategory === k;
-              return (
-                <button
-                  key={k}
-                  onClick={() => setActiveCategory(k)}
-                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
-                    isActive
-                      ? "bg-slate-800 text-white border-slate-800"
-                      : "bg-white text-slate-600 border-slate-100 hover:bg-slate-50"
-                  }`}
-                >
-                  <Icon name={CAT_CONFIG[k].icon} size={12} />
-                  {CAT_CONFIG[k].label}
-                </button>
-              );
-            })}
-          </div>
+          <FilterRow>
+            {(Object.keys(CAT_CONFIG) as AchievementCategory[]).map(k => (
+              <FilterChip
+                key={k}
+                label={CAT_CONFIG[k].label}
+                icon={CAT_CONFIG[k].icon}
+                active={activeCategory === k}
+                onClick={() => setActiveCategory(k)}
+              />
+            ))}
+          </FilterRow>
         </section>
 
         {/* Блок «Чем я горжусь» — 2–3 ключевых, только при "все" */}
         {activeCategory === "all" && items.filter(a => a.type === "big").length > 1 && (
-          <section>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-              <p
-                className="text-[15px] font-bold text-slate-800 mb-3"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                Чем я горжусь
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {items.filter(a => a.type === "big").slice(0, 3).map(a => (
-                  <div
-                    key={a.id}
-                    className="flex items-center gap-1.5 bg-amber-50/70 border border-amber-100 rounded-xl px-2.5 py-1.5"
-                  >
-                    <span className="text-base">{a.emoji}</span>
-                    <span className="text-xs font-medium text-slate-700 max-w-[110px] truncate">{a.title}</span>
-                  </div>
-                ))}
-              </div>
+          <SectionCard title="Чем я горжусь">
+            <div className="flex gap-2 flex-wrap">
+              {items.filter(a => a.type === "big").slice(0, 3).map(a => (
+                <div
+                  key={a.id}
+                  className="flex items-center gap-1.5 bg-amber-50/70 border border-amber-100 rounded-xl px-2.5 py-1.5"
+                >
+                  <span className="text-base">{a.emoji}</span>
+                  <span className="text-xs font-medium text-slate-700 max-w-[110px] truncate">{a.title}</span>
+                </div>
+              ))}
             </div>
-          </section>
+          </SectionCard>
         )}
 
         {/* Лента достижений */}
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-slate-100/80">
-            <div className="text-3xl mb-2">🔍</div>
-            <p className="text-sm text-slate-500">В этой категории пока нет достижений</p>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="mt-3 text-xs text-amber-600 font-medium flex items-center gap-1 mx-auto"
-            >
-              <Plus size={12} /> Добавить
-            </button>
-          </div>
+          <SectionCard title="Достижения">
+            <InlineEmpty
+              emoji="🔍"
+              text="В этой категории пока нет достижений"
+              action="Добавить"
+              onAction={() => setShowAdd(true)}
+            />
+          </SectionCard>
         ) : (
           <>
             {/* Большие достижения (кроме hero) */}
@@ -557,52 +487,33 @@ export default function AchievementsScreen({ child, onBack }: AchievementsScreen
 
             {/* Маленькие победы */}
             {smallItems.length > 0 && (
-              <section>
-                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100/80">
-                  <div className="px-4 pt-4 pb-2">
-                    <p
-                      className="text-[15px] font-bold text-slate-800"
-                      style={{ fontFamily: "Montserrat, sans-serif" }}
-                    >
-                      Маленькие победы
-                    </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Каждая из них — шаг вперёд
-                    </p>
-                  </div>
-                  <div className="px-4 pb-4 space-y-2">
+              <SectionCard title="Маленькие победы" noPad>
+                <div className="px-4 pb-4">
+                  <p className="text-xs text-slate-400 mb-3">Каждая из них — шаг вперёд</p>
+                  <div className="space-y-2">
                     {smallItems.map(item => (
                       <SmallAchievementCard key={item.id} item={item} />
                     ))}
                   </div>
                 </div>
-              </section>
+              </SectionCard>
             )}
           </>
         )}
 
-        {/* Добавить фото / документ */}
-        <section>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="w-full flex items-center gap-3 bg-white rounded-2xl p-4 shadow-sm border border-dashed border-slate-200 hover:border-amber-200 hover:bg-amber-50/30 transition-colors"
-          >
-            <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0">
-              <Camera size={15} className="text-slate-400" />
-            </div>
-            <div className="flex-1 text-left">
-              <p className="text-sm font-medium text-slate-700">Добавить достижение</p>
-              <p className="text-xs text-slate-400">Диплом, победа или памятный момент</p>
-            </div>
-            <Plus size={14} className="text-slate-300 flex-shrink-0" />
-          </button>
-        </section>
+        {/* Добавить достижение */}
+        <AddRowButton
+          icon="Camera"
+          label="Добавить достижение"
+          sublabel="Диплом, победа или памятный момент"
+          onClick={() => setShowAdd(true)}
+        />
 
-      </div>
+      </ScreenBody>
 
       {showAdd && (
         <AddAchievementDialog onClose={() => setShowAdd(false)} onAdd={handleAdd} />
       )}
-    </div>
+    </ScreenPage>
   );
 }

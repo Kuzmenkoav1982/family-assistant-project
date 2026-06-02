@@ -1,7 +1,19 @@
 import { useState } from "react";
-import { ChevronRight, Plus, TrendingUp, BookOpen, Dumbbell, Palette, Users, Music, Shield, Heart, CheckCircle2, Circle, ArrowRight, Sparkles } from "lucide-react";
+import { ChevronRight, Plus, BookOpen, Dumbbell, Palette, Users, Music, Shield, ArrowRight } from "lucide-react";
 import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
+import {
+  ScreenPage,
+  ScreenBody,
+  SectionCard,
+  InsightBanner,
+  ProgressBar,
+  StepItem,
+  InlineEmpty,
+  MONTSERRAT,
+} from "@/components/children/ui";
+
+// ─── Типы ─────────────────────────────────────────────────────────────────────
 
 interface Dream {
   id: string;
@@ -46,6 +58,8 @@ interface ChildMasterScreenProps {
   onFamilyOpen?: () => void;
 }
 
+// ─── Конфиг областей ─────────────────────────────────────────────────────────
+
 const AREA_CONFIG: Record<string, {
   label: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
@@ -60,6 +74,8 @@ const AREA_CONFIG: Record<string, {
   music:      { label: "Музыка",     icon: Music,    color: "text-amber-500",  bg: "bg-amber-50",  bar: "bg-amber-300" },
 };
 
+// ─── Статичные данные ─────────────────────────────────────────────────────────
+
 const SAFETY_TIPS = [
   "Не говори никому свой PIN — даже лучшему другу",
   "Перед крупной покупкой спроси маму или папу",
@@ -72,6 +88,8 @@ const WEEKLY_STEPS = [
   { id: "2", text: "Сделать один шаг к своей мечте" },
   { id: "3", text: "Рассказать семье о маленькой победе" },
 ];
+
+// ─── Аватар члена семьи ───────────────────────────────────────────────────────
 
 function MemberAvatar({ member }: {
   member: { name: string; avatar: string; avatar_type?: string; photo_url?: string }
@@ -92,6 +110,8 @@ function MemberAvatar({ member }: {
     </div>
   );
 }
+
+// ─── Главный компонент ────────────────────────────────────────────────────────
 
 export default function ChildMasterScreen({
   child,
@@ -153,7 +173,7 @@ export default function ChildMasterScreen({
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
+    <ScreenPage>
 
       {/* ── БЛОК 1: HERO — ребёнок, имя, возраст. Очки — вторичный слой ── */}
       <div className="bg-white px-4 pt-5 pb-6 rounded-b-3xl shadow-sm">
@@ -166,7 +186,7 @@ export default function ChildMasterScreen({
             </p>
             <h1
               className="text-[22px] font-bold text-slate-800 leading-tight"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
+              style={MONTSERRAT}
             >
               {firstName}
             </h1>
@@ -185,7 +205,7 @@ export default function ChildMasterScreen({
         </div>
       </div>
 
-      <div className="px-4 pt-3 space-y-3 pb-20">
+      <ScreenBody>
 
         {/* ── БЛОК 2: МОЯ МЕЧТА — тёплый песочный, не "золотой" ── */}
         <section>
@@ -203,7 +223,7 @@ export default function ChildMasterScreen({
                 <>
                   <h2
                     className="text-[18px] font-bold text-slate-800 leading-snug mb-1"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    style={MONTSERRAT}
                   >
                     {activeDream.title}
                   </h2>
@@ -229,7 +249,7 @@ export default function ChildMasterScreen({
                 <>
                   <h2
                     className="text-[17px] font-bold text-slate-800 mb-1"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
+                    style={MONTSERRAT}
                   >
                     О чём мечтаешь?
                   </h2>
@@ -243,39 +263,31 @@ export default function ChildMasterScreen({
           </button>
         </section>
 
-        {/* ── БЛОК 3: МОЙ РОСТ — спокойный, монохромные бары, не пёстрый ── */}
-        <section>
-          <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100/80">
-            <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center">
-                  <TrendingUp size={14} className="text-teal-500" />
-                </div>
-                <h2
-                  className="text-[15px] font-bold text-slate-800"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  Мой рост
-                </h2>
-              </div>
-              <button
-                onClick={onGrowthOpen}
-                className="text-xs text-slate-400 hover:text-teal-600 transition-colors flex items-center gap-0.5"
-              >
-                Подробнее <ChevronRight size={12} />
-              </button>
-            </div>
-
+        {/* ── БЛОК 3: МОЙ РОСТ ── */}
+        <SectionCard
+          title="Мой рост"
+          icon="TrendingUp"
+          iconBg="bg-teal-50"
+          noPad
+          action={
+            <button
+              onClick={onGrowthOpen}
+              className="text-xs text-slate-400 hover:text-teal-600 transition-colors flex items-center gap-0.5"
+            >
+              Подробнее <ChevronRight size={12} />
+            </button>
+          }
+        >
+          <div className="px-4 pb-4">
             {strongestArea && (
-              <div className="mx-4 mb-3 px-3 py-2 bg-slate-50 rounded-xl">
-                <p className="text-xs text-slate-600">
-                  Сильнее всего сейчас — <strong className="text-teal-600">{AREA_CONFIG[strongestArea.area]?.label}</strong>
-                </p>
-              </div>
+              <InsightBanner
+                text="Сильнее всего сейчас — "
+                highlight={AREA_CONFIG[strongestArea.area]?.label}
+              />
             )}
 
             {topAreas.length > 0 ? (
-              <div className="px-4 pb-4 space-y-2.5">
+              <div className="space-y-2.5">
                 {topAreas.map(area => {
                   const cfg = AREA_CONFIG[area.area];
                   if (!cfg) return null;
@@ -291,125 +303,91 @@ export default function ChildMasterScreen({
                           <span className="text-xs font-medium text-slate-600">{cfg.label}</span>
                           <span className="text-xs text-slate-400">{pct}%</span>
                         </div>
-                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${cfg.bar} opacity-60 transition-all`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
+                        <ProgressBar value={pct} barClass={cfg.bar} />
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="px-4 pb-5 text-center">
-                <div className="text-2xl mb-1.5">🌱</div>
-                <p className="text-sm text-slate-400">Добавь занятия — начнём отслеживать рост</p>
-              </div>
+              <InlineEmpty
+                emoji="🌱"
+                text="Добавь занятия — начнём отслеживать рост"
+              />
             )}
           </div>
-        </section>
+        </SectionCard>
 
         {/* ── БЛОК 4: ШАГИ НЕДЕЛИ ── */}
-        <section>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center">
-                  <Icon name="Target" size={14} className="text-violet-500" />
-                </div>
-                <h2
-                  className="text-[15px] font-bold text-slate-800"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  Шаги недели
-                </h2>
-              </div>
-              {doneCount > 0 && (
-                <span className="text-[11px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">
-                  {doneCount}/{weekSteps.length}
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              {weekSteps.map(step => (
-                <button
-                  key={step.id}
-                  onClick={() => toggleStep(step.id)}
-                  className="w-full flex items-start gap-2.5 text-left group"
-                >
-                  <div className="flex-shrink-0 mt-0.5">
-                    {step.done
-                      ? <CheckCircle2 size={18} className="text-violet-400" />
-                      : <Circle size={18} className="text-slate-200 group-hover:text-violet-200 transition-colors" />
-                    }
-                  </div>
-                  <span className={`text-sm leading-snug ${step.done ? "line-through text-slate-300" : "text-slate-600"}`}>
-                    {step.text}
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            {doneCount === weekSteps.length && (
-              <div className="mt-3 rounded-xl bg-violet-50 px-3 py-2 text-center">
-                <p className="text-xs font-semibold text-violet-600">Отличная неделя! 🎉</p>
-              </div>
-            )}
+        <SectionCard
+          title="Шаги недели"
+          icon="Target"
+          iconBg="bg-violet-50"
+          action={
+            doneCount > 0 ? (
+              <span className="text-[11px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full">
+                {doneCount}/{weekSteps.length}
+              </span>
+            ) : undefined
+          }
+        >
+          <div className="space-y-2">
+            {weekSteps.map(step => (
+              <StepItem
+                key={step.id}
+                text={step.text}
+                done={step.done}
+                onToggle={() => toggleStep(step.id)}
+              />
+            ))}
           </div>
-        </section>
+
+          {doneCount === weekSteps.length && (
+            <div className="mt-3 rounded-xl bg-violet-50 px-3 py-2 text-center">
+              <p className="text-xs font-semibold text-violet-600">Отличная неделя! 🎉</p>
+            </div>
+          )}
+        </SectionCard>
 
         {/* ── БЛОК 5: МОИ ЗАНЯТИЯ ── */}
         {topAreas.length > 0 && (
-          <section>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-sky-50 flex items-center justify-center">
-                    <Sparkles size={14} className="text-sky-500" />
-                  </div>
-                  <h2
-                    className="text-[15px] font-bold text-slate-800"
-                    style={{ fontFamily: "Montserrat, sans-serif" }}
+          <SectionCard
+            title="Мои занятия"
+            icon="Sparkles"
+            iconBg="bg-sky-50"
+            action={
+              <button
+                onClick={() => onActivitiesOpen ? onActivitiesOpen() : onTabChange?.("activities")}
+                className="text-xs text-slate-400 hover:text-sky-600 transition-colors flex items-center gap-0.5"
+              >
+                Все <ChevronRight size={12} />
+              </button>
+            }
+          >
+            <div className="space-y-2">
+              {topAreas.slice(0, 3).map(area => {
+                const cfg = AREA_CONFIG[area.area];
+                if (!cfg) return null;
+                const AreaIcon = cfg.icon;
+                return (
+                  <div
+                    key={area.id}
+                    onClick={() => onActivitiesOpen ? onActivitiesOpen() : onTabChange?.("activities")}
+                    className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5 cursor-pointer hover:bg-slate-100 transition-colors"
                   >
-                    Мои занятия
-                  </h2>
-                </div>
-                <button
-                  onClick={() => onActivitiesOpen ? onActivitiesOpen() : onTabChange?.("activities")}
-                  className="text-xs text-slate-400 hover:text-sky-600 transition-colors flex items-center gap-0.5"
-                >
-                  Все <ChevronRight size={12} />
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                {topAreas.slice(0, 3).map(area => {
-                  const cfg = AREA_CONFIG[area.area];
-                  if (!cfg) return null;
-                  const AreaIcon = cfg.icon;
-                  return (
-                    <div
-                      key={area.id}
-                      onClick={() => onActivitiesOpen ? onActivitiesOpen() : onTabChange?.("activities")}
-                      className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-2.5 cursor-pointer hover:bg-slate-100 transition-colors"
-                    >
-                      <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
-                        <AreaIcon size={15} className={cfg.color} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-700">{cfg.label}</p>
-                        <p className="text-xs text-slate-400">Прогресс {area.current_level}%</p>
-                      </div>
-                      <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                    <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
+                      <AreaIcon size={15} className={cfg.color} />
                     </div>
-                  );
-                })}
-              </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-700">{cfg.label}</p>
+                      <p className="text-xs text-slate-400">Прогресс {area.current_level}%</p>
+                    </div>
+                    <ChevronRight size={13} className="text-slate-300 flex-shrink-0" />
+                  </div>
+                );
+              })}
             </div>
-          </section>
+          </SectionCard>
         )}
 
         {/* ── БЛОК 6: МОИ ДОСТИЖЕНИЯ ── */}
@@ -445,7 +423,7 @@ export default function ChildMasterScreen({
                   <>
                     <h2
                       className="text-[17px] font-bold text-slate-800 mb-1"
-                      style={{ fontFamily: "Montserrat, sans-serif" }}
+                      style={MONTSERRAT}
                     >
                       Первые победы ждут
                     </h2>
@@ -462,72 +440,65 @@ export default function ChildMasterScreen({
         </section>
 
         {/* ── БЛОК 7: МОЯ СЕМЬЯ — реальные аватары из контекста ── */}
-        <section>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-rose-50 flex items-center justify-center">
-                  <Heart size={14} className="text-rose-400" />
-                </div>
-                <h2 className="text-[15px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                  Моя семья
-                </h2>
-              </div>
-              <button
-                onClick={() => onFamilyOpen ? onFamilyOpen() : onTabChange?.("family")}
-                className="text-xs text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-0.5"
-              >
-                Открыть <ChevronRight size={12} />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3 mb-3">
-              <div className="flex -space-x-2.5">
-                {familyMembers.length > 0 ? (
-                  <>
-                    {familyMembers.map(m => (
-                      <MemberAvatar key={m.id} member={m} />
-                    ))}
-                    {extraFamilyCount > 0 && (
-                      <div className="w-9 h-9 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center">
-                        <span className="text-[11px] font-semibold text-slate-500">+{extraFamilyCount}</span>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  ["bg-rose-100", "bg-sky-100", "bg-amber-100"].map((bg, i) => (
-                    <div
-                      key={i}
-                      className={`w-9 h-9 rounded-full ${bg} border-2 border-white shadow-sm flex items-center justify-center`}
-                    >
-                      <Icon name="User" size={15} className="text-slate-400" />
+        <SectionCard
+          title="Моя семья"
+          icon="Heart"
+          iconBg="bg-rose-50"
+          action={
+            <button
+              onClick={() => onFamilyOpen ? onFamilyOpen() : onTabChange?.("family")}
+              className="text-xs text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-0.5"
+            >
+              Открыть <ChevronRight size={12} />
+            </button>
+          }
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex -space-x-2.5">
+              {familyMembers.length > 0 ? (
+                <>
+                  {familyMembers.map(m => (
+                    <MemberAvatar key={m.id} member={m} />
+                  ))}
+                  {extraFamilyCount > 0 && (
+                    <div className="w-9 h-9 rounded-full bg-slate-100 border-2 border-white shadow-sm flex items-center justify-center">
+                      <span className="text-[11px] font-semibold text-slate-500">+{extraFamilyCount}</span>
                     </div>
-                  ))
-                )}
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-700">Семья рядом</p>
-                <p className="text-xs text-slate-400">История и воспоминания</p>
-              </div>
+                  )}
+                </>
+              ) : (
+                ["bg-rose-100", "bg-sky-100", "bg-amber-100"].map((bg, i) => (
+                  <div
+                    key={i}
+                    className={`w-9 h-9 rounded-full ${bg} border-2 border-white shadow-sm flex items-center justify-center`}
+                  >
+                    <Icon name="User" size={15} className="text-slate-400" />
+                  </div>
+                ))
+              )}
             </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { label: "Альбом",   icon: "Camera",   color: "text-rose-400",   bg: "bg-rose-50/60" },
-                { label: "Истории",  icon: "BookOpen", color: "text-amber-500",  bg: "bg-amber-50/60" },
-                { label: "Традиции", icon: "Star",     color: "text-violet-400", bg: "bg-violet-50/60" },
-              ].map(item => (
-                <div
-                  key={item.label}
-                  className={`${item.bg} rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity`}
-                >
-                  <Icon name={item.icon} size={14} className={item.color} />
-                  <span className="text-[11px] font-medium text-slate-500">{item.label}</span>
-                </div>
-              ))}
+            <div>
+              <p className="text-sm font-medium text-slate-700">Семья рядом</p>
+              <p className="text-xs text-slate-400">История и воспоминания</p>
             </div>
           </div>
-        </section>
+
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { label: "Альбом",   icon: "Camera",   color: "text-rose-400",   bg: "bg-rose-50/60" },
+              { label: "Истории",  icon: "BookOpen", color: "text-amber-500",  bg: "bg-amber-50/60" },
+              { label: "Традиции", icon: "Star",     color: "text-violet-400", bg: "bg-violet-50/60" },
+            ].map(item => (
+              <div
+                key={item.label}
+                className={`${item.bg} rounded-xl px-2 py-2.5 flex flex-col items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity`}
+              >
+                <Icon name={item.icon} size={14} className={item.color} />
+                <span className="text-[11px] font-medium text-slate-500">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
 
         {/* ── БЛОК 8: БЕЗОПАСНОСТЬ — статичная, без ротации ── */}
         <section>
@@ -554,7 +525,7 @@ export default function ChildMasterScreen({
           </div>
         </section>
 
-      </div>
-    </div>
+      </ScreenBody>
+    </ScreenPage>
   );
 }

@@ -1,4 +1,18 @@
-import { BookOpen, Dumbbell, Palette, Users, Music, ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { BookOpen, Dumbbell, Palette, Users, Music } from "lucide-react";
+import {
+  ScreenPage,
+  ScreenHeader,
+  ScreenBody,
+  SectionCard,
+  AccentCard,
+  InsightBanner,
+  ProgressBar,
+  NextStepBlock,
+  InlineEmpty,
+  MONTSERRAT,
+} from "@/components/children/ui";
+
+// ─── Типы ────────────────────────────────────────────────────────────────────
 
 interface Development {
   id: string;
@@ -18,6 +32,8 @@ interface GrowthScreenProps {
   };
   onBack?: () => void;
 }
+
+// ─── Конфиг областей ─────────────────────────────────────────────────────────
 
 const AREA_CONFIG: Record<string, {
   label: string;
@@ -81,6 +97,8 @@ const AREA_CONFIG: Record<string, {
   },
 };
 
+// ─── Пулы текстов ─────────────────────────────────────────────────────────────
+
 const STRENGTHS_POOL = [
   "Быстро включается в новые задачи",
   "Хорошо держит ритм занятий",
@@ -95,6 +113,8 @@ const SUPPORT_POOL = [
   "Попробовать вместе новое творческое занятие",
   "Больше разговаривать об интересах и делах",
 ];
+
+// ─── Главный компонент ────────────────────────────────────────────────────────
 
 export default function GrowthScreen({ child, childData, onBack }: GrowthScreenProps) {
   const development = (childData?.development ?? child.development ?? []) as Development[];
@@ -123,38 +143,15 @@ export default function GrowthScreen({ child, childData, onBack }: GrowthScreenP
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
+    <ScreenPage>
+      <ScreenHeader title="Мой рост" subtitle={name} onBack={onBack} />
 
-      {/* Хедер */}
-      <div className="bg-white px-4 pt-5 pb-4 rounded-b-3xl shadow-sm">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center"
-          >
-            <ChevronLeft size={16} className="text-slate-500" />
-          </button>
-          <div>
-            <h1
-              className="text-[18px] font-bold text-slate-800"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Мой рост
-            </h1>
-            <p className="text-xs text-slate-400">{name}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 pt-3 space-y-3 pb-20">
+      <ScreenBody>
 
         {/* Верхняя сводка */}
         <section>
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-            <p
-              className="text-[15px] font-bold text-slate-800 mb-1"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
+            <p className="text-[15px] font-bold text-slate-800 mb-1" style={MONTSERRAT}>
               {getInsight()}
             </p>
             {overallAvg > 0 && (
@@ -167,182 +164,142 @@ export default function GrowthScreen({ child, childData, onBack }: GrowthScreenP
 
         {/* Области развития */}
         {areas.length > 0 ? (
-          <section>
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100/80">
-              <div className="px-4 pt-4 pb-2 flex items-center gap-2.5">
-                <p
-                  className="text-[15px] font-bold text-slate-800"
-                  style={{ fontFamily: "Montserrat, sans-serif" }}
-                >
-                  Области развития
-                </p>
-              </div>
-
-              <div className="px-4 pb-4 space-y-1">
-                {areas.map((area, idx) => {
-                  const cfg = AREA_CONFIG[area.area];
-                  if (!cfg) return null;
-                  const AreaIcon = cfg.icon;
-                  const pct = Math.round(area.current_level);
-                  const isStrongest = idx === 0 && pct >= 50;
-                  return (
-                    <div
-                      key={area.id}
-                      className="rounded-xl px-3 py-3 hover:bg-slate-50 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
-                          <AreaIcon size={15} className={cfg.color} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <span className="text-sm font-semibold text-slate-700">{cfg.label}</span>
-                            <div className="flex items-center gap-1.5">
-                              {isStrongest && (
-                                <span className="text-[10px] bg-teal-50 text-teal-600 font-semibold px-1.5 py-0.5 rounded-md">
-                                  Сильная
-                                </span>
-                              )}
-                              <span className="text-xs text-slate-400">{pct}%</span>
-                            </div>
+          <SectionCard title="Области развития" noPad>
+            <div className="px-4 pb-4 space-y-1">
+              {areas.map((area, idx) => {
+                const cfg = AREA_CONFIG[area.area];
+                if (!cfg) return null;
+                const AreaIcon = cfg.icon;
+                const pct = Math.round(area.current_level);
+                const isStrongest = idx === 0 && pct >= 50;
+                return (
+                  <div
+                    key={area.id}
+                    className="rounded-xl px-3 py-3 hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className={`w-8 h-8 rounded-lg ${cfg.bg} flex items-center justify-center flex-shrink-0`}>
+                        <AreaIcon size={15} className={cfg.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className="text-sm font-semibold text-slate-700">{cfg.label}</span>
+                          <div className="flex items-center gap-1.5">
+                            {isStrongest && (
+                              <span className="text-[10px] bg-teal-50 text-teal-600 font-semibold px-1.5 py-0.5 rounded-md">
+                                Сильная
+                              </span>
+                            )}
+                            <span className="text-xs text-slate-400">{pct}%</span>
                           </div>
-                          <p className="text-[11px] text-slate-400">{cfg.description}</p>
                         </div>
-                      </div>
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden ml-11">
-                        <div
-                          className="h-full rounded-full bg-slate-300 transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      {/* Навыки */}
-                      <div className="flex gap-1.5 mt-2 ml-11">
-                        {cfg.skills.map(skill => (
-                          <span
-                            key={skill}
-                            className="text-[10px] bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded-md border border-slate-100"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                        <p className="text-[11px] text-slate-400">{cfg.description}</p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                    {/* Прогресс-бар */}
+                    <div className="ml-11">
+                      <ProgressBar value={pct} barClass={cfg.bar} />
+                    </div>
+                    {/* Навыки */}
+                    <div className="flex gap-1.5 mt-2 ml-11">
+                      {cfg.skills.map(skill => (
+                        <span
+                          key={skill}
+                          className="text-[10px] bg-slate-50 text-slate-500 px-1.5 py-0.5 rounded-md border border-slate-100"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </section>
+          </SectionCard>
         ) : (
+          <SectionCard title="Области развития">
+            <InlineEmpty
+              emoji="🌱"
+              text="Добавь занятия в раздел развития — и мы начнём отслеживать"
+            />
+          </SectionCard>
+        )}
+
+        {/* Сильнее всего сейчас */}
+        {strongestArea && (
           <section>
-            <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-slate-100/80">
-              <div className="text-3xl mb-2">🌱</div>
-              <p className="text-sm font-semibold text-slate-700 mb-1">Рост только начинается</p>
-              <p className="text-xs text-slate-400">Добавь занятия в раздел развития — и мы начнём отслеживать</p>
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
+              <InsightBanner
+                text="Сильнее всего сейчас — "
+                highlight={AREA_CONFIG[strongestArea.area]?.label}
+              />
             </div>
           </section>
         )}
 
         {/* Сильные стороны */}
-        <section>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-            <p
-              className="text-[15px] font-bold text-slate-800 mb-3"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Сильные стороны
-            </p>
-            <div className="space-y-2">
-              {strengths.map((s, i) => (
-                <div key={i} className="flex items-start gap-2.5">
-                  <span className="text-teal-400 mt-0.5 flex-shrink-0 text-base">✓</span>
-                  <p className="text-sm text-slate-700 leading-snug">{s}</p>
-                </div>
-              ))}
-            </div>
+        <SectionCard title="Сильные стороны">
+          <div className="space-y-2">
+            {strengths.map((s, i) => (
+              <div key={i} className="flex items-start gap-2.5">
+                <span className="text-teal-400 mt-0.5 flex-shrink-0 text-base">✓</span>
+                <p className="text-sm text-slate-700 leading-snug">{s}</p>
+              </div>
+            ))}
           </div>
-        </section>
+        </SectionCard>
 
         {/* Что можно поддержать */}
-        <section>
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-            <p
-              className="text-[15px] font-bold text-slate-800 mb-1"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Что сейчас можно поддержать
-            </p>
-            <p className="text-xs text-slate-400 mb-3">Небольшие шаги, которые помогут расти дальше</p>
-            <div className="space-y-2">
-              {supports.map((s, i) => (
-                <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 bg-amber-50/50 rounded-xl border border-amber-100/50">
-                  <span className="text-amber-400 mt-0.5 flex-shrink-0">→</span>
-                  <p className="text-sm text-slate-700 leading-snug">{s}</p>
-                </div>
-              ))}
-            </div>
+        <AccentCard gradient="warm">
+          <p className="text-[15px] font-bold text-slate-800 mb-1" style={MONTSERRAT}>
+            Что сейчас можно поддержать
+          </p>
+          <p className="text-xs text-slate-400 mb-3">Небольшие шаги, которые помогут расти дальше</p>
+          <div className="space-y-2">
+            {supports.map((s, i) => (
+              <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 bg-white/60 rounded-xl border border-amber-100/50">
+                <span className="text-amber-400 mt-0.5 flex-shrink-0">→</span>
+                <p className="text-sm text-slate-700 leading-snug">{s}</p>
+              </div>
+            ))}
           </div>
-        </section>
+        </AccentCard>
 
         {/* Что влияет на рост */}
         {areas.length > 0 && (
-          <section>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80">
-              <p
-                className="text-[15px] font-bold text-slate-800 mb-3"
-                style={{ fontFamily: "Montserrat, sans-serif" }}
-              >
-                Что влияет на рост
-              </p>
-              <div className="space-y-2">
-                {areas.slice(0, 3).map(area => {
-                  const cfg = AREA_CONFIG[area.area];
-                  if (!cfg) return null;
-                  return (
-                    <div key={area.id} className="flex items-start gap-2.5">
-                      <span className="text-slate-300 mt-0.5 flex-shrink-0 text-xs">●</span>
-                      <p className="text-sm text-slate-600 leading-snug">{cfg.insight}</p>
-                    </div>
-                  );
-                })}
-              </div>
+          <SectionCard title="Что влияет на рост">
+            <div className="space-y-2">
+              {areas.slice(0, 3).map(area => {
+                const cfg = AREA_CONFIG[area.area];
+                if (!cfg) return null;
+                return (
+                  <div key={area.id} className="flex items-start gap-2.5">
+                    <span className="text-slate-300 mt-0.5 flex-shrink-0 text-xs">●</span>
+                    <p className="text-sm text-slate-600 leading-snug">{cfg.insight}</p>
+                  </div>
+                );
+              })}
             </div>
-          </section>
+          </SectionCard>
         )}
 
         {/* Следующий шаг */}
-        <section>
-          <div
-            className="rounded-2xl p-4 border border-slate-100/80"
-            style={{ background: "linear-gradient(135deg, #f7fbff 0%, #eef6ff 100%)" }}
-          >
-            <p
-              className="text-[15px] font-bold text-slate-800 mb-3"
-              style={{ fontFamily: "Montserrat, sans-serif" }}
-            >
-              Следующий шаг
-            </p>
-            <div className="space-y-2">
-              {[
-                { who: "Родитель", text: "Добавить результат последнего занятия", icon: "👨‍👩‍👧" },
-                { who: "Ребёнок",  text: "Выбрать фокус на эту неделю",           icon: "🎯" },
-              ].map(step => (
-                <div
-                  key={step.who}
-                  className="flex items-center gap-3 bg-white/80 rounded-xl px-3 py-2.5 cursor-pointer hover:bg-white transition-colors"
-                >
-                  <span className="text-lg flex-shrink-0">{step.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] text-slate-400 font-medium">{step.who}</p>
-                    <p className="text-sm text-slate-700 leading-snug">{step.text}</p>
-                  </div>
-                  <ArrowRight size={13} className="text-slate-300 flex-shrink-0" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <NextStepBlock
+          items={[
+            {
+              icon: "Users",
+              iconColor: "text-sky-400",
+              text: "Добавить результат последнего занятия",
+            },
+            {
+              icon: "Target",
+              iconColor: "text-violet-400",
+              text: "Выбрать фокус на эту неделю",
+            },
+          ]}
+        />
 
-      </div>
-    </div>
+      </ScreenBody>
+    </ScreenPage>
   );
 }

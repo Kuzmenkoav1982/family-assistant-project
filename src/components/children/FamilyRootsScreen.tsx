@@ -1,22 +1,32 @@
 import { useState } from "react";
-import { ChevronLeft, Plus, X, Heart, MapPin, BookOpen, Sparkles } from "lucide-react";
+import { MapPin, Plus } from "lucide-react";
 import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import { useMemoryEntries } from "@/components/memory/useMemoryEntries";
 import { useFamilyTraditions } from "@/hooks/useFamilyTraditions";
+import {
+  ScreenPage,
+  ScreenHeader,
+  ScreenBody,
+  SectionCard,
+  WarmQuote,
+  EmptyState,
+  InlineEmpty,
+  AdaptiveDialog,
+  DialogSubmit,
+  FormField,
+  FormInput,
+  FormTextarea,
+  EmojiPicker,
+  MONTSERRAT,
+} from "@/components/children/ui";
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
 interface FamilyRootsScreenProps {
   child: { id: string; name: string };
   onBack?: () => void;
-}
-
-interface LocalStory {
-  id: string;
-  title: string;
-  text: string;
-  emoji: string;
+  onNavigateToMemory?: () => void;
 }
 
 interface LocalPlace {
@@ -69,7 +79,7 @@ function MemberCard({
       </div>
       {/* Имя и роль */}
       <div className="px-2.5 py-2.5">
-        <p className="text-sm font-bold text-slate-800 leading-tight truncate" style={{ fontFamily: "Montserrat, sans-serif" }}>
+        <p className="text-sm font-bold text-slate-800 leading-tight truncate" style={MONTSERRAT}>
           {member.name.split(" ")[0]}
         </p>
         <p className="text-[11px] text-slate-400 mt-0.5 truncate">{member.role}</p>
@@ -93,7 +103,9 @@ function MemoryCard({
   date?: string;
 }) {
   const months = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
-  const dateStr = date ? (() => { const d = new Date(date); return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`; })() : "";
+  const dateStr = date
+    ? (() => { const d = new Date(date); return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`; })()
+    : "";
 
   return (
     <div className="flex-shrink-0 w-[200px] rounded-2xl overflow-hidden bg-white shadow-sm border border-slate-100/80">
@@ -107,7 +119,7 @@ function MemoryCard({
         </div>
       )}
       <div className="px-3 py-2.5">
-        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2" style={{ fontFamily: "Montserrat, sans-serif" }}>
+        <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2" style={MONTSERRAT}>
           {title}
         </p>
         {text && <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2 leading-snug">{text}</p>}
@@ -133,116 +145,73 @@ function TraditionCard({ icon, name, description }: { icon: string; name: string
   );
 }
 
-// ─── Диалог добавления истории ────────────────────────────────────────────────
-
-function AddStoryDialog({ onClose, onSave }: { onClose: () => void; onSave: (s: LocalStory) => void }) {
-  const [title, setTitle] = useState("");
-  const [text, setText] = useState("");
-  const EMOJIS = ["📖", "🏖️", "🏔️", "🎉", "🍕", "🌲", "🎭", "🎨", "⭐", "🚂", "🌅", "🏡"];
-  const [emoji, setEmoji] = useState("📖");
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 pb-8 shadow-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[16px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>Добавить историю</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
-            <X size={14} className="text-slate-500" />
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Обложка</p>
-          <div className="flex flex-wrap gap-2">
-            {EMOJIS.map(e => (
-              <button key={e} onClick={() => setEmoji(e)}
-                className={`w-9 h-9 rounded-xl text-xl border transition-colors ${emoji === e ? "border-amber-300 bg-amber-50" : "border-slate-100 bg-slate-50"}`}>
-                {e}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Название *</p>
-          <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Например: Как мы ездили к морю"
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-rose-300 focus:bg-white transition-colors" />
-        </div>
-
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">История</p>
-          <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Расскажи немного об этом моменте…"
-            rows={3}
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-rose-300 focus:bg-white transition-colors resize-none" />
-        </div>
-
-        <button
-          onClick={() => { if (title.trim()) { onSave({ id: Date.now().toString(), title: title.trim(), text: text.trim(), emoji }); onClose(); }}}
-          disabled={!title.trim()}
-          className="w-full py-3 rounded-2xl text-sm font-bold bg-rose-50 text-rose-800 border border-rose-100 disabled:opacity-40 disabled:bg-slate-100 disabled:text-slate-400 transition-colors"
-        >
-          Сохранить историю
-        </button>
-      </div>
-    </div>
-  );
-}
-
 // ─── Диалог добавления места ──────────────────────────────────────────────────
 
-function AddPlaceDialog({ onClose, onSave }: { onClose: () => void; onSave: (p: LocalPlace) => void }) {
+const PLACE_EMOJIS = ["🏡", "🌲", "🏖️", "🏔️", "🌊", "🌸", "🏙️", "🛖", "⛺", "🌾", "🏛️", "🎡"];
+
+function AddPlaceDialog({
+  onClose,
+  onSave,
+}: {
+  onClose: () => void;
+  onSave: (p: LocalPlace) => void;
+}) {
   const [name, setName] = useState("");
   const [note, setNote] = useState("");
-  const EMOJIS = ["🏡", "🌲", "🏖️", "🏔️", "🌊", "🌸", "🏙️", "🛖", "⛺", "🌾", "🏛️", "🎡"];
   const [emoji, setEmoji] = useState("🏡");
 
+  const canSubmit = name.trim().length >= 1;
+
+  const handleSave = () => {
+    if (!canSubmit) return;
+    onSave({ id: Date.now().toString(), name: name.trim(), note: note.trim(), emoji });
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 pb-8 shadow-2xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[16px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>Добавить место</h2>
-          <button onClick={onClose} className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
-            <X size={14} className="text-slate-500" />
-          </button>
-        </div>
+    <AdaptiveDialog
+      title="Добавить место"
+      onClose={onClose}
+      footer={
+        <DialogSubmit
+          label="Сохранить место"
+          disabled={!canSubmit}
+          onClick={handleSave}
+          variant="teal"
+        />
+      }
+    >
+      <FormField label="Значок">
+        <EmojiPicker
+          options={PLACE_EMOJIS}
+          value={emoji}
+          onChange={setEmoji}
+          activeClass="border-teal-300 bg-teal-50"
+        />
+      </FormField>
 
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Значок</p>
-          <div className="flex flex-wrap gap-2">
-            {EMOJIS.map(e => (
-              <button key={e} onClick={() => setEmoji(e)}
-                className={`w-9 h-9 rounded-xl text-xl border transition-colors ${emoji === e ? "border-teal-300 bg-teal-50" : "border-slate-100 bg-slate-50"}`}>
-                {e}
-              </button>
-            ))}
-          </div>
-        </div>
+      <FormField label="Название" required>
+        <FormInput
+          value={name}
+          onChange={setName}
+          placeholder="Например: Дача у бабушки"
+          focusColor="focus:border-teal-300"
+        />
+      </FormField>
 
-        <div className="mb-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Название *</p>
-          <input value={name} onChange={e => setName(e.target.value)} placeholder="Например: Дача у бабушки"
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-teal-300 focus:bg-white transition-colors" />
-        </div>
-
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Почему это место важно</p>
-          <input value={note} onChange={e => setNote(e.target.value)} placeholder="Там всегда пахнет пирогами и летом"
-            className="w-full text-sm px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 placeholder:text-slate-300 focus:outline-none focus:border-teal-300 focus:bg-white transition-colors" />
-        </div>
-
-        <button
-          onClick={() => { if (name.trim()) { onSave({ id: Date.now().toString(), name: name.trim(), note: note.trim(), emoji }); onClose(); }}}
-          disabled={!name.trim()}
-          className="w-full py-3 rounded-2xl text-sm font-bold bg-teal-50 text-teal-800 border border-teal-100 disabled:opacity-40 disabled:bg-slate-100 disabled:text-slate-400 transition-colors"
-        >
-          Сохранить место
-        </button>
-      </div>
-    </div>
+      <FormField label="Почему это место важно">
+        <FormInput
+          value={note}
+          onChange={setNote}
+          placeholder="Там всегда пахнет пирогами и летом"
+          focusColor="focus:border-teal-300"
+        />
+      </FormField>
+    </AdaptiveDialog>
   );
 }
 
-// ─── Главный компонент ────────────────────────────────────────────────────────
+// ─── Константы ────────────────────────────────────────────────────────────────
 
 const WARMTH_PHRASES = [
   "Рядом те, кто любит и поддерживает",
@@ -250,7 +219,9 @@ const WARMTH_PHRASES = [
   "Вот то, что важно сохранить навсегда",
 ];
 
-export default function FamilyRootsScreen({ child, onBack }: FamilyRootsScreenProps) {
+// ─── Главный компонент ────────────────────────────────────────────────────────
+
+export default function FamilyRootsScreen({ child, onBack, onNavigateToMemory }: FamilyRootsScreenProps) {
   const firstName = (child.name || "Ребёнок").split(" ")[0];
   const phrase = WARMTH_PHRASES[child.id.charCodeAt(0) % WARMTH_PHRASES.length];
 
@@ -272,261 +243,238 @@ export default function FamilyRootsScreen({ child, onBack }: FamilyRootsScreenPr
     .filter(t => t.isActive !== false)
     .slice(0, 4);
 
-  // Локальный стейт для историй и мест (пока нет отдельного API)
-  const [localStories, setLocalStories] = useState<LocalStory[]>([]);
+  // Локальные места (истории убраны — перенаправляем в Воспоминания)
   const [localPlaces, setLocalPlaces] = useState<LocalPlace[]>([]);
-  const [showAddStory, setShowAddStory] = useState(false);
   const [showAddPlace, setShowAddPlace] = useState(false);
 
   // Тёплые слова — берём из первого члена семьи с ролью Мама/Папа
   const parentMember = familyMembers.find(m => ["Мама", "Папа", "Мать", "Отец"].includes(m.role));
 
+  // Обработчик кнопки «Добавить историю» — ведёт в раздел Воспоминания
+  const handleAddStory = () => {
+    if (onNavigateToMemory) {
+      onNavigateToMemory();
+    }
+    // Если пропс не передан — кнопка просто неактивна визуально (см. рендер)
+  };
+
   // ─── Empty state ─────────────────────────────────────────────────────────
 
   if (familyMembers.length === 0 && recentMemories.length === 0 && activeTraditions.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8f9fb] flex flex-col">
-        <div className="bg-white px-4 pt-5 pb-4 rounded-b-3xl shadow-sm">
-          <div className="flex items-center gap-3">
-            <button onClick={onBack} className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center">
-              <ChevronLeft size={16} className="text-slate-500" />
-            </button>
-            <h1 className="text-[18px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>Моя семья</h1>
-          </div>
+      <ScreenPage>
+        <ScreenHeader title="Моя семья" subtitle={firstName} onBack={onBack} accent="rose" />
+        <EmptyState
+          emoji="🌿"
+          title="Начните собирать тёплую карту семьи"
+          description="Добавьте важного человека, семейную историю или традицию — и здесь появится ваше особенное пространство"
+          action={onNavigateToMemory ? "Добавить историю" : undefined}
+          onAction={onNavigateToMemory}
+        />
+        {/* Кнопка добавить место даже в empty state */}
+        <div className="px-8 pb-6">
+          <button
+            onClick={() => setShowAddPlace(true)}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-100 hover:bg-teal-100 transition-colors"
+          >
+            <MapPin size={14} />
+            Добавить место
+          </button>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center pb-24">
-          <div className="text-5xl mb-4">🌿</div>
-          <h2 className="text-[17px] font-bold text-slate-700 mb-2" style={{ fontFamily: "Montserrat, sans-serif" }}>
-            Начните собирать тёплую карту семьи
-          </h2>
-          <p className="text-sm text-slate-400 leading-relaxed mb-6">
-            Добавьте важного человека, семейную историю или традицию — и здесь появится ваше особенное пространство
-          </p>
-          <div className="flex flex-col gap-2 w-full max-w-xs">
-            <button onClick={() => setShowAddStory(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-100">
-              <BookOpen size={14} /> Добавить историю
-            </button>
-            <button onClick={() => setShowAddPlace(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-semibold text-teal-700 bg-teal-50 border border-teal-100">
-              <MapPin size={14} /> Добавить место
-            </button>
-          </div>
-        </div>
-        {showAddStory && <AddStoryDialog onClose={() => setShowAddStory(false)} onSave={s => setLocalStories(p => [s, ...p])} />}
-        {showAddPlace && <AddPlaceDialog onClose={() => setShowAddPlace(false)} onSave={p => setLocalPlaces(prev => [p, ...prev])} />}
-      </div>
+        {showAddPlace && (
+          <AddPlaceDialog onClose={() => setShowAddPlace(false)} onSave={p => setLocalPlaces(prev => [p, ...prev])} />
+        )}
+      </ScreenPage>
     );
   }
 
   // ─── Основной экран ───────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb]">
+    <ScreenPage>
+      {/* Хедер с rose-акцентом */}
+      <ScreenHeader
+        title="Моя семья"
+        subtitle={firstName}
+        onBack={onBack}
+        accent="rose"
+      />
 
-      {/* Хедер */}
-      <div
-        className="relative overflow-hidden px-4 pt-5 pb-8 rounded-b-3xl shadow-sm"
-        style={{ background: "linear-gradient(135deg, #fff1f2 0%, #fff7ed 60%, #fef9f0 100%)" }}
-      >
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-rose-100/30 -translate-y-10 translate-x-10 blur-xl" />
-        <div className="relative flex items-center gap-3 mb-4">
-          <button onClick={onBack} className="w-8 h-8 rounded-xl bg-white/70 border border-rose-100 flex items-center justify-center flex-shrink-0">
-            <ChevronLeft size={16} className="text-slate-500" />
-          </button>
-          <div>
-            <h1 className="text-[18px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-              Моя семья
-            </h1>
-            <p className="text-xs text-slate-400">{firstName}</p>
-          </div>
-        </div>
-        {/* Тёплая фраза */}
-        <div className="relative flex items-start gap-3">
-          <span className="text-3xl flex-shrink-0">🌿</span>
-          <div>
-            <p className="text-[15px] font-semibold text-slate-800 leading-snug" style={{ fontFamily: "Montserrat, sans-serif" }}>
-              {phrase}
-            </p>
-            {parentMember && (
-              <p className="text-xs text-slate-500 mt-1">
-                {parentMember.name.split(" ")[0]} и {familyMembers.length > 1 ? `ещё ${familyMembers.length - 1}` : ""} рядом
+      <ScreenBody>
+
+        {/* Тёплая фраза под хедером */}
+        <section>
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100/80 flex items-start gap-3">
+            <span className="text-2xl flex-shrink-0">🌿</span>
+            <div>
+              <p className="text-[15px] font-semibold text-slate-800 leading-snug" style={MONTSERRAT}>
+                {phrase}
               </p>
-            )}
+              {parentMember && (
+                <p className="text-xs text-slate-400 mt-1">
+                  {parentMember.name.split(" ")[0]}{familyMembers.length > 1 ? ` и ещё ${familyMembers.length - 1}` : ""} рядом
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className="px-4 pt-3 space-y-4 pb-20">
+        </section>
 
         {/* ── БЛОК 1: ВАЖНЫЕ ЛЮДИ ─────────────────────────────────────────── */}
         {familyMembers.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div className="flex items-center gap-2">
-                <Heart size={14} className="text-rose-400" />
-                <p className="text-[15px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                  Важные люди
-                </p>
-              </div>
+          <SectionCard
+            title="Важные люди"
+            icon="Heart"
+            iconBg="bg-rose-50"
+            action={
               <span className="text-xs text-slate-400">{familyMembers.length} человек</span>
+            }
+            noPad
+          >
+            <div className="px-4 pb-4">
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                {familyMembers.map(m => (
+                  <MemberCard key={m.id} member={m} />
+                ))}
+              </div>
             </div>
-
-            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-              {familyMembers.map(m => (
-                <MemberCard key={m.id} member={m} />
-              ))}
-            </div>
-          </section>
+          </SectionCard>
         )}
 
         {/* ── БЛОК 2: ТЁПЛЫЕ СЛОВА ────────────────────────────────────────── */}
         {parentMember && (
           <section>
-            <div
-              className="rounded-2xl p-4 border border-rose-100/60"
-              style={{ background: "linear-gradient(135deg, #fff1f2 0%, #fef9f0 100%)" }}
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-2xl flex-shrink-0">💬</span>
-                <div>
-                  <p className="text-sm font-semibold text-slate-800 leading-snug italic">
-                    «Мы всегда рядом и очень тобой гордимся»
-                  </p>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {parentMember.name.split(" ")[0]} и вся семья
-                  </p>
-                </div>
-              </div>
-            </div>
+            <WarmQuote
+              text="Мы всегда рядом и очень тобой гордимся"
+              author={`${parentMember.name.split(" ")[0]} и вся семья`}
+              gradient="warm"
+            />
           </section>
         )}
 
         {/* ── БЛОК 3: СЕМЕЙНЫЕ ИСТОРИИ ────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <BookOpen size={14} className="text-amber-500" />
-              <p className="text-[15px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                Наши истории
-              </p>
-            </div>
+        <SectionCard
+          title="Наши истории"
+          icon="BookOpen"
+          iconBg="bg-amber-50"
+          action={
             <button
-              onClick={() => setShowAddStory(true)}
-              className="text-xs text-slate-400 hover:text-amber-600 transition-colors flex items-center gap-0.5"
+              onClick={handleAddStory}
+              className={`text-xs flex items-center gap-0.5 transition-colors ${
+                onNavigateToMemory
+                  ? "text-slate-400 hover:text-amber-600"
+                  : "text-slate-300 cursor-default"
+              }`}
+              disabled={!onNavigateToMemory}
+              title={onNavigateToMemory ? "Перейти в Воспоминания" : "Добавить историю можно в разделе Воспоминания"}
             >
-              <Plus size={11} /> Добавить
+              <Plus size={11} />
+              {onNavigateToMemory ? "Добавить" : "В разделе Воспоминания"}
             </button>
-          </div>
-
-          {/* Воспоминания из реального API + локальные истории */}
-          {memoriesLoading ? (
-            <div className="flex gap-3 overflow-x-auto pb-1">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex-shrink-0 w-[200px] h-[180px] rounded-2xl bg-slate-100 animate-pulse" />
-              ))}
-            </div>
-          ) : recentMemories.length > 0 || localStories.length > 0 ? (
-            <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
-              {localStories.map(s => (
-                <MemoryCard key={s.id} title={s.title} text={s.text} />
-              ))}
-              {recentMemories.map(entry => (
-                <MemoryCard
-                  key={entry.id}
-                  title={entry.title}
-                  text={entry.story ?? entry.caption ?? undefined}
-                  photoUrl={entry.assets[0]?.file_url}
-                  date={entry.memory_date ?? undefined}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl p-5 text-center border border-dashed border-slate-200 shadow-sm">
-              <div className="text-2xl mb-1.5">📖</div>
-              <p className="text-sm text-slate-500 mb-1">Здесь появятся ваши семейные истории</p>
-              <button onClick={() => setShowAddStory(true)} className="mt-1 text-xs text-amber-600 font-medium flex items-center gap-1 mx-auto">
-                <Plus size={11} /> Добавить первую
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ── БЛОК 4: НАШИ МЕСТА ──────────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <MapPin size={14} className="text-teal-500" />
-              <p className="text-[15px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                Наши места
-              </p>
-            </div>
-            <button
-              onClick={() => setShowAddPlace(true)}
-              className="text-xs text-slate-400 hover:text-teal-600 transition-colors flex items-center gap-0.5"
-            >
-              <Plus size={11} /> Добавить
-            </button>
-          </div>
-
-          {/* Места — берём из memory location_label + локальные */}
-          {(() => {
-            const apiPlaces = Array.from(
-              new Set(
-                memoryEntries
-                  .filter(e => e.location_label)
-                  .map(e => e.location_label as string)
-              )
-            ).slice(0, 4);
-
-            const hasPlaces = localPlaces.length > 0 || apiPlaces.length > 0;
-
-            if (!hasPlaces) {
-              return (
-                <div className="bg-white rounded-2xl p-4 text-center border border-dashed border-slate-200 shadow-sm">
-                  <div className="text-2xl mb-1">🗺️</div>
-                  <p className="text-sm text-slate-400 mb-1">Добавьте любимые места семьи</p>
-                  <button onClick={() => setShowAddPlace(true)} className="text-xs text-teal-600 font-medium flex items-center gap-1 mx-auto">
-                    <Plus size={11} /> Добавить место
-                  </button>
-                </div>
-              );
-            }
-
-            return (
-              <div className="grid grid-cols-2 gap-2">
-                {localPlaces.map(p => (
-                  <div key={p.id} className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100/80 flex items-start gap-2">
-                    <span className="text-xl flex-shrink-0">{p.emoji}</span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 leading-tight truncate">{p.name}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2 leading-snug">{p.note}</p>
-                    </div>
-                  </div>
-                ))}
-                {apiPlaces.map((loc, i) => (
-                  <div key={i} className="bg-white rounded-2xl p-3 shadow-sm border border-slate-100/80 flex items-start gap-2">
-                    <MapPin size={16} className="text-teal-400 flex-shrink-0 mt-0.5" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-800 leading-tight truncate">{loc}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Место из воспоминаний</p>
-                    </div>
-                  </div>
+          }
+          noPad
+        >
+          <div className="px-4 pb-4">
+            {memoriesLoading ? (
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex-shrink-0 w-[200px] h-[180px] rounded-2xl bg-slate-100 animate-pulse" />
                 ))}
               </div>
-            );
-          })()}
-        </section>
+            ) : recentMemories.length > 0 ? (
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+                {recentMemories.map(entry => (
+                  <MemoryCard
+                    key={entry.id}
+                    title={entry.title}
+                    text={entry.story ?? entry.caption ?? undefined}
+                    photoUrl={entry.assets[0]?.file_url}
+                    date={entry.memory_date ?? undefined}
+                  />
+                ))}
+              </div>
+            ) : (
+              <InlineEmpty
+                emoji="📖"
+                text="Здесь появятся ваши семейные истории"
+                action={onNavigateToMemory ? "Добавить в Воспоминания" : undefined}
+                onAction={onNavigateToMemory}
+              />
+            )}
+
+            {/* Подсказка-ссылка для перехода в раздел, если есть воспоминания */}
+            {recentMemories.length > 0 && onNavigateToMemory && (
+              <button
+                onClick={onNavigateToMemory}
+                className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amber-50/60 border border-amber-100/60 text-xs text-amber-700 font-medium hover:bg-amber-50 transition-colors"
+              >
+                <Icon name="BookOpen" size={12} />
+                Добавить историю в Воспоминания
+              </button>
+            )}
+          </div>
+        </SectionCard>
+
+        {/* ── БЛОК 4: НАШИ МЕСТА ──────────────────────────────────────────── */}
+        {(() => {
+          const apiPlaces = Array.from(
+            new Set(
+              memoryEntries
+                .filter(e => e.location_label)
+                .map(e => e.location_label as string)
+            )
+          ).slice(0, 4);
+
+          const hasPlaces = localPlaces.length > 0 || apiPlaces.length > 0;
+
+          return (
+            <SectionCard
+              title="Наши места"
+              icon="MapPin"
+              iconBg="bg-teal-50"
+              action={
+                <button
+                  onClick={() => setShowAddPlace(true)}
+                  className="text-xs text-slate-400 hover:text-teal-600 transition-colors flex items-center gap-0.5"
+                >
+                  <Plus size={11} /> Добавить
+                </button>
+              }
+            >
+              {!hasPlaces ? (
+                <InlineEmpty
+                  emoji="🗺️"
+                  text="Добавьте любимые места семьи"
+                  action="Добавить место"
+                  onAction={() => setShowAddPlace(true)}
+                />
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {localPlaces.map(p => (
+                    <div key={p.id} className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-start gap-2">
+                      <span className="text-xl flex-shrink-0">{p.emoji}</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 leading-tight truncate">{p.name}</p>
+                        {p.note && <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-2 leading-snug">{p.note}</p>}
+                      </div>
+                    </div>
+                  ))}
+                  {apiPlaces.map((loc, i) => (
+                    <div key={i} className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-start gap-2">
+                      <MapPin size={16} className="text-teal-400 flex-shrink-0 mt-0.5" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 leading-tight truncate">{loc}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Место из воспоминаний</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </SectionCard>
+          );
+        })()}
 
         {/* ── БЛОК 5: НАШИ ТРАДИЦИИ ───────────────────────────────────────── */}
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-violet-400" />
-              <p className="text-[15px] font-bold text-slate-800" style={{ fontFamily: "Montserrat, sans-serif" }}>
-                Наши традиции
-              </p>
-            </div>
-          </div>
-
+        <SectionCard title="Наши традиции" icon="Sparkles" iconBg="bg-violet-50">
           {traditionsLoading ? (
             <div className="space-y-2">
               {[1, 2].map(i => (
@@ -540,30 +488,39 @@ export default function FamilyRootsScreen({ child, onBack }: FamilyRootsScreenPr
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl p-4 text-center border border-dashed border-slate-200 shadow-sm">
-              <div className="text-2xl mb-1">✨</div>
-              <p className="text-sm text-slate-400">Традиции ещё не добавлены</p>
-              <p className="text-xs text-slate-300 mt-0.5">Добавьте их в разделе «Семья»</p>
-            </div>
+            <InlineEmpty
+              emoji="✨"
+              text="Традиции ещё не добавлены. Добавьте их в разделе «Семья»"
+            />
           )}
-        </section>
+        </SectionCard>
 
         {/* ── БЛОК 6: БЫСТРЫЕ ДЕЙСТВИЯ ────────────────────────────────────── */}
         <section>
           <div className="grid grid-cols-2 gap-2">
+            {/* История — ведёт в раздел Воспоминания */}
             <button
-              onClick={() => setShowAddStory(true)}
-              className="flex items-center gap-2 bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100/80 hover:shadow-md hover:border-amber-200 transition-all text-left"
+              onClick={handleAddStory}
+              disabled={!onNavigateToMemory}
+              className={`flex items-center gap-2 bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100/80 text-left transition-all ${
+                onNavigateToMemory
+                  ? "hover:shadow-md hover:border-amber-200 cursor-pointer"
+                  : "opacity-50 cursor-default"
+              }`}
+              title={!onNavigateToMemory ? "Добавить историю можно в разделе Воспоминания" : undefined}
             >
               <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-                <Plus size={14} className="text-amber-500" />
+                <Icon name="BookOpen" size={14} className="text-amber-500" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-700">История</p>
-                <p className="text-[11px] text-slate-400">Памятный момент</p>
+                <p className="text-[11px] text-slate-400">
+                  {onNavigateToMemory ? "Памятный момент" : "В Воспоминаниях"}
+                </p>
               </div>
             </button>
 
+            {/* Место — открывает локальный диалог */}
             <button
               onClick={() => setShowAddPlace(true)}
               className="flex items-center gap-2 bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100/80 hover:shadow-md hover:border-teal-200 transition-all text-left"
@@ -579,10 +536,14 @@ export default function FamilyRootsScreen({ child, onBack }: FamilyRootsScreenPr
           </div>
         </section>
 
-      </div>
+      </ScreenBody>
 
-      {showAddStory && <AddStoryDialog onClose={() => setShowAddStory(false)} onSave={s => setLocalStories(p => [s, ...p])} />}
-      {showAddPlace && <AddPlaceDialog onClose={() => setShowAddPlace(false)} onSave={p => setLocalPlaces(prev => [p, ...prev])} />}
-    </div>
+      {showAddPlace && (
+        <AddPlaceDialog
+          onClose={() => setShowAddPlace(false)}
+          onSave={p => setLocalPlaces(prev => [p, ...prev])}
+        />
+      )}
+    </ScreenPage>
   );
 }

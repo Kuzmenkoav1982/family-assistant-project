@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { MoodDiary } from './MoodDiary';
@@ -30,6 +31,7 @@ interface ChildProfileProps {
 
 export function ChildProfile({ child, initialTab, initialAction, onActionHandled }: ChildProfileProps) {
   const piggyBank = child.piggyBank || 0;
+  const navigate = useNavigate();
 
   const [tabValue, setTabValue] = useState<string>(initialTab || 'home');
   const [moodDiaryOpen, setMoodDiaryOpen] = useState(false);
@@ -91,6 +93,7 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
         <FamilyRootsScreen
           child={child as Parameters<typeof FamilyRootsScreen>[0]['child']}
           onBack={() => setTabValue('home')}
+          onNavigateToMemory={() => navigate('/memory')}
         />
       </TabsContent>
 
