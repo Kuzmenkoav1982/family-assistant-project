@@ -12,8 +12,15 @@
  */
 
 import { ReactNode } from "react";
+import * as LucideIcons from "lucide-react";
 import { ChevronLeft, X, CheckCircle2, Circle, Plus } from "lucide-react";
 import Icon from "@/components/ui/icon";
+
+/**
+ * Тип для имени иконки Lucide.
+ * Строгий — только реальные ключи из пакета, не произвольный string.
+ */
+export type IconName = keyof typeof LucideIcons;
 
 // ─── Токены ──────────────────────────────────────────────────────────────────
 
@@ -103,13 +110,16 @@ export function SectionCard({
   title,
   icon,
   iconBg = "bg-slate-50",
+  iconColor = "text-slate-600",
   action,
   children,
   noPad = false,
 }: {
   title: string;
-  icon?: string;
+  /** Имя иконки Lucide (строгий тип) */
+  icon?: IconName;
   iconBg?: string;
+  iconColor?: string;
   action?: ReactNode;
   children: ReactNode;
   noPad?: boolean;
@@ -120,7 +130,7 @@ export function SectionCard({
         <div className="flex items-center gap-2.5">
           {icon && (
             <div className={`w-7 h-7 rounded-lg ${iconBg} flex items-center justify-center`}>
-              <Icon name={icon} size={14} className="text-slate-600" />
+              <Icon name={icon} size={14} className={iconColor} />
             </div>
           )}
           <h2 className="text-[15px] font-bold text-slate-800" style={MONTSERRAT}>
@@ -268,7 +278,7 @@ export function FilterChip({
   onClick,
 }: {
   label: string;
-  icon?: string;
+  icon?: IconName;
   active: boolean;
   onClick: () => void;
 }) {
@@ -382,13 +392,18 @@ export function WarmQuote({
 /** Блок «что делать дальше» */
 export function NextStepBlock({
   items,
+  gradient = "sky",
+  title = "Следующий шаг",
 }: {
-  items: Array<{ icon: string; iconColor: string; text: string; onClick?: () => void }>;
+  items: Array<{ icon: IconName; iconColor: string; text: string; onClick?: () => void }>;
+  /** Акцентный градиент блока (по умолчанию sky) */
+  gradient?: keyof typeof GRADIENTS;
+  title?: string;
 }) {
   return (
-    <AccentCard gradient="sky">
+    <AccentCard gradient={gradient}>
       <p className="text-[15px] font-bold text-slate-800 mb-3" style={MONTSERRAT}>
-        Следующий шаг
+        {title}
       </p>
       <div className="space-y-2">
         {items.map((item, i) => (
