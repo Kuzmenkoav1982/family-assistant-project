@@ -7,6 +7,7 @@ import { RewardsShop } from './RewardsShop';
 import { RealMoneyPiggyBank } from './RealMoneyPiggyBank';
 import { ChildCalendar } from './ChildCalendar';
 import ChildMasterScreen from './ChildMasterScreen';
+import GrowthScreen from './GrowthScreen';
 
 interface ChildProfileProps {
   child: {
@@ -76,6 +77,14 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
         <ChildMasterScreen
           child={child as Parameters<typeof ChildMasterScreen>[0]['child']}
           onTabChange={setTabValue}
+          onGrowthOpen={() => setTabValue('growth')}
+        />
+      </TabsContent>
+
+      <TabsContent value="growth" className="mt-0">
+        <GrowthScreen
+          child={child as Parameters<typeof GrowthScreen>[0]['child']}
+          onBack={() => setTabValue('home')}
         />
       </TabsContent>
 
