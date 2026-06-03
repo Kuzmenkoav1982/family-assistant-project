@@ -900,7 +900,7 @@ const AIAssistantWidget = () => {
 
           {/* ── Режим «Проводник» (Domovoy 2.0) ───────────────────────────────────── */}
           {!isMinimized && widgetMode === 'guide' && (
-            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
               {guideView === 'entry' && (
                 <DomovoyEntry
                   assistantName={assistantName || 'Домовой'}
