@@ -17,8 +17,8 @@ const STATUS_LABELS: Record<PlatformModule['status'], string> = {
 
 const RECOMMENDED_ROUTE = [
   { label: 'Настройте семью', href: '/settings', emoji: '👨‍👩‍👧' },
-  { label: 'Добавьте детей', href: '/children', emoji: '👶' },
-  { label: 'Откройте финансы', href: '/budget', emoji: '💰' },
+  { label: 'Добавьте детей', href: '/children?action=add-child', emoji: '👶' },
+  { label: 'Откройте финансы', href: '/finance', emoji: '💰' },
   { label: 'Сохраните первые воспоминания', href: '/memory', emoji: '📷' },
 ];
 

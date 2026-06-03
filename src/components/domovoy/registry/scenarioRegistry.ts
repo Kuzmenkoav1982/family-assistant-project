@@ -362,7 +362,7 @@ export const SCENARIO_REGISTRY: Record<string, Scenario> = {
         id: 'support-contact',
         title: 'Нужна помощь?',
         description: 'Если что-то непонятно — напишите в поддержку или задайте вопрос Домовому прямо в чате.',
-        href: '/support',
+        href: '/domovoy',
         cta: 'Написать в поддержку',
         ctaSecondary: 'Задать вопрос Домовому',
       },
@@ -383,7 +383,7 @@ export const SCENARIO_REGISTRY: Record<string, Scenario> = {
         title: 'Финансовая грамотность',
         description: 'В разделе «Обучение» есть курсы и уроки по финансам для взрослых и детей.',
         benefit: 'Финансовая грамотность всей семьи — это совместные цели, меньше ошибок, больше уверенности.',
-        href: '/finance-literacy',
+        href: '/finance/literacy',
         cta: 'Открыть обучение',
       },
       {
