@@ -42,12 +42,41 @@ interface Message {
 type WidgetMode = 'chat' | 'guide';
 type GuideView = 'entry' | 'scenario' | 'map';
 
-const DOMOVOY_GUIDE_FLAG = true; // feature flag — переключить в false чтобы скрыть
+const DOMOVOY_GUIDE_STORAGE_KEY = 'domovoy_guide_enabled';
+
+type FlagSource = 'localStorage' | 'env' | 'dev-default' | 'prod-default';
+
+function readDomovoyGuideFlag(): { enabled: boolean; source: FlagSource } {
+  try {
+    const override = localStorage.getItem(DOMOVOY_GUIDE_STORAGE_KEY);
+    if (override === 'true' || override === '1' || override === 'on') {
+      return { enabled: true, source: 'localStorage' };
+    }
+    if (override === 'false' || override === '0' || override === 'off') {
+      return { enabled: false, source: 'localStorage' };
+    }
+  } catch { /* ignore */ }
+
+  if (import.meta.env.VITE_DOMOVOY_GUIDE === 'true') {
+    return { enabled: true, source: 'env' };
+  }
+  if (import.meta.env.VITE_DOMOVOY_GUIDE === 'false') {
+    return { enabled: false, source: 'env' };
+  }
+
+  if (import.meta.env.DEV) {
+    return { enabled: true, source: 'dev-default' };
+  }
+  return { enabled: false, source: 'prod-default' };
+}
 
 const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+
+  // Feature flag: Домовой 2.0 в режиме проводника
+  const [{ enabled: isDomovoyGuideEnabled, source: guideFlagSource }] = useState(readDomovoyGuideFlag);
 
   // Режим виджета: чат или проводник
   const [widgetMode, setWidgetMode] = useState<WidgetMode>('chat');
@@ -224,6 +253,22 @@ const AIAssistantWidget = () => {
       localStorage.setItem('domovoy_events', JSON.stringify(prev.slice(-100)));
     } catch { /* ignore */ }
   };
+
+  // Трекаем источник флага один раз при монтировании
+  useEffect(() => {
+    trackEvent(
+      isDomovoyGuideEnabled ? 'domovoy_guide_flag_enabled' : 'domovoy_guide_flag_disabled',
+      { source: guideFlagSource }
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Безопасный откат: если флаг выключился — принудительно возвращаем в чат
+  useEffect(() => {
+    if (!isDomovoyGuideEnabled && widgetMode === 'guide') {
+      setWidgetMode('chat');
+    }
+  }, [isDomovoyGuideEnabled, widgetMode]);
 
   // Переключение режима с аналитикой
   const handleModeSwitch = (mode: WidgetMode) => {
@@ -828,7 +873,7 @@ const AIAssistantWidget = () => {
           </div>
 
           {/* Segmented control: Чат / Проводник */}
-          {!isMinimized && DOMOVOY_GUIDE_FLAG && assistantType === 'domovoy' && (
+          {!isMinimized && isDomovoyGuideEnabled && assistantType === 'domovoy' && (
             <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 flex-shrink-0">
               <div className="flex bg-gray-100 rounded-xl p-0.5 gap-0.5">
                 <button
