@@ -33,11 +33,14 @@ export function ChildProfile({ child, initialTab, initialAction, onActionHandled
   const piggyBank = child.piggyBank || 0;
   const navigate = useNavigate();
 
-  const [tabValue, setTabValue] = useState<string>(initialTab || 'home');
+  const CHILD_VALID_TABS = ['home', 'diary', 'achievements', 'shop', 'money', 'calendar', 'growth', 'activities', 'family'];
+  const resolveTab = (t: string | null | undefined) =>
+    t && CHILD_VALID_TABS.includes(t) ? t : 'home';
+  const [tabValue, setTabValue] = useState<string>(() => resolveTab(initialTab));
   const [moodDiaryOpen, setMoodDiaryOpen] = useState(false);
 
   useEffect(() => {
-    if (initialTab) setTabValue(initialTab);
+    setTabValue(resolveTab(initialTab));
   }, [initialTab]);
 
   useEffect(() => {

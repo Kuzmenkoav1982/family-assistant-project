@@ -29,13 +29,17 @@ interface ParentDashboardProps {
   onActionHandled?: () => void;
 }
 
+const PARENT_VALID_TABS = ['overview', 'health', 'development', 'gifts'];
+
 export function ParentDashboard({ child, initialTab, initialAction, onActionHandled }: ParentDashboardProps) {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(initialTab || 'overview');
+  const resolveTab = (t: string | null | undefined) =>
+    t && PARENT_VALID_TABS.includes(t) ? t : 'overview';
+  const [activeTab, setActiveTab] = useState(() => resolveTab(initialTab));
 
   // D.1: реагируем на смену initialTab — переключаем вкладку программно.
   useEffect(() => {
-    if (initialTab) setActiveTab(initialTab);
+    setActiveTab(resolveTab(initialTab));
   }, [initialTab]);
   const [showAssessment, setShowAssessment] = useState(false);
   const assessmentChildRef = useRef(child);

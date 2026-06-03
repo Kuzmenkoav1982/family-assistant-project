@@ -22,12 +22,17 @@ import { BannerPositioner } from '@/components/BannerPositioner';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState(() => {
     const section = searchParams.get('section');
     const valid = ['family', 'notifications', 'appearance', 'account', 'assistants'];
     return valid.includes(section ?? '') ? section! : 'family';
   });
+
+  const handleSectionChange = (id: string) => {
+    setActiveSection(id);
+    setSearchParams({ section: id }, { replace: true });
+  };
   const [familyName, setFamilyName] = useState(() => {
     return localStorage.getItem('familyName') || 'Наша Семья';
   });
@@ -316,7 +321,7 @@ export default function Settings() {
                     if (section.path) {
                       navigate(section.path);
                     } else {
-                      setActiveSection(section.id);
+                      handleSectionChange(section.id);
                     }
                   }}
                 >

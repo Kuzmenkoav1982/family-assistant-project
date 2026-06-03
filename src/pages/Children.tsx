@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
@@ -28,6 +28,15 @@ export default function Children() {
   } = useChildrenLogic();
 
   const [showAddChildDialog, setShowAddChildDialog] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'add-child') {
+      setShowAddChildDialog(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('action');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   if (loading) {
     return (
