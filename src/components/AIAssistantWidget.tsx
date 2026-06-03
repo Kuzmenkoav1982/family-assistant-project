@@ -846,7 +846,7 @@ const AIAssistantWidget = () => {
           </div>
 
           {/* Segmented control: Чат / Проводник */}
-          {!isMinimized && isDomovoyGuideEnabled && assistantType === 'domovoy' && (
+          {!isMinimized && isDomovoyGuideEnabled && (
             <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 flex-shrink-0">
               <div className="flex bg-gray-100 rounded-xl p-0.5 gap-0.5">
                 <button
