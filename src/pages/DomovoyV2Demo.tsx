@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
+import { readDomovoyGuideFlag } from '@/lib/featureFlags';
 import Icon from '@/components/ui/icon';
 import DomovoyEntry from '@/components/domovoy/DomovoyEntry';
 import DomovoyGuide from '@/components/domovoy/DomovoyGuide';
@@ -23,18 +24,6 @@ const TABS: Array<{ id: DemoTab; label: string; icon: string; desc: string }> = 
   { id: 'context', label: 'Контекст',  icon: 'Sidebar',    desc: 'На странице' },
 ];
 
-// Переиспользуем ту же функцию чтения флага что и в виджете
-function isDomovoyGuideEnabled(): boolean {
-  try {
-    const override = localStorage.getItem('domovoy_guide_enabled');
-    if (override === 'true' || override === '1' || override === 'on') return true;
-    if (override === 'false' || override === '0' || override === 'off') return false;
-  } catch { /* ignore */ }
-  if (import.meta.env.VITE_DOMOVOY_GUIDE === 'true') return true;
-  if (import.meta.env.VITE_DOMOVOY_GUIDE === 'false') return false;
-  return import.meta.env.DEV;
-}
-
 export default function DomovoyV2Demo() {
   const navigate = useNavigate();
   const { assistantName } = useAIAssistant();
@@ -42,9 +31,8 @@ export default function DomovoyV2Demo() {
 
   const [tab, setTab] = useState<DemoTab>('entry');
   const [activeScenario, setActiveScenario] = useState<string>('setup-family');
-  const guideEnabled = isDomovoyGuideEnabled();
 
-  if (!guideEnabled) {
+  if (!readDomovoyGuideFlag().enabled) {
     return <Navigate to="/" replace />;
   }
 

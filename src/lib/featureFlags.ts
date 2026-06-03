@@ -31,3 +31,64 @@ export function isFeatureEnabled(name: FeatureFlagName): boolean {
   }
   return DEFAULT_FLAGS[name] ?? false;
 }
+
+// ── Домовой 2.0 / Guide mode ────────────────────────────────────────────────
+
+export type FlagSource = 'localStorage' | 'env' | 'dev-default' | 'prod-default';
+
+export interface FeatureFlagResult {
+  enabled: boolean;
+  source: FlagSource;
+}
+
+export const DOMOVOY_GUIDE_STORAGE_KEY = 'domovoy_guide_enabled';
+
+function parseBooleanLike(value: string | null): boolean | null {
+  if (!value) return null;
+  const normalized = value.trim().toLowerCase();
+  if (['true', '1', 'on', 'yes'].includes(normalized)) return true;
+  if (['false', '0', 'off', 'no'].includes(normalized)) return false;
+  return null;
+}
+
+export function readDomovoyGuideFlag(): FeatureFlagResult {
+  if (typeof window !== 'undefined') {
+    try {
+      const localOverride = parseBooleanLike(
+        window.localStorage.getItem(DOMOVOY_GUIDE_STORAGE_KEY)
+      );
+      if (localOverride !== null) {
+        return { enabled: localOverride, source: 'localStorage' };
+      }
+    } catch { /* ignore */ }
+  }
+
+  const envValue = parseBooleanLike(import.meta.env.VITE_DOMOVOY_GUIDE ?? null);
+  if (envValue !== null) {
+    return { enabled: envValue, source: 'env' };
+  }
+
+  if (import.meta.env.DEV) {
+    return { enabled: true, source: 'dev-default' };
+  }
+
+  return { enabled: false, source: 'prod-default' };
+}
+
+// ── QA / Internal helpers ────────────────────────────────────────────────────
+// Использование в консоли браузера:
+//   enableDomovoyGuideOverride();  location.reload();
+//   disableDomovoyGuideOverride(); location.reload();
+//   clearDomovoyGuideOverride();   location.reload();
+
+export function enableDomovoyGuideOverride(): void {
+  window.localStorage.setItem(DOMOVOY_GUIDE_STORAGE_KEY, 'true');
+}
+
+export function disableDomovoyGuideOverride(): void {
+  window.localStorage.setItem(DOMOVOY_GUIDE_STORAGE_KEY, 'false');
+}
+
+export function clearDomovoyGuideOverride(): void {
+  window.localStorage.removeItem(DOMOVOY_GUIDE_STORAGE_KEY);
+}

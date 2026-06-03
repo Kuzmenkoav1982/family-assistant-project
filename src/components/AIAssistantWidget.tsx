@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, Minimize2, Maximize2, Loader2, Lock } from 'lucide-react';
+import { readDomovoyGuideFlag } from '@/lib/featureFlags';
 import DomovoyEntry from '@/components/domovoy/DomovoyEntry';
 import DomovoyGuide from '@/components/domovoy/DomovoyGuide';
 import DomovoyPlatformMap from '@/components/domovoy/DomovoyPlatformMap';
@@ -41,34 +42,6 @@ interface Message {
 
 type WidgetMode = 'chat' | 'guide';
 type GuideView = 'entry' | 'scenario' | 'map';
-
-const DOMOVOY_GUIDE_STORAGE_KEY = 'domovoy_guide_enabled';
-
-type FlagSource = 'localStorage' | 'env' | 'dev-default' | 'prod-default';
-
-function readDomovoyGuideFlag(): { enabled: boolean; source: FlagSource } {
-  try {
-    const override = localStorage.getItem(DOMOVOY_GUIDE_STORAGE_KEY);
-    if (override === 'true' || override === '1' || override === 'on') {
-      return { enabled: true, source: 'localStorage' };
-    }
-    if (override === 'false' || override === '0' || override === 'off') {
-      return { enabled: false, source: 'localStorage' };
-    }
-  } catch { /* ignore */ }
-
-  if (import.meta.env.VITE_DOMOVOY_GUIDE === 'true') {
-    return { enabled: true, source: 'env' };
-  }
-  if (import.meta.env.VITE_DOMOVOY_GUIDE === 'false') {
-    return { enabled: false, source: 'env' };
-  }
-
-  if (import.meta.env.DEV) {
-    return { enabled: true, source: 'dev-default' };
-  }
-  return { enabled: false, source: 'prod-default' };
-}
 
 const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
