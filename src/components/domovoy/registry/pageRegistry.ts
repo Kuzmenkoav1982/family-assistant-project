@@ -71,7 +71,7 @@ export const PAGE_REGISTRY: Record<string, PageContext> = {
     moduleKey: 'finance',
     tagline: 'Семейный бюджет и расходы',
     actions: [
-      { label: 'Добавить расход',     icon: 'ArrowDown',   href: '/budget' },
+      { label: 'Добавить расход',     icon: 'ArrowDown',   href: '/finance/budget' },
       { label: 'Поставить цель',      icon: 'Target',      href: '/goals' },
       { label: 'Анализ трат',         icon: 'BarChart2',   href: '/finance-analytics' },
       { label: 'Детские финансы',     icon: 'Baby',        scenarioId: 'child-finance' },
@@ -165,8 +165,8 @@ export const PAGE_REGISTRY: Record<string, PageContext> = {
     moduleKey: 'education',
     tagline: 'Курсы и уроки по финансам',
     actions: [
-      { label: 'Начать курс',         icon: 'BookOpen',    href: '/finance-literacy' },
-      { label: 'Уроки для детей',     icon: 'Baby',        href: '/finance-literacy' },
+      { label: 'Начать курс',         icon: 'BookOpen',    href: '/finance/literacy' },
+      { label: 'Уроки для детей',     icon: 'Baby',        href: '/finance/literacy' },
     ],
   },
 };
