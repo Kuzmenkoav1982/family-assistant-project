@@ -80,10 +80,24 @@ const DomovoyEntry: React.FC<DomovoyEntryProps> = ({
       variant: 'default',
     },
     {
-      emoji: '🔍',
-      label: 'Найти раздел',
-      description: 'Подскажу, где нужная функция',
-      action: () => onFreeQuery('найти раздел'),
+      emoji: '📷',
+      label: 'Семейная память',
+      description: 'Истории, фото, традиции',
+      scenarioId: 'family-memory',
+      variant: 'default',
+    },
+    {
+      emoji: '🔔',
+      label: 'Напоминания',
+      description: 'Настроить уведомления',
+      scenarioId: 'setup-reminders',
+      variant: 'default',
+    },
+    {
+      emoji: '📚',
+      label: 'Библиотека',
+      description: 'Чтение и обучение',
+      scenarioId: 'family-library',
       variant: 'default',
     },
     {
@@ -92,7 +106,13 @@ const DomovoyEntry: React.FC<DomovoyEntryProps> = ({
       description: incompleteFlows.length > 0
         ? `${incompleteFlows.length} незавершённых`
         : 'Вернуться к процессу',
-      action: () => setShowIncomplete(true),
+      action: () => {
+        if (incompleteFlows.length > 0) {
+          setShowIncomplete(true);
+        } else {
+          onScenario('resume-flow');
+        }
+      },
       variant: 'default',
     },
     {
@@ -106,7 +126,7 @@ const DomovoyEntry: React.FC<DomovoyEntryProps> = ({
       emoji: '❓',
       label: 'Не знаю с чего начать',
       description: 'Помогу разобраться',
-      action: () => onFreeQuery('с чего начать'),
+      scenarioId: 'first-start',
       variant: 'muted',
     },
   ];

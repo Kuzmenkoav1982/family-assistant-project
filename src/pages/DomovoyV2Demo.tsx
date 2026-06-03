@@ -98,7 +98,7 @@ export default function DomovoyV2Demo() {
           <div>
             {/* Выбор сценария */}
             <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-              {['setup-family', 'add-child', 'setup-children-module', 'child-finance'].map(id => (
+              {['setup-family', 'add-child', 'setup-children-module', 'child-finance', 'first-start', 'family-memory', 'setup-reminders', 'family-library', 'help-faq', 'resume-flow'].map(id => (
                 <button
                   key={id}
                   onClick={() => setActiveScenario(id)}
