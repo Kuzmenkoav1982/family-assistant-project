@@ -57,7 +57,7 @@ export const SCENARIO_REGISTRY: Record<string, Scenario> = {
         title: 'Добавить детей',
         description: 'Создайте профили для каждого ребёнка — это откроет детский кабинет.',
         benefit: 'Рост, занятия, достижения и финансы ребёнка будут в одном месте.',
-        href: '/children',
+        href: '/children?action=add-child',
         cta: 'Добавить ребёнка',
         ctaSecondary: 'У меня нет детей',
       },
