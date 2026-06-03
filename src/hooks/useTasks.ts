@@ -117,7 +117,12 @@ export function useTasks() {
       const data = await response.json();
       
       if (response.ok && data.tasks) {
-        setTasks(data.tasks);
+        setTasks(prev => {
+          // Не обновляем state если данные не изменились — предотвращает лишние ре-рендеры
+          const prevStr = JSON.stringify(prev.map(t => t.id + t.updated_at + String(t.completed)));
+          const nextStr = JSON.stringify(data.tasks.map((t: Task) => t.id + t.updated_at + String(t.completed)));
+          return prevStr === nextStr ? prev : data.tasks;
+        });
       } else {
         if (!silent) {
           setTasks([]);
@@ -321,7 +326,7 @@ export function useTasks() {
       if (!isDemoMode) {
         const interval = setInterval(() => {
           fetchTasks(undefined, true);
-        }, 5000);
+        }, 30000);
         
         return () => clearInterval(interval);
       }
