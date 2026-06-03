@@ -70,8 +70,8 @@ export default function DomovoyV2Demo() {
               }`}
             >
               <Icon name={t.icon} size={13} />
-              {t.label}
-              <span className={`hidden sm:inline text-[10px] ${tab === t.id ? 'text-white/70' : 'text-slate-400'}`}>
+              <span>{t.label}</span>
+              <span className={`hidden md:inline text-[10px] ${tab === t.id ? 'text-white/70' : 'text-slate-400'}`}>
                 — {t.desc}
               </span>
             </button>
@@ -98,7 +98,18 @@ export default function DomovoyV2Demo() {
           <div>
             {/* Выбор сценария */}
             <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-              {['setup-family', 'add-child', 'setup-children-module', 'child-finance', 'first-start', 'family-memory', 'setup-reminders', 'family-library', 'help-faq', 'resume-flow'].map(id => (
+              {[
+                { id: 'setup-family',          label: '🏠 Семья' },
+                { id: 'add-child',             label: '👶 Ребёнок' },
+                { id: 'setup-children-module', label: '🌱 Развитие' },
+                { id: 'child-finance',         label: '💳 Финансы' },
+                { id: 'first-start',           label: '❓ С чего начать' },
+                { id: 'family-memory',         label: '📷 Память' },
+                { id: 'setup-reminders',       label: '🔔 Напоминания' },
+                { id: 'family-library',        label: '📚 Библиотека' },
+                { id: 'help-faq',              label: '💬 FAQ' },
+                { id: 'resume-flow',           label: '▶️ Продолжить' },
+              ].map(({ id, label }) => (
                 <button
                   key={id}
                   onClick={() => setActiveScenario(id)}
@@ -108,7 +119,7 @@ export default function DomovoyV2Demo() {
                       : 'bg-white text-slate-600 border-slate-200'
                   }`}
                 >
-                  {id}
+                  {label}
                 </button>
               ))}
             </div>
