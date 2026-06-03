@@ -1,0 +1,17 @@
+export const BANK_DECK_SECTIONS = [
+  { id: 'slide-1',  label: '01. Титул' },
+  { id: 'slide-2',  label: '02. Почему актуально' },
+  { id: 'slide-3',  label: '03. Совместное решение' },
+  { id: 'slide-4',  label: '04. Точка входа' },
+  { id: 'slide-5',  label: '05. Ценность для родителя' },
+  { id: 'slide-6',  label: '06. Ценность для ребёнка' },
+  { id: 'slide-7',  label: '07. Внутри модуля' },
+  { id: 'slide-8',  label: '08. Сценарий семьи' },
+  { id: 'slide-9',  label: '09. Библиотека / Альпина' },
+  { id: 'slide-10', label: '10. Эффекты для банка' },
+  { id: 'slide-11', label: '11. Наше отличие' },
+  { id: 'slide-12', label: '12. Roadmap запуска' },
+  { id: 'slide-13', label: '13. Ресурсы и роли' },
+  { id: 'slide-14', label: '14. KPI пилота' },
+  { id: 'slide-15', label: '15. Следующий шаг' },
+];
