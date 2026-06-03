@@ -243,6 +243,15 @@ const AIAssistantWidget = () => {
     }
   }, [isDomovoyGuideEnabled, widgetMode]);
 
+  // Edge-case: loading→ready(neutral)
+  // Пользователь успел переключиться в guide пока тип грузился,
+  // а сервер вернул neutral — тихо возвращаем в чат.
+  useEffect(() => {
+    if (assistantTypeStatus === 'ready' && assistantType === 'neutral' && widgetMode === 'guide') {
+      setWidgetMode('chat');
+    }
+  }, [assistantTypeStatus, assistantType, widgetMode]);
+
   // Переключение режима с аналитикой
   const handleModeSwitch = (mode: WidgetMode) => {
     setWidgetMode(mode);
