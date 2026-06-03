@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, Send, Minimize2, Maximize2, Loader2, Lock } from 'lucide-react';
+import DomovoyEntry from '@/components/domovoy/DomovoyEntry';
+import DomovoyGuide from '@/components/domovoy/DomovoyGuide';
+import DomovoyPlatformMap from '@/components/domovoy/DomovoyPlatformMap';
+import { useDomovoyPage } from '@/components/domovoy/hooks/useDomovoyPage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -35,10 +39,22 @@ interface Message {
   timestamp: Date;
 }
 
+type WidgetMode = 'chat' | 'guide';
+type GuideView = 'entry' | 'scenario' | 'map';
+
+const DOMOVOY_GUIDE_FLAG = true; // feature flag — переключить в false чтобы скрыть
+
 const AIAssistantWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMenuExpanded, setIsMenuExpanded] = useState(false);
+
+  // Режим виджета: чат или проводник
+  const [widgetMode, setWidgetMode] = useState<WidgetMode>('chat');
+
+  // Внутренний state Домового 2.0
+  const [guideView, setGuideView] = useState<GuideView>('entry');
+  const [activeScenario, setActiveScenario] = useState<string>('setup-family');
   const [messages, setMessages] = useState<Message[]>(() => {
     // SSR-safe: на prerender localStorage отсутствует.
     if (typeof localStorage === 'undefined') return [];
@@ -69,6 +85,8 @@ const AIAssistantWidget = () => {
   const { members } = useFamilyMembersContext();
   // Живой контекст загружаем когда чат открыт
   const { data: liveCtx, isReady: ctxReady } = useDomovoyContext(isOpen);
+  // Контекст текущей страницы для Домового 2.0
+  const { pathname, currentModuleId, incompleteFlows } = useDomovoyPage();
 
   // Голосовой ввод
   const {
@@ -196,6 +214,27 @@ const AIAssistantWidget = () => {
       localStorage.setItem('kuzyaMessages_' + kuzyaRole, JSON.stringify(serializable));
     } catch { /* ignore */ }
   }, [messages, kuzyaRole]);
+
+  // ── Аналитика событий ──────────────────────────────────────────────────────
+  const trackEvent = (event: string, payload?: Record<string, unknown>) => {
+    try {
+      const entry = { event, ts: Date.now(), path: pathname, ...payload };
+      const prev = JSON.parse(localStorage.getItem('domovoy_events') || '[]');
+      prev.push(entry);
+      localStorage.setItem('domovoy_events', JSON.stringify(prev.slice(-100)));
+    } catch { /* ignore */ }
+  };
+
+  // Переключение режима с аналитикой
+  const handleModeSwitch = (mode: WidgetMode) => {
+    setWidgetMode(mode);
+    if (mode === 'guide') {
+      setGuideView('entry');
+      trackEvent('ai_mode_switched_to_guide');
+    } else {
+      trackEvent('ai_mode_switched_to_chat');
+    }
+  };
 
   // Обновление роли — подгружаем историю этой роли
   const handleRoleChange = (newRole: string) => {
@@ -788,8 +827,38 @@ const AIAssistantWidget = () => {
             )}
           </div>
 
+          {/* Segmented control: Чат / Проводник */}
+          {!isMinimized && DOMOVOY_GUIDE_FLAG && assistantType === 'domovoy' && (
+            <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 flex-shrink-0">
+              <div className="flex bg-gray-100 rounded-xl p-0.5 gap-0.5">
+                <button
+                  onClick={() => handleModeSwitch('chat')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    widgetMode === 'chat'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon name="MessageCircle" size={13} />
+                  Чат
+                </button>
+                <button
+                  onClick={() => handleModeSwitch('guide')}
+                  className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    widgetMode === 'guide'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <Icon name="Navigation" size={13} />
+                  Проводник
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Индикатор живого контекста — Домовой видит реальные данные семьи */}
-          {!isMinimized && ctxReady && (
+          {!isMinimized && ctxReady && widgetMode === 'chat' && (
             <div className="px-4 py-2 bg-emerald-50/60 border-b border-emerald-100 flex items-center gap-2 flex-shrink-0">
               <span className="relative flex-shrink-0">
                 <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
@@ -811,7 +880,61 @@ const AIAssistantWidget = () => {
             </div>
           )}
 
-          {!isMinimized && (
+          {/* ── Режим «Проводник» (Domovoy 2.0) ───────────────────────────────────── */}
+          {!isMinimized && widgetMode === 'guide' && (
+            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+              {guideView === 'entry' && (
+                <DomovoyEntry
+                  assistantName={assistantName || 'Домовой'}
+                  onScenario={(id) => {
+                    setActiveScenario(id);
+                    setGuideView('scenario');
+                    if (id === 'resume-flow' || incompleteFlows.some(f => f.scenarioId === id)) {
+                      trackEvent('domovoy_resumed_flow', { scenarioId: id });
+                    } else {
+                      trackEvent('domovoy_scenario_started', { scenarioId: id });
+                    }
+                  }}
+                  onFreeQuery={(q) => {
+                    handleModeSwitch('chat');
+                    setInput(q);
+                  }}
+                  onOpenMap={() => setGuideView('map')}
+                  incompleteFlows={incompleteFlows}
+                />
+              )}
+              {guideView === 'scenario' && (
+                <DomovoyGuide
+                  key={activeScenario}
+                  scenarioId={activeScenario}
+                  onClose={() => setGuideView('entry')}
+                  onComplete={() => {
+                    trackEvent('domovoy_scenario_completed', { scenarioId: activeScenario });
+                    setGuideView('entry');
+                  }}
+                  onNavigate={(href) => {
+                    trackEvent('domovoy_step_cta_clicked', { href, scenarioId: activeScenario });
+                    navigate(href);
+                  }}
+                />
+              )}
+              {guideView === 'map' && (
+                <DomovoyPlatformMap
+                  currentModuleId={currentModuleId ?? undefined}
+                  onNavigate={(href) => { navigate(href); setIsOpen(false); }}
+                  onStartScenario={(id) => {
+                    setActiveScenario(id);
+                    setGuideView('scenario');
+                    trackEvent('domovoy_scenario_started', { scenarioId: id, from: 'map' });
+                  }}
+                  onClose={() => setGuideView('entry')}
+                />
+              )}
+            </div>
+          )}
+
+          {/* ── Режим «Чат» ─────────────────────────────────────────────────────── */}
+          {!isMinimized && widgetMode === 'chat' && (
             <>
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white">
@@ -978,6 +1101,7 @@ const AIAssistantWidget = () => {
           onClick={(e) => {
             if (!hasMoved) {
               setIsOpen(true);
+              trackEvent('ai_widget_opened', { mode: widgetMode });
             }
           }}
           onTouchStart={handleButtonTouchStart}
