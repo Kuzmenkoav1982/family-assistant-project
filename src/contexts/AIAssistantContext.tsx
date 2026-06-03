@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type AssistantType = 'neutral' | 'domovoy';
+export type AssistantTypeStatus = 'loading' | 'ready' | 'error';
 
 interface AIAssistantRole {
   id: string;
@@ -12,6 +13,7 @@ interface AIAssistantRole {
 
 interface AIAssistantContextType {
   assistantType: AssistantType | null;
+  assistantTypeStatus: AssistantTypeStatus;
   assistantName: string;
   assistantLevel: number;
   selectedRole: AIAssistantRole | null;
@@ -63,6 +65,11 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     return readLS('assistantType') as AssistantType | null;
   });
 
+  // loading → пока сервер не ответил; ready → тип известен; error → сеть упала
+  const [assistantTypeStatus, setAssistantTypeStatus] = useState<AssistantTypeStatus>(() =>
+    readLS('assistantType') ? 'ready' : 'loading'
+  );
+
   const [assistantName, setAssistantNameState] = useState<string>(() => {
     return readLS('assistantName') || '';
   });
@@ -84,7 +91,11 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     const loadAssistantSettings = async () => {
       const token = localStorage.getItem('authToken');
-      if (!token) return;
+      if (!token) {
+        // Нет токена — тип неизвестен, но это не ошибка
+        setAssistantTypeStatus('loading');
+        return;
+      }
 
       try {
         const response = await fetch('https://functions.poehali.dev/e7113c2a-154d-46b2-90b6-6752a3fd9085', {
@@ -129,10 +140,13 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
               }
             }
           }
+          setAssistantTypeStatus('ready');
+        } else {
+          setAssistantTypeStatus('error');
         }
       } catch (error) {
         console.debug('Assistant settings load skipped:', error);
-        // Тихо игнорируем - используем настройки из localStorage
+        setAssistantTypeStatus('error');
       }
     };
 
@@ -272,6 +286,7 @@ export function AIAssistantProvider({ children }: { children: React.ReactNode })
     <AIAssistantContext.Provider
       value={{
         assistantType,
+        assistantTypeStatus,
         assistantName,
         assistantLevel,
         selectedRole,

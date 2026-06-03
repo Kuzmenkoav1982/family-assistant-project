@@ -83,7 +83,7 @@ const AIAssistantWidget = () => {
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
-  const { assistantType, assistantName, selectedRole } = useAIAssistant();
+  const { assistantType, assistantTypeStatus, assistantName, selectedRole } = useAIAssistant();
   const { members } = useFamilyMembersContext();
   // Живой контекст загружаем когда чат открыт
   const { data: liveCtx, isReady: ctxReady } = useDomovoyContext(isOpen);
@@ -846,9 +846,11 @@ const AIAssistantWidget = () => {
           </div>
 
           {/* Segmented control: Чат / Проводник
-              Loading-tolerant: показываем если тип ещё не загрузился (null)
-              или уже известно что domovoy. Скрываем только если явно другой тип. */}
-          {!isMinimized && isDomovoyGuideEnabled && (assistantType === 'domovoy' || assistantType === null) && (
+              loading → показываем (cold start / PWA)
+              error  → показываем (сеть упала, используем localStorage)
+              ready + domovoy → показываем
+              ready + neutral → скрываем */}
+          {!isMinimized && isDomovoyGuideEnabled && (assistantTypeStatus !== 'ready' || assistantType === 'domovoy') && (
             <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 flex-shrink-0">
               <div className="flex bg-gray-100 rounded-xl p-0.5 gap-0.5">
                 <button
