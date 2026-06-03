@@ -43,10 +43,10 @@ export const PAGE_REGISTRY: Record<string, PageContext> = {
     moduleKey: 'children',
     tagline: 'Профили и кабинеты детей',
     actions: [
-      { label: 'Добавить ребёнка',    icon: 'UserPlus',    scenarioId: 'add-child' },
-      { label: 'Открыть кабинет',     icon: 'BookOpen',    description: 'Рост, занятия, достижения' },
-      { label: 'Занятия и кружки',    icon: 'Dumbbell',    scenarioId: 'setup-activities' },
-      { label: 'Достижения',          icon: 'Award',       description: 'Победы и памятные моменты' },
+      { label: 'Добавить ребёнка',    icon: 'UserPlus',    href: '/children?action=add-child' },
+      { label: 'Развитие',            icon: 'TrendingUp',  href: '/children?tab=development' },
+      { label: 'Занятия и кружки',    icon: 'Dumbbell',    href: '/children?tab=activities' },
+      { label: 'Финансы ребёнка',     icon: 'Wallet',      href: '/children?tab=money' },
     ],
     relatedModules: ['development', 'finance', 'memory'],
   },
@@ -139,9 +139,9 @@ export const PAGE_REGISTRY: Record<string, PageContext> = {
     moduleKey: 'settings',
     tagline: 'Настройки профиля и семьи',
     actions: [
-      { label: 'Профиль семьи',       icon: 'Users',       href: '/settings' },
-      { label: 'Безопасность',        icon: 'Shield',      href: '/settings' },
-      { label: 'Уведомления',         icon: 'Bell',        href: '/settings' },
+      { label: 'Профиль семьи',       icon: 'Users',       scenarioId: 'setup-family' },
+      { label: 'Уведомления',         icon: 'Bell',        scenarioId: 'setup-reminders' },
+      { label: 'Добавить ребёнка',    icon: 'Baby',        href: '/children?action=add-child' },
     ],
   },
 

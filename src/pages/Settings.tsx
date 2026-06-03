@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import Icon from '@/components/ui/icon';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useState, useEffect } from 'react';
 import FamilyInviteManager from '@/components/FamilyInviteManager';
@@ -22,7 +22,12 @@ import { BannerPositioner } from '@/components/BannerPositioner';
 
 export default function Settings() {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('family');
+  const [searchParams] = useSearchParams();
+  const [activeSection, setActiveSection] = useState(() => {
+    const section = searchParams.get('section');
+    const valid = ['family', 'notifications', 'appearance', 'account', 'assistants'];
+    return valid.includes(section ?? '') ? section! : 'family';
+  });
   const [familyName, setFamilyName] = useState(() => {
     return localStorage.getItem('familyName') || 'Наша Семья';
   });
