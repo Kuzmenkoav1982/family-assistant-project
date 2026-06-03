@@ -5,6 +5,12 @@ import App from './App'
 import './index.css'
 import '@/lib/__smoke/install';
 
+if (import.meta.env.DEV) {
+  import('@/dev/registerDomovoyQaHelpers').then(({ registerDomovoyQaHelpers }) => {
+    registerDomovoyQaHelpers();
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
     <App />
