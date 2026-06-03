@@ -845,8 +845,10 @@ const AIAssistantWidget = () => {
             )}
           </div>
 
-          {/* Segmented control: Чат / Проводник */}
-          {!isMinimized && isDomovoyGuideEnabled && (
+          {/* Segmented control: Чат / Проводник
+              Loading-tolerant: показываем если тип ещё не загрузился (null)
+              или уже известно что domovoy. Скрываем только если явно другой тип. */}
+          {!isMinimized && isDomovoyGuideEnabled && (assistantType === 'domovoy' || assistantType === null) && (
             <div className="px-3 pt-2 pb-1.5 border-b border-gray-100 flex-shrink-0">
               <div className="flex bg-gray-100 rounded-xl p-0.5 gap-0.5">
                 <button
