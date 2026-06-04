@@ -525,6 +525,69 @@ export default function ChildMasterScreen({
           </div>
         </section>
 
+        {/* ── SOS: ЭКСТРЕННАЯ ПОМОЩЬ ── */}
+        <section>
+          <div className="rounded-2xl overflow-hidden border border-red-200 shadow-sm">
+            {/* Заголовок */}
+            <div className="bg-red-600 px-4 py-3 flex items-center gap-2.5">
+              <span className="text-lg">🆘</span>
+              <div>
+                <p className="text-white font-bold text-sm leading-none">Экстренная помощь</p>
+                <p className="text-red-200 text-[11px] mt-0.5">Что делать, если что-то случилось</p>
+              </div>
+            </div>
+
+            {/* Кнопки */}
+            <div className="bg-red-50 p-3 flex flex-col gap-2">
+              {/* МЧС */}
+              <a
+                href="https://www.mchs.gov.ru/deyatelnost/direkciya-po-reabilitacii/videomaterialy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-red-100 hover:border-red-300 hover:shadow-sm transition group"
+              >
+                <span className="text-xl shrink-0">🚒</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 leading-snug">Видео МЧС России</p>
+                  <p className="text-[11px] text-slate-500 truncate">Как вести себя при пожаре и ЧС</p>
+                </div>
+                <ArrowRight size={14} className="text-red-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              </a>
+
+              {/* Антимошенник */}
+              <a
+                href="/anti-scam"
+                className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-orange-100 hover:border-orange-300 hover:shadow-sm transition group"
+              >
+                <span className="text-xl shrink-0">🛡️</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-800 leading-snug">Антимошенник</p>
+                  <p className="text-[11px] text-slate-500 truncate">Если позвонили или попросили деньги</p>
+                </div>
+                <ArrowRight size={14} className="text-orange-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              </a>
+
+              {/* Телефоны */}
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                {[
+                  { num: "112", label: "Единый", color: "bg-red-100 text-red-700 border-red-200" },
+                  { num: "101", label: "Пожар", color: "bg-orange-100 text-orange-700 border-orange-200" },
+                  { num: "102", label: "Полиция", color: "bg-blue-100 text-blue-700 border-blue-200" },
+                ].map(item => (
+                  <a
+                    key={item.num}
+                    href={`tel:${item.num}`}
+                    className={`${item.color} border rounded-xl py-2 flex flex-col items-center gap-0.5 hover:opacity-80 transition`}
+                  >
+                    <span className="text-base font-black leading-none">{item.num}</span>
+                    <span className="text-[10px] font-medium">{item.label}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
       </ScreenBody>
     </ScreenPage>
   );
