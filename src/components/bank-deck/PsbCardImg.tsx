@@ -27,7 +27,7 @@ export default function PsbCardImg({ className = 'w-14 h-9', alt = 'Карта �
     <img
       src={PSB_CARD_IMG}
       alt={alt}
-      className={`${className} rounded-lg object-cover shrink-0`}
+      className={`${className} object-contain shrink-0 block`}
       onError={() => setError(true)}
     />
   );

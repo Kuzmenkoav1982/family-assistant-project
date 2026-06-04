@@ -51,7 +51,9 @@ export default function Slide03() {
             <div className={`rounded-2xl border p-5 flex-1 flex flex-col sm:flex-row sm:items-center gap-4 ${layer.color}`}>
               <div className="flex items-center gap-4 sm:w-56">
                 {layer.cardImg ? (
-                  <PsbCardImg className="w-14 h-9 shadow-md" />
+                  <div className="bg-white rounded-xl p-1 shrink-0 shadow-sm">
+                    <PsbCardImg className="w-16 h-10" />
+                  </div>
                 ) : (
                   <div className="text-3xl shrink-0">{layer.emoji}</div>
                 )}

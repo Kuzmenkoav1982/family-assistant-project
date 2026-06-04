@@ -54,7 +54,9 @@ export default function Slide04() {
               className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm"
             >
               {ep.cardImg ? (
-                <PsbCardImg className="w-10 h-6 shadow-sm" />
+                <div className="bg-slate-50 rounded-lg p-0.5 shrink-0 border border-slate-100">
+                  <PsbCardImg className="w-14 h-9" />
+                </div>
               ) : (
                 <span className="text-xl">{ep.emoji}</span>
               )}

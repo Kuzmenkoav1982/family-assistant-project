@@ -7,7 +7,8 @@ export default function Slide01() {
       id="slide-1"
       data-pdf-slide
       data-slide-title="Детская карта + цифровая среда развития"
-      className="scroll-mt-20 bg-gradient-to-br from-indigo-700 via-indigo-800 to-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl p-8 sm:p-12 md:p-16 mb-6 sm:mb-8 text-white relative overflow-hidden"
+      className="scroll-mt-20 rounded-2xl sm:rounded-3xl shadow-2xl p-8 sm:p-12 md:p-16 mb-6 sm:mb-8 text-white relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, #3b4fa8 0%, #5b6ec9 40%, #7c8fe0 100%)' }}
     >
       <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/5 blur-3xl" />
       <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-indigo-400/10 blur-3xl" />
@@ -33,7 +34,9 @@ export default function Slide01() {
         <div className="flex flex-col gap-4 lg:w-64">
           {/* Карта ПСБ */}
           <div className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4">
-            <PsbCardImg className="w-14 h-9 shadow-md" />
+            <div className="bg-white rounded-xl p-1.5 shrink-0 shadow-md">
+              <PsbCardImg className="w-16 h-10" />
+            </div>
             <div>
               <div className="font-semibold text-white text-sm">Карта ПСБ</div>
               <div className="text-indigo-200 text-xs mt-0.5">Финансовый инструмент для ребёнка</div>
