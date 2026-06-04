@@ -72,7 +72,9 @@ export function readDomovoyGuideFlag(): FeatureFlagResult {
     return { enabled: true, source: 'dev-default' };
   }
 
-  return { enabled: false, source: 'prod-default' };
+  // На poehali.dev VITE_* env не пробрасываются в prod-билд.
+  // Kill switch: localStorage.setItem('domovoy_guide_enabled', 'false')
+  return { enabled: true, source: 'prod-default' };
 }
 
 // ── QA / Internal helpers ────────────────────────────────────────────────────

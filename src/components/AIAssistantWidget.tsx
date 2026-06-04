@@ -233,6 +233,15 @@ const AIAssistantWidget = () => {
       isDomovoyGuideEnabled ? 'domovoy_guide_flag_enabled' : 'domovoy_guide_flag_disabled',
       { source: guideFlagSource }
     );
+    console.info('[Domovoy toggle debug]', {
+      isDomovoyGuideEnabled,
+      guideFlagSource,
+      assistantTypeStatus,
+      assistantType,
+      isMinimized,
+      showModeToggle: isDomovoyGuideEnabled && !isMinimized && (assistantTypeStatus !== 'ready' || assistantType === 'domovoy'),
+      ua: navigator.userAgent,
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
