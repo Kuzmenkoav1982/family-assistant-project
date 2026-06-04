@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronRight, Plus, BookOpen, Dumbbell, Palette, Users, Music, Shield, ArrowRight } from "lucide-react";
 import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
+import SafetyTests from "@/components/children/SafetyTests";
 import {
   ScreenPage,
   ScreenBody,
@@ -126,6 +127,7 @@ export default function ChildMasterScreen({
   const [weekSteps, setWeekSteps] = useState(() =>
     WEEKLY_STEPS.map(s => ({ ...s, done: false }))
   );
+  const [showSafetyTests, setShowSafetyTests] = useState(false);
 
   const { members } = useFamilyMembersContext();
 
@@ -171,6 +173,16 @@ export default function ChildMasterScreen({
       </div>
     );
   };
+
+  if (showSafetyTests) {
+    return (
+      <ScreenPage>
+        <ScreenBody>
+          <SafetyTests onBack={() => setShowSafetyTests(false)} />
+        </ScreenBody>
+      </ScreenPage>
+    );
+  }
 
   return (
     <ScreenPage>
@@ -525,33 +537,42 @@ export default function ChildMasterScreen({
           </div>
         </section>
 
-        {/* ── SOS: ЭКСТРЕННАЯ ПОМОЩЬ ── */}
+        {/* ── БЛОК 9: ЧТО ДЕЛАТЬ, ЕСЛИ… ── */}
         <section>
-          <div className="rounded-2xl overflow-hidden border border-red-200 shadow-sm">
-            {/* Заголовок */}
-            <div className="bg-red-600 px-4 py-3 flex items-center gap-2.5">
-              <span className="text-lg">🆘</span>
+          <div className="rounded-2xl overflow-hidden border border-rose-200 shadow-sm">
+            {/* Заголовок — спокойный, не паникующий */}
+            <div className="bg-gradient-to-r from-rose-500 to-red-500 px-4 py-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <Shield size={15} className="text-white" />
+              </div>
               <div>
-                <p className="text-white font-bold text-sm leading-none">Экстренная помощь</p>
-                <p className="text-red-200 text-[11px] mt-0.5">Что делать, если что-то случилось</p>
+                <p className="text-white font-bold text-sm leading-none">Что делать, если…</p>
+                <p className="text-rose-100 text-[11px] mt-0.5">Помощь в важной ситуации</p>
               </div>
             </div>
 
-            {/* Кнопки */}
-            <div className="bg-red-50 p-3 flex flex-col gap-2">
+            <div className="bg-rose-50/60 p-3 flex flex-col gap-2.5">
+              {/* Главный детский месседж */}
+              <div className="bg-white rounded-xl px-3 py-2.5 border border-rose-100">
+                <p className="text-[12px] text-slate-600 leading-snug">
+                  Если страшно, непонятно или кто-то просит деньги —{" "}
+                  <span className="font-semibold text-rose-600">сначала позови взрослого</span>
+                </p>
+              </div>
+
               {/* МЧС */}
               <a
-                href="https://www.mchs.gov.ru/deyatelnost/direkciya-po-reabilitacii/videomaterialy"
+                href="https://www.mchs.gov.ru/deyatelnost/rabota-s-det-mi"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-red-100 hover:border-red-300 hover:shadow-sm transition group"
+                className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-rose-100 hover:border-rose-300 hover:shadow-sm transition group"
               >
                 <span className="text-xl shrink-0">🚒</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 leading-snug">Видео МЧС России</p>
-                  <p className="text-[11px] text-slate-500 truncate">Как вести себя при пожаре и ЧС</p>
+                  <p className="text-sm font-semibold text-slate-800 leading-snug">Пожар и ЧС</p>
+                  <p className="text-[11px] text-slate-500">Детский раздел МЧС России</p>
                 </div>
-                <ArrowRight size={14} className="text-red-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight size={14} className="text-rose-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
               </a>
 
               {/* Антимошенник */}
@@ -561,29 +582,56 @@ export default function ChildMasterScreen({
               >
                 <span className="text-xl shrink-0">🛡️</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 leading-snug">Антимошенник</p>
-                  <p className="text-[11px] text-slate-500 truncate">Если позвонили или попросили деньги</p>
+                  <p className="text-sm font-semibold text-slate-800 leading-snug">Звонок с просьбой денег</p>
+                  <p className="text-[11px] text-slate-500">Что делать при мошенничестве</p>
                 </div>
                 <ArrowRight size={14} className="text-orange-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
               </a>
 
-              {/* Телефоны */}
-              <div className="grid grid-cols-3 gap-2 pt-1">
+              {/* 112 — главная большая кнопка */}
+              <a
+                href="tel:112"
+                className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl py-3 transition group"
+              >
+                <span className="text-2xl font-black text-white leading-none">112</span>
+                <span className="text-red-100 text-xs font-medium">— единый номер экстренных служб</span>
+              </a>
+
+              {/* Вторичные номера */}
+              <div className="grid grid-cols-3 gap-1.5">
                 {[
-                  { num: "112", label: "Единый", color: "bg-red-100 text-red-700 border-red-200" },
-                  { num: "101", label: "Пожар", color: "bg-orange-100 text-orange-700 border-orange-200" },
-                  { num: "102", label: "Полиция", color: "bg-blue-100 text-blue-700 border-blue-200" },
+                  { num: "101", label: "Пожар", color: "bg-orange-50 text-orange-700 border-orange-200 hover:border-orange-400" },
+                  { num: "102", label: "Полиция", color: "bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-400" },
+                  { num: "103", label: "Скорая", color: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400" },
                 ].map(item => (
                   <a
                     key={item.num}
                     href={`tel:${item.num}`}
-                    className={`${item.color} border rounded-xl py-2 flex flex-col items-center gap-0.5 hover:opacity-80 transition`}
+                    className={`${item.color} border rounded-xl py-2 flex flex-col items-center gap-0.5 transition`}
                   >
-                    <span className="text-base font-black leading-none">{item.num}</span>
+                    <span className="text-sm font-black leading-none">{item.num}</span>
                     <span className="text-[10px] font-medium">{item.label}</span>
                   </a>
                 ))}
               </div>
+
+              {/* Desktop-подсказка */}
+              <p className="text-center text-[10px] text-slate-400 hidden sm:block">
+                На телефоне кнопки выше сразу наберут номер
+              </p>
+
+              {/* Тесты по безопасности */}
+              <button
+                onClick={() => setShowSafetyTests(true)}
+                className="w-full flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-violet-100 hover:border-violet-300 hover:shadow-sm transition group"
+              >
+                <span className="text-xl shrink-0">🧠</span>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-semibold text-slate-800 leading-snug">Тесты по безопасности</p>
+                  <p className="text-[11px] text-slate-500">Проверь свои знания — пожар, мошенники, интернет</p>
+                </div>
+                <ArrowRight size={14} className="text-violet-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              </button>
             </div>
           </div>
         </section>
