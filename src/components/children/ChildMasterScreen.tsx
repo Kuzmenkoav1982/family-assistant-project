@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { ChevronRight, Plus, BookOpen, Dumbbell, Palette, Users, Music, Shield, ArrowRight } from "lucide-react";
 import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
@@ -132,6 +132,10 @@ export default function ChildMasterScreen({
   );
   const [showSafetyTests, setShowSafetyTests] = useState(false);
   const [showMyRegion, setShowMyRegion] = useState(false);
+  // Инкрементируется при закрытии SafetyTests/MyRegion → ChildProgressBlock перечитывает LS
+  const [progressKey, setProgressKey] = useState(0);
+  const closeTests = useCallback(() => { setShowSafetyTests(false); setProgressKey(k => k + 1); }, []);
+  const closeRegion = useCallback(() => { setShowMyRegion(false); setProgressKey(k => k + 1); }, []);
 
   const { members } = useFamilyMembersContext();
 
@@ -182,7 +186,7 @@ export default function ChildMasterScreen({
     return (
       <ScreenPage>
         <ScreenBody>
-          <SafetyTests onBack={() => setShowSafetyTests(false)} childAge={child.age} />
+          <SafetyTests onBack={closeTests} childAge={child.age} />
         </ScreenBody>
       </ScreenPage>
     );
@@ -192,7 +196,7 @@ export default function ChildMasterScreen({
     return (
       <ScreenPage>
         <ScreenBody>
-          <MyRegionYaroslavl onBack={() => setShowMyRegion(false)} />
+          <MyRegionYaroslavl onBack={closeRegion} />
         </ScreenBody>
       </ScreenPage>
     );
@@ -234,7 +238,9 @@ export default function ChildMasterScreen({
       <ScreenBody>
 
         {/* ── БЛОК: МОЙ ПРОГРЕСС / С ЧЕГО НАЧАТЬ ── */}
+        {/* key={progressKey} — перемонтируется после возврата из тестов/квиза, перечитывая LS */}
         <ChildProgressBlock
+          key={progressKey}
           onOpenTests={() => setShowSafetyTests(true)}
           onOpenRegion={() => { setShowMyRegion(true); track('kids_region_open', { page: '/children' }); }}
           childAge={child.age}

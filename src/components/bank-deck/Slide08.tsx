@@ -9,9 +9,9 @@ const parentFlow = [
 
 const childFlow = [
   'Получает карту',
-  'Открывает свой раздел',
+  'Первый вход — понятный старт',
   'Учится, планирует, достигает',
-  'Проходит сценарии безопасности',
+  'Возвращается к следующему шагу',
 ];
 
 function FlowRow({ steps, color, borderColor }: { steps: string[]; color: string; borderColor: string }) {

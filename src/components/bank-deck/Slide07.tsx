@@ -9,6 +9,13 @@ const blocks = [
     accent: 'text-emerald-700',
   },
   {
+    emoji: '📊',
+    title: 'Персональный прогресс',
+    desc: 'Первый вход, сохранение результатов и возврат к следующему сценарию',
+    color: 'bg-violet-50 border-violet-200',
+    accent: 'text-violet-700',
+  },
+  {
     emoji: '💡',
     title: 'Финансовые цели и навыки',
     desc: 'Копилка, цели, понятные сценарии с деньгами',
