@@ -659,7 +659,12 @@ export default function ChildMasterScreen({
 
               {/* Тесты по безопасности */}
               <button
-                onClick={() => { setShowSafetyTests(true); track('kids_safety_tests_open', { page: '/children' }); }}
+                onClick={() => {
+                  setShowSafetyTests(true);
+                  const ageSource = localStorage.getItem('safety_tests_age_source') ?? 'fallback';
+                  const ageGroup = localStorage.getItem('safety_tests_age_group') ?? undefined;
+                  track('kids_safety_tests_open', { page: '/children', props: { age_group: ageGroup, age_group_source: ageSource } });
+                }}
                 className="w-full flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-violet-100 hover:border-violet-300 hover:shadow-sm transition group"
               >
                 <span className="text-xl shrink-0">🧠</span>

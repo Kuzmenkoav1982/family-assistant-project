@@ -425,11 +425,12 @@ function AgeSelector({ onSelect, onBack }: AgeSelectorProps) {
 interface TestScreenProps {
   test: SafetyTest;
   ageGroup: AgeGroup;
+  ageSource: AgeGroupSource;
   onBack: () => void;
   onComplete: (testId: string, pct: number) => void;
 }
 
-function TestScreen({ test, ageGroup, onBack, onComplete }: TestScreenProps) {
+function TestScreen({ test, ageGroup, ageSource, onBack, onComplete }: TestScreenProps) {
   const [step, setStep] = useState<"quiz" | "result">("quiz");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
@@ -456,8 +457,8 @@ function TestScreen({ test, ageGroup, onBack, onComplete }: TestScreenProps) {
       const correct = Object.entries(answers).filter(([qi, ai]) => test.questions[Number(qi)].correct === Number(ai)).length;
       const pct = Math.round((correct / test.questions.length) * 100);
       const lvl = getLevel(pct);
-      track("kids_safety_test_finish", { props: { test_id: test.id, score: pct, age_group: ageGroup } });
-      track("kids_safety_level_reached", { props: { test_id: test.id, level: lvl.label, age_group: ageGroup } });
+      track("kids_safety_test_finish", { props: { test_id: test.id, score: pct, age_group: ageGroup, age_group_source: ageSource } });
+      track("kids_safety_level_reached", { props: { test_id: test.id, level: lvl.label, age_group: ageGroup, age_group_source: ageSource } });
       setStep("result");
       onComplete(test.id, pct);
     } else {
@@ -643,6 +644,7 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
         <TestScreen
           test={activeTest}
           ageGroup={ageGroup}
+          ageSource={ageSource}
           onBack={() => setActiveTest(null)}
           onComplete={handleComplete}
         />
@@ -720,7 +722,7 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
           return (
             <button
               key={test.id}
-              onClick={() => { setActiveTest(test); track("kids_safety_test_start", { props: { test_id: test.id, age_group: ageGroup } }); }}
+              onClick={() => { setActiveTest(test); track("kids_safety_test_start", { props: { test_id: test.id, age_group: ageGroup, age_group_source: ageSource } }); }}
               className={`w-full text-left rounded-2xl border p-4 flex items-center gap-3 hover:shadow-sm transition group ${test.bgColor} ${test.borderColor}`}
             >
               <span className="text-2xl shrink-0">{test.emoji}</span>
