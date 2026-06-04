@@ -30,9 +30,9 @@ const features: FeatureRow[] = [
   { feature: 'Safe Money (финансовая безопасность)', status: 'partial', pilotUse: true, comment: 'Контентный слой — сценарии безопасного обращения с деньгами' },
   { feature: 'Финансовые цели / «Коплю на...»', status: 'partial', pilotUse: true, comment: 'Логика есть, требует доработки UX для пилота' },
   // ── Интеграция с банком ─────────────────────────────────────────────────
-  { feature: 'Онбординг из банкового приложения', status: 'mvp', pilotUse: true, comment: 'Необходимо разработать: webview / deeplink / SSO-lite' },
+  { feature: 'Онбординг из банковского приложения', status: 'mvp', pilotUse: true, comment: 'Необходимо разработать: webview / deeplink / SSO-lite' },
   { feature: 'Co-brand / белый лейбл', status: 'mvp', pilotUse: true, comment: 'Брендирование под банк: логотип, цвета, entry screens' },
-  { feature: 'Реальный банковый контур (лимиты, транзакции)', status: 'no', pilotUse: false, comment: 'Остаётся на стороне банка; в MVP не требуется' },
+  { feature: 'Реальный банковский контур (лимиты, транзакции)', status: 'no', pilotUse: false, comment: 'Остаётся на стороне банка; в MVP не требуется' },
   // ── Этап 2 ──────────────────────────────────────────────────────────────
   { feature: 'Возрастная адаптация тестов (7–10 / 11–15)', status: 'ready', pilotUse: true, comment: 'Отдельные вопросы и объяснения для каждой группы; выбор запоминается; прогресс хранится раздельно' },
   { feature: 'Образовательный контент / библиотека (Альпина)', status: 'stage2', pilotUse: false, comment: 'Этап 2 — партнёрская интеграция после старта пилота' },

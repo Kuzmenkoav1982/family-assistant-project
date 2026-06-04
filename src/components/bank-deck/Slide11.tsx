@@ -40,7 +40,7 @@ const rows = [
   {
     feature: 'Региональная программа / локальный пилот',
     market: { has: false, label: '—' },
-    ours: { has: true, label: '✓ Ярославль 2026' },
+    ours: { has: true, label: '✓ Ярославская обл. 2026' },
   },
 ];
 

@@ -43,7 +43,7 @@ export default function Slide01() {
 
           {/* Наша семья */}
           <div className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4">
-            <img src={NASHA_SEMYA_LOGO} alt="Наша Семья" className="w-9 h-9 shrink-0 rounded-xl object-cover" />
+            <img src={NASHA_SEMYA_LOGO} alt="Наша семья" className="w-9 h-9 shrink-0 rounded-xl object-cover" />
             <div>
               <div className="font-semibold text-white text-sm">Наша семья</div>
               <div className="text-indigo-200 text-xs mt-0.5">Платформа семейного развития</div>

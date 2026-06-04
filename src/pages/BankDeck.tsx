@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { PresentationHeader } from '@/components/presentation/PresentationHeader';
+import SEOHead from '@/components/SEOHead';
 import MeetingIndicator from '@/components/bank-deck/MeetingIndicator';
 import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 import { BANK_DECK_SECTIONS } from '@/components/bank-deck/sections';
@@ -413,6 +414,11 @@ export default function BankDeck() {
         isMeetingMode ? 'meeting-mode' : ''
       }`}
     >
+      <SEOHead
+        title="Детская карта × Банк — Предложение"
+        path="/bank-deck"
+        noIndex={true}
+      />
       <PresentationHeader
         onDownloadPDF={downloadPDF}
         isDownloading={isDownloading}

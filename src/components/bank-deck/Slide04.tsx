@@ -5,7 +5,7 @@ const steps = [
   { num: '1', label: 'Родитель оформляет детскую карту', color: 'bg-indigo-600 text-white' },
   { num: '2', label: 'В банковском пути — предложение активировать детский модуль', color: 'bg-indigo-500 text-white' },
   { num: '3', label: 'Семья получает доступ к разделу «Дети»', color: 'bg-emerald-600 text-white' },
-  { num: '4', label: 'Первые сценарии: финконтроль, цели, развитие', color: 'bg-emerald-500 text-white' },
+  { num: '4', label: 'Первые сценарии: безопасность, финансовые цели, развитие', color: 'bg-emerald-500 text-white' },
   { num: '5', label: 'Регулярное использование → лояльность → расширение', color: 'bg-amber-500 text-white' },
 ];
 

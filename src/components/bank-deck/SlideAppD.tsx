@@ -56,7 +56,7 @@ const rows: BenchmarkRow[] = [
   {
     feature: 'Региональная / локальная программа',
     sber: 'no', tinkoff: 'no', vtb: 'no', alfa: 'no',
-    ours: 'yes', oursLabel: 'Ярославль 2026',
+    ours: 'yes', oursLabel: 'Ярославская обл. 2026',
   },
 ];
 

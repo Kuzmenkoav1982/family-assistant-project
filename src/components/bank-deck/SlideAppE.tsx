@@ -173,11 +173,11 @@ export default function SlideAppE() {
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
           <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Следующий шаг</p>
-          <p className="text-sm text-amber-800 leading-snug">Интеграция входа из банковского приложения и серверная синхронизация прогресса</p>
+          <p className="text-sm text-amber-800 leading-snug">Интеграция входа из банковского приложения</p>
         </div>
         <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
           <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Не входит в MVP пилота</p>
-          <p className="text-sm text-slate-700 leading-snug">Синхронизация между устройствами, банковский транзакционный контур, геймифицированная экосистема</p>
+          <p className="text-sm text-slate-700 leading-snug">Серверная синхронизация прогресса, банковский транзакционный контур, геймифицированная экосистема</p>
         </div>
       </div>
     </SlideFrame>

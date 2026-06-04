@@ -38,8 +38,8 @@ const blocks = [
   },
   {
     emoji: '📖',
-    title: 'Контент',
-    desc: 'Чтение, аудиокниги — следующий этап',
+    title: 'Контент (этап 2)',
+    desc: 'Книги, аудиокниги — партнёрская интеграция после старта пилота',
     color: 'bg-purple-50 border-purple-200',
     accent: 'text-purple-700',
     optional: true,
