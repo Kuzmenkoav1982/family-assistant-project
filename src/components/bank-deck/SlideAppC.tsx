@@ -97,8 +97,22 @@ export default function SlideAppC() {
         })}
       </div>
 
-      <p className="text-xs text-slate-400 mt-4">
-        Внутренний продуктовый аудит. Статусы отражают состояние на момент подготовки материалов.
+      <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
+          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Demo-ready</p>
+          <p className="text-sm text-emerald-800 leading-snug">Детский кабинет, безопасность, «Коплю на...», аналитика, регион — готовы к показу</p>
+        </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+          <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Частично</p>
+          <p className="text-sm text-amber-800 leading-snug">Safe Money — контентный слой готов, банковый транзакционный контур не требуется для пилота</p>
+        </div>
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Нужна разработка</p>
+          <p className="text-sm text-slate-700 leading-snug">Точка входа из банковского приложения, co-brand — реализуется совместно в ходе пилота</p>
+        </div>
+      </div>
+      <p className="text-xs text-slate-400 mt-3">
+        Внутренний продуктовый аудит · июнь 2026
       </p>
     </SlideFrame>
   );
