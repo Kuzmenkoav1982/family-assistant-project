@@ -168,16 +168,16 @@ export default function SlideAppE() {
       {/* Executive summary */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
-          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Готово к демонстрации</p>
-          <p className="text-sm text-emerald-800 leading-snug">6 экранов готовы к показу без оговорок</p>
+          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Demo-ready</p>
+          <p className="text-sm text-emerald-800 leading-snug">Первый вход, прогресс, безопасность, «Коплю на...», мой край — полный сценарий готов к показу</p>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
           <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Следующий шаг</p>
-          <p className="text-sm text-amber-800 leading-snug">Интеграция входа из банковского приложения</p>
+          <p className="text-sm text-amber-800 leading-snug">Точка входа из банковского приложения — реализуется совместно в ходе пилота</p>
         </div>
         <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Не входит в MVP пилота</p>
-          <p className="text-sm text-slate-700 leading-snug">Серверная синхронизация прогресса, банковский транзакционный контур, геймифицированная экосистема</p>
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">После пилота</p>
+          <p className="text-sm text-slate-700 leading-snug">Серверная синхронизация прогресса, транзакционный контур, образовательная библиотека</p>
         </div>
       </div>
     </SlideFrame>
