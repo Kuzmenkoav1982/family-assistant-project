@@ -5,6 +5,7 @@ import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import SafetyTests from "@/components/children/SafetyTests";
 import MyRegionYaroslavl from "@/components/children/MyRegionYaroslavl";
 import ChildProgressBlock from "@/components/children/ChildProgressBlock";
+import DreamGoalScreen from "@/components/children/DreamGoalScreen";
 import { track } from "@/lib/analytics";
 import {
   ScreenPage,
@@ -132,6 +133,7 @@ export default function ChildMasterScreen({
   );
   const [showSafetyTests, setShowSafetyTests] = useState(false);
   const [showMyRegion, setShowMyRegion] = useState(false);
+  const [showDreamGoal, setShowDreamGoal] = useState(false);
   // Инкрементируется при закрытии SafetyTests/MyRegion → ChildProgressBlock перечитывает LS
   const [progressKey, setProgressKey] = useState(0);
   const closeTests = useCallback(() => { setShowSafetyTests(false); setProgressKey(k => k + 1); }, []);
@@ -145,6 +147,13 @@ export default function ChildMasterScreen({
   const development = childData?.development ?? child.development ?? [];
   const dreams = (childData?.dreams ?? child.dreams ?? []) as Dream[];
   const activeDream = dreams.find(d => !d.achieved) ?? dreams[0];
+
+  // Прогресс цели из localStorage (DreamGoalScreen)
+  const dreamGoalRaw = (() => { try { const r = localStorage.getItem(`dream_goal_v1_${child.id}`); return r ? JSON.parse(r) : null; } catch { return null; } })();
+  const dreamGoalPct = dreamGoalRaw ? Math.min(Math.round((dreamGoalRaw.savedAmount / dreamGoalRaw.targetAmount) * 100), 100) : null;
+  const dreamGoalLabel = dreamGoalRaw
+    ? `${dreamGoalRaw.savedAmount.toLocaleString("ru")} / ${dreamGoalRaw.targetAmount.toLocaleString("ru")} ₽`
+    : null;
 
   const topAreas = (development as Development[])
     .filter(d => AREA_CONFIG[d.area])
@@ -202,6 +211,20 @@ export default function ChildMasterScreen({
     );
   }
 
+  if (showDreamGoal) {
+    return (
+      <ScreenPage>
+        <ScreenBody>
+          <DreamGoalScreen
+            childId={child.id}
+            dreamTitle={activeDream?.title}
+            onBack={() => setShowDreamGoal(false)}
+          />
+        </ScreenBody>
+      </ScreenPage>
+    );
+  }
+
   return (
     <ScreenPage>
 
@@ -249,7 +272,7 @@ export default function ChildMasterScreen({
         {/* ── БЛОК 2: МОЯ МЕЧТА — тёплый песочный, не "золотой" ── */}
         <section>
           <button
-            onClick={() => onTabChange?.("money")}
+            onClick={() => setShowDreamGoal(true)}
             className="w-full text-left relative overflow-hidden rounded-2xl p-5 border border-amber-100/80"
             style={{ background: "linear-gradient(135deg, #fff9f0 0%, #fef3dc 100%)" }}
           >
@@ -273,15 +296,15 @@ export default function ChildMasterScreen({
                     <div className="flex-1 h-1.5 bg-amber-200/50 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full bg-amber-400/70 transition-all"
-                        style={{ width: `${Math.min(piggyBalance, 100)}%` }}
+                        style={{ width: dreamGoalPct !== null ? `${dreamGoalPct}%` : "0%" }}
                       />
                     </div>
                     <span className="text-xs font-semibold text-amber-600 flex-shrink-0">
-                      {piggyBalance > 0 ? `${piggyBalance}%` : "Начнём?"}
+                      {dreamGoalLabel ?? (dreamGoalPct !== null ? `${dreamGoalPct}%` : "Начнём?")}
                     </span>
                   </div>
                   <p className="mt-3 text-xs text-amber-600/80 flex items-center gap-1">
-                    Сделать шаг <ArrowRight size={11} />
+                    {dreamGoalPct !== null ? "Продолжить копить" : "Поставить цель"} <ArrowRight size={11} />
                   </p>
                 </>
               ) : (
