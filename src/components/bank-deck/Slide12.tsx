@@ -65,7 +65,7 @@ export default function Slide12() {
       id="slide-12"
       eyebrow="12. Roadmap запуска"
       title="Как запускать проект"
-      subtitle="Четыре последовательных этапа от упаковки до масштабирования"
+      subtitle="Ориентировочный план при согласовании пилотного контура"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {stages.map((stage, i) => (
