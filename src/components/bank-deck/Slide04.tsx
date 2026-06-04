@@ -1,4 +1,5 @@
 import SlideFrame from './SlideFrame';
+import { PSB_CARD_IMG } from '@/lib/assets';
 
 const steps = [
   { num: '1', label: 'Родитель оформляет детскую карту', color: 'bg-indigo-600 text-white' },
@@ -10,7 +11,7 @@ const steps = [
 
 const entryPoints = [
   { emoji: '📱', label: 'Банковское приложение', cardImg: null },
-  { emoji: null, label: 'При выпуске карты', cardImg: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1e1ff81e-6f4b-42ef-85b3-8f2264429c4c.JPG' },
+  { emoji: null, label: 'При выпуске карты', cardImg: PSB_CARD_IMG },
   { emoji: '🔗', label: 'QR / deep link', cardImg: null },
 ];
 

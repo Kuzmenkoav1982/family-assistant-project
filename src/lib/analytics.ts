@@ -32,17 +32,22 @@ export type PortfolioEvent =
   | 'portfolio_source_deep_link_click'
   | 'portfolio_improve_cta_click';
 
-// ─── TTL-дедупликация событий ─────────────────────────────────────────────────
-// Защищает от технических дублей (React StrictMode unmount→mount, HMR),
-// но НЕ блокирует валидные повторные действия пользователя после истечения TTL.
-// Ключ дедупа: event_name (можно расширить до event+key для контекстного дедупа).
-const DEDUP_TTL_MS = 3_000; // 3 сек — достаточно для StrictMode, не мешает UX
+// ─── TTL-дедупликация: только «mount-события» ────────────────────────────────
+// Применяется ТОЛЬКО к событиям из DEDUP_EVENTS_TTL — тем, которые стреляют
+// при монтировании компонента и могут задвоиться в StrictMode (unmount→remount).
+// Обычные клики (call_112, test_start и др.) дедупом НЕ затрагиваются.
+// TTL = 3 сек: перекрывает StrictMode-цикл (~0ms), не блокирует реальный UX.
+const DEDUP_TTL_MS = 3_000;
 const SS_DEDUP_KEY = 'analytics:dedup_ttl';
 
-// Формат: { [eventName]: timestamp_ms }
+const DEDUP_EVENTS_TTL: ReadonlySet<string> = new Set([
+  'kids_safety_tests_open', // mount-событие в SafetyTests
+]);
+
 type DedupMap = Record<string, number>;
 
 function isDuplicate(event: string): boolean {
+  if (!DEDUP_EVENTS_TTL.has(event)) return false;
   try {
     const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
     const map: DedupMap = raw ? JSON.parse(raw) : {};
@@ -55,6 +60,7 @@ function isDuplicate(event: string): boolean {
 }
 
 function markSent(event: string): void {
+  if (!DEDUP_EVENTS_TTL.has(event)) return;
   try {
     const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
     const map: DedupMap = raw ? JSON.parse(raw) : {};

@@ -1,3 +1,5 @@
+import { PSB_CARD_IMG, NASHA_SEMYA_LOGO } from '@/lib/assets';
+
 export default function Slide01() {
   return (
     <section
@@ -29,28 +31,18 @@ export default function Slide01() {
         {/* Right */}
         <div className="flex flex-col gap-4 lg:w-64">
           {[
-            { emoji: null, img: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1e1ff81e-6f4b-42ef-85b3-8f2264429c4c.JPG', label: 'Карта ПСБ', desc: 'Финансовый инструмент для ребёнка' },
-            { emoji: null, label: 'Наша семья', desc: 'Платформа семейного развития' },
-            { emoji: '🌱', label: 'Развитие ребёнка', desc: 'Навыки, привычки, контент' },
+            { img: PSB_CARD_IMG, imgClass: 'w-14 h-9 rounded-lg object-cover shadow-md', label: 'Карта ПСБ', desc: 'Финансовый инструмент для ребёнка' },
+            { img: NASHA_SEMYA_LOGO, imgClass: 'w-9 h-9 rounded-xl object-cover', label: 'Наша семья', desc: 'Платформа семейного развития' },
+            { img: null, emoji: '🌱', label: 'Развитие ребёнка', desc: 'Навыки, привычки, контент' },
           ].map((item) => (
             <div
               key={item.label}
               className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4"
             >
-              {item.emoji ? (
-                <span className="text-3xl shrink-0">{item.emoji}</span>
-              ) : item.img ? (
-                <img
-                  src={item.img}
-                  alt={item.label}
-                  className="w-14 h-9 shrink-0 rounded-lg object-cover shadow-md"
-                />
+              {item.img ? (
+                <img src={item.img} alt={item.label} className={`shrink-0 ${item.imgClass}`} />
               ) : (
-                <img
-                  src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1daac28e-f005-44d5-8ac5-459713435523.JPG"
-                  alt="Наша Семья"
-                  className="w-9 h-9 shrink-0 rounded-xl object-cover"
-                />
+                <span className="text-3xl shrink-0">{item.emoji}</span>
               )}
               <div>
                 <div className="font-semibold text-white text-sm">{item.label}</div>

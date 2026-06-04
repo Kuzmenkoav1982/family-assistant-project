@@ -1,10 +1,11 @@
 import SlideFrame from './SlideFrame';
+import { PSB_CARD_IMG } from '@/lib/assets';
 
 const layers = [
   {
     num: '01',
     emoji: null,
-    cardImg: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1e1ff81e-6f4b-42ef-85b3-8f2264429c4c.JPG',
+    cardImg: PSB_CARD_IMG,
     label: 'Детская карта ПСБ',
     desc: 'Финансовый инструмент, контроль, безопасность',
     tags: ['Лимиты', 'Уведомления', 'Безопасность'],
