@@ -708,20 +708,31 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
         </button>
       </div>
 
-      {/* Уровень знаний */}
-      {overallLevel && overallPct !== null && (
-        <div className={`rounded-2xl p-4 ${overallLevel.bg} border border-white/60 flex items-center gap-3`}>
-          <span className="text-3xl">{overallLevel.emoji}</span>
-          <div>
-            <p className="text-[11px] text-slate-500 font-medium uppercase tracking-wider">Твой уровень безопасности</p>
-            <p className={`font-bold text-sm ${overallLevel.color}`}>{overallLevel.label}</p>
+      {/* Общий прогресс — всегда виден */}
+      <div className="bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Пройдено тестов
+            </span>
+            <span className="text-[11px] font-bold text-slate-700">
+              {doneTests.length} из {SAFETY_TESTS.length}
+            </span>
           </div>
-          <div className="ml-auto text-right">
-            <p className={`text-2xl font-black ${overallLevel.color}`}>{overallPct}%</p>
-            <p className="text-[10px] text-slate-400">{doneTests.length} из {SAFETY_TESTS.length} тестов</p>
+          <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full bg-violet-400 transition-all duration-500"
+              style={{ width: `${Math.round((doneTests.length / SAFETY_TESTS.length) * 100)}%` }}
+            />
           </div>
         </div>
-      )}
+        {overallLevel && overallPct !== null && (
+          <div className={`shrink-0 flex flex-col items-center px-3 py-1.5 rounded-xl ${overallLevel.bg}`}>
+            <span className="text-lg">{overallLevel.emoji}</span>
+            <span className={`text-[10px] font-bold ${overallLevel.color} whitespace-nowrap`}>{overallLevel.label}</span>
+          </div>
+        )}
+      </div>
 
       {/* Карточки тестов */}
       <div className="flex flex-col gap-2.5">
@@ -752,13 +763,19 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
                   )}
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1 shrink-0">
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
                 {done ? (
-                  <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <Star size={12} className="text-emerald-500 fill-emerald-400" />
-                  </span>
+                  <>
+                    <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <Star size={12} className="text-emerald-500 fill-emerald-400" />
+                    </span>
+                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wide">Пройден</span>
+                  </>
                 ) : (
-                  <ArrowRight size={16} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                  <>
+                    <ArrowRight size={16} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                    <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wide">Начать</span>
+                  </>
                 )}
               </div>
             </button>

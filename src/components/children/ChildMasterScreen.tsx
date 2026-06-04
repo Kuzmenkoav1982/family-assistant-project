@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import SafetyTests from "@/components/children/SafetyTests";
 import MyRegionYaroslavl from "@/components/children/MyRegionYaroslavl";
+import ChildProgressBlock from "@/components/children/ChildProgressBlock";
 import { track } from "@/lib/analytics";
 import {
   ScreenPage,
@@ -231,6 +232,13 @@ export default function ChildMasterScreen({
       </div>
 
       <ScreenBody>
+
+        {/* ── БЛОК: МОЙ ПРОГРЕСС / С ЧЕГО НАЧАТЬ ── */}
+        <ChildProgressBlock
+          onOpenTests={() => setShowSafetyTests(true)}
+          onOpenRegion={() => { setShowMyRegion(true); track('kids_region_open', { page: '/children' }); }}
+          childAge={child.age}
+        />
 
         {/* ── БЛОК 2: МОЯ МЕЧТА — тёплый песочный, не "золотой" ── */}
         <section>
