@@ -603,25 +603,33 @@ interface SafetyTestsProps {
 
 export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
   // Приоритет: 1) ручной выбор → 2) из профиля → 3) null (показать выбор)
-  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(() => {
+  // Резолвим group и source синхронно в одном вычислении
+  const [resolvedGroup, resolvedSource] = useState<[AgeGroup | null, AgeGroupSource]>(() => {
     const manualChoice = loadAgeGroup();
     const manualSource = loadAgeSource();
-    // Если есть ручной выбор — уважаем его
-    if (manualChoice && manualSource === "manual") return manualChoice;
-    // Иначе пробуем из профиля
+    if (manualChoice && manualSource === "manual") return [manualChoice, "manual"];
     const fromProfile = ageToGroup(childAge);
     if (fromProfile) {
       saveAgeGroup(fromProfile, "profile");
-      return fromProfile;
+      return [fromProfile, "profile"];
     }
-    // Если был авто-выбор ранее (profile/fallback) — используем
-    if (manualChoice) return manualChoice;
-    return null;
-  });
+    if (manualChoice) return [manualChoice, manualSource ?? "fallback"];
+    return [null, "fallback"];
+  })[0];
 
-  const [ageSource] = useState<AgeGroupSource>(() => loadAgeSource() ?? "fallback");
+  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(resolvedGroup);
+  const [ageSource, setAgeSource] = useState<AgeGroupSource>(resolvedSource);
   const [activeTest, setActiveTest] = useState<SafetyTest | null>(null);
   const [allResults, setAllResults] = useState<SavedResults>(loadResults);
+
+  // Эмитируем tests_open здесь — после резолва source, не из ChildMasterScreen
+  useEffect(() => {
+    track("kids_safety_tests_open", {
+      page: "/children",
+      props: { age_group: ageGroup ?? undefined, age_group_source: ageSource },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try {
@@ -654,7 +662,7 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
 
   // ── Выбор возраста ──
   if (!ageGroup) {
-    return <AgeSelector onSelect={(ag) => { saveAgeGroup(ag, "manual"); setAgeGroup(ag); }} onBack={onBack} />;
+    return <AgeSelector onSelect={(ag) => { saveAgeGroup(ag, "manual"); setAgeGroup(ag); setAgeSource("manual"); }} onBack={onBack} />;
   }
 
   // ── Список тестов ──
