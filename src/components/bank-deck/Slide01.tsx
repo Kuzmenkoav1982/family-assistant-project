@@ -34,9 +34,7 @@ export default function Slide01() {
         <div className="flex flex-col gap-4 lg:w-64">
           {/* Карта ПСБ */}
           <div className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4">
-            <div className="bg-white rounded-xl p-0.5 shrink-0 w-9 h-9 flex items-center justify-center overflow-hidden">
-              <PsbCardImg className="w-full h-full" />
-            </div>
+            <PsbCardImg className="w-14 h-9 rounded-xl" />
             <div>
               <div className="font-semibold text-white text-sm">Карта ПСБ</div>
               <div className="text-indigo-200 text-xs mt-0.5">Финансовый инструмент для ребёнка</div>
