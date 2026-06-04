@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, Trophy, Star } from "lucide-react";
 import { track } from "@/lib/analytics";
 
@@ -622,8 +622,12 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
   const [activeTest, setActiveTest] = useState<SafetyTest | null>(null);
   const [allResults, setAllResults] = useState<SavedResults>(loadResults);
 
-  // Эмитируем tests_open здесь — после резолва source, не из ChildMasterScreen
+  // Эмитируем tests_open один раз — после резолва source.
+  // useRef-guard защищает от двойного вызова в React StrictMode.
+  const trackedOpen = useRef(false);
   useEffect(() => {
+    if (trackedOpen.current) return;
+    trackedOpen.current = true;
     track("kids_safety_tests_open", {
       page: "/children",
       props: { age_group: ageGroup ?? undefined, age_group_source: ageSource },
