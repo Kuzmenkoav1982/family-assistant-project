@@ -528,7 +528,7 @@ export default function BankDeck() {
         <div className="my-8 flex items-center gap-4">
           <div className="flex-1 h-px bg-slate-200" />
           <span className="text-xs font-bold uppercase tracking-widest text-slate-400 px-3">
-            Приложения · Supporting materials
+            Приложения · Дополнительные материалы
           </span>
           <div className="flex-1 h-px bg-slate-200" />
         </div>

@@ -9,9 +9,9 @@ const blocks = [
     accent: 'text-emerald-700',
   },
   {
-    emoji: '💳',
-    title: 'Финансовый контроль',
-    desc: 'Расходы, лимиты, цели копилки',
+    emoji: '💡',
+    title: 'Финансовые цели и навыки',
+    desc: 'Копилка, цели, понятные сценарии с деньгами',
     color: 'bg-indigo-50 border-indigo-200',
     accent: 'text-indigo-700',
   },

@@ -106,12 +106,12 @@ const SCREENS = [
 // ─── Таблица честного статуса ─────────────────────────────────────────────────
 
 const HONEST_TABLE = [
-  { item: 'Весь контент — статический (hardcoded)', note: 'Не требует backend. Быстро работает, легко обновлять.' },
-  { item: 'Прогресс хранится в localStorage', note: 'Без серверного профиля — не синхронизируется между устройствами.' },
+  { item: 'Весь контент — статически заданный', note: 'Не требует backend. Быстро работает, легко обновлять.' },
+  { item: 'Прогресс хранится в браузере', note: 'Без серверного профиля — не синхронизируется между устройствами.' },
   { item: 'tel: ссылки работают на mobile', note: 'На desktop откроется диалог выбора приложения (нормально).' },
-  { item: 'Аналитика идёт в собственный трекер', note: '18 событий подключены, включая age_group_selected. Видно что, когда и какая возрастная группа открывает.' },
-  { item: 'Возрастная адаптация реализована (7–10 / 11–15)', note: 'Разные вопросы, примеры, объяснения. Выбор сохраняется в localStorage, прогресс хранится раздельно.' },
-  { item: 'Банковый контур не подключён', note: 'Реальные транзакции/лимиты — на стороне банка, в MVP не нужны.' },
+  { item: 'Аналитика идёт в собственный трекер', note: '17 событий подключены, включая age_group_selected. Видно что, когда и какая возрастная группа открывает.' },
+  { item: 'Возрастная адаптация реализована (7–10 / 11–15)', note: 'Разные вопросы, примеры, объяснения. Выбор сохраняется, прогресс хранится раздельно.' },
+  { item: 'Банковский контур не подключён', note: 'Реальные транзакции и лимиты — на стороне банка, не входят в MVP пилота.' },
 ];
 
 // ─── Компонент ────────────────────────────────────────────────────────────────
@@ -121,7 +121,7 @@ export default function SlideAppE() {
     <SlideFrame
       id="slide-app-e"
       eyebrow="Приложение E — Детский модуль"
-      title="Раздел «Дети» — честный as-is"
+      title="Раздел «Дети» — текущий статус (as-is)"
       subtitle="Полная карта экранов, возможностей и ограничений по состоянию на июнь 2026"
     >
       {/* Карта экранов */}
@@ -152,7 +152,7 @@ export default function SlideAppE() {
       {/* Честный статус */}
       <div className="rounded-2xl border border-slate-200 overflow-hidden">
         <div className="bg-slate-900 px-4 py-2.5 flex items-center gap-2">
-          <span className="text-sm font-bold text-white">Честные ограничения и технические детали</span>
+          <span className="text-sm font-bold text-white">Ограничения и технические детали текущей версии</span>
         </div>
         {HONEST_TABLE.map((row, i) => (
           <div
@@ -168,16 +168,16 @@ export default function SlideAppE() {
       {/* Executive summary */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-4 py-3">
-          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Уже demo-ready</p>
-          <p className="text-sm text-emerald-800 leading-snug">6 экранов готовы к показу банку без оговорок</p>
+          <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-1">Готово к демонстрации</p>
+          <p className="text-sm text-emerald-800 leading-snug">6 экранов готовы к показу без оговорок</p>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
           <p className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-1">Следующий шаг</p>
-          <p className="text-sm text-amber-800 leading-snug">Возрастная адаптация (7–10 / 11–15) и server-side прогресс</p>
+          <p className="text-sm text-amber-800 leading-snug">Интеграция входа из банковского приложения и серверная синхронизация прогресса</p>
         </div>
         <div className="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3">
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Не обещать банку</p>
-          <p className="text-sm text-slate-700 leading-snug">Синхронизацию между устройствами, реальный банковый контур, геймифицированную экосистему</p>
+          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Не входит в MVP пилота</p>
+          <p className="text-sm text-slate-700 leading-snug">Синхронизация между устройствами, банковский транзакционный контур, геймифицированная экосистема</p>
         </div>
       </div>
     </SlideFrame>

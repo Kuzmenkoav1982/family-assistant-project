@@ -61,11 +61,15 @@ export default function Slide02() {
           { stat: '1 из 3', label: 'родителей хочет контролировать расходы ребёнка', color: 'text-amber-600' },
         ].map((item) => (
           <div key={item.label} className="bg-white rounded-xl border border-slate-100 p-4 text-center">
-            <div className={`text-2xl font-bold ${item.color}`}>{item.stat}</div>
+            <div className={`text-2xl font-bold ${item.color}`}>{item.stat}<sup className="text-xs font-normal opacity-60">*</sup></div>
             <div className="text-xs text-slate-500 mt-1 leading-snug">{item.label}</div>
           </div>
         ))}
       </div>
+
+      <p className="text-[11px] text-slate-400 mb-3 text-right">
+        * Оценки по открытым данным и отраслевым исследованиям, 2025–2026
+      </p>
 
       <div className="bg-slate-900 text-white rounded-2xl px-6 py-5 flex items-start gap-4">
         <span className="text-2xl mt-0.5">💡</span>
