@@ -43,10 +43,11 @@ export type KidsEvent =
   | 'kids_safety_call_102'          // нажал 102
   | 'kids_safety_call_103'          // нажал 103
   // Safety-тесты
-  | 'kids_safety_tests_open'        // открыл экран тестов
-  | 'kids_safety_test_start'        // начал тест
-  | 'kids_safety_test_finish'       // завершил тест
-  | 'kids_safety_level_reached'     // достигнут уровень знаний
+  | 'kids_safety_tests_open'         // открыл экран тестов
+  | 'kids_safety_age_group_selected' // выбрал возрастную группу (7_10 / 11_15)
+  | 'kids_safety_test_start'         // начал тест (+ age_group в props)
+  | 'kids_safety_test_finish'        // завершил тест (+ age_group, score)
+  | 'kids_safety_level_reached'      // достигнут уровень знаний (+ age_group)
   // Мой край
   | 'kids_region_open'              // открыл «Мой край»
   | 'kids_region_facts_open'        // открыл факты
