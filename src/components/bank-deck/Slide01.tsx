@@ -1,4 +1,5 @@
-import { PSB_CARD_IMG, NASHA_SEMYA_LOGO } from '@/lib/assets';
+import { NASHA_SEMYA_LOGO } from '@/lib/assets';
+import PsbCardImg from './PsbCardImg';
 
 export default function Slide01() {
   return (
@@ -28,28 +29,34 @@ export default function Slide01() {
           </div>
         </div>
 
-        {/* Right */}
+        {/* Right — три слоя продукта */}
         <div className="flex flex-col gap-4 lg:w-64">
-          {[
-            { img: PSB_CARD_IMG, imgClass: 'w-14 h-9 rounded-lg object-cover shadow-md', label: 'Карта ПСБ', desc: 'Финансовый инструмент для ребёнка' },
-            { img: NASHA_SEMYA_LOGO, imgClass: 'w-9 h-9 rounded-xl object-cover', label: 'Наша семья', desc: 'Платформа семейного развития' },
-            { img: null, emoji: '🌱', label: 'Развитие ребёнка', desc: 'Навыки, привычки, контент' },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4"
-            >
-              {item.img ? (
-                <img src={item.img} alt={item.label} className={`shrink-0 ${item.imgClass}`} />
-              ) : (
-                <span className="text-3xl shrink-0">{item.emoji}</span>
-              )}
-              <div>
-                <div className="font-semibold text-white text-sm">{item.label}</div>
-                <div className="text-indigo-200 text-xs mt-0.5">{item.desc}</div>
-              </div>
+          {/* Карта ПСБ */}
+          <div className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4">
+            <PsbCardImg className="w-14 h-9 shadow-md" />
+            <div>
+              <div className="font-semibold text-white text-sm">Карта ПСБ</div>
+              <div className="text-indigo-200 text-xs mt-0.5">Финансовый инструмент для ребёнка</div>
             </div>
-          ))}
+          </div>
+
+          {/* Наша семья */}
+          <div className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4">
+            <img src={NASHA_SEMYA_LOGO} alt="Наша Семья" className="w-9 h-9 shrink-0 rounded-xl object-cover" />
+            <div>
+              <div className="font-semibold text-white text-sm">Наша семья</div>
+              <div className="text-indigo-200 text-xs mt-0.5">Платформа семейного развития</div>
+            </div>
+          </div>
+
+          {/* Развитие */}
+          <div className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4">
+            <span className="text-3xl shrink-0">🌱</span>
+            <div>
+              <div className="font-semibold text-white text-sm">Развитие ребёнка</div>
+              <div className="text-indigo-200 text-xs mt-0.5">Навыки, привычки, контент</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

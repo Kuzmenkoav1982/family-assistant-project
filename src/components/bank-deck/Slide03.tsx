@@ -1,11 +1,11 @@
 import SlideFrame from './SlideFrame';
-import { PSB_CARD_IMG } from '@/lib/assets';
+import PsbCardImg from './PsbCardImg';
 
 const layers = [
   {
     num: '01',
     emoji: null,
-    cardImg: PSB_CARD_IMG,
+    cardImg: true,
     label: 'Детская карта ПСБ',
     desc: 'Финансовый инструмент, контроль, безопасность',
     tags: ['Лимиты', 'Уведомления', 'Безопасность'],
@@ -51,11 +51,7 @@ export default function Slide03() {
             <div className={`rounded-2xl border p-5 flex-1 flex flex-col sm:flex-row sm:items-center gap-4 ${layer.color}`}>
               <div className="flex items-center gap-4 sm:w-56">
                 {layer.cardImg ? (
-                  <img
-                    src={layer.cardImg}
-                    alt="Карта ПСБ"
-                    className="w-14 h-9 rounded-lg object-cover shadow-md shrink-0"
-                  />
+                  <PsbCardImg className="w-14 h-9 shadow-md" />
                 ) : (
                   <div className="text-3xl shrink-0">{layer.emoji}</div>
                 )}

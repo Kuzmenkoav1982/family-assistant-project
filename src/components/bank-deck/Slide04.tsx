@@ -1,5 +1,5 @@
 import SlideFrame from './SlideFrame';
-import { PSB_CARD_IMG } from '@/lib/assets';
+import PsbCardImg from './PsbCardImg';
 
 const steps = [
   { num: '1', label: 'Родитель оформляет детскую карту', color: 'bg-indigo-600 text-white' },
@@ -11,7 +11,7 @@ const steps = [
 
 const entryPoints = [
   { emoji: '📱', label: 'Банковское приложение', cardImg: null },
-  { emoji: null, label: 'При выпуске карты', cardImg: PSB_CARD_IMG },
+  { emoji: null, label: 'При выпуске карты', cardImg: true },
   { emoji: '🔗', label: 'QR / deep link', cardImg: null },
 ];
 
@@ -54,7 +54,7 @@ export default function Slide04() {
               className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm"
             >
               {ep.cardImg ? (
-                <img src={ep.cardImg} alt="Карта ПСБ" className="w-10 h-6 rounded object-cover shadow-sm shrink-0" />
+                <PsbCardImg className="w-10 h-6 shadow-sm" />
               ) : (
                 <span className="text-xl">{ep.emoji}</span>
               )}

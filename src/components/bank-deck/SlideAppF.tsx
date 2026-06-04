@@ -104,7 +104,7 @@ export default function SlideAppF() {
       id="slide-app-f"
       eyebrow="Приложение F — Детский модуль"
       title="Событийная аналитика"
-      subtitle={`${TOTAL} события, покрывающих 4 пользовательских контура детского модуля`}
+      subtitle={`${TOTAL} событий, покрывающих 4 пользовательских контура детского модуля`}
     >
       {/* Сетка блоков */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">

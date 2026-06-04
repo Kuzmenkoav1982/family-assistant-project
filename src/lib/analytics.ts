@@ -46,12 +46,17 @@ const DEDUP_EVENTS_TTL: ReadonlySet<string> = new Set([
 
 type DedupMap = Record<string, number>;
 
-function isDuplicate(event: string): boolean {
+// Ключ: event + page — чтобы одно и то же событие на разных экранах не блокировало друг друга.
+function dedupKey(event: string, page: string): string {
+  return `${event}@${page}`;
+}
+
+function isDuplicate(event: string, page: string): boolean {
   if (!DEDUP_EVENTS_TTL.has(event)) return false;
   try {
     const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
     const map: DedupMap = raw ? JSON.parse(raw) : {};
-    const ts = map[event];
+    const ts = map[dedupKey(event, page)];
     if (!ts) return false;
     return Date.now() - ts < DEDUP_TTL_MS;
   } catch {
@@ -59,12 +64,12 @@ function isDuplicate(event: string): boolean {
   }
 }
 
-function markSent(event: string): void {
+function markSent(event: string, page: string): void {
   if (!DEDUP_EVENTS_TTL.has(event)) return;
   try {
     const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
     const map: DedupMap = raw ? JSON.parse(raw) : {};
-    map[event] = Date.now();
+    map[dedupKey(event, page)] = Date.now();
     window.sessionStorage.setItem(SS_DEDUP_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
@@ -166,13 +171,14 @@ export interface TrackOptions {
 
 export function track(event: PortfolioEvent | KidsEvent, options: TrackOptions = {}): void {
   if (!URL) return;
-  if (isDuplicate(event)) return;
-  markSent(event);
+  const page = options.page ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+  if (isDuplicate(event, page)) return;
+  markSent(event, page);
   const token = getAuthToken();
   const payload = {
     event_name: event,
     session_id: getSessionId(),
-    page: options.page || (typeof window !== 'undefined' ? window.location.pathname : undefined),
+    page,
     family_id: getFamilyId(),
     member_id: options.member_id,
     props: options.props || {},
