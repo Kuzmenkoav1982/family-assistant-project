@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, Trophy, Star } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const LS_KEY = "safety_tests_results";
 
@@ -296,6 +297,9 @@ function TestScreen({ test, onBack, onComplete }: TestScreenProps) {
     if (isLast) {
       const correct = Object.entries(answers).filter(([qi, ai]) => test.questions[Number(qi)].correct === ai).length;
       const pct = Math.round((correct / test.questions.length) * 100);
+      const lvl = getLevel(pct);
+      track('kids_safety_test_finish', { props: { test_id: test.id, score: pct } });
+      track('kids_safety_level_reached', { props: { test_id: test.id, level: lvl.label } });
       setStep("result");
       onComplete(test.id, pct);
     } else {
@@ -523,7 +527,7 @@ export default function SafetyTests({ onBack }: SafetyTestsProps) {
           return (
             <button
               key={test.id}
-              onClick={() => setActiveTest(test)}
+              onClick={() => { setActiveTest(test); track('kids_safety_test_start', { props: { test_id: test.id } }); }}
               className={`w-full text-left rounded-2xl border p-4 flex items-center gap-3 hover:shadow-sm transition group ${test.bgColor} ${test.borderColor}`}
             >
               <span className="text-2xl shrink-0">{test.emoji}</span>

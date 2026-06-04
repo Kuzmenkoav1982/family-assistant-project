@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, MapPin } from "lucide-react";
+import { track } from "@/lib/analytics";
 import {
   yaroslavlRegionFacts,
   yaroslavlRegionQuiz,
@@ -132,6 +133,7 @@ function QuizScreen({ onBack, onComplete }: QuizScreenProps) {
       const finalScore = Object.entries({ ...answers }).filter(
         ([qi, ai]) => questions[Number(qi)].correctIndex === Number(ai)
       ).length;
+      track('kids_region_quiz_finish', { props: { score: finalScore } });
       setDone(true);
       onComplete(finalScore);
     } else {
@@ -288,12 +290,17 @@ export default function MyRegionYaroslavl({ onBack }: MyRegionYaroslavlProps) {
   const handleQuizComplete = (score: number) => {
     const level = getLevel(score);
     const prev = progress;
-    setProgress({
+    const isNewBest = score > (prev?.bestScore ?? -1);
+    const newProgress = {
       completed: true,
       bestScore: Math.max(score, prev?.bestScore ?? 0),
       lastScore: score,
       levelTitle: level.title,
-    });
+    };
+    setProgress(newProgress);
+    if (isNewBest) {
+      track('kids_region_best_score', { props: { score, level: level.title } });
+    }
   };
 
   if (view === "facts") {
@@ -381,7 +388,7 @@ export default function MyRegionYaroslavl({ onBack }: MyRegionYaroslavlProps) {
       <div className="flex flex-col gap-2.5">
         {/* Факты */}
         <button
-          onClick={() => setView("facts")}
+          onClick={() => { setView("facts"); track('kids_region_facts_open', { page: '/children' }); }}
           className="w-full text-left rounded-2xl border border-amber-100 bg-amber-50 hover:border-amber-300 hover:shadow-sm transition group px-4 py-3 flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">🏛️</span>
@@ -394,7 +401,7 @@ export default function MyRegionYaroslavl({ onBack }: MyRegionYaroslavlProps) {
 
         {/* Квиз */}
         <button
-          onClick={() => setView("quiz")}
+          onClick={() => { setView("quiz"); track('kids_region_quiz_start', { page: '/children' }); }}
           className="w-full text-left rounded-2xl border border-yellow-200 bg-yellow-50 hover:border-yellow-400 hover:shadow-sm transition group px-4 py-3 flex items-center gap-3"
         >
           <span className="text-2xl shrink-0">🗺️</span>

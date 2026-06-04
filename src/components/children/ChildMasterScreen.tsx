@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import SafetyTests from "@/components/children/SafetyTests";
 import MyRegionYaroslavl from "@/components/children/MyRegionYaroslavl";
+import { track } from "@/lib/analytics";
 import {
   ScreenPage,
   ScreenBody,
@@ -552,7 +553,7 @@ export default function ChildMasterScreen({
         {/* ── БЛОК 9: МОЙ КРАЙ ── */}
         <section>
           <button
-            onClick={() => setShowMyRegion(true)}
+            onClick={() => { setShowMyRegion(true); track('kids_region_open', { page: '/children' }); }}
             className="w-full text-left rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition group"
           >
             <div className="bg-gradient-to-r from-amber-500 to-yellow-400 px-4 py-3 flex items-center gap-3">
@@ -569,8 +570,11 @@ export default function ChildMasterScreen({
         {/* ── БЛОК 10: ЧТО ДЕЛАТЬ, ЕСЛИ… ── */}
         <section>
           <div className="rounded-2xl overflow-hidden border border-rose-200 shadow-sm">
-            {/* Заголовок — спокойный, не паникующий */}
-            <div className="bg-gradient-to-r from-rose-500 to-red-500 px-4 py-3 flex items-center gap-3">
+            {/* Заголовок — клик открывает блок (событие) */}
+            <div
+              className="bg-gradient-to-r from-rose-500 to-red-500 px-4 py-3 flex items-center gap-3 cursor-default"
+              onClick={() => track('kids_safety_block_open', { page: '/children' })}
+            >
               <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                 <Shield size={15} className="text-white" />
               </div>
@@ -594,6 +598,7 @@ export default function ChildMasterScreen({
                 href="https://www.mchs.gov.ru/deyatelnost/rabota-s-det-mi"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => track('kids_safety_mchs_click', { page: '/children' })}
                 className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-rose-100 hover:border-rose-300 hover:shadow-sm transition group"
               >
                 <span className="text-xl shrink-0">🚒</span>
@@ -607,6 +612,7 @@ export default function ChildMasterScreen({
               {/* Антимошенник */}
               <a
                 href="/anti-scam?mode=kids"
+                onClick={() => track('kids_safety_antiscam_click', { page: '/children' })}
                 className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-orange-100 hover:border-orange-300 hover:shadow-sm transition group"
               >
                 <span className="text-xl shrink-0">🛡️</span>
@@ -620,6 +626,7 @@ export default function ChildMasterScreen({
               {/* 112 — главная большая кнопка */}
               <a
                 href="tel:112"
+                onClick={() => track('kids_safety_call_112', { page: '/children' })}
                 className="flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 active:bg-red-800 rounded-xl py-3 transition group"
               >
                 <span className="text-2xl font-black text-white leading-none">112</span>
@@ -629,13 +636,14 @@ export default function ChildMasterScreen({
               {/* Вторичные номера */}
               <div className="grid grid-cols-3 gap-1.5">
                 {[
-                  { num: "101", label: "Пожар", color: "bg-orange-50 text-orange-700 border-orange-200 hover:border-orange-400" },
-                  { num: "102", label: "Полиция", color: "bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-400" },
-                  { num: "103", label: "Скорая", color: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400" },
+                  { num: "101", label: "Пожар", color: "bg-orange-50 text-orange-700 border-orange-200 hover:border-orange-400", event: "kids_safety_call_101" as const },
+                  { num: "102", label: "Полиция", color: "bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-400", event: "kids_safety_call_102" as const },
+                  { num: "103", label: "Скорая", color: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:border-emerald-400", event: "kids_safety_call_103" as const },
                 ].map(item => (
                   <a
                     key={item.num}
                     href={`tel:${item.num}`}
+                    onClick={() => track(item.event, { page: '/children' })}
                     className={`${item.color} border rounded-xl py-2 flex flex-col items-center gap-0.5 transition`}
                   >
                     <span className="text-sm font-black leading-none">{item.num}</span>
@@ -651,7 +659,7 @@ export default function ChildMasterScreen({
 
               {/* Тесты по безопасности */}
               <button
-                onClick={() => setShowSafetyTests(true)}
+                onClick={() => { setShowSafetyTests(true); track('kids_safety_tests_open', { page: '/children' }); }}
                 className="w-full flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-violet-100 hover:border-violet-300 hover:shadow-sm transition group"
               >
                 <span className="text-xl shrink-0">🧠</span>

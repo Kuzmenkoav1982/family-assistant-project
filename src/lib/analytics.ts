@@ -32,6 +32,28 @@ export type PortfolioEvent =
   | 'portfolio_source_deep_link_click'
   | 'portfolio_improve_cta_click';
 
+// ─── Детский режим: Safety & Region ──────────────────────────────────────────
+export type KidsEvent =
+  // Safety-блок
+  | 'kids_safety_block_open'        // открыт блок «Что делать, если…»
+  | 'kids_safety_mchs_click'        // клик по МЧС
+  | 'kids_safety_antiscam_click'    // клик по антимошенник (kids entry)
+  | 'kids_safety_call_112'          // нажал 112
+  | 'kids_safety_call_101'          // нажал 101
+  | 'kids_safety_call_102'          // нажал 102
+  | 'kids_safety_call_103'          // нажал 103
+  // Safety-тесты
+  | 'kids_safety_tests_open'        // открыл экран тестов
+  | 'kids_safety_test_start'        // начал тест
+  | 'kids_safety_test_finish'       // завершил тест
+  | 'kids_safety_level_reached'     // достигнут уровень знаний
+  // Мой край
+  | 'kids_region_open'              // открыл «Мой край»
+  | 'kids_region_facts_open'        // открыл факты
+  | 'kids_region_quiz_start'        // начал квиз
+  | 'kids_region_quiz_finish'       // завершил квиз
+  | 'kids_region_best_score';       // обновил лучший результат
+
 const URL = (func2url as Record<string, string>)['analytics-events'];
 
 const SESSION_KEY = 'analytics:session_id';
@@ -89,6 +111,9 @@ export interface TrackProps {
   source_type?: string;
   route?: string;
   level?: string;
+  test_id?: string;
+  score?: number;
+  child_id?: string;
 }
 
 export interface TrackOptions {
@@ -97,7 +122,7 @@ export interface TrackOptions {
   props?: TrackProps;
 }
 
-export function track(event: PortfolioEvent, options: TrackOptions = {}): void {
+export function track(event: PortfolioEvent | KidsEvent, options: TrackOptions = {}): void {
   if (!URL) return;
   const token = getAuthToken();
   const payload = {
