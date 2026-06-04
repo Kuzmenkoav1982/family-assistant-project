@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, Trophy, Star } from "lucide-react";
+
+const LS_KEY = "safety_tests_results";
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -443,7 +445,22 @@ interface SafetyTestsProps {
 
 export default function SafetyTests({ onBack }: SafetyTestsProps) {
   const [activeTest, setActiveTest] = useState<SafetyTest | null>(null);
-  const [results, setResults] = useState<Record<string, number>>({});
+  const [results, setResults] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem(LS_KEY);
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(results));
+    } catch (e) {
+      // ignore
+    }
+  }, [results]);
 
   const handleComplete = (testId: string, pct: number) => {
     setResults(prev => ({ ...prev, [testId]: pct }));

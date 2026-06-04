@@ -577,7 +577,7 @@ export default function ChildMasterScreen({
 
               {/* Антимошенник */}
               <a
-                href="/anti-scam"
+                href="/anti-scam?mode=kids"
                 className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-orange-100 hover:border-orange-300 hover:shadow-sm transition group"
               >
                 <span className="text-xl shrink-0">🛡️</span>

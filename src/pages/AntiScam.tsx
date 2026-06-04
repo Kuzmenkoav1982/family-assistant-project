@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import SEOHead from "@/components/SEOHead";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -362,8 +362,65 @@ function checkInput(value: string): CheckResult {
   return { type: 'safe', title: 'Введите ссылку, номер телефона или текст сообщения', details: ['Вставьте подозрительную ссылку, номер или текст SMS для проверки'] };
 }
 
+// ─── Детский intro-экран ──────────────────────────────────────────────────────
+
+function KidsIntro({ onContinue }: { onContinue: () => void }) {
+  const navigate = useNavigate();
+  const KIDS_RULES = [
+    { emoji: "📵", text: "Никому не называй коды из SMS — даже если говорят что они из банка" },
+    { emoji: "💸", text: "Если кто-то просит деньги в интернете или по телефону — сначала расскажи взрослому" },
+    { emoji: "🔗", text: "Подозрительная ссылка? Не кликай. Спроси маму или папу" },
+    { emoji: "🏆", text: "Выиграл приз и просят заплатить? Это обман — настоящие призы бесплатны" },
+    { emoji: "👤", text: "Незнакомец в интернете не может быть другом. Не говори где ты живёшь" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white pb-24">
+      <div className="max-w-lg mx-auto p-4 space-y-4">
+        <div className="flex items-center gap-2 pt-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <Icon name="ArrowLeft" size={18} />
+          </Button>
+          <span className="text-sm text-slate-500">Назад</span>
+        </div>
+
+        <div className="text-center py-4">
+          <div className="text-5xl mb-3">🛡️</div>
+          <h1 className="text-xl font-bold text-slate-800">Защита от мошенников</h1>
+          <p className="text-sm text-slate-500 mt-1">Важные правила для тебя</p>
+        </div>
+
+        <div className="flex flex-col gap-2.5">
+          {KIDS_RULES.map((rule, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-amber-100 px-4 py-3 flex items-start gap-3 shadow-sm">
+              <span className="text-xl shrink-0 mt-0.5">{rule.emoji}</span>
+              <p className="text-sm text-slate-700 leading-snug">{rule.text}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-amber-100 border border-amber-200 rounded-2xl px-4 py-3">
+          <p className="text-sm text-amber-800 font-semibold text-center leading-snug">
+            Главное правило: если сомневаешься — сначала спроси взрослого!
+          </p>
+        </div>
+
+        <Button
+          className="w-full bg-slate-800 hover:bg-slate-700 text-white rounded-xl py-3"
+          onClick={onContinue}
+        >
+          Посмотреть все виды мошенничества
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function AntiScam() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isKidsMode = searchParams.get('mode') === 'kids';
+  const [kidsIntroDone, setKidsIntroDone] = useState(false);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [openScheme, setOpenScheme] = useState<ScamScheme | null>(null);
@@ -421,6 +478,10 @@ export default function AntiScam() {
       bg: 'bg-purple-50 border-purple-200',
     },
   ];
+
+  if (isKidsMode && !kidsIntroDone) {
+    return <KidsIntro onContinue={() => setKidsIntroDone(true)} />;
+  }
 
   if (panicMode) {
     const currentStep = PANIC_STEPS[panicStep];
