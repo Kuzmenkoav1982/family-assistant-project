@@ -24,6 +24,7 @@ import Slide14 from '@/components/bank-deck/Slide14';
 import Slide15 from '@/components/bank-deck/Slide15';
 import SlideAppC from '@/components/bank-deck/SlideAppC';
 import SlideAppD from '@/components/bank-deck/SlideAppD';
+import SlideAppE from '@/components/bank-deck/SlideAppE';
 
 // ─── Local meeting-mode hook (independent from strategy-v21) ─────────────────
 
@@ -533,6 +534,7 @@ export default function BankDeck() {
 
         <SlideAppC />
         <SlideAppD />
+        <SlideAppE />
 
         <footer className="text-center text-xs sm:text-sm text-slate-400 py-8">
           «Наша Семья» · Детская карта × Банк · Ярославская область · 2026 · частный доступ

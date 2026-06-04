@@ -16,4 +16,5 @@ export const BANK_DECK_SECTIONS = [
   { id: 'slide-15', label: '15. Следующий шаг' },
   { id: 'slide-app-c', label: 'Прил. C — Что есть' },
   { id: 'slide-app-d', label: 'Прил. D — Benchmark' },
+  { id: 'slide-app-e', label: 'Прил. E — Дети as-is' },
 ];
