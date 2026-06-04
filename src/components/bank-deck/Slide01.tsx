@@ -30,14 +30,22 @@ export default function Slide01() {
         <div className="flex flex-col gap-4 lg:w-64">
           {[
             { emoji: '💳', label: 'Карта банка', desc: 'Финансовый инструмент для ребёнка' },
-            { emoji: '👨‍👩‍👧', label: 'Наша семья', desc: 'Платформа семейного развития' },
+            { emoji: null, label: 'Наша семья', desc: 'Платформа семейного развития' },
             { emoji: '🌱', label: 'Развитие ребёнка', desc: 'Навыки, привычки, контент' },
           ].map((item) => (
             <div
               key={item.label}
               className="bg-white/10 border border-white/15 backdrop-blur rounded-2xl px-5 py-4 flex items-center gap-4"
             >
-              <span className="text-3xl">{item.emoji}</span>
+              {item.emoji ? (
+                <span className="text-3xl shrink-0">{item.emoji}</span>
+              ) : (
+                <img
+                  src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1daac28e-f005-44d5-8ac5-459713435523.JPG"
+                  alt="Наша Семья"
+                  className="w-9 h-9 shrink-0 rounded-xl object-cover"
+                />
+              )}
               <div>
                 <div className="font-semibold text-white text-sm">{item.label}</div>
                 <div className="text-indigo-200 text-xs mt-0.5">{item.desc}</div>
