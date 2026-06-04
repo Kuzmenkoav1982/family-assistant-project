@@ -32,6 +32,40 @@ export type PortfolioEvent =
   | 'portfolio_source_deep_link_click'
   | 'portfolio_improve_cta_click';
 
+// ─── One-shot события: дедупликация по session ────────────────────────────────
+// Защита от двойного вызова при React StrictMode unmount→mount.
+// module-level Set живёт в рамках JS-модуля,
+// sessionStorage-fallback защищает от edge-case HMR-перезагрузок.
+const ONE_SHOT_EVENTS: ReadonlySet<string> = new Set([
+  'kids_safety_tests_open',
+]);
+const SS_DEDUP_KEY = 'analytics:sent_once';
+
+function hasSentOnce(event: string): boolean {
+  if (!ONE_SHOT_EVENTS.has(event)) return false;
+  try {
+    const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
+    const sent: string[] = raw ? JSON.parse(raw) : [];
+    return sent.includes(event);
+  } catch {
+    return false;
+  }
+}
+
+function markSentOnce(event: string): void {
+  if (!ONE_SHOT_EVENTS.has(event)) return;
+  try {
+    const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
+    const sent: string[] = raw ? JSON.parse(raw) : [];
+    if (!sent.includes(event)) {
+      sent.push(event);
+      window.sessionStorage.setItem(SS_DEDUP_KEY, JSON.stringify(sent));
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 // ─── Детский режим: Safety & Region ──────────────────────────────────────────
 export type KidsEvent =
   // Safety-блок
@@ -115,6 +149,8 @@ export interface TrackProps {
   test_id?: string;
   score?: number;
   child_id?: string;
+  age_group?: string;
+  age_group_source?: string;
 }
 
 export interface TrackOptions {
@@ -125,6 +161,8 @@ export interface TrackOptions {
 
 export function track(event: PortfolioEvent | KidsEvent, options: TrackOptions = {}): void {
   if (!URL) return;
+  if (hasSentOnce(event)) return;
+  markSentOnce(event);
   const token = getAuthToken();
   const payload = {
     event_name: event,

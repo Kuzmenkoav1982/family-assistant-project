@@ -622,8 +622,8 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
   const [activeTest, setActiveTest] = useState<SafetyTest | null>(null);
   const [allResults, setAllResults] = useState<SavedResults>(loadResults);
 
-  // Эмитируем tests_open один раз — после резолва source.
-  // useRef-guard защищает от двойного вызова в React StrictMode.
+  // Эмитируем tests_open после резолва source (не из ChildMasterScreen).
+  // Финальный дедуп от StrictMode-дублей — на уровне analytics.ts (ONE_SHOT_EVENTS).
   const trackedOpen = useRef(false);
   useEffect(() => {
     if (trackedOpen.current) return;
