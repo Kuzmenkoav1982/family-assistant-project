@@ -5,9 +5,11 @@ import { track } from "@/lib/analytics";
 // ─── Константы ────────────────────────────────────────────────────────────────
 
 export type AgeGroup = "7_10" | "11_15";
+export type AgeGroupSource = "manual" | "profile" | "fallback";
 
 const LS_RESULTS_KEY = "safety_tests_results_v2"; // v2 — раздельный прогресс
 const LS_AGE_KEY = "safety_tests_age_group";
+const LS_AGE_SOURCE_KEY = "safety_tests_age_source";
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -331,8 +333,28 @@ function loadAgeGroup(): AgeGroup | null {
   }
 }
 
-function saveAgeGroup(ag: AgeGroup) {
-  try { localStorage.setItem(LS_AGE_KEY, ag); } catch { /* ignore */ }
+function loadAgeSource(): AgeGroupSource | null {
+  try {
+    const raw = localStorage.getItem(LS_AGE_SOURCE_KEY);
+    return (raw === "manual" || raw === "profile" || raw === "fallback") ? raw as AgeGroupSource : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveAgeGroup(ag: AgeGroup, source: AgeGroupSource) {
+  try {
+    localStorage.setItem(LS_AGE_KEY, ag);
+    localStorage.setItem(LS_AGE_SOURCE_KEY, source);
+  } catch { /* ignore */ }
+}
+
+// Маппинг: возраст → группа (null если вне диапазона)
+function ageToGroup(age: number | undefined): AgeGroup | null {
+  if (!age) return null;
+  if (age >= 7 && age <= 10) return "7_10";
+  if (age >= 11 && age <= 15) return "11_15";
+  return null;
 }
 
 // ─── Выбор возраста ───────────────────────────────────────────────────────────
@@ -363,7 +385,7 @@ function AgeSelector({ onSelect, onBack }: AgeSelectorProps) {
 
       <div className="flex flex-col gap-3">
         <button
-          onClick={() => { saveAgeGroup("7_10"); track("kids_safety_age_group_selected", { props: { age_group: "7_10" } }); onSelect("7_10"); }}
+          onClick={() => { saveAgeGroup("7_10", "manual"); track("kids_safety_age_group_selected", { props: { age_group: "7_10", age_group_source: "manual" } }); onSelect("7_10"); }}
           className="w-full text-left rounded-2xl border-2 border-violet-200 bg-violet-50 hover:border-violet-400 hover:shadow-sm transition px-4 py-4 group"
         >
           <div className="flex items-center gap-3">
@@ -377,7 +399,7 @@ function AgeSelector({ onSelect, onBack }: AgeSelectorProps) {
         </button>
 
         <button
-          onClick={() => { saveAgeGroup("11_15"); track("kids_safety_age_group_selected", { props: { age_group: "11_15" } }); onSelect("11_15"); }}
+          onClick={() => { saveAgeGroup("11_15", "manual"); track("kids_safety_age_group_selected", { props: { age_group: "11_15", age_group_source: "manual" } }); onSelect("11_15"); }}
           className="w-full text-left rounded-2xl border-2 border-indigo-200 bg-indigo-50 hover:border-indigo-400 hover:shadow-sm transition px-4 py-4 group"
         >
           <div className="flex items-center gap-3">
@@ -575,13 +597,28 @@ function TestScreen({ test, ageGroup, onBack, onComplete }: TestScreenProps) {
 
 interface SafetyTestsProps {
   onBack?: () => void;
-  defaultAgeGroup?: AgeGroup;
+  childAge?: number;
 }
 
-export default function SafetyTests({ onBack, defaultAgeGroup }: SafetyTestsProps) {
-  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(
-    defaultAgeGroup ?? loadAgeGroup()
-  );
+export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
+  // Приоритет: 1) ручной выбор → 2) из профиля → 3) null (показать выбор)
+  const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(() => {
+    const manualChoice = loadAgeGroup();
+    const manualSource = loadAgeSource();
+    // Если есть ручной выбор — уважаем его
+    if (manualChoice && manualSource === "manual") return manualChoice;
+    // Иначе пробуем из профиля
+    const fromProfile = ageToGroup(childAge);
+    if (fromProfile) {
+      saveAgeGroup(fromProfile, "profile");
+      return fromProfile;
+    }
+    // Если был авто-выбор ранее (profile/fallback) — используем
+    if (manualChoice) return manualChoice;
+    return null;
+  });
+
+  const [ageSource] = useState<AgeGroupSource>(() => loadAgeSource() ?? "fallback");
   const [activeTest, setActiveTest] = useState<SafetyTest | null>(null);
   const [allResults, setAllResults] = useState<SavedResults>(loadResults);
 
@@ -615,7 +652,7 @@ export default function SafetyTests({ onBack, defaultAgeGroup }: SafetyTestsProp
 
   // ── Выбор возраста ──
   if (!ageGroup) {
-    return <AgeSelector onSelect={setAgeGroup} onBack={onBack} />;
+    return <AgeSelector onSelect={(ag) => { saveAgeGroup(ag, "manual"); setAgeGroup(ag); }} onBack={onBack} />;
   }
 
   // ── Список тестов ──
@@ -629,6 +666,7 @@ export default function SafetyTests({ onBack, defaultAgeGroup }: SafetyTestsProp
   const ageSubtitle = ageGroup === "7_10"
     ? "Короткие правила для важных ситуаций"
     : "Реальные ситуации: звонки, ссылки, коды";
+  const isAutoDetected = ageSource === "profile";
 
   return (
     <div className="flex flex-col gap-4">
@@ -645,9 +683,14 @@ export default function SafetyTests({ onBack, defaultAgeGroup }: SafetyTestsProp
         </div>
         <button
           onClick={() => { setAgeGroup(null); setActiveTest(null); }}
-          className="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-500 px-2.5 py-1 rounded-full font-medium transition"
+          className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition ${
+            isAutoDetected
+              ? "bg-violet-100 text-violet-600 hover:bg-violet-200"
+              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+          }`}
+          title={isAutoDetected ? "Определено из профиля — нажми чтобы сменить" : "Нажми чтобы сменить группу"}
         >
-          {ageLabel} ↩
+          {isAutoDetected ? "👤 " : ""}{ageLabel} ↩
         </button>
       </div>
 

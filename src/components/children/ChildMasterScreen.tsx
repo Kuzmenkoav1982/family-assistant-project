@@ -181,7 +181,7 @@ export default function ChildMasterScreen({
     return (
       <ScreenPage>
         <ScreenBody>
-          <SafetyTests onBack={() => setShowSafetyTests(false)} />
+          <SafetyTests onBack={() => setShowSafetyTests(false)} childAge={child.age} />
         </ScreenBody>
       </ScreenPage>
     );
