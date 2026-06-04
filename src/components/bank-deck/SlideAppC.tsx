@@ -28,7 +28,7 @@ const features: FeatureRow[] = [
   { feature: 'Событийная аналитика детского контура', status: 'ready', pilotUse: true, comment: '17 событий: safety block, тесты start/finish/level, звонки 112/101/102/103, регион open/quiz/best_score' },
   // ── Финансовый слой ─────────────────────────────────────────────────────
   { feature: 'Safe Money (финансовая безопасность)', status: 'partial', pilotUse: true, comment: 'Контентный слой — сценарии безопасного обращения с деньгами' },
-  { feature: 'Финансовые цели / «Коплю на...»', status: 'partial', pilotUse: true, comment: 'Логика есть, требует доработки UX для пилота' },
+  { feature: 'Финансовые цели / «Коплю на...»', status: 'ready', pilotUse: true, comment: 'Demo-ready: постановка цели, сумма, прогресс накопления, пополнение, экран достижения' },
   // ── Интеграция с банком ─────────────────────────────────────────────────
   { feature: 'Онбординг из банковского приложения', status: 'mvp', pilotUse: true, comment: 'Необходимо разработать: webview / deeplink / SSO-lite' },
   { feature: 'Co-brand / белый лейбл', status: 'mvp', pilotUse: true, comment: 'Брендирование под банк: логотип, цвета, entry screens' },
