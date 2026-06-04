@@ -72,8 +72,13 @@ export function readDomovoyGuideFlag(): FeatureFlagResult {
     return { enabled: true, source: 'dev-default' };
   }
 
-  // На poehali.dev VITE_* env не пробрасываются в prod-билд.
-  // Kill switch: localStorage.setItem('domovoy_guide_enabled', 'false')
+  // Rollout decision: prod-default = true.
+  // Причина: на poehali.dev VITE_* env не вшиваются в prod-билд,
+  // поэтому env-rollout недоступен на этой платформе.
+  //
+  // Kill switch (только client-side, не глобальный):
+  //   localStorage.setItem('domovoy_guide_enabled', 'false') + reload
+  // Глобальное отключение — только через redeploy с изменением этой строки.
   return { enabled: true, source: 'prod-default' };
 }
 
