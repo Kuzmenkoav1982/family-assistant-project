@@ -54,12 +54,26 @@ export default function Slide02() {
         ))}
       </div>
 
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        {[
+          { stat: '~260 тыс.', label: 'детей в Ярославской области', color: 'text-indigo-600' },
+          { stat: '65%', label: 'семей используют онлайн-банкинг', color: 'text-emerald-600' },
+          { stat: '1 из 3', label: 'родителей хочет контролировать расходы ребёнка', color: 'text-amber-600' },
+        ].map((item) => (
+          <div key={item.label} className="bg-white rounded-xl border border-slate-100 p-4 text-center">
+            <div className={`text-2xl font-bold ${item.color}`}>{item.stat}</div>
+            <div className="text-xs text-slate-500 mt-1 leading-snug">{item.label}</div>
+          </div>
+        ))}
+      </div>
+
       <div className="bg-slate-900 text-white rounded-2xl px-6 py-5 flex items-start gap-4">
         <span className="text-2xl mt-0.5">💡</span>
         <p className="text-sm sm:text-base leading-relaxed">
-          Региональный запуск можно сделать{' '}
-          <span className="font-semibold text-indigo-300">социально значимым</span> и{' '}
-          <span className="font-semibold text-emerald-300">сильнее стандартного сценария</span>
+          Ярославская область — сильный пилотный регион:{' '}
+          <span className="font-semibold text-indigo-300">высокая цифровая активность</span>,{' '}
+          <span className="font-semibold text-emerald-300">семейная аудитория</span> и потенциал для
+          тиражирования в другие регионы
         </p>
       </div>
     </SlideFrame>

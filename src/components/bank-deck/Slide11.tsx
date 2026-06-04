@@ -3,38 +3,43 @@ import SlideFrame from './SlideFrame';
 const rows = [
   {
     feature: 'Детская карта',
-    market: { has: true, label: '✓' },
+    market: { has: true, label: 'Сбер, Тинькофф, ВТБ' },
     ours: { has: true, label: '✓' },
   },
   {
     feature: 'Контроль расходов + лимиты',
-    market: { has: true, label: '✓' },
-    ours: { has: true, label: '✓' },
+    market: { has: true, label: 'Базовый функционал' },
+    ours: { has: true, label: '✓ + аналитика' },
   },
   {
-    feature: 'Задания / накопления / цели',
-    market: { has: 'partial', label: 'частично' },
-    ours: { has: true, label: '✓' },
+    feature: 'Задания / накопления / копилка',
+    market: { has: 'partial', label: 'Тинькофф Джуниор' },
+    ours: { has: true, label: '✓ с целями и мечтой' },
   },
   {
     feature: 'Развитие ребёнка как модуль',
     market: { has: false, label: '—' },
-    ours: { has: true, label: '✓' },
+    ours: { has: true, label: '✓ «Паспорт роста»' },
   },
   {
     feature: 'Семейный цифровой контур',
     market: { has: false, label: '—' },
-    ours: { has: true, label: '✓' },
+    ours: { has: true, label: '✓ 5 сценариев' },
   },
   {
-    feature: 'Библиотека / аудиокниги / контент',
+    feature: 'Достижения + семейная память',
     market: { has: false, label: '—' },
-    ours: { has: 'stage2', label: '✓ (этап 2)' },
+    ours: { has: true, label: '✓ дипломы, истории' },
   },
   {
-    feature: 'Региональная семейная программа',
+    feature: 'Образовательный контент / библиотека',
     market: { has: false, label: '—' },
-    ours: { has: true, label: '✓' },
+    ours: { has: 'stage2', label: '✓ (этап 2, Альпина)' },
+  },
+  {
+    feature: 'Региональная программа / локальный пилот',
+    market: { has: false, label: '—' },
+    ours: { has: true, label: '✓ Ярославль 2026' },
   },
 ];
 
@@ -80,9 +85,9 @@ export default function Slide11() {
       eyebrow="11. Наше отличие"
       title="На рынке — карта и контроль. Мы предлагаем больше."
     >
-      <p className="text-xs text-slate-400 mb-6">
-        По предварительной рыночной рамке большинство детских банковских продуктов
-        ограничены финансовыми функциями
+      <p className="text-xs text-slate-400 mb-5">
+        Анализ публичных продуктов: Тинькофф Джуниор, СберKids, ВТБ Детская карта, Альфа-детям.
+        Ни один не объединяет финансовый инструмент с полноценным модулем развития ребёнка и семейным контекстом.
       </p>
 
       <div className="rounded-2xl border border-slate-200 overflow-hidden">

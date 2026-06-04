@@ -3,55 +3,59 @@ import SlideFrame from './SlideFrame';
 const stages = [
   {
     num: '01',
-    title: 'Упаковка',
-    duration: '1–2 нед',
+    title: 'Упаковка предложения',
+    duration: 'июль 2026',
     color: 'border-indigo-300 bg-indigo-50',
     numColor: 'bg-indigo-600 text-white',
     accent: 'text-indigo-700',
     items: [
-      'Финальная презентация',
-      'Продуктовая рамка',
-      'Entry point схема',
+      'Согласование MVP-состава модуля',
+      'Entry point: вход из банк. пути',
+      'Подписание рамочного соглашения',
     ],
+    result: '→ Общее видение зафиксировано',
   },
   {
     num: '02',
     title: 'Пилотная конфигурация',
-    duration: '2–4 нед',
+    duration: 'авг–сент 2026',
     color: 'border-blue-300 bg-blue-50',
     numColor: 'bg-blue-600 text-white',
     accent: 'text-blue-700',
     items: [
-      'Согласование формата',
-      'Визуальная интеграция',
-      'Привязка к банковскому пути',
+      'Интеграция с банковским приложением',
+      'Onboarding + активация модуля',
+      'Настройка аналитики и KPI',
     ],
+    result: '→ Технический и продуктовый MVP',
   },
   {
     num: '03',
-    title: 'Пилот в Ярославской области',
-    duration: '1–2 мес',
+    title: 'Пилот в Ярославской обл.',
+    duration: 'окт–ноябрь 2026',
     color: 'border-emerald-300 bg-emerald-50',
     numColor: 'bg-emerald-600 text-white',
     accent: 'text-emerald-700',
     items: [
-      'Ограниченный запуск',
-      'Сбор KPI и метрик',
-      'Обратная связь семей',
+      'Запуск для первых 500–1000 семей',
+      'Сбор данных и обратной связи',
+      'Итоговый отчёт по KPI пилота',
     ],
+    result: '→ Данные для решения о масштабировании',
   },
   {
     num: '04',
-    title: 'Расширение',
-    duration: 'далее',
+    title: 'Масштабирование',
+    duration: 'с 2027',
     color: 'border-amber-300 bg-amber-50',
     numColor: 'bg-amber-500 text-white',
     accent: 'text-amber-700',
     items: [
-      'Новые сценарии использования',
-      'Контентный слой (этап 2)',
-      'Масштабирование',
+      'Контентный партнёр (библиотека)',
+      'Расширение на другие регионы',
+      'Полноценная детская экосистема',
     ],
+    result: '→ Устойчивый семейный продукт',
   },
 ];
 
@@ -75,7 +79,7 @@ export default function Slide12() {
               </span>
             </div>
             <h3 className={`font-bold text-sm sm:text-base text-slate-900`}>{stage.title}</h3>
-            <ul className="flex flex-col gap-1.5 mt-1">
+            <ul className="flex flex-col gap-1.5 mt-1 flex-1">
               {stage.items.map((item) => (
                 <li key={item} className={`text-xs sm:text-sm flex items-start gap-1.5 ${stage.accent}`}>
                   <span className="mt-0.5 shrink-0">·</span>
@@ -83,6 +87,9 @@ export default function Slide12() {
                 </li>
               ))}
             </ul>
+            <p className="text-xs font-semibold text-slate-500 mt-3 pt-2 border-t border-white/60">
+              {stage.result}
+            </p>
             {i < stages.length - 1 && (
               <div className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 text-slate-300 text-xl pointer-events-none">
                 →
