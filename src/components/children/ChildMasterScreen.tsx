@@ -3,6 +3,7 @@ import { ChevronRight, Plus, BookOpen, Dumbbell, Palette, Users, Music, Shield, 
 import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import SafetyTests from "@/components/children/SafetyTests";
+import MyRegionYaroslavl from "@/components/children/MyRegionYaroslavl";
 import {
   ScreenPage,
   ScreenBody,
@@ -128,6 +129,7 @@ export default function ChildMasterScreen({
     WEEKLY_STEPS.map(s => ({ ...s, done: false }))
   );
   const [showSafetyTests, setShowSafetyTests] = useState(false);
+  const [showMyRegion, setShowMyRegion] = useState(false);
 
   const { members } = useFamilyMembersContext();
 
@@ -179,6 +181,16 @@ export default function ChildMasterScreen({
       <ScreenPage>
         <ScreenBody>
           <SafetyTests onBack={() => setShowSafetyTests(false)} />
+        </ScreenBody>
+      </ScreenPage>
+    );
+  }
+
+  if (showMyRegion) {
+    return (
+      <ScreenPage>
+        <ScreenBody>
+          <MyRegionYaroslavl onBack={() => setShowMyRegion(false)} />
         </ScreenBody>
       </ScreenPage>
     );
@@ -537,7 +549,24 @@ export default function ChildMasterScreen({
           </div>
         </section>
 
-        {/* ── БЛОК 9: ЧТО ДЕЛАТЬ, ЕСЛИ… ── */}
+        {/* ── БЛОК 9: МОЙ КРАЙ ── */}
+        <section>
+          <button
+            onClick={() => setShowMyRegion(true)}
+            className="w-full text-left rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition group"
+          >
+            <div className="bg-gradient-to-r from-amber-500 to-yellow-400 px-4 py-3 flex items-center gap-3">
+              <span className="text-2xl shrink-0">🐻</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-bold text-sm leading-none">Мой край</p>
+                <p className="text-amber-100 text-[11px] mt-0.5">Ярославская область — факты, квиз и прогулки</p>
+              </div>
+              <ArrowRight size={16} className="text-white/70 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </button>
+        </section>
+
+        {/* ── БЛОК 10: ЧТО ДЕЛАТЬ, ЕСЛИ… ── */}
         <section>
           <div className="rounded-2xl overflow-hidden border border-rose-200 shadow-sm">
             {/* Заголовок — спокойный, не паникующий */}
