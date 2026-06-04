@@ -29,7 +29,7 @@ export default function Slide01() {
         {/* Right */}
         <div className="flex flex-col gap-4 lg:w-64">
           {[
-            { emoji: '💳', label: 'Карта банка', desc: 'Финансовый инструмент для ребёнка' },
+            { emoji: null, img: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1e1ff81e-6f4b-42ef-85b3-8f2264429c4c.JPG', label: 'Карта ПСБ', desc: 'Финансовый инструмент для ребёнка' },
             { emoji: null, label: 'Наша семья', desc: 'Платформа семейного развития' },
             { emoji: '🌱', label: 'Развитие ребёнка', desc: 'Навыки, привычки, контент' },
           ].map((item) => (
@@ -39,6 +39,12 @@ export default function Slide01() {
             >
               {item.emoji ? (
                 <span className="text-3xl shrink-0">{item.emoji}</span>
+              ) : item.img ? (
+                <img
+                  src={item.img}
+                  alt={item.label}
+                  className="w-14 h-9 shrink-0 rounded-lg object-cover shadow-md"
+                />
               ) : (
                 <img
                   src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1daac28e-f005-44d5-8ac5-459713435523.JPG"

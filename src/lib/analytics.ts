@@ -32,35 +32,34 @@ export type PortfolioEvent =
   | 'portfolio_source_deep_link_click'
   | 'portfolio_improve_cta_click';
 
-// ─── One-shot события: дедупликация по session ────────────────────────────────
-// Защита от двойного вызова при React StrictMode unmount→mount.
-// module-level Set живёт в рамках JS-модуля,
-// sessionStorage-fallback защищает от edge-case HMR-перезагрузок.
-const ONE_SHOT_EVENTS: ReadonlySet<string> = new Set([
-  'kids_safety_tests_open',
-]);
-const SS_DEDUP_KEY = 'analytics:sent_once';
+// ─── TTL-дедупликация событий ─────────────────────────────────────────────────
+// Защищает от технических дублей (React StrictMode unmount→mount, HMR),
+// но НЕ блокирует валидные повторные действия пользователя после истечения TTL.
+// Ключ дедупа: event_name (можно расширить до event+key для контекстного дедупа).
+const DEDUP_TTL_MS = 3_000; // 3 сек — достаточно для StrictMode, не мешает UX
+const SS_DEDUP_KEY = 'analytics:dedup_ttl';
 
-function hasSentOnce(event: string): boolean {
-  if (!ONE_SHOT_EVENTS.has(event)) return false;
+// Формат: { [eventName]: timestamp_ms }
+type DedupMap = Record<string, number>;
+
+function isDuplicate(event: string): boolean {
   try {
     const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
-    const sent: string[] = raw ? JSON.parse(raw) : [];
-    return sent.includes(event);
+    const map: DedupMap = raw ? JSON.parse(raw) : {};
+    const ts = map[event];
+    if (!ts) return false;
+    return Date.now() - ts < DEDUP_TTL_MS;
   } catch {
     return false;
   }
 }
 
-function markSentOnce(event: string): void {
-  if (!ONE_SHOT_EVENTS.has(event)) return;
+function markSent(event: string): void {
   try {
     const raw = window.sessionStorage.getItem(SS_DEDUP_KEY);
-    const sent: string[] = raw ? JSON.parse(raw) : [];
-    if (!sent.includes(event)) {
-      sent.push(event);
-      window.sessionStorage.setItem(SS_DEDUP_KEY, JSON.stringify(sent));
-    }
+    const map: DedupMap = raw ? JSON.parse(raw) : {};
+    map[event] = Date.now();
+    window.sessionStorage.setItem(SS_DEDUP_KEY, JSON.stringify(map));
   } catch {
     /* ignore */
   }
@@ -161,8 +160,8 @@ export interface TrackOptions {
 
 export function track(event: PortfolioEvent | KidsEvent, options: TrackOptions = {}): void {
   if (!URL) return;
-  if (hasSentOnce(event)) return;
-  markSentOnce(event);
+  if (isDuplicate(event)) return;
+  markSent(event);
   const token = getAuthToken();
   const payload = {
     event_name: event,

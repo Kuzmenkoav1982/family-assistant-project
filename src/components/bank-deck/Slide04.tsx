@@ -9,9 +9,9 @@ const steps = [
 ];
 
 const entryPoints = [
-  { emoji: '📱', label: 'Банковское приложение' },
-  { emoji: '💳', label: 'При выпуске карты' },
-  { emoji: '🔗', label: 'QR / deep link' },
+  { emoji: '📱', label: 'Банковское приложение', cardImg: null },
+  { emoji: null, label: 'При выпуске карты', cardImg: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1e1ff81e-6f4b-42ef-85b3-8f2264429c4c.JPG' },
+  { emoji: '🔗', label: 'QR / deep link', cardImg: null },
 ];
 
 export default function Slide04() {
@@ -52,7 +52,11 @@ export default function Slide04() {
               key={ep.label}
               className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm"
             >
-              <span className="text-xl">{ep.emoji}</span>
+              {ep.cardImg ? (
+                <img src={ep.cardImg} alt="Карта ПСБ" className="w-10 h-6 rounded object-cover shadow-sm shrink-0" />
+              ) : (
+                <span className="text-xl">{ep.emoji}</span>
+              )}
               <span className="text-sm font-medium text-slate-800">{ep.label}</span>
             </div>
           ))}

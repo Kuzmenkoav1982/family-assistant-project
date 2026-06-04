@@ -1,4 +1,5 @@
 import SlideFrame from './SlideFrame';
+import AlpinaLogo from './AlpinaLogo';
 
 const rows = [
   {
@@ -55,10 +56,11 @@ function Cell({ value }: { value: { has: boolean | string; label: string } }) {
   }
   if (value.has === 'stage2') {
     return (
-      <span className="inline-flex items-center justify-center w-full">
-        <span className="bg-amber-100 text-amber-700 font-semibold text-xs px-3 py-1 rounded-full">
+      <span className="inline-flex items-center justify-center gap-1.5 w-full flex-wrap">
+        <span className="bg-amber-100 text-amber-700 font-semibold text-xs px-3 py-1 rounded-full whitespace-nowrap">
           {value.label}
         </span>
+        <AlpinaLogo size="sm" />
       </span>
     );
   }

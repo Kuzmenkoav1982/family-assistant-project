@@ -3,8 +3,9 @@ import SlideFrame from './SlideFrame';
 const layers = [
   {
     num: '01',
-    emoji: '💳',
-    label: 'Детская карта банка',
+    emoji: null,
+    cardImg: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/1e1ff81e-6f4b-42ef-85b3-8f2264429c4c.JPG',
+    label: 'Детская карта ПСБ',
     desc: 'Финансовый инструмент, контроль, безопасность',
     tags: ['Лимиты', 'Уведомления', 'Безопасность'],
     color: 'border-indigo-200 bg-indigo-50',
@@ -13,6 +14,7 @@ const layers = [
   },
   {
     num: '02',
+    cardImg: null,
     emoji: '📱',
     label: 'Модуль «Наша семья / Дети»',
     desc: 'Среда развития, финансовой грамотности, семейного взаимодействия',
@@ -23,6 +25,7 @@ const layers = [
   },
   {
     num: '03',
+    cardImg: null,
     emoji: '📚',
     label: 'Партнёрский контент',
     desc: 'Книги, аудиокниги, обучающие подборки — опционально',
@@ -46,7 +49,15 @@ export default function Slide03() {
           <div key={layer.num} className="flex items-stretch gap-0">
             <div className={`rounded-2xl border p-5 flex-1 flex flex-col sm:flex-row sm:items-center gap-4 ${layer.color}`}>
               <div className="flex items-center gap-4 sm:w-56">
-                <div className="text-3xl">{layer.emoji}</div>
+                {layer.cardImg ? (
+                  <img
+                    src={layer.cardImg}
+                    alt="Карта ПСБ"
+                    className="w-14 h-9 rounded-lg object-cover shadow-md shrink-0"
+                  />
+                ) : (
+                  <div className="text-3xl shrink-0">{layer.emoji}</div>
+                )}
                 <div>
                   <div className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${layer.accent}`}>
                     Слой {layer.num} {layer.optional && <span className="ml-1 opacity-60">(опционально)</span>}

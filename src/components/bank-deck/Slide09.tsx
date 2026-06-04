@@ -1,4 +1,5 @@
 import SlideFrame from './SlideFrame';
+import AlpinaLogo from './AlpinaLogo';
 
 const theses = [
   {
@@ -36,9 +37,15 @@ export default function Slide09() {
       eyebrow="09. Библиотека / Альпина"
       title="Следующий этап: образовательный контент внутри детского модуля"
     >
-      {/* Stage badge */}
-      <div className="inline-flex items-center gap-2 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-7">
-        <span>⚡</span> Возможный Этап 2 · Партнёрская интеграция
+      {/* Stage badge + Alpina logo */}
+      <div className="flex flex-wrap items-center gap-3 mb-7">
+        <div className="inline-flex items-center gap-2 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full">
+          <span>⚡</span> Возможный Этап 2 · Партнёрская интеграция
+        </div>
+        <div className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-full px-3 py-1.5 shadow-sm">
+          <span className="text-xs text-slate-500">Партнёр:</span>
+          <AlpinaLogo size="sm" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -70,6 +77,11 @@ export default function Slide09() {
               )}
             </div>
           ))}
+          <span className="text-slate-400 text-lg">→</span>
+          <div className="bg-white border border-amber-200 rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2">
+            <AlpinaLogo size="sm" />
+            <span className="text-xs text-slate-500">контент</span>
+          </div>
         </div>
       </div>
     </SlideFrame>
