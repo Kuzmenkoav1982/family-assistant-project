@@ -47,10 +47,33 @@ export default function WelcomeVideo() {
         <div ref={videoRef}>
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+              «Наша Семья» — экосистема для самого важного
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Память, понимание, синхронизация, планирование и развитие. Единый дашборд, где семья видит свою историю, настоящее и будущее.
+            </p>
+          </div>
+
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black aspect-video">
+            <iframe
+              src="https://rutube.ru/play/embed/82e809bdf1da5c343eaa4ea65c20460d/"
+              width="100%"
+              height="100%"
+              frameBorder="0"
+              allow="clipboard-write; autoplay"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        </div>
+
+        <div>
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Посмотрите, как работает семейное приложение
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Короткое видео о возможностях платформы «Наша Семья»
+              Полный обзор возможностей платформы «Наша Семья»
             </p>
           </div>
 
