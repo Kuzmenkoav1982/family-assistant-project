@@ -23,13 +23,13 @@ export default function MemberAvatar({ member, size = 'md', className = '' }: Me
       <img
         src={photoUrl}
         alt={member.name}
-        className={`${sizeClass} rounded-full object-cover flex-shrink-0 ${className}`}
+        className={`${sizeClass} rounded-full object-cover flex-shrink-0 border-2 border-white shadow-sm ${className}`}
       />
     );
   }
 
   return (
-    <div className={`${sizeClass} rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 ${className}`}>
+    <div className={`${sizeClass} rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 border-2 border-white shadow-sm ${className}`}>
       {member.avatar || member.name.charAt(0)}
     </div>
   );

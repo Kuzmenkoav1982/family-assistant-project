@@ -121,8 +121,8 @@ export default function SlideAppE() {
     <SlideFrame
       id="slide-app-e"
       eyebrow="Приложение E — Детский модуль"
-      title="Раздел «Дети» — текущий статус (as-is)"
-      subtitle="Полная карта экранов, возможностей и ограничений по состоянию на июнь 2026"
+      title="Раздел «Дети»: demo-ready сценарий"
+      subtitle="Первый вход, безопасность, «Коплю на...», регион — полный детский цикл готов к показу. Июнь 2026"
     >
       {/* Карта экранов */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
