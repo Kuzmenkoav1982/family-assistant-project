@@ -24,7 +24,6 @@ import { SlideAIPricing } from '@/components/presentation/SlideAIPricing';
 import { SlideTraction } from '@/components/presentation/SlideTraction';
 import { SlideMarketGTM } from '@/components/presentation/SlideMarketGTM';
 import { SlideFounderExecution } from '@/components/presentation/SlideFounderExecution';
-import { StrategyDeckCTA } from '@/components/presentation/StrategyDeckCTA';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -261,7 +260,6 @@ export default function Presentation() {
         <SlideFounderExecution />
 
         {/* ============ БЛОК 5. CTA ============ */}
-        <StrategyDeckCTA />
         <PresentationFooter />
       </div>
     </div>
