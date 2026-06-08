@@ -2,6 +2,8 @@ User-agent: *
 Allow: /
 Allow: /blog
 Allow: /blog/
+Allow: /documentation
+Allow: /documentation.html
 Disallow: /api/
 Disallow: /admin/
 Disallow: /admin-*
