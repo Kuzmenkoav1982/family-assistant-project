@@ -1,0 +1,1 @@
+UPDATE family_members SET access_role = 'admin' WHERE id = 'b6554909-260c-4dc1-8825-efac39750c9e';
