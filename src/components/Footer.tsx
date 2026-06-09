@@ -160,6 +160,26 @@ export default function Footer() {
               </li>
               <li>
                 <Link 
+                  to="/pricing-policy" 
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="Receipt" size={16} />
+                  Тарифная политика
+                </Link>
+              </li>
+              <li>
+                <a 
+                  href="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/docs/nasha-semiya-pricing-policy.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="FileDown" size={16} />
+                  Тарифная политика (PDF)
+                </a>
+              </li>
+              <li>
+                <Link 
                   to="/installation-guide" 
                   className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
                 >
