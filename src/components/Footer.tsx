@@ -148,6 +148,17 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <a 
+                  href="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/docs/nasha-semiya-documentation.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
+                >
+                  <Icon name="FileDown" size={16} />
+                  Документация (PDF)
+                </a>
+              </li>
+              <li>
                 <Link 
                   to="/installation-guide" 
                   className="text-gray-300 hover:text-white flex items-center gap-2 transition-colors text-sm"
