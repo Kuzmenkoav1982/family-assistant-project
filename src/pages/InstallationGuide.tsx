@@ -31,7 +31,7 @@ export default function InstallationGuide() {
             </h1>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-600">
               <div><span className="font-semibold">Версия документа:</span> 1.0</div>
-              <div><span className="font-semibold">Дата:</span> 09.03.2026</div>
+              <div><span className="font-semibold">Дата:</span> 10.06.2026</div>
               <div><span className="font-semibold">Правообладатель:</span> ИП Кузьменко А.В.</div>
             </div>
             <div className="text-sm text-gray-600 mt-1">
