@@ -26,6 +26,28 @@ export default function Documentation() {
           </p>
         </div>
 
+        {/* Скачивание документации в PDF */}
+        <Card className="p-6 mb-8 border border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">
+              Эксплуатационная документация (PDF)
+            </h2>
+            <p className="text-sm text-gray-600">
+              Полный документ для скачивания. Версия 1.0 · 08.06.2026
+            </p>
+          </div>
+          <Button asChild>
+            <a
+              href="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/docs/nasha-semiya-documentation.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="Download" className="w-4 h-4 mr-2" />
+              Скачать документацию (PDF)
+            </a>
+          </Button>
+        </Card>
+
         {/* Оглавление */}
         <Card className="p-6 mb-8 border border-gray-200">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Содержание</h2>
