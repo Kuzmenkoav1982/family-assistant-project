@@ -275,6 +275,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const Offer = lazy(() => import("./pages/Offer"));
 const RefundPolicy = lazy(() => import("./pages/RefundPolicy"));
+const PricingPolicy = lazy(() => import("./pages/PricingPolicy"));
 
 // ─── Admin ─────────────────────────────────────────────────────────────────
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
@@ -599,6 +600,7 @@ const App = () => {
                       <Route path="/offer" element={<Offer />} />
                       <Route path="/refund-policy" element={<RefundPolicy />} />
                       <Route path="/documentation" element={<Documentation />} />
+                      <Route path="/pricing-policy" element={<PricingPolicy />} />
                       <Route path="/installation-guide" element={<InstallationGuide />} />
                       <Route path="/pricing" element={<Navigate to="/wallet" replace />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
