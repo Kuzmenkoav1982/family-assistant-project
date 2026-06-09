@@ -5,51 +5,25 @@ import { useNavigate } from 'react-router-dom';
 
 const PDF_URL = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/docs/nasha-semiya-pricing-policy.pdf';
 
-const TARIFFS = [
-  {
-    name: 'Базовый',
-    price: 299,
-    period: 'месяц',
-    unit: '1 лицензия на семейную группу / 1 месяц',
-    features: [
-      'До 5 членов семьи',
-      'Семейный календарь',
-      'Задачи и поручения',
-      'Списки покупок и дел',
-      'Техническая поддержка по электронной почте',
-    ],
-  },
-  {
-    name: 'Семейный',
-    price: 799,
-    period: '3 месяца',
-    unit: '1 лицензия на семейную группу / 3 месяца',
-    features: [
-      'До 10 членов семьи',
-      'Все функции тарифа «Базовый»',
-      'Рецепты и меню',
-      'Голосования',
-      'Учёт здоровья детей',
-      'Приоритетная техническая поддержка',
-    ],
-  },
-  {
-    name: 'Премиум',
-    price: 2499,
-    period: '12 месяцев',
-    unit: '1 лицензия на семейную группу / 12 месяцев',
-    features: [
-      'Неограниченное число членов семьи',
-      'Все функции тарифа «Семейный»',
-      'ИИ-помощник «Домовой»',
-      'Планирование путешествий',
-      'Аналитика и отчёты',
-      'Экспорт данных',
-      'Семейное древо',
-      'Поддержка VIP 24/7',
-    ],
-  },
+const AI_SERVICES = [
+  { name: 'Генерация ИИ-диеты', price: 17 },
+  { name: 'Фото блюда от ИИ', price: 7 },
+  { name: 'ИИ-открытка', price: 7 },
+  { name: 'Рецепт из продуктов', price: 5 },
+  { name: 'Маршрут путешествия ИИ', price: 5 },
+  { name: 'Рекомендации досуга', price: 4 },
+  { name: 'Анализ развития ребёнка', price: 4 },
+  { name: 'AI-ассистент (запрос)', price: 3 },
+  { name: 'Домовой — наставник Мастерской жизни', price: 3 },
+  { name: 'ИИ-ветеринар (запрос)', price: 3 },
+  { name: 'Идеи для события ИИ', price: 3 },
+  { name: 'Финансовый совет ИИ', price: 3 },
+  { name: 'Оценка развития ребёнка', price: 3 },
+  { name: 'Рекомендации для поездки', price: 3 },
+  { name: 'Рецепт (короткий)', price: 2 },
 ];
+
+const TOPUP_AMOUNTS = [100, 300, 500, 1000, 3000];
 
 export default function PricingPolicy() {
   const navigate = useNavigate();
@@ -104,69 +78,72 @@ export default function PricingPolicy() {
             </p>
             <p>
               ПО предоставляется в формате интернет-сервиса (SaaS) по адресу:{' '}
-              <strong>https://nasha-semiya.ru</strong>.
+              <strong>https://nasha-semiya.ru</strong>. Базовый доступ к ПО
+              предоставляется бесплатно. Стоимость формируется исключительно за
+              использование ИИ-функций сервиса.
             </p>
             <p>
-              Стоимость использования ПО формируется в соответствии с настоящей тарифной
-              политикой. Правообладатель вправе в одностороннем порядке изменять тарифы,
-              уведомив пользователей не менее чем за 30 дней до вступления изменений в силу.
+              Правообладатель вправе в одностороннем порядке изменять тарифы,
+              уведомив пользователей не менее чем за 30 дней до вступления
+              изменений в силу.
             </p>
           </div>
         </Card>
 
-        {/* 2. Порядок лицензирования */}
-        <Card id="licensing" className="p-8 mb-6 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">2. Порядок лицензирования</h2>
+        {/* 2. Модель оплаты */}
+        <Card id="model" className="p-8 mb-6 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            2. Модель оплаты — семейный кошелёк
+          </h2>
           <div className="space-y-3 text-gray-700 leading-relaxed">
             <p>
-              Лицензия предоставляется на одну семейную группу на срок, соответствующий
-              выбранному тарифному плану. Оплата производится единовременно за весь
-              период лицензии.
+              Оплата ИИ-функций осуществляется через встроенный механизм
+              «Семейный кошелёк»: пользователь пополняет баланс кошелька
+              на выбранную сумму, после чего каждая выполненная ИИ-операция
+              списывает соответствующую стоимость с баланса.
             </p>
             <p>
-              Право использования ПО возникает с момента зачисления оплаты и действует
-              в течение оплаченного периода. По истечении срока лицензия может быть
-              продлена на тех же или изменённых условиях.
+              Минимальная сумма пополнения — <strong>50 рублей</strong>.
+              Максимальная сумма пополнения за одну операцию — <strong>100 000 рублей</strong>.
+            </p>
+            <p>Рекомендуемые суммы пополнения (быстрый выбор в интерфейсе):</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {TOPUP_AMOUNTS.map((amount) => (
+                <span
+                  key={amount}
+                  className="inline-block border border-gray-300 rounded px-3 py-1 text-sm font-medium text-gray-700"
+                >
+                  {amount} ₽
+                </span>
+              ))}
+            </div>
+            <p className="mt-3">
+              Способы пополнения: банковская карта (через ЮКассу),
+              Система быстрых платежей (СБП).
             </p>
             <p>
-              Передача лицензии третьим лицам не допускается.
+              Неиспользованный остаток баланса сохраняется без ограничений по сроку.
             </p>
           </div>
         </Card>
 
-        {/* 3. Тарифные планы */}
-        <Card id="plans" className="p-8 mb-6 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">3. Тарифные планы</h2>
-          <div className="space-y-6">
-            {TARIFFS.map((tariff) => (
-              <div key={tariff.name} className="border border-gray-200 rounded-lg p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">{tariff.name}</h3>
-                  <div className="text-right">
-                    <span className="text-2xl font-bold text-blue-700">
-                      {tariff.price.toLocaleString('ru-RU')} ₽
-                    </span>
-                    <span className="text-gray-500 text-sm ml-1">/ {tariff.period}</span>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 mb-3">{tariff.unit}</p>
-                <ul className="space-y-1">
-                  {tariff.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-gray-700 text-sm">
-                      <Icon name="Check" className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+        {/* 3. Стоимость ИИ-операций */}
+        <Card id="services" className="p-8 mb-6 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            3. Стоимость ИИ-операций
+          </h2>
+          <p className="text-gray-500 text-sm mb-6">
+            Стоимость списывается с баланса кошелька за каждый выполненный запрос.
+            Цены указаны в рублях за единицу (1 запрос / 1 результат).
+          </p>
 
-          {/* Итоговая таблица */}
-          <div className="mt-8 overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse border border-gray-200">
               <thead>
                 <tr className="bg-gray-50">
+                  <th className="border border-gray-200 p-3 text-left font-semibold text-gray-700">
+                    № п/п
+                  </th>
                   <th className="border border-gray-200 p-3 text-left font-semibold text-gray-700">
                     Наименование тарифицируемой позиции
                   </th>
@@ -179,49 +156,43 @@ export default function PricingPolicy() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="border border-gray-200 p-3 text-gray-700">
-                    Лицензия «Базовый»
-                  </td>
-                  <td className="border border-gray-200 p-3 text-gray-500">1 семейная группа / 1 месяц</td>
-                  <td className="border border-gray-200 p-3 text-right font-medium">299,00</td>
-                </tr>
-                <tr className="bg-gray-50">
-                  <td className="border border-gray-200 p-3 text-gray-700">
-                    Лицензия «Семейный»
-                  </td>
-                  <td className="border border-gray-200 p-3 text-gray-500">1 семейная группа / 3 месяца</td>
-                  <td className="border border-gray-200 p-3 text-right font-medium">799,00</td>
-                </tr>
-                <tr>
-                  <td className="border border-gray-200 p-3 text-gray-700">
-                    Лицензия «Премиум»
-                  </td>
-                  <td className="border border-gray-200 p-3 text-gray-500">1 семейная группа / 12 месяцев</td>
-                  <td className="border border-gray-200 p-3 text-right font-medium">2 499,00</td>
-                </tr>
+                {AI_SERVICES.map((service, index) => (
+                  <tr key={service.name} className={index % 2 === 1 ? 'bg-gray-50' : ''}>
+                    <td className="border border-gray-200 p-3 text-gray-500 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="border border-gray-200 p-3 text-gray-700">
+                      {service.name}
+                    </td>
+                    <td className="border border-gray-200 p-3 text-gray-500">
+                      1 запрос
+                    </td>
+                    <td className="border border-gray-200 p-3 text-right font-medium">
+                      {service.price},00
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <p className="text-xs text-gray-500 mt-3">
-            Все цены указаны в рублях Российской Федерации, включая НДС в соответствии
-            с применимым налоговым режимом правообладателя.
+            Все цены указаны в рублях Российской Федерации. Пополнение кошелька
+            и списание за ИИ-операции отражаются в истории транзакций в разделе
+            «Семейный кошелёк» личного кабинета.
           </p>
         </Card>
 
-        {/* 4. Порядок оплаты */}
-        <Card id="payment" className="p-8 mb-6 border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Порядок оплаты</h2>
+        {/* 4. Возврат средств */}
+        <Card id="refund" className="p-8 mb-6 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">4. Возврат средств</h2>
           <div className="space-y-3 text-gray-700 leading-relaxed">
             <p>
-              Оплата производится в безналичной форме через платёжные сервисы,
-              подключённые к сервису «Наша Семья». Доступные способы оплаты отображаются
-              в личном кабинете пользователя в разделе «Кошелёк».
+              Возврат неиспользованного баланса кошелька осуществляется
+              в соответствии с Политикой возврата, размещённой по адресу:{' '}
+              <strong>https://nasha-semiya.ru/refund-policy</strong>.
             </p>
             <p>
-              Возврат денежных средств осуществляется в соответствии с Политикой
-              возврата, размещённой по адресу:{' '}
-              <strong>https://nasha-semiya.ru/refund-policy</strong>.
+              Средства, списанные за выполненные ИИ-операции, возврату не подлежат.
             </p>
           </div>
         </Card>
@@ -231,12 +202,14 @@ export default function PricingPolicy() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Порядок изменения тарифов</h2>
           <div className="space-y-3 text-gray-700 leading-relaxed">
             <p>
-              Правообладатель вправе изменять тарифы, уведомив пользователей
-              по электронной почте и/или через интерфейс сервиса не менее чем за 30
-              (тридцать) календарных дней до вступления изменений в силу.
+              Правообладатель вправе изменять стоимость ИИ-операций,
+              уведомив пользователей по электронной почте и/или через интерфейс
+              сервиса не менее чем за 30 (тридцать) календарных дней до вступления
+              изменений в силу.
             </p>
             <p>
-              Изменение тарифов не распространяется на уже оплаченные периоды.
+              Изменение тарифов не затрагивает уже зачисленный баланс кошелька —
+              он продолжает использоваться по актуальным на момент расходования ценам.
             </p>
           </div>
         </Card>

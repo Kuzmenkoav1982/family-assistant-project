@@ -171,6 +171,7 @@ export default function AdminPanel() {
             <TabsTrigger value="referrals" className="text-xs md:text-sm px-2 py-1.5">Реферальная программа</TabsTrigger>
             <TabsTrigger value="hubs" className="text-xs md:text-sm px-2 py-1.5">Хабы</TabsTrigger>
             <TabsTrigger value="search" className="text-xs md:text-sm px-2 py-1.5">Поиск</TabsTrigger>
+            <TabsTrigger value="docs" className="text-xs md:text-sm px-2 py-1.5">Документы</TabsTrigger>
           </TabsList>
 
           <TabsContent value="families" className="mt-4">
@@ -211,6 +212,9 @@ export default function AdminPanel() {
           </TabsContent>
           <TabsContent value="search" className="mt-4">
             <SearchIndexTab toast={toast} />
+          </TabsContent>
+          <TabsContent value="docs" className="mt-4">
+            <DocsTab toast={toast} />
           </TabsContent>
         </Tabs>
       </div>
@@ -1185,6 +1189,94 @@ function SearchIndexTab({ toast }: { toast: ReturnType<typeof useToast>['toast']
           <p>• Поиск автоматически переключается на FTS-движок когда индекс не пуст</p>
           <p>• Ранжирование: заголовок → FTS-ранг → триграм → подстрока</p>
           <p>• При создании/обновлении задач и событий индекс обновляется автоматически</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DocsTab({ toast }: { toast: ReturnType<typeof useToast>['toast'] }) {
+  const [loading, setLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const PRICING_PDF_URL = (func2url as Record<string, string>)['generate-pricing-pdf'];
+
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const r = await adminFetch(PRICING_PDF_URL, { method: 'POST', headers: { 'X-Admin-Token': '' } });
+      const data = await r.json();
+      if (data.ok && data.url) {
+        setPdfUrl(data.url);
+        toast({ title: 'PDF сгенерирован', description: 'Файл загружен на CDN' });
+      } else {
+        toast({ title: 'Ошибка', description: data.error || 'Не удалось сгенерировать', variant: 'destructive' });
+      }
+    } catch (e: unknown) {
+      toast({ title: 'Ошибка', description: String(e), variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const CDN_PRICING = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/docs/nasha-semiya-pricing-policy.pdf';
+  const CDN_DOCS = 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/docs/nasha-semiya-documentation.pdf';
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Тарифная политика (PDF)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-gray-500">
+            Генерирует PDF тарифной политики и загружает на CDN.
+            Страница: <code className="text-xs bg-gray-100 px-1 rounded">/pricing-policy</code>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={generate} disabled={loading}>
+              {loading
+                ? <Icon name="Loader2" className="w-4 h-4 mr-2 animate-spin" />
+                : <Icon name="FileText" className="w-4 h-4 mr-2" />}
+              {loading ? 'Генерирую...' : 'Сгенерировать PDF'}
+            </Button>
+            <Button variant="outline" asChild>
+              <a href={pdfUrl || CDN_PRICING} target="_blank" rel="noopener noreferrer">
+                <Icon name="ExternalLink" className="w-4 h-4 mr-2" />
+                Открыть PDF
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href="/pricing-policy" target="_blank" rel="noopener noreferrer">
+                <Icon name="Globe" className="w-4 h-4 mr-2" />
+                Страница на сайте
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Эксплуатационная документация (PDF)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-gray-500">
+            Страница: <code className="text-xs bg-gray-100 px-1 rounded">/documentation</code>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <a href={CDN_DOCS} target="_blank" rel="noopener noreferrer">
+                <Icon name="ExternalLink" className="w-4 h-4 mr-2" />
+                Открыть PDF
+              </a>
+            </Button>
+            <Button variant="outline" asChild>
+              <a href="/documentation" target="_blank" rel="noopener noreferrer">
+                <Icon name="Globe" className="w-4 h-4 mr-2" />
+                Страница на сайте
+              </a>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
