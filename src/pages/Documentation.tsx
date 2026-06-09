@@ -56,7 +56,7 @@ export default function Documentation() {
               1. О программном обеспечении
             </a>
             <a href="#access" className="block hover:text-blue-700 transition-colors">
-              2. Доступ к программному обеспечению
+              2. Установка и доступ к программному обеспечению
             </a>
             <a href="#requirements" className="block hover:text-blue-700 transition-colors">
               3. Системные требования
@@ -68,7 +68,7 @@ export default function Documentation() {
               5. Порядок работы с программным обеспечением
             </a>
             <a href="#lifecycle" className="block hover:text-blue-700 transition-colors">
-              6. Поддержка жизненного цикла
+              6. Поддержка жизненного цикла и персонал
             </a>
             <a href="#support" className="block hover:text-blue-700 transition-colors">
               7. Техническая поддержка
@@ -110,12 +110,25 @@ export default function Documentation() {
           </div>
         </Card>
 
-        {/* 2. Доступ */}
+        {/* 2. Установка и доступ */}
         <Card id="access" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            2. Доступ к программному обеспечению
+            2. Установка и доступ к программному обеспечению
           </h2>
           <div className="space-y-4 text-gray-700 leading-relaxed">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <h3 className="font-bold text-gray-900 mb-2">2.1. Установка программного обеспечения</h3>
+              <p>
+                Программное обеспечение «Наша Семья» является интернет-сервисом (SaaS) и
+                <strong> не требует установки</strong> на устройство пользователя. Специальные
+                дистрибутивы, инсталляторы или исполняемые файлы для развёртывания отсутствуют.
+              </p>
+              <p className="mt-2">
+                Для начала работы достаточно открыть веб-браузер и перейти по адресу:{' '}
+                <strong>https://nasha-semiya.ru</strong>. Все вычисления и хранение данных
+                осуществляются на серверной инфраструктуре правообладателя.
+              </p>
+            </div>
             <p>
               Для доступа к программному обеспечению установка специального программного
               обеспечения на устройство пользователя не требуется.
@@ -309,7 +322,7 @@ export default function Documentation() {
         {/* 6. Жизненный цикл */}
         <Card id="lifecycle" className="p-8 mb-6 scroll-mt-8 border border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            6. Поддержка жизненного цикла
+            6. Поддержка жизненного цикла и персонал
           </h2>
           <div className="space-y-6 text-gray-700 leading-relaxed">
 
@@ -350,6 +363,34 @@ export default function Documentation() {
                 Резервное копирование данных осуществляется в рамках инфраструктуры,
                 используемой для размещения сервиса.
               </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h3 className="font-bold text-gray-900 mb-2">6.5. Персонал, обеспечивающий поддержку жизненного цикла</h3>
+              <p className="mb-3">
+                Поддержка жизненного цикла программного обеспечения «Наша Семья» обеспечивается
+                следующим персоналом:
+              </p>
+              <ul className="space-y-3">
+                <li>
+                  <strong>Правообладатель и технический руководитель</strong> —
+                  ИП Кузьменко Анастасия Вячеславовна (ОГРНИП 325774600908955).
+                  Осуществляет общее руководство развитием ПО, принятие решений о выпуске
+                  обновлений и прекращении поддержки.
+                </li>
+                <li>
+                  <strong>Разработчики программного обеспечения</strong> —
+                  специалисты, привлекаемые на договорной основе для разработки новой
+                  функциональности, исправления ошибок и обеспечения технической работоспособности
+                  сервиса.
+                </li>
+                <li>
+                  <strong>Служба технической поддержки</strong> —
+                  сотрудники, осуществляющие обработку обращений пользователей, диагностику
+                  неисправностей и координацию устранения выявленных проблем. Контакт:
+                  <strong> support@nasha-semiya.ru</strong>.
+                </li>
+              </ul>
             </div>
 
           </div>
