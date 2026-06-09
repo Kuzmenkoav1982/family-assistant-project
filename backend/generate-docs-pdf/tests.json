@@ -1,0 +1,1 @@
+{"tests": [{"name": "Генерация PDF документации", "method": "GET", "path": "/", "expectedStatus": 200, "expectedBody": {"url": "string", "size": "number"}, "bodyMatcher": "partial"}]}
