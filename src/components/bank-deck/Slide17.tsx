@@ -1,82 +1,115 @@
 import SlideFrame from './SlideFrame';
 
-const inMVP = [
-  { icon: '👶', label: 'Профиль ребёнка', note: 'Имя, возраст, кружки, занятия' },
-  { icon: '🎯', label: 'Цели и копилки', note: 'До 5 целей на семью, прогресс' },
-  { icon: '📊', label: 'Финансовый контроль', note: 'Расходы, лимиты, уведомления' },
-  { icon: '🛡️', label: 'Антифрод-блок', note: '7 карточек безопасности для детей' },
-  { icon: '📚', label: 'Финансовая грамотность', note: '8 мини-уроков, возраст 6–14 лет' },
-  { icon: '🗺️', label: 'Семейные маршруты', note: '12 маршрутов по Ярославской области' },
-  { icon: '📸', label: 'Воспоминания о поездке', note: 'Фото + заметки → семейный альбом' },
-  { icon: '🏆', label: 'Достижения ребёнка', note: 'Бейджи, дипломы, маленькие победы' },
-  { icon: '🔔', label: 'Онбординг и уведомления', note: 'Push, email, регулярные напоминания' },
-  { icon: '📈', label: 'Дашборд для банка', note: 'KPI, активации, retention, NPS' },
-];
-
-const notInMVP = [
-  { icon: '📖', label: 'Библиотека / Альпина', note: 'Этап 2 — партнёрская интеграция' },
-  { icon: '🌳', label: 'Семейное древо (полное)', note: 'Упрощённый вариант — MVP, полный — этап 2' },
-  { icon: '🏥', label: 'Здоровье и питание', note: 'Не в рамках банковского пилота' },
-  { icon: '🏠', label: 'Умный дом и быт', note: 'Экосистемный модуль, не детская карта' },
-  { icon: '🔗', label: 'Real-time транзакции', note: 'Требует deep API-интеграции с банком' },
-  { icon: '⚙️', label: 'Управление лимитами из нашего UI', note: 'Остаётся в банковском приложении' },
+const costItems = [
+  {
+    label: 'Инфраструктура',
+    desc: 'PostgreSQL, Serverless Functions (128 шт.), S3, CDN, DNS, резервные копии, мониторинг',
+    share: 24,
+    color: 'bg-indigo-500',
+    textColor: 'text-indigo-700',
+    bgColor: 'bg-indigo-50 border-indigo-100',
+    rub: '~28 000 ₽/мес',
+  },
+  {
+    label: 'Сопровождение инфраструктуры',
+    desc: 'DevOps / системный администратор, 0,5 FTE. Обновления, мониторинг, инциденты',
+    share: 24,
+    color: 'bg-violet-500',
+    textColor: 'text-violet-700',
+    bgColor: 'bg-violet-50 border-violet-100',
+    rub: '~27 000 ₽/мес',
+  },
+  {
+    label: 'Техподдержка пользователей',
+    desc: 'Специалист поддержки, 0,5 FTE при 1 000–5 000 семьях. Обработка обращений, онбординг',
+    share: 34,
+    color: 'bg-emerald-500',
+    textColor: 'text-emerald-700',
+    bgColor: 'bg-emerald-50 border-emerald-100',
+    rub: '~39 000 ₽/мес',
+  },
+  {
+    label: 'ИИ-функции (YandexGPT)',
+    desc: 'Средний сценарий: 10% семей, ~7 AI-запросов/мес на активную семью, ~3,5 ₽/подкл',
+    share: 3,
+    color: 'bg-amber-500',
+    textColor: 'text-amber-700',
+    bgColor: 'bg-amber-50 border-amber-100',
+    rub: '~4 200 ₽/мес',
+  },
+  {
+    label: 'Хранение данных, трафик, уведомления',
+    desc: 'CDN-трафик, рост БД, хранение фото/файлов, email и push-уведомления',
+    share: 4,
+    color: 'bg-sky-500',
+    textColor: 'text-sky-700',
+    bgColor: 'bg-sky-50 border-sky-100',
+    rub: '~4 600 ₽/мес',
+  },
+  {
+    label: 'Накладные расходы',
+    desc: 'Бухгалтерия, налоги, банковское обслуживание, платёжные комиссии, резерв',
+    share: 11,
+    color: 'bg-slate-400',
+    textColor: 'text-slate-600',
+    bgColor: 'bg-slate-50 border-slate-200',
+    rub: '~12 200 ₽/мес',
+  },
 ];
 
 export default function Slide17() {
   return (
     <SlideFrame
       id="slide-17"
-      eyebrow="17. Пилотный scope"
-      title="Что входит в MVP пилота, а что — нет"
-      subtitle="Чёткие границы помогают запустить быстро и без лишних рисков"
+      eyebrow="17. Структура себестоимости"
+      title="Из чего складывается стоимость подключения"
+      tone="default"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs font-bold shrink-0">✓</span>
-            <span className="font-bold text-slate-800 text-sm">Входит в MVP · Этап 1</span>
-            <span className="ml-auto text-xs text-slate-400">6–8 недель</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {costItems.map((item) => (
+          <div key={item.label} className={`rounded-xl border p-4 flex gap-3 ${item.bgColor}`}>
+            <div className="flex flex-col items-center gap-1 shrink-0 pt-0.5">
+              <div className={`w-3 h-3 rounded-full ${item.color}`} />
+              <span className={`text-xs font-bold ${item.textColor}`}>{item.share}%</span>
+            </div>
+            <div>
+              <div className={`text-sm font-semibold mb-0.5 ${item.textColor}`}>{item.label}</div>
+              <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+              <div className={`text-xs font-bold mt-1.5 ${item.textColor}`}>{item.rub}</div>
+            </div>
           </div>
-          <div className="flex flex-col gap-1.5">
-            {inMVP.map(item => (
-              <div key={item.label} className="flex items-start gap-3 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2.5">
-                <span className="text-base shrink-0 mt-0.5">{item.icon}</span>
-                <div>
-                  <span className="font-semibold text-sm text-slate-800">{item.label}</span>
-                  <span className="text-xs text-slate-500 ml-2">{item.note}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        ))}
+      </div>
 
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="w-6 h-6 rounded-full bg-slate-300 flex items-center justify-center text-white text-xs font-bold shrink-0">→</span>
-            <span className="font-bold text-slate-800 text-sm">Не входит в MVP · Этап 2+</span>
-            <span className="ml-auto text-xs text-slate-400">после пилота</span>
-          </div>
-          <div className="flex flex-col gap-1.5 mb-4">
-            {notInMVP.map(item => (
-              <div key={item.label} className="flex items-start gap-3 bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5">
-                <span className="text-base shrink-0 mt-0.5 opacity-50">{item.icon}</span>
-                <div>
-                  <span className="font-semibold text-sm text-slate-500">{item.label}</span>
-                  <span className="text-xs text-slate-400 ml-2">{item.note}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4">
-            <p className="text-sm font-semibold text-indigo-800 mb-1">Почему это правильная стратегия</p>
-            <p className="text-xs text-indigo-700 leading-relaxed">
-              Узкий чёткий MVP запускается за 6–8 недель, легко согласуется юридически
-              и даёт банку измеримый результат уже через 3 месяца пилота.
-              Расширение — только после подтверждения гипотезы данными.
-            </p>
-          </div>
+      {/* Визуальная полоса */}
+      <div className="mb-4">
+        <div className="text-xs text-slate-500 mb-2 font-medium">Структура затрат при 1 000–5 000 семей (итого ~115 000 ₽/мес)</div>
+        <div className="flex rounded-full overflow-hidden h-4">
+          {costItems.map((item) => (
+            <div
+              key={item.label}
+              className={`${item.color} h-full`}
+              style={{ width: `${item.share}%` }}
+              title={`${item.label}: ${item.share}%`}
+            />
+          ))}
         </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+          {costItems.map((item) => (
+            <div key={item.label} className="flex items-center gap-1.5">
+              <div className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
+              <span className="text-[11px] text-slate-500">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-slate-900 text-white rounded-2xl px-6 py-4 flex items-start gap-4">
+        <span className="text-xl mt-0.5 shrink-0">💡</span>
+        <p className="text-sm leading-relaxed">
+          <span className="font-semibold text-indigo-300">Самая крупная статья — поддержка пользователей (34%)</span>, а не инфраструктура.
+          При росте аудитории и хорошем онбординге этот показатель снижается: при 10 000 семьях — менее 20%.
+        </p>
       </div>
     </SlideFrame>
   );

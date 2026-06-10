@@ -23,6 +23,11 @@ import Slide12 from '@/components/bank-deck/Slide12';
 import Slide13 from '@/components/bank-deck/Slide13';
 import Slide14 from '@/components/bank-deck/Slide14';
 import Slide15 from '@/components/bank-deck/Slide15';
+import Slide16 from '@/components/bank-deck/Slide16';
+import Slide17 from '@/components/bank-deck/Slide17';
+import Slide18 from '@/components/bank-deck/Slide18';
+import Slide19 from '@/components/bank-deck/Slide19';
+import Slide20 from '@/components/bank-deck/Slide20';
 import SlideAppC from '@/components/bank-deck/SlideAppC';
 import SlideAppD from '@/components/bank-deck/SlideAppD';
 import SlideAppE from '@/components/bank-deck/SlideAppE';
@@ -529,6 +534,21 @@ export default function BankDeck() {
         <Slide13 />
         <Slide14 />
         <Slide15 />
+
+        {/* ─── Юнит-экономика ──────────────────────────────────────── */}
+        <div className="my-8 flex items-center gap-4">
+          <div className="flex-1 h-px bg-slate-200" />
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400 px-3">
+            Юнит-экономика · Коммерческая модель
+          </span>
+          <div className="flex-1 h-px bg-slate-200" />
+        </div>
+
+        <Slide16 />
+        <Slide17 />
+        <Slide18 />
+        <Slide19 />
+        <Slide20 />
 
         {/* ─── Приложения ─────────────────────────────────────────── */}
         <div className="my-8 flex items-center gap-4">
