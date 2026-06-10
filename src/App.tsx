@@ -256,6 +256,9 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Videos = lazy(() => import("./pages/Videos"));
 
+// ─── Internal / Owner docs ─────────────────────────────────────────────────
+const TechEconomics = lazy(() => import("./pages/TechEconomics"));
+
 // ─── Decks / Presentations ─────────────────────────────────────────────────
 const Presentation = lazy(() => import("./pages/Presentation"));
 const StrategyDeck = lazy(() => import("./pages/StrategyDeck"));
@@ -602,6 +605,7 @@ const App = () => {
                       <Route path="/documentation" element={<Documentation />} />
                       <Route path="/pricing-policy" element={<PricingPolicy />} />
                       <Route path="/installation-guide" element={<InstallationGuide />} />
+                      <Route path="/tech-economics" element={<TechEconomics />} />
                       <Route path="/pricing" element={<Navigate to="/wallet" replace />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/ideas" element={<IdeasBoard />} />
