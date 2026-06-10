@@ -59,6 +59,14 @@ const cards: RouteCard[] = [
     tone: 'reserve',
   },
   {
+    group: 'Для собственника',
+    title: 'Техническо-экономический разбор',
+    description:
+      'Тарифы, лимиты, хранилище, AI-расходы. Три сценария нагрузки. Потянем ли 5 000 пользователей и что нужно сделать до запуска.',
+    href: '/tech-economics',
+    tone: 'reserve',
+  },
+  {
     group: 'Архив',
     title: 'Legacy',
     description:
