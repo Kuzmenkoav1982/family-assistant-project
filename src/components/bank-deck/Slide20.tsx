@@ -6,11 +6,11 @@ const models = [
     title: 'Модель 1. Пилот',
     subtitle: 'Ярославская область',
     icon: '🚀',
-    volume: 'до 500 семей',
+    volume: 'до 499 семей',
     period: '3–6 месяцев',
     priceMonth: '350 ₽',
     priceYear: '4 200 ₽',
-    minVolume: '100 семей',
+    minVolume: '500 семей / от 100 + setup',
     note: 'Включает запуск, настройку, персональное сопровождение',
     color: 'border-slate-300 bg-white',
     headerColor: 'bg-slate-900 text-white',
@@ -22,7 +22,7 @@ const models = [
     title: 'Модель 2. Базовое партнёрство',
     subtitle: 'Ярославская область',
     icon: '🤝',
-    volume: '1 000–5 000 семей',
+    volume: '1 000–4 999 семей',
     period: '12 месяцев',
     priceMonth: '149 ₽',
     priceYear: '1 788 ₽',
@@ -123,17 +123,16 @@ export default function Slide20() {
           <div className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">Помесячно или годом?</div>
           <div className="text-2xl font-bold text-amber-700">Годовой пакет</div>
           <p className="text-xs text-amber-700 mt-1">
-            Банку — скидка и предсказуемый бюджет.
-            Нам — стабильный поток и мотивация к качеству SLA.
-            Для пилота допустима помесячная оплата.
+            Банк получает скидку 10% и предсказуемый годовой бюджет.
+            Для пилотного формата допустима помесячная оплата без обязательств по объёму.
           </p>
         </div>
       </div>
 
       <div className="bg-slate-900 text-white rounded-2xl px-6 py-4 text-sm">
-        <span className="font-semibold text-indigo-300">Итоговая позиция для переговоров:</span>{' '}
-        Базовая модель, 1 000–5 000 семей, 149 ₽/мес за подключение, годовой контракт.
-        При выходе на 5 000+ — переход на тарифный план «Масштаб» (99 ₽/мес) по допсоглашению.
+        <span className="font-semibold text-indigo-300">Рекомендуемая точка входа для Ярославской области:</span>{' '}
+        Базовое партнёрство, 1 000–4 999 семей, <strong>149 ₽/мес</strong> за активированное подключение,
+        годовой контракт. При достижении 5 000+ семей — переход на расширенный тариф по допсоглашению.
       </div>
 
       <p className="text-[11px] text-slate-400 mt-3">

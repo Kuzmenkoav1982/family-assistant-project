@@ -49,7 +49,7 @@ export default function Slide16() {
       </div>
 
       {/* Период */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div className="bg-slate-900 text-white rounded-2xl px-6 py-5">
           <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">Базовый период</div>
           <div className="text-3xl font-bold text-white mb-1">12 месяцев</div>
@@ -58,7 +58,30 @@ export default function Slide16() {
         <div className="bg-indigo-600 text-white rounded-2xl px-6 py-5">
           <div className="text-xs uppercase tracking-wider text-indigo-300 mb-2">Пилотный период</div>
           <div className="text-3xl font-bold text-white mb-1">3–6 месяцев</div>
-          <p className="text-sm text-indigo-100">Тестовый формат с ограниченным числом семей. Повышенная стоимость покрывает расходы на запуск и сопровождение.</p>
+          <p className="text-sm text-indigo-100">Тестовый формат. Минимальный объём — <strong>500 активированных семей</strong>. Повышенная стоимость покрывает запуск и сопровождение.</p>
+        </div>
+      </div>
+
+      {/* Пилот: два варианта */}
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 mb-2">
+        <div className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-3">Варианты пилотного запуска</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div className="text-sm font-semibold text-slate-800 mb-1">Вариант А — стандартный</div>
+            <ul className="text-xs text-slate-600 space-y-1">
+              <li>• Объём: от <strong>500 семей</strong></li>
+              <li>• Цена: <strong>350 ₽/мес</strong> за активированную семью</li>
+              <li>• Период: 3–6 месяцев</li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-slate-800 mb-1">Вариант Б — малый запуск</div>
+            <ul className="text-xs text-slate-600 space-y-1">
+              <li>• Объём: от <strong>100 семей</strong></li>
+              <li>• Разовый запуск/внедрение: <strong>от 150 000 ₽</strong></li>
+              <li>• Цена: <strong>350 ₽/мес</strong> за активированную семью</li>
+            </ul>
+          </div>
         </div>
       </div>
 
