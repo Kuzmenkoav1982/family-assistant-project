@@ -5,8 +5,10 @@ import boto3
 from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from s3_limit_utils import check_and_track_storage
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
 
 
 def handler(event: dict, context) -> dict:
@@ -69,7 +71,23 @@ def handler(event: dict, context) -> dict:
         
         dsn = os.environ.get('DATABASE_URL')
         conn = psycopg2.connect(dsn)
-        
+
+        # Проверка лимита S3 на семью (через family_id из activity)
+        family_id = (event.get('headers') or {}).get('X-Family-Id') or (event.get('headers') or {}).get('x-family-id')
+        if not family_id:
+            # Получить family_id из leisure_activities
+            with conn.cursor() as cur:
+                cur.execute(f"SELECT family_id FROM {SCHEMA}.leisure_activities WHERE id = %s", (activity_id,))
+                row = cur.fetchone()
+                if row:
+                    family_id = str(row[0])
+
+        if family_id:
+            ok, err = check_and_track_storage(conn, SCHEMA, family_id, len(photo_data))
+            if not ok:
+                conn.close()
+                return err
+
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 """
@@ -82,7 +100,7 @@ def handler(event: dict, context) -> dict:
             )
             result = cur.fetchone()
             conn.commit()
-        
+
         conn.close()
         
         return {
