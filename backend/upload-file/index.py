@@ -7,6 +7,27 @@ from datetime import datetime
 import uuid
 from s3_limit_utils import check_and_track_storage
 
+SCHEMA = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+
+def _validate_family(token: str, family_id: str) -> bool:
+    """Проверяет что токен принадлежит пользователю семьи family_id."""
+    if not token or not family_id:
+        return False
+    try:
+        conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        cur = conn.cursor()
+        cur.execute(
+            f"SELECT fm.family_id FROM {SCHEMA}.sessions s"
+            f" JOIN {SCHEMA}.family_members fm ON fm.user_id = s.user_id"
+            f" WHERE s.token = %s AND s.expires_at > NOW() AND fm.family_id = %s LIMIT 1",
+            (token, family_id)
+        )
+        row = cur.fetchone()
+        conn.close()
+        return row is not None
+    except Exception:
+        return False
+
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 CORS = {
@@ -53,18 +74,24 @@ def handler(event: dict, context) -> dict:
             'error': f'Файл слишком большой. Максимум 10 МБ. Ваш файл: {len(file_data) / 1024 / 1024:.1f} МБ'
         })
 
-    # Лимит объёма хранилища на семью (если передан X-Family-Id)
-    family_id = (event.get('headers') or {}).get('X-Family-Id') or (event.get('headers') or {}).get('x-family-id')
+    # Лимит объёма хранилища на семью (если передан X-Family-Id + X-Auth-Token)
+    hdrs = event.get('headers') or {}
+    family_id = hdrs.get('X-Family-Id') or hdrs.get('x-family-id')
+    token = hdrs.get('X-Authorization') or hdrs.get('x-authorization') or hdrs.get('X-Auth-Token') or hdrs.get('x-auth-token')
+
     if family_id:
-        schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+        # Валидация: пользователь должен принадлежать этой семье
+        if not _validate_family(token, family_id):
+            return respond(403, {'error': 'Нет доступа к этой семье'})
+
         try:
             conn = psycopg2.connect(os.environ['DATABASE_URL'])
-            ok, err = check_and_track_storage(conn, schema, family_id, len(file_data))
+            ok, err = check_and_track_storage(conn, SCHEMA, family_id, len(file_data))
             conn.close()
             if not ok:
                 return err
         except Exception:
-            pass  # Если БД недоступна — не блокируем загрузку
+            pass  # Если БД недоступна — fail-open, загрузка продолжается
 
     # Определить расширение и content-type
     file_ext = file_name.rsplit('.', 1)[-1].lower() if '.' in file_name else 'jpg'

@@ -8,12 +8,11 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "POST recommend без семьи возвращает ответ",
+      "name": "POST без токена возвращает 401",
       "method": "POST",
       "path": "/",
-      "body": { "action": "recommend", "city": "Москва", "interests": ["культура"] },
-      "expectedStatus": 200,
-      "expectedBody": { "recommendations": [] },
+      "body": { "action": "recommend", "city": "Москва" },
+      "expectedStatus": 401,
       "bodyMatcher": "partial"
     }
   ]

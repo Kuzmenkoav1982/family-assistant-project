@@ -94,60 +94,63 @@ def handler(event: dict, context) -> dict:
             body = json.loads(event.get('body', '{}'))
             action = body.get('action')
 
-            _credits_user_id, _credits_family_id = get_user_and_family(event)
-            if _credits_user_id and _credits_family_id:
-                _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
-                _credits_conn = get_db()
-                try:
-                    _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, _credits_family_id, 'leisure_ai')
-                finally:
-                    _credits_conn.close()
-                if not _ok:
-                    return _err
+            # Обязательная авторизация для всех POST-действий
+            user_id, family_id = get_user_and_family(event)
+            if not user_id or not family_id:
+                return {
+                    'statusCode': 401,
+                    'headers': headers,
+                    'body': json.dumps({'error': 'Требуется авторизация'}),
+                    'isBase64Encoded': False
+                }
+
+            # Проверка AI-кредитов
+            _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+            _credits_conn = get_db()
+            try:
+                _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'leisure_ai')
+            finally:
+                _credits_conn.close()
+            if not _ok:
+                return _err
 
             if action == 'recommend':
                 print(f"[INFO] Action: recommend")
-                user_id, family_id = get_user_and_family(event)
-                if user_id and family_id:
-                    spend_result = wallet_spend(user_id, family_id, 4, 'ai_recommendation', 'Рекомендации ИИ')
-                    if spend_result.get('error') == 'insufficient_funds':
-                        return {
-                            'statusCode': 402,
-                            'headers': headers,
-                            'body': json.dumps({
-                                'error': 'insufficient_funds',
-                                'message': f'Недостаточно средств. Нужно 4 руб',
-                                'balance': spend_result.get('balance', 0)
-                            }),
-                            'isBase64Encoded': False
-                        }
+                spend_result = wallet_spend(user_id, family_id, 4, 'ai_recommendation', 'Рекомендации ИИ')
+                if spend_result.get('error') == 'insufficient_funds':
+                    return {
+                        'statusCode': 402,
+                        'headers': headers,
+                        'body': json.dumps({
+                            'error': 'insufficient_funds',
+                            'message': f'Недостаточно средств. Нужно 4 руб',
+                            'balance': spend_result.get('balance', 0)
+                        }),
+                        'isBase64Encoded': False
+                    }
                 return handle_recommend(body, headers)
             elif action == 'search_places':
                 print(f"[INFO] Action: search_places, query={body.get('query')}, city={body.get('city')}")
-                s_user_id, s_family_id = get_user_and_family(event)
-                if s_user_id and s_family_id:
-                    spend_result = wallet_spend(s_user_id, s_family_id, 4, 'ai_leisure_search', 'Поиск мест ИИ')
-                    if spend_result.get('error') == 'insufficient_funds':
-                        return {
-                            'statusCode': 402,
-                            'headers': headers,
-                            'body': json.dumps({
-                                'error': 'insufficient_funds',
-                                'message': 'Недостаточно средств. Нужно 4 руб',
-                                'balance': spend_result.get('balance', 0)
-                            }),
-                            'isBase64Encoded': False
-                        }
+                spend_result = wallet_spend(user_id, family_id, 4, 'ai_leisure_search', 'Поиск мест ИИ')
+                if spend_result.get('error') == 'insufficient_funds':
+                    return {
+                        'statusCode': 402,
+                        'headers': headers,
+                        'body': json.dumps({
+                            'error': 'insufficient_funds',
+                            'message': 'Недостаточно средств. Нужно 4 руб',
+                            'balance': spend_result.get('balance', 0)
+                        }),
+                        'isBase64Encoded': False
+                    }
                 print(f"[wallet] Charged 4 rub for ai_leisure_search")
                 result = handle_search_places(body, headers)
                 print(f"[INFO] Search result status: {result.get('statusCode')}")
                 return result
             elif action == 'search_restaurants':
                 print(f"[INFO] Action: search_restaurants, query={body.get('query')}")
-                sr_user_id, sr_family_id = get_user_and_family(event)
-                if sr_user_id and sr_family_id:
-                    spend_result = wallet_spend(sr_user_id, sr_family_id, 4, 'ai_leisure_search', 'Поиск мест ИИ')
-                    if spend_result.get('error') == 'insufficient_funds':
+                spend_result = wallet_spend(user_id, family_id, 4, 'ai_leisure_search', 'Поиск мест ИИ')
+                if spend_result.get('error') == 'insufficient_funds':
                         return {
                             'statusCode': 402,
                             'headers': headers,
