@@ -8,6 +8,8 @@ import psycopg2
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 SCHEMA = '"t_p5815085_family_assistant_pro"'
 
 
@@ -249,6 +251,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'error': 'auth_required', 'message': 'Для использования AI-помощника необходимо зарегистрироваться'})
             }
+
+        _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+        _credits_conn = get_db_connection()
+        try:
+            _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'ai_assistant')
+        finally:
+            _credits_conn.close()
+        if not _ok:
+            return _err
 
         PRICE = 3
         spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_assistant', 'AI-ассистент')

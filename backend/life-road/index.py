@@ -7,6 +7,8 @@ import psycopg2
 import boto3
 import requests
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 SCHEMA = 't_p5815085_family_assistant_pro'
 
@@ -1513,6 +1515,15 @@ def _wallet_spend(family_id, user_id, amount, reason, description):
 def _handle_coach(method, cur, family_id, user_id, event):
     if method != 'POST':
         return _resp(405, {'error': 'Method not allowed'})
+
+    _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+    _credits_conn = psycopg2.connect(os.environ.get('DATABASE_URL', ''))
+    try:
+        _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'life_road')
+    finally:
+        _credits_conn.close()
+    if not _ok:
+        return _err
 
     spend_result = _wallet_spend(family_id, user_id, COACH_PRICE, COACH_REASON, COACH_DESCRIPTION)
     if spend_result.get('error') == 'insufficient_funds':

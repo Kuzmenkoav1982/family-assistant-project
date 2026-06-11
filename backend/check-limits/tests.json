@@ -1,16 +1,24 @@
 {
   "tests": [
     {
-      "name": "GET: проверка лимитов",
+      "name": "GET: статус AI-кредитов",
       "method": "GET",
-      "path": "/?type=ai_requests",
+      "path": "/",
       "headers": {
         "X-Family-Id": "8ef63550-c139-4ec1-b856-4d0f5e9b67e9"
       },
       "expectedStatus": 200,
       "expectedBody": {
-        "plan_type": "free_2026"
+        "plan_type": "string",
+        "ai_credits": "object"
       },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
       "bodyMatcher": "partial"
     }
   ]

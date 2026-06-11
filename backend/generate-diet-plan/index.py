@@ -10,6 +10,8 @@ import requests
 import psycopg2
 from typing import Dict, Any, Optional
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 
 CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -251,6 +253,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         user_id, family_id = get_user_and_family(event)
         if not user_id:
             return respond(401, {'error': 'Не авторизован'})
+
+        if action == 'start':
+            _duration = int(body.get('duration_days', 7))
+            if _duration >= 30:
+                _credit_fn = 'diet_plan_30d'
+            elif _duration >= 14:
+                _credit_fn = 'diet_plan_14d'
+            else:
+                _credit_fn = 'diet_plan_7d'
+            _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+            _credits_conn = get_db()
+            try:
+                _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, _credit_fn)
+            finally:
+                _credits_conn.close()
+            if not _ok:
+                return _err
+
         spend_result = wallet_spend(
             user_id, family_id, price,
             REASON_MAP.get(action, 'ai_other'),

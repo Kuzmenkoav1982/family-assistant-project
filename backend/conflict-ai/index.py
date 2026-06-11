@@ -4,6 +4,8 @@ import requests
 import psycopg2
 from typing import Dict, Any
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 
 def get_db_connection():
     database_url = os.environ.get('DATABASE_URL')
@@ -190,6 +192,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'headers': {**cors_headers, 'Content-Type': 'application/json'},
                 'body': json.dumps({'error': 'auth_required', 'message': 'Для использования анализа конфликтов необходимо зарегистрироваться'})
             }
+
+        _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+        _credits_conn = get_db_connection()
+        try:
+            _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'conflict_ai')
+        finally:
+            _credits_conn.close()
+        if not _ok:
+            return _err
 
         PRICE = 5
         spend_result = wallet_spend(user_id, family_id, PRICE, 'conflict_ai', 'ИИ-анализ конфликта')

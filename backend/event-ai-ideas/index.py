@@ -4,6 +4,8 @@ import urllib.request
 import urllib.error
 import psycopg2
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 YANDEX_GPT_URL = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion'
 
 CORS = {
@@ -98,6 +100,16 @@ def handler(event: dict, context) -> dict:
         user_id, family_id = get_user_and_family(event)
         if not user_id:
             return respond(401, {'error': 'Не авторизован'})
+
+        _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+        _credits_conn = psycopg2.connect(os.environ['DATABASE_URL'])
+        try:
+            _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'event_ai_ideas')
+        finally:
+            _credits_conn.close()
+        if not _ok:
+            return _err
+
         spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_event_ideas', 'Идеи для события ИИ')
         if 'error' in spend_result:
             if spend_result['error'] == 'insufficient_funds':

@@ -6,6 +6,9 @@ from datetime import datetime
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
 def handler(event: dict, context) -> dict:
     '''Загрузка фотографий для досуговых активностей в S3'''
     
@@ -40,7 +43,14 @@ def handler(event: dict, context) -> dict:
             }
         
         photo_data = base64.b64decode(photo_base64)
-        
+
+        if len(photo_data) > MAX_FILE_SIZE_BYTES:
+            return {
+                'statusCode': 413,
+                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': f'Файл слишком большой. Максимум 10 МБ'}, ensure_ascii=False)
+            }
+
         s3 = boto3.client('s3',
             endpoint_url='https://bucket.poehali.dev',
             aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],

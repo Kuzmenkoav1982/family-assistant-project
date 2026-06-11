@@ -4,6 +4,8 @@ import requests
 import psycopg2
 from typing import Optional
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 
 def get_db():
     return psycopg2.connect(os.environ['DATABASE_URL'])
@@ -91,7 +93,18 @@ def handler(event: dict, context) -> dict:
         if method == 'POST':
             body = json.loads(event.get('body', '{}'))
             action = body.get('action')
-            
+
+            _credits_user_id, _credits_family_id = get_user_and_family(event)
+            if _credits_user_id and _credits_family_id:
+                _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+                _credits_conn = get_db()
+                try:
+                    _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, _credits_family_id, 'leisure_ai')
+                finally:
+                    _credits_conn.close()
+                if not _ok:
+                    return _err
+
             if action == 'recommend':
                 print(f"[INFO] Action: recommend")
                 user_id, family_id = get_user_and_family(event)

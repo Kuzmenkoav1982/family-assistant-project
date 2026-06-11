@@ -6,6 +6,9 @@ import base64
 from datetime import datetime
 import uuid
 
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Upload medical documents (prescriptions, analyses, vaccination certificates) to Object Storage
@@ -95,7 +98,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         file_base64 = file_base64.split(',')[1]
     
     file_data = base64.b64decode(file_base64)
-    
+
+    if len(file_data) > MAX_FILE_SIZE_BYTES:
+        return {
+            'statusCode': 413,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Файл слишком большой. Максимальный размер: 10 МБ. Загружаемый файл: {len(file_data) / 1024 / 1024:.1f} МБ'}, ensure_ascii=False)
+        }
+
     file_ext = filename.split('.')[-1] if '.' in filename else 'jpg'
     timestamp = int(datetime.now().timestamp() * 1000)
     random_str = uuid.uuid4().hex[:8]

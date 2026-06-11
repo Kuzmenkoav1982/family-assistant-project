@@ -5,6 +5,8 @@ import base64
 import psycopg2
 from datetime import datetime
 
+from ai_credits_utils import check_and_spend_ai_credits
+
 
 CORS = {
     'Access-Control-Allow-Origin': '*',
@@ -108,6 +110,16 @@ def handler(event: dict, context) -> dict:
     user_id, family_id = get_user_and_family(event)
     if not user_id:
         return respond(401, {'error': 'Не авторизован'})
+
+    _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
+    _credits_conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    try:
+        _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'health_ai_analysis')
+    finally:
+        _credits_conn.close()
+    if not _ok:
+        return _err
+
     spend_result = wallet_spend(user_id, family_id, PRICE, 'ai_health_analysis', 'Анализ здоровья ИИ')
     if 'error' in spend_result:
         if spend_result['error'] == 'insufficient_funds':

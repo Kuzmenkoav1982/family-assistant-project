@@ -5,6 +5,8 @@ import base64
 from datetime import datetime
 import uuid
 
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
 
 def handler(event: dict, context) -> dict:
     """Загрузка файлов (фото, PDF) в S3 хранилище для всех разделов приложения."""
@@ -52,6 +54,13 @@ def handler(event: dict, context) -> dict:
         }
 
     file_data = base64.b64decode(file_base64)
+
+    if len(file_data) > MAX_FILE_SIZE_BYTES:
+        return {
+            'statusCode': 413,
+            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'body': json.dumps({'error': f'Файл слишком большой. Максимальный размер: 10 МБ. Загружаемый файл: {len(file_data) / 1024 / 1024:.1f} МБ'}, ensure_ascii=False)
+        }
 
     file_ext = file_name.rsplit('.', 1)[-1].lower() if '.' in file_name else 'jpg'
     unique_name = f"{folder}/{datetime.now().strftime('%Y%m%d')}/{uuid.uuid4().hex}.{file_ext}"
