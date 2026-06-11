@@ -95,11 +95,16 @@ export const useFileUpload = (): UseFileUploadReturn => {
 
       setProgress(60);
 
+      // Передаём токен чтобы бэкенд мог определить семью и учесть S3-лимит
+      const _token = localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
+      const _familyId = localStorage.getItem('familyId') || '';
+      const _uploadHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (_token) _uploadHeaders['X-Auth-Token'] = _token;
+      if (_familyId) _uploadHeaders['X-Family-Id'] = _familyId;
+
       const response = await fetch('https://functions.poehali.dev/159c1ff5-fd0b-4564-b93b-55b81348c9a0', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: _uploadHeaders,
         body: JSON.stringify({
           file: base64,
           fileName: workFile.name,
