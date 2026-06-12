@@ -8,7 +8,7 @@ import SectionPageFrame from '@/components/ui/SectionPageFrame';
 // 2. Тарифные карточки переписаны в терминах «активированного подключения»
 // 3. Партнёрский баланс вынесен как отдельный механизм
 // Изменения vs v1.3.1:
-// 1. Все AI-функции переведены с Pro → Lite (подтверждено живыми логами 12.06.2026)
+// 1. 12 GPT-функций переведены на Lite, 1 image → YandexART (подтверждено 12.06.2026)
 // 2. AI-кредиты убраны как блокирующий механизм — остался только кошелёк в рублях
 // 3. Worst-case пересчитан по реальным Lite-ценам (0,20 ₽/1к токенов)
 // 4. Добавлен блок «Подтверждено живыми вызовами» с реальными токенами из логов
@@ -215,7 +215,7 @@ export default function TechEconomics() {
               <tbody className="divide-y divide-amber-100">
                 {[
                   { item: 'Cloud Functions (вызовы + GB·s)', per: '~0,50–1,50 ₽', tot: '~2 500–7 500 ₽', type: 'per request ✅' },
-                  { item: 'YandexGPT Lite (AI API) — GPT-часть', per: '~4–21 ₽', tot: '~20 000–106 500 ₽', type: 'per token ✅' },
+                  { item: 'YandexGPT Lite (AI API) — GPT-часть', per: '~8–21 ₽', tot: '~40 000–106 500 ₽', type: 'per token ✅' },
                   { item: 'Object Storage S3', per: '~2,3 ₽', tot: '~11 288 ₽', type: 'per GB ✅' },
                   { item: 'CDN исходящий трафик', per: '~0,5 ₽', tot: '~2 500 ₽', type: 'per GB ✅' },
                   { item: 'Vision OCR (медицинские документы)', per: '~0,30 ₽', tot: '~1 500 ₽', type: 'per page ✅' },
@@ -230,11 +230,17 @@ export default function TechEconomics() {
                     <td className="px-3 py-2 text-gray-400">{r.type}</td>
                   </tr>
                 ))}
+                <tr className="bg-amber-100 text-amber-900 text-xs">
+                  <td className="px-3 py-1.5">Среднее Variable</td>
+                  <td className="px-3 py-1.5 text-right font-semibold">~18,6 ₽</td>
+                  <td className="px-3 py-1.5 text-right font-semibold">~93 000 ₽</td>
+                  <td className="px-3 py-1.5 text-amber-600">средний AI-профиль</td>
+                </tr>
                 <tr className="bg-amber-200 font-bold">
-                  <td className="px-3 py-2 text-amber-900">Итого Variable (worst-case Lite)</td>
+                  <td className="px-3 py-2 text-amber-900">Worst-case Variable (Lite)</td>
                   <td className="px-3 py-2 text-right text-amber-900">~26,6 ₽</td>
                   <td className="px-3 py-2 text-right text-amber-900">~132 588 ₽</td>
-                  <td className="px-3 py-2 text-amber-700">AI worst-case на Lite</td>
+                  <td className="px-3 py-2 text-amber-700">макс. AI на Lite</td>
                 </tr>
               </tbody>
             </table>
@@ -275,7 +281,7 @@ export default function TechEconomics() {
           <div className="font-bold text-indigo-300 mb-3">Итоговая себестоимость при 5 000 семей (банк 2 ГБ) — все AI на Lite</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             {[
-              { label: 'Среднее', fix: '8 700 ₽', var_: '66 588 ₽', step: '136 500 ₽', tot: '211 788 ₽', per: '42,4 ₽', gm: '71,5%', mu: '251%' },
+              { label: 'Среднее', fix: '8 700 ₽', var_: '93 000 ₽', step: '136 500 ₽', tot: '238 200 ₽', per: '47,6 ₽', gm: '68,0%', mu: '213%' },
               { label: 'Worst-case AI (Lite)', fix: '8 700 ₽', var_: '132 588 ₽', step: '136 500 ₽', tot: '277 788 ₽', per: '55,6 ₽', gm: '62,7%', mu: '168%' },
               { label: 'Worst-case всё (Lite)', fix: '12 200 ₽', var_: '132 588 ₽', step: '141 500 ₽', tot: '286 288 ₽', per: '57,3 ₽', gm: '61,5%', mu: '160%' },
             ].map(s => (
@@ -379,7 +385,7 @@ export default function TechEconomics() {
         </div>
 
         <div className="bg-green-50 border border-green-300 rounded-xl px-5 py-4">
-          <div className="font-bold text-green-800 mb-1">Worst-case GPT на Lite: ~21,3 ₽/семью/мес</div>
+          <div className="font-bold text-green-800 mb-1">Worst-case GPT-часть на Lite: ~21,3 ₽/семью/мес</div>
           <p className="text-xs text-green-700 mb-2">
             Сценарий C — максимально тяжёлый сценарий. На Pro было бы ~127,8 ₽. Экономия Pro→Lite: <strong>~83%</strong>.
           </p>
@@ -622,7 +628,7 @@ export default function TechEconomics() {
                 { svc: 'Cloud Functions', price: '13,20 ₽ + GB·s', unit: 'за 1 млн вызовов', st: '✅', quota: '169/200 функций (84%). Concurrency 10/функцию. Нужна ревизия 🟡' },
                 { svc: 'Managed PostgreSQL', price: '? ₽/мес', unit: 'зависит от конфига', st: '🔴', quota: 'Конфиг неизвестен. Нужен скрин CPU/RAM/SSD из кабинета.' },
                 { svc: 'Object Storage S3', price: '~1,85 ₽/ГБ', unit: 'хранение/мес', st: '✅', quota: 'Текущий объём неизвестен — нет мониторинга 🟡' },
-                { svc: 'YandexGPT Lite', price: '0,20 ₽', unit: 'за 1 000 токенов (вх = вых)', st: '✅', quota: 'Все 13 функций на Lite — подтверждено логами. RPM/TPM не проверены 🔴' },
+                { svc: 'YandexGPT Lite', price: '0,20 ₽', unit: 'за 1 000 токенов (вх = вых)', st: '✅', quota: '12 GPT-функций на Lite (3 подтв. логами, 9 — кодом); 1 image → YandexART. RPM/TPM не проверены 🔴' },
                 { svc: 'CDN', price: '~0,85–2 ₽/ГБ', unit: 'исходящий трафик', st: '✅', quota: '—' },
                 { svc: 'Vision OCR', price: '~1,50 ₽', unit: 'за страницу', st: '✅', quota: 'RPS ~1–5 по умолчанию' },
                 { svc: 'Yandex Maps API', price: '~0,48–4,80 ₽', unit: 'за 1 000 запросов', st: '✅', quota: '—' },
@@ -895,7 +901,7 @@ export default function TechEconomics() {
           <div className="font-bold text-white mb-4">Условия безопасного запуска</div>
           <div className="space-y-3">
             {[
-              { p: '✅', t: 'Все AI-функции → Lite (−83%)', d: 'Подтверждено логами 12.06.2026. Кредитный блок убран, контроль только через кошелёк.' },
+              { p: '✅', t: '12 GPT → Lite, 1 image → Art (−83%)', d: '3 GPT-функции подтверждены живыми логами, 9 — проверкой кода. blog-cover-generator → YandexART.' },
               { p: '🟢', t: 'Лимит файла 10 МБ', d: 'Три upload-функции. Токен передаётся, семья определяется автоматически.' },
               { p: '🟡', t: 'Лимит S3 — частично', d: 'Работает в штатном режиме. Три слабых места: fail-open, нет декремента, нет backfill.' },
               { p: '🔴', t: 'Подтвердить PostgreSQL конфиг', d: 'Кабинет → PostgreSQL → CPU/RAM/SSD. Без этого fixed ±40% неизвестен.' },
