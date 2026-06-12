@@ -2,7 +2,11 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
-// ─── v1.4 ────────────────────────────────────────────────────────────────────
+// ─── v1.5 ────────────────────────────────────────────────────────────────────
+// Изменения vs v1.4:
+// 1. Добавлен раздел «Коммерческая модель для банка» — гибридная + фиксированная
+// 2. Тарифные карточки переписаны в терминах «активированного подключения»
+// 3. Партнёрский баланс вынесен как отдельный механизм
 // Изменения vs v1.3.1:
 // 1. Все AI-функции переведены с Pro → Lite (подтверждено живыми логами 12.06.2026)
 // 2. AI-кредиты убраны как блокирующий механизм — остался только кошелёк в рублях
@@ -24,6 +28,7 @@ const NAV_ITEMS = [
   { id: 's6', label: 'Безопасность' },
   { id: 's7', label: 'Тарифы / квоты' },
   { id: 's8', label: 'Поддержка' },
+  { id: 'sbank', label: '🏦 Модель для банка' },
   { id: 's9', label: 'Вывод' },
 ];
 
@@ -46,7 +51,7 @@ function scrollTo(id: string) {
 export default function TechEconomics() {
   return (
     <SectionPageFrame
-      title="Техническо-экономический разбор v1.4"
+      title="Техническо-экономический разбор v1.5"
       subtitle="Конфиденциально — только для собственника и доверенных партнёров"
       backPath="/"
       variant="light"
@@ -653,9 +658,177 @@ export default function TechEconomics() {
         </div>
       </section>
 
+      {/* ═══ BANK — Коммерческая модель для банка ═══ */}
+      <section id="sbank" className="mb-10">
+        <h2 className="text-xl font-bold text-gray-900 mb-1">10. Коммерческая модель для банка</h2>
+        <p className="text-sm text-gray-500 mb-5">
+          Не разовая оплата «за подключение навсегда», а оплата за <strong>активированное подключение в расчёте на месяц</strong>.
+          Банк платит только за реально работающие аккаунты.
+        </p>
+
+        {/* Две модели */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+
+          {/* Модель A — гибридная */}
+          <div className="bg-indigo-50 border-2 border-indigo-400 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="bg-indigo-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">Рекомендуется</span>
+              <span className="font-bold text-indigo-900">Модель A — гибридная</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-white rounded-xl p-3 border border-indigo-200">
+                <div className="text-xs text-indigo-500 mb-1">Пилот (до 500)</div>
+                <div className="text-2xl font-bold text-indigo-800">350 ₽</div>
+                <div className="text-xs text-gray-500">/ подключение / мес</div>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-indigo-200">
+                <div className="text-xs text-indigo-500 mb-1">Масштаб (1 000+)</div>
+                <div className="text-2xl font-bold text-indigo-800">149 ₽</div>
+                <div className="text-xs text-gray-500">/ подключение / мес</div>
+              </div>
+            </div>
+
+            <div className="text-xs text-gray-700 space-y-1.5 mb-4">
+              <div className="font-semibold text-gray-800 mb-1">Что входит в базовую стоимость:</div>
+              {[
+                'Доступ к основному функционалу сервиса',
+                'Стандартные AI-сценарии',
+                'Хранение данных в рамках тарифа',
+                'Базовая поддержка',
+              ].map(i => <div key={i} className="flex gap-2"><span className="text-green-500">✓</span>{i}</div>)}
+            </div>
+
+            <div className="bg-indigo-100 rounded-xl p-3 text-xs">
+              <div className="font-semibold text-indigo-800 mb-1.5">Партнёрский баланс (опционально)</div>
+              <p className="text-indigo-700 mb-2">
+                Банк задаёт ежемесячный баланс на пользователя — например, 50 / 100 / 150 ₽.
+                После исчерпания пользователь продолжает пользоваться базовыми функциями
+                или <strong>сам пополняет кошелёк</strong>.
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {[['50 ₽', 'минимальный'], ['100 ₽', 'стандартный'], ['150 ₽', 'расширенный']].map(([val, lbl]) => (
+                  <div key={val} className="bg-white rounded-lg p-2 text-center border border-indigo-200">
+                    <div className="font-bold text-indigo-800">{val}</div>
+                    <div className="text-gray-400 text-[10px]">{lbl}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-3 bg-green-50 border border-green-200 rounded-xl p-3 text-xs text-green-800">
+              <strong>Плюс модели:</strong> у банка фиксируемый бюджет, у пользователя нет жёсткой блокировки,
+              дополнительное потребление банк не оплачивает автоматически.
+            </div>
+          </div>
+
+          {/* Модель B — фиксированная */}
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="bg-gray-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Альтернатива</span>
+              <span className="font-bold text-gray-900">Модель B — фиксированная</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-white rounded-xl p-3 border border-gray-200">
+                <div className="text-xs text-gray-500 mb-1">Пилот (до 500)</div>
+                <div className="text-2xl font-bold text-gray-700">490 ₽</div>
+                <div className="text-xs text-gray-400">/ подключение / мес</div>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-gray-200">
+                <div className="text-xs text-gray-500 mb-1">Масштаб (1 000+)</div>
+                <div className="text-2xl font-bold text-gray-700">199 ₽</div>
+                <div className="text-xs text-gray-400">/ подключение / мес</div>
+              </div>
+            </div>
+
+            <div className="text-xs text-gray-700 space-y-1.5 mb-4">
+              <div className="font-semibold text-gray-800 mb-1">Всё включено в рамках fair use:</div>
+              {[
+                'Все AI-сценарии без дополнительной оплаты',
+                'Расширенный лимит хранения',
+                'Приоритетная поддержка',
+                'При превышении — отдельное согласование',
+              ].map(i => <div key={i} className="flex gap-2"><span className="text-gray-400">✓</span>{i}</div>)}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800">
+              <strong>Важно:</strong> «безлимитный AI» не обещать. Фиксированная модель работает только
+              при fair use policy — тяжёлые сценарии (diet-plan 30д ежедневно) требуют отдельного согласования.
+            </div>
+
+            <div className="mt-3 text-xs text-gray-500">
+              Цена выше из-за страхования риска пикового потребления.
+              При крупных объёмах 5 000+ — индивидуальные условия.
+            </div>
+          </div>
+        </div>
+
+        {/* Экономика по моделям при 5 000 семей */}
+        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm mb-5">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-gray-800 text-white">
+                <th className="text-left px-4 py-3">Сценарий</th>
+                <th className="text-right px-3 py-3">Цена/мес</th>
+                <th className="text-right px-3 py-3">Выручка 5k</th>
+                <th className="text-right px-3 py-3">Себест. 5k</th>
+                <th className="text-right px-3 py-3">Прибыль 5k</th>
+                <th className="text-right px-4 py-3">Gross margin</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[
+                { sc: 'Модель A, пилот 500 × 350 ₽', price: '350 ₽', rev: '175 000 ₽', cost: '37 500 ₽', profit: '137 500 ₽', gm: '78,6% ✅', hl: false },
+                { sc: 'Модель A, масштаб 1 000 × 149 ₽', price: '149 ₽', rev: '149 000 ₽', cost: '85 800 ₽', profit: '63 200 ₽', gm: '42,4% 🟡', hl: false },
+                { sc: 'Модель A, масштаб 5 000 × 149 ₽ ✦', price: '149 ₽', rev: '745 000 ₽', cost: '238 200 ₽', profit: '506 800 ₽', gm: '68,0% ✅', hl: true },
+                { sc: 'Модель B, масштаб 5 000 × 199 ₽', price: '199 ₽', rev: '995 000 ₽', cost: '277 788 ₽', profit: '717 212 ₽', gm: '72,1% ✅', hl: false },
+              ].map((r, i) => (
+                <tr key={i} className={r.hl ? 'bg-indigo-50 font-semibold' : 'even:bg-gray-50'}>
+                  <td className="px-4 py-2.5 text-gray-800">{r.sc}</td>
+                  <td className="px-3 py-2.5 text-right font-bold text-indigo-700">{r.price}</td>
+                  <td className="px-3 py-2.5 text-right text-gray-700">{r.rev}</td>
+                  <td className="px-3 py-2.5 text-right text-gray-500">{r.cost}</td>
+                  <td className="px-3 py-2.5 text-right font-bold text-green-700">{r.profit}</td>
+                  <td className="px-4 py-2.5 text-right font-bold">{r.gm}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Что НЕ обещать */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4">
+            <div className="font-bold text-red-800 mb-2">🚫 Не обещать первым</div>
+            <div className="text-xs text-red-700 space-y-1">
+              {[
+                'Безлимитный AI за фиксированную цену',
+                'Цену 99 ₽ — не доказана экономически',
+                '«Подключение навсегда» — только помесячно',
+                'SLA 99,9% — нет мониторинга',
+                'Безопасность мед. данных — нет юр. аудита',
+              ].map(i => <div key={i}>— {i}</div>)}
+            </div>
+          </div>
+          <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-4">
+            <div className="font-bold text-green-800 mb-2">✅ Сильные аргументы для банка</div>
+            <div className="text-xs text-green-800 space-y-1">
+              {[
+                'Предсказуемый бюджет: фикс на подключение',
+                'Дополнительное потребление — за счёт пользователя',
+                'Пользователь не блокируется, лояльность выше',
+                'Масштабная скидка от 1 000 подключений',
+                'При 5 000 семей gross margin 68% — устойчивая модель',
+              ].map(i => <div key={i}>— {i}</div>)}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ 9 — Вывод ═══ */}
       <section id="s9" className="mb-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">9. Управленческий вывод v1.4</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">11. Управленческий вывод v1.5</h2>
 
         {/* Точки */}
         <div className="bg-slate-900 text-white rounded-xl p-5 mb-5">
@@ -718,9 +891,9 @@ export default function TechEconomics() {
           <div className="font-bold text-indigo-200 mb-4">Безопасные тарифы при выполнении условий</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { tier: 'Пилот', price: '350 ₽/мес', ai: 'AI-бюджет ~5 ₽/семью', s3: '500 МБ', note: 'Или setup fee 150 000 ₽ + 149 ₽', ok: true },
-              { tier: 'Базовый 1 000+', price: '149 ₽/мес', ai: 'AI-бюджет до ~21 ₽/семью', s3: '2 ГБ', note: 'Gross margin 68,0% при 5 000 семей', ok: true },
-              { tier: 'Масштаб 5 000+', price: 'не раньше v1.5', ai: 'после аудита квот RPM', s3: 'после аудита', note: '99 ₽ — не объявлять', ok: false },
+              { tier: 'Пилот (до 500)', price: '350 ₽/мес', ai: 'партнёрский баланс опционально', s3: '500 МБ', note: 'Модель A. GM 78,6% на 500 подкл.', ok: true },
+              { tier: 'Масштаб (1 000+)', price: '149 ₽/мес', ai: 'партнёрский баланс опционально', s3: '2 ГБ', note: 'Модель A. GM 68,0% при 5 000 подкл.', ok: true },
+              { tier: 'Масштаб 5 000+', price: 'инд. условия', ai: 'после аудита квот RPM', s3: 'после аудита', note: '99 ₽ — не объявлять', ok: false },
             ].map(t => (
               <div key={t.tier} className={`rounded-xl p-4 ${t.ok ? 'bg-white/10' : 'bg-red-900/30 border border-red-700/40'}`}>
                 <div className="text-xs font-bold text-indigo-300 mb-1">{t.tier}</div>
@@ -746,7 +919,7 @@ export default function TechEconomics() {
       </section>
 
       <p className="text-xs text-gray-400 text-center mt-4">
-        v1.4 · Июнь 2026 · Конфиденциально<br />
+        v1.5 · Июнь 2026 · Конфиденциально<br />
         Gross margin = (выручка − себест.) / выручку · Markup = (выручка − себест.) / себест.
       </p>
     </SectionPageFrame>
