@@ -104,16 +104,6 @@ def handler(event: dict, context) -> dict:
                     'isBase64Encoded': False
                 }
 
-            # Проверка AI-кредитов
-            _schema = os.environ.get('MAIN_DB_SCHEMA', 't_p5815085_family_assistant_pro')
-            _credits_conn = get_db()
-            try:
-                _ok, _err = check_and_spend_ai_credits(_credits_conn, _schema, family_id, 'leisure_ai')
-            finally:
-                _credits_conn.close()
-            if not _ok:
-                return _err
-
             if action == 'recommend':
                 print(f"[INFO] Action: recommend")
                 spend_result = wallet_spend(user_id, family_id, 4, 'ai_recommendation', 'Рекомендации ИИ')
