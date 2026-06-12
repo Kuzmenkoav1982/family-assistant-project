@@ -308,10 +308,11 @@ export default function TechEconomics() {
 
       {/* ═══ 2 — AI worst-case как задача оптимизации ═══ */}
       <section id="s2" className="mb-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">2. AI worst-case — все функции на Lite</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">2. AI worst-case — GPT-часть на Lite</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Все 13 функций работают на YandexGPT Lite (0,20 ₽/1к токенов). Кредитный блок убран —
-          контроль только через баланс кошелька. Worst-case = максимальный реальный токенаж за месяц.
+          12 GPT-функций работают на YandexGPT Lite (0,20 ₽ / 1к токенов);
+          blog-cover-generator использует YandexART, а OCR в health-ai тарифицируется отдельно через Vision API.
+          Ниже — worst-case относится только к GPT-части.
         </p>
 
         <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm mb-4">
@@ -389,12 +390,11 @@ export default function TechEconomics() {
           <p className="text-xs text-green-700 mb-2">
             Сценарий C — максимально тяжёлый сценарий. На Pro было бы ~127,8 ₽. Экономия Pro→Lite: <strong>~83%</strong>.
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div className="grid grid-cols-3 gap-2 text-xs">
             {[
-              { label: 'GPT-часть (Lite)', val: '21,3 ₽', sub: 'worst-case сценарий C' },
-              { label: 'Без поддержки', val: '29,3 ₽', sub: '21,3 + 5,2 fixed + 2,8 S3' },
-              { label: 'С поддержкой 1 FTE', val: '56,6 ₽', sub: '29,3 + 27,3 support' },
-              { label: 'Gross margin (149 ₽)', val: '61,5%', sub: 'см. раздел 1 / вывод' },
+              { label: 'Worst-case GPT-часть', val: '21,3 ₽', sub: 'сценарий C на Lite' },
+              { label: 'Полный worst-case', val: '57,3 ₽', sub: 'по модели раздела 1/11' },
+              { label: 'Gross margin (149 ₽)', val: '61,5%', sub: 'при worst-case всё' },
             ].map(c => (
               <div key={c.label} className="bg-white border border-green-200 rounded-lg p-2 text-center">
                 <div className="text-[10px] text-gray-500 mb-0.5">{c.label}</div>
@@ -404,8 +404,8 @@ export default function TechEconomics() {
             ))}
           </div>
           <p className="text-[11px] text-amber-700 mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            ⚠️ <strong>Важно:</strong> health-ai в сценариях учитывает только GPT-часть (0,19 ₽).
-            OCR/Vision тарифицируется отдельно (~1,50 ₽/стр.) и не входит в приведённые расчёты.
+            ⚠️ OCR/Vision для health-ai тарифицируется отдельно (~1,50 ₽/стр.) и в GPT-часть не входит.
+            Полный worst-case 57,3 ₽ взят из раздела 1 (включает fixed + variable + support).
           </p>
         </div>
       </section>
