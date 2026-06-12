@@ -84,49 +84,53 @@ export default function TechEconomics() {
             квоты YandexGPT из AI Studio, фактический объём S3.
           </p>
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 mb-5 text-xs text-blue-800">
-          <div className="font-bold text-blue-900 mb-2">Подтверждено живыми вызовами 12.06.2026</div>
-          <div className="overflow-x-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+          {/* Уровень 1 — live logs */}
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 text-xs">
+            <div className="font-bold text-blue-900 mb-2">🟢 Уровень 1 — подтверждено живыми логами (12.06.2026)</div>
             <table className="w-full text-xs">
               <thead><tr className="text-left text-blue-700 border-b border-blue-200">
-                <th className="pb-1 pr-4">Функция</th><th className="pb-1 pr-4">Модель</th>
-                <th className="pb-1 pr-4 text-right">Вход (токенов)</th>
-                <th className="pb-1 pr-4 text-right">Выход (токенов)</th>
-                <th className="pb-1 text-right">Стоимость Lite</th>
+                <th className="pb-1 pr-3">Функция</th>
+                <th className="pb-1 pr-3 text-right">Токены</th>
+                <th className="pb-1 text-right">Lite</th>
               </tr></thead>
               <tbody className="divide-y divide-blue-100">
                 {[
-                  { fn: 'health-ai-analysis', m: 'yandexgpt-lite', i: 656, o: 277, t: 933 },
-                  { fn: 'generate-diet-plan', m: 'yandexgpt-lite', i: 612, o: 4448, t: 5060 },
-                  { fn: 'analyze-development', m: 'yandexgpt-lite', i: 652, o: 619, t: 1271 },
+                  { fn: 'health-ai (GPT-часть)', t: 933 },
+                  { fn: 'generate-diet-plan', t: 5060 },
+                  { fn: 'analyze-development', t: 1271 },
                 ].map(r => (
                   <tr key={r.fn}>
-                    <td className="py-1 pr-4 font-mono">{r.fn}</td>
-                    <td className="py-1 pr-4 text-green-700 font-semibold">{r.m}</td>
-                    <td className="py-1 pr-4 text-right">{r.i.toLocaleString()}</td>
-                    <td className="py-1 pr-4 text-right">{r.o.toLocaleString()}</td>
-                    <td className="py-1 text-right font-semibold">{(r.t * 0.0002).toFixed(2)} ₽</td>
+                    <td className="py-1 pr-3 font-mono">{r.fn}</td>
+                    <td className="py-1 pr-3 text-right">{r.t.toLocaleString()}</td>
+                    <td className="py-1 text-right font-semibold text-green-700">{(r.t * 0.0002).toFixed(2)} ₽</td>
                   </tr>
                 ))}
-                <tr className="font-bold text-blue-900 border-t border-blue-300">
-                  <td className="pt-1 pr-4" colSpan={2}>Итого (было бы на Pro)</td>
-                  <td className="pt-1 pr-4 text-right">—</td>
-                  <td className="pt-1 pr-4 text-right">—</td>
-                  <td className="pt-1 text-right text-red-600 line-through">8,72 ₽</td>
-                </tr>
-                <tr className="font-bold text-green-800">
-                  <td className="pr-4" colSpan={2}>Итого на Lite (−83%)</td>
-                  <td className="pr-4 text-right">—</td>
-                  <td className="pr-4 text-right">—</td>
-                  <td className="text-right">1,45 ₽</td>
+                <tr className="border-t border-blue-300 font-bold text-blue-900">
+                  <td className="pt-1 pr-3">Итого (Pro было бы)</td>
+                  <td className="pt-1 pr-3 text-right">7 264</td>
+                  <td className="pt-1 text-right"><span className="line-through text-red-500 mr-1">8,72 ₽</span><span className="text-green-700">1,45 ₽</span></td>
                 </tr>
               </tbody>
             </table>
           </div>
+          {/* Уровень 2 — code confirmed */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 text-xs">
+            <div className="font-bold text-gray-800 mb-2">🔵 Уровень 2 — подтверждено кодом (modelUri = yandexgpt-lite)</div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-gray-600 font-mono">
+              {['ai-assistant','child-assessment','event-ai-ideas','leisure-ai','life-road','trips-ai-recommend','generate-itinerary','finance-api','conflict-ai'].map(f => (
+                <div key={f} className="py-0.5">✅ {f}</div>
+              ))}
+            </div>
+            <div className="mt-2 pt-2 border-t border-gray-200 text-gray-500">
+              <div>⚡ blog-cover-generator → <strong>YandexART</strong> (image, не GPT)</div>
+              <div className="mt-1">⚠️ health-ai OCR → <strong>Vision API</strong> ~1,50 ₽/стр. (отдельный биллинг)</div>
+            </div>
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { icon: '✅', label: 'AI модели', value: 'Все 13 функций → Lite (−83% токенов)' },
+            { icon: '✅', label: 'AI модели', value: '12 GPT → Lite, 1 image → Art (−83%)' },
             { icon: '✅', label: 'Лимит файла', value: '10 МБ, токен передаётся' },
             { icon: '🟡', label: 'Лимит S3', value: 'Частично — 3 слабых места' },
             { icon: '✅', label: 'leisure-ai + upload', value: 'Авторизация закрыта' },
@@ -201,7 +205,7 @@ export default function TechEconomics() {
               <tbody className="divide-y divide-amber-100">
                 {[
                   { item: 'Cloud Functions (вызовы + GB·s)', per: '~0,50–1,50 ₽', tot: '~2 500–7 500 ₽', type: 'per request ✅' },
-                  { item: 'YandexGPT Lite (AI API)', per: '~13,5–30 ₽', tot: '~67 500–150 000 ₽', type: 'per token ✅' },
+                  { item: 'YandexGPT Lite (AI API) — GPT-часть', per: '~4–21 ₽', tot: '~20 000–106 500 ₽', type: 'per token ✅' },
                   { item: 'Object Storage S3', per: '~2,3 ₽', tot: '~11 288 ₽', type: 'per GB ✅' },
                   { item: 'CDN исходящий трафик', per: '~0,5 ₽', tot: '~2 500 ₽', type: 'per GB ✅' },
                   { item: 'Vision OCR (медицинские документы)', per: '~0,30 ₽', tot: '~1 500 ₽', type: 'per page ✅' },
@@ -217,10 +221,10 @@ export default function TechEconomics() {
                   </tr>
                 ))}
                 <tr className="bg-amber-200 font-bold">
-                  <td className="px-3 py-2 text-amber-900">Итого Variable (worst-case)</td>
-                  <td className="px-3 py-2 text-right text-amber-900">~35,7–33,5 ₽</td>
-                  <td className="px-3 py-2 text-right text-amber-900">~240 588 ₽</td>
-                  <td className="px-3 py-2 text-amber-700">при AI worst-case</td>
+                  <td className="px-3 py-2 text-amber-900">Итого Variable (worst-case Lite)</td>
+                  <td className="px-3 py-2 text-right text-amber-900">~26,6 ₽</td>
+                  <td className="px-3 py-2 text-right text-amber-900">~132 588 ₽</td>
+                  <td className="px-3 py-2 text-amber-700">AI worst-case на Lite</td>
                 </tr>
               </tbody>
             </table>
@@ -258,12 +262,12 @@ export default function TechEconomics() {
 
         {/* Сводка */}
         <div className="bg-slate-900 text-white rounded-xl p-5">
-          <div className="font-bold text-indigo-300 mb-3">Итоговая себестоимость при 5 000 семей (банк 2 ГБ, 30 кредитов)</div>
+          <div className="font-bold text-indigo-300 mb-3">Итоговая себестоимость при 5 000 семей (банк 2 ГБ) — все AI на Lite</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             {[
-              { label: 'Среднее', fix: '8 700 ₽', var_: '142 088 ₽', step: '136 500 ₽', tot: '287 288 ₽', per: '57,5 ₽', gm: '61,4%', mu: '159%' },
-              { label: 'Worst-case AI', fix: '8 700 ₽', var_: '240 588 ₽', step: '136 500 ₽', tot: '385 788 ₽', per: '77,2 ₽', gm: '48,2%', mu: '93%' },
-              { label: 'Worst-case всё', fix: '12 200 ₽', var_: '240 588 ₽', step: '141 500 ₽', tot: '394 288 ₽', per: '78,9 ₽', gm: '47,1%', mu: '88.7%' },
+              { label: 'Среднее', fix: '8 700 ₽', var_: '66 588 ₽', step: '136 500 ₽', tot: '211 788 ₽', per: '42,4 ₽', gm: '71,5%', mu: '251%' },
+              { label: 'Worst-case AI (Lite)', fix: '8 700 ₽', var_: '132 588 ₽', step: '136 500 ₽', tot: '277 788 ₽', per: '55,6 ₽', gm: '62,7%', mu: '168%' },
+              { label: 'Worst-case всё (Lite)', fix: '12 200 ₽', var_: '132 588 ₽', step: '141 500 ₽', tot: '286 288 ₽', per: '57,3 ₽', gm: '61,5%', mu: '160%' },
             ].map(s => (
               <div key={s.label} className="bg-white/10 rounded-xl p-4">
                 <div className="font-bold text-indigo-200 mb-2">{s.label}</div>
@@ -316,7 +320,8 @@ export default function TechEconomics() {
                 { fn: 'finance-api',         model: 'Lite', tokens: '~2 500',  api: '~0,50 ₽',  note: '✅' },
                 { fn: 'conflict-ai',         model: 'Lite', tokens: '~3 100',  api: '~0,62 ₽',  note: '✅' },
                 { fn: 'analyze-development', model: 'Lite', tokens: '1 271',   api: '0,25 ₽',   note: '✅ лог' },
-                { fn: 'health-ai (OCR+GPT)', model: 'Lite', tokens: '933',     api: '0,19 ₽',   note: '✅ лог' },
+                { fn: 'health-ai GPT-часть', model: 'Lite', tokens: '933',     api: '0,19 ₽',   note: '✅ лог' },
+                { fn: 'health-ai OCR/Vision', model: 'Vision API', tokens: '~1 стр.', api: '~1,50 ₽', note: '⚠️ отдельно' },
                 { fn: 'diet-plan 7д',        model: 'Lite', tokens: '5 060',   api: '1,01 ₽',   note: '✅ лог' },
                 { fn: 'diet-plan 14д',       model: 'Lite', tokens: '~10 000', api: '~2,00 ₽',  note: '✅' },
                 { fn: 'diet-plan 30д',       model: 'Lite', tokens: '~20 000', api: '~4,00 ₽',  note: '✅' },
@@ -521,11 +526,11 @@ export default function TechEconomics() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {[
-                { sc: '500 семей (пилот)', fx: '8 700', var: '17 850', sf: '19 500', tot: '46 050', per: '92,1 ₽', gm: '38,2% 🔴' },
-                { sc: '1 000 семей', fx: '8 700', var: '35 700', sf: '58 500', tot: '102 900', per: '102,9 ₽', gm: '31,0% 🔴' },
-                { sc: '2 500 семей', fx: '8 700', var: '89 250', sf: '97 500', tot: '195 450', per: '78,2 ₽', gm: '47,5% 🟡' },
-                { sc: '5 000 семей ✦', fx: '8 700', var: '178 500', sf: '136 500', tot: '323 700', per: '64,7 ₽', gm: '56,6% ✅' },
-                { sc: '10 000 семей', fx: '8 700', var: '357 000', sf: '288 000', tot: '653 700', per: '65,4 ₽', gm: '56,1% ✅' },
+                { sc: '500 семей (пилот)', fx: '8 700', var: '9 300', sf: '19 500', tot: '37 500', per: '75,0 ₽', gm: '49,7% 🟡' },
+                { sc: '1 000 семей', fx: '8 700', var: '18 600', sf: '58 500', tot: '85 800', per: '85,8 ₽', gm: '42,4% 🟡' },
+                { sc: '2 500 семей', fx: '8 700', var: '46 500', sf: '97 500', tot: '152 700', per: '61,1 ₽', gm: '59,0% ✅' },
+                { sc: '5 000 семей ✦', fx: '8 700', var: '93 000', sf: '136 500', tot: '238 200', per: '47,6 ₽', gm: '68,0% ✅' },
+                { sc: '10 000 семей', fx: '8 700', var: '186 000', sf: '288 000', tot: '482 700', per: '48,3 ₽', gm: '67,6% ✅' },
               ].map((r, i) => (
                 <tr key={i} className={i === 3 ? 'bg-indigo-50 font-semibold' : 'even:bg-gray-50'}>
                   <td className="px-4 py-2.5 text-gray-800">{r.sc}</td>
@@ -540,10 +545,11 @@ export default function TechEconomics() {
             </tbody>
           </table>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3">
-          <p className="text-xs text-amber-700">
-            <strong>Точка рентабельности (gross margin {'>'} 40%):</strong> около 2 000–2 500 семей.
-            Пилот убыточен при 149 ₽ без setup fee. Gross margin = (149 − себестоимость) / 149.
+        <div className="bg-green-50 border border-green-200 rounded-xl px-5 py-3">
+          <p className="text-xs text-green-700">
+            <strong>Точка рентабельности (gross margin {'>'} 40%):</strong> около 800–1 000 семей (было 2 000–2 500 до перехода на Lite).
+            Пилот уже рентабелен при 149 ₽. Variable рассчитан по среднему AI-профилю на Lite.
+            Gross margin = (149 − себестоимость) / 149.
           </p>
         </div>
       </section>
@@ -649,17 +655,17 @@ export default function TechEconomics() {
 
       {/* ═══ 9 — Вывод ═══ */}
       <section id="s9" className="mb-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">9. Управленческий вывод v1.3.1</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">9. Управленческий вывод v1.4</h2>
 
         {/* Точки */}
         <div className="bg-slate-900 text-white rounded-xl p-5 mb-5">
           <div className="font-bold text-indigo-300 mb-4">Ключевые числа (средний AI, 5 000 семей)</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-sm">
             {[
-              { label: 'Себестоимость', val: '64,7 ₽', sub: 'на семью/мес' },
+              { label: 'Себестоимость (среднее)', val: '47,6 ₽', sub: 'на семью/мес, 5 000 семей' },
               { label: 'Цена банку', val: '149 ₽', sub: 'предложение' },
-              { label: 'Gross margin', val: '56,6%', sub: '(выручка − себест.) / выручку' },
-              { label: 'Markup', val: '130,3%', sub: '(выручка − себест.) / себест.' },
+              { label: 'Gross margin', val: '68,0%', sub: '(выручка − себест.) / выручку' },
+              { label: 'Markup', val: '213%', sub: '(выручка − себест.) / себест.' },
             ].map(c => (
               <div key={c.label} className="bg-white/10 rounded-xl p-3">
                 <div className="text-xs text-slate-400 mb-1">{c.label}</div>
@@ -670,9 +676,9 @@ export default function TechEconomics() {
           </div>
           <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3 text-center text-sm">
             {[
-              { label: 'Worst-case себестоимость', val: '96,5 ₽', sub: 'все кредиты на дорогие AI' },
-              { label: 'Worst-case gross margin', val: '35,2%', sub: 'при 149 ₽ всё ещё прибыльно' },
-              { label: 'Точка безубыточности', val: '~2 500 семей', sub: 'при 149 ₽ и среднем AI' },
+              { label: 'Worst-case себестоимость', val: '57,3 ₽', sub: 'максимальный AI на Lite + всё прочее' },
+              { label: 'Worst-case gross margin', val: '61,5%', sub: 'при 149 ₽ — уверенно прибыльно' },
+              { label: 'Точка рентабельности', val: '~1 000 семей', sub: 'было 2 500 до перехода на Lite' },
             ].map(c => (
               <div key={c.label} className="bg-white/10 rounded-xl p-3">
                 <div className="text-xs text-slate-400 mb-1">{c.label}</div>
@@ -712,9 +718,9 @@ export default function TechEconomics() {
           <div className="font-bold text-indigo-200 mb-4">Безопасные тарифы при выполнении условий</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { tier: 'Пилот', price: '350 ₽/мес', ai: '20 кредитов', s3: '500 МБ', note: 'Или setup fee 150 000 ₽ + 149 ₽', ok: true },
-              { tier: 'Базовый 1 000+', price: '149 ₽/мес', ai: '≤ 30 кредитов', s3: '2 ГБ', note: 'Gross margin 56,6% при 5 000 семей', ok: true },
-              { tier: 'Масштаб 5 000+', price: 'не раньше v1.4', ai: 'после аудита конфига', s3: 'после аудита', note: '99 ₽ — не объявлять', ok: false },
+              { tier: 'Пилот', price: '350 ₽/мес', ai: 'AI-бюджет ~5 ₽/семью', s3: '500 МБ', note: 'Или setup fee 150 000 ₽ + 149 ₽', ok: true },
+              { tier: 'Базовый 1 000+', price: '149 ₽/мес', ai: 'AI-бюджет до ~21 ₽/семью', s3: '2 ГБ', note: 'Gross margin 68,0% при 5 000 семей', ok: true },
+              { tier: 'Масштаб 5 000+', price: 'не раньше v1.5', ai: 'после аудита квот RPM', s3: 'после аудита', note: '99 ₽ — не объявлять', ok: false },
             ].map(t => (
               <div key={t.tier} className={`rounded-xl p-4 ${t.ok ? 'bg-white/10' : 'bg-red-900/30 border border-red-700/40'}`}>
                 <div className="text-xs font-bold text-indigo-300 mb-1">{t.tier}</div>
