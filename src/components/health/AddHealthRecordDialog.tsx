@@ -251,9 +251,13 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger, open: ope
                     
                     setAnalyzingImage(true);
                     try {
+                      const authToken = localStorage.getItem('authToken');
                       const response = await fetch(func2url['health-ai-analysis'], {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                          'Content-Type': 'application/json',
+                          ...(authToken && { 'X-Auth-Token': authToken })
+                        },
                         body: JSON.stringify({
                           image: base64Data,
                           type: formData.type === 'analysis' ? 'blood_test' : 'general'
