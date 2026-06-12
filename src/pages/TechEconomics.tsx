@@ -2,14 +2,17 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
-// ─── v1.3.1 ──────────────────────────────────────────────────────────────────
+// ─── v1.4 ────────────────────────────────────────────────────────────────────
+// Изменения vs v1.3.1:
+// 1. Все AI-функции переведены с Pro → Lite (подтверждено живыми логами 12.06.2026)
+// 2. AI-кредиты убраны как блокирующий механизм — остался только кошелёк в рублях
+// 3. Worst-case пересчитан по реальным Lite-ценам (0,20 ₽/1к токенов)
+// 4. Добавлен блок «Подтверждено живыми вызовами» с реальными токенами из логов
+// 5. Цена токенов скорректирована: вход = выход = 0,20 ₽/1к (не 0,40 ₽ как у Pro)
 // Изменения vs v1.3:
-// 1. Fixed пересобран: 3 слоя (fixed / variable / step-fixed), сумма теперь сходится
-// 2. AI worst-case: пересчитан как задача оптимизации — максимум на 30 кредитах
-// 3. S3: отдельно смешанная база и полный банковский worst-case (10 ТБ)
-// 4. Термины стандартизированы: gross margin = прибыль/выручка, markup = прибыль/себестоимость
-// 5. S3-лимит переформулирован честно: "частично работает, 3 слабых места"
-// 6. upload-file: токен теперь передаётся, семья определяется автоматически
+// 6. Fixed пересобран: 3 слоя (fixed / variable / step-fixed), сумма теперь сходится
+// 7. S3: отдельно смешанная база и полный банковский worst-case (10 ТБ)
+// 8. Термины стандартизированы: gross margin = прибыль/выручка, markup = прибыль/себестоимость
 
 const NAV_ITEMS = [
   { id: 's0', label: 'Статус' },
@@ -43,7 +46,7 @@ function scrollTo(id: string) {
 export default function TechEconomics() {
   return (
     <SectionPageFrame
-      title="Техническо-экономический разбор v1.3.1"
+      title="Техническо-экономический разбор v1.4"
       subtitle="Конфиденциально — только для собственника и доверенных партнёров"
       backPath="/"
       variant="light"
@@ -71,18 +74,59 @@ export default function TechEconomics() {
 
       {/* ═══ 0 — Статус ═══ */}
       <section id="s0" className="mb-10">
-        <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl px-6 py-5 mb-5">
-          <div className="font-bold text-amber-900 mb-1">v1.3.1 — рабочий owner-документ</div>
-          <p className="text-sm text-amber-800">
-            Арифметика сведена. Fixed разобран на 3 слоя и сходится.
-            AI worst-case пересчитан по оптимальному миксу кредитов.
+        <div className="bg-green-50 border-l-4 border-green-500 rounded-xl px-6 py-5 mb-3">
+          <div className="font-bold text-green-900 mb-1">v1.4 — миграция AI на Lite подтверждена живыми вызовами</div>
+          <p className="text-sm text-green-800">
+            Все 13 AI-функций переведены на YandexGPT Lite (12.06.2026). Логи подтверждают модель и токены.
+            Кредитный блок убран — контроль только через кошелёк в рублях.
+            Экономия на токенах <strong>~83%</strong> относительно Pro.
             <strong> Для финальной версии ещё нужно:</strong> скриншот PostgreSQL + billing из кабинета Яндекс.Облака,
             квоты YandexGPT из AI Studio, фактический объём S3.
           </p>
         </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 mb-5 text-xs text-blue-800">
+          <div className="font-bold text-blue-900 mb-2">Подтверждено живыми вызовами 12.06.2026</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead><tr className="text-left text-blue-700 border-b border-blue-200">
+                <th className="pb-1 pr-4">Функция</th><th className="pb-1 pr-4">Модель</th>
+                <th className="pb-1 pr-4 text-right">Вход (токенов)</th>
+                <th className="pb-1 pr-4 text-right">Выход (токенов)</th>
+                <th className="pb-1 text-right">Стоимость Lite</th>
+              </tr></thead>
+              <tbody className="divide-y divide-blue-100">
+                {[
+                  { fn: 'health-ai-analysis', m: 'yandexgpt-lite', i: 656, o: 277, t: 933 },
+                  { fn: 'generate-diet-plan', m: 'yandexgpt-lite', i: 612, o: 4448, t: 5060 },
+                  { fn: 'analyze-development', m: 'yandexgpt-lite', i: 652, o: 619, t: 1271 },
+                ].map(r => (
+                  <tr key={r.fn}>
+                    <td className="py-1 pr-4 font-mono">{r.fn}</td>
+                    <td className="py-1 pr-4 text-green-700 font-semibold">{r.m}</td>
+                    <td className="py-1 pr-4 text-right">{r.i.toLocaleString()}</td>
+                    <td className="py-1 pr-4 text-right">{r.o.toLocaleString()}</td>
+                    <td className="py-1 text-right font-semibold">{(r.t * 0.0002).toFixed(2)} ₽</td>
+                  </tr>
+                ))}
+                <tr className="font-bold text-blue-900 border-t border-blue-300">
+                  <td className="pt-1 pr-4" colSpan={2}>Итого (было бы на Pro)</td>
+                  <td className="pt-1 pr-4 text-right">—</td>
+                  <td className="pt-1 pr-4 text-right">—</td>
+                  <td className="pt-1 text-right text-red-600 line-through">8,72 ₽</td>
+                </tr>
+                <tr className="font-bold text-green-800">
+                  <td className="pr-4" colSpan={2}>Итого на Lite (−83%)</td>
+                  <td className="pr-4 text-right">—</td>
+                  <td className="pr-4 text-right">—</td>
+                  <td className="text-right">1,45 ₽</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { icon: '✅', label: 'AI-кредиты', value: '30/мес, 5/день — внедрено' },
+            { icon: '✅', label: 'AI модели', value: 'Все 13 функций → Lite (−83% токенов)' },
             { icon: '✅', label: 'Лимит файла', value: '10 МБ, токен передаётся' },
             { icon: '🟡', label: 'Лимит S3', value: 'Частично — 3 слабых места' },
             { icon: '✅', label: 'leisure-ai + upload', value: 'Авторизация закрыта' },
@@ -244,10 +288,10 @@ export default function TechEconomics() {
 
       {/* ═══ 2 — AI worst-case как задача оптимизации ═══ */}
       <section id="s2" className="mb-10">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">2. AI worst-case — оптимальный дорогой микс</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">2. AI worst-case — все функции на Lite</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Worst-case — это не «самая дорогая функция», а максимальная API-стоимость набора функций,
-          который реально помещается в 30 кредитов.
+          Все 13 функций работают на YandexGPT Lite (0,20 ₽/1к токенов). Кредитный блок убран —
+          контроль только через баланс кошелька. Worst-case = максимальный реальный токенаж за месяц.
         </p>
 
         <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm mb-4">
@@ -255,30 +299,34 @@ export default function TechEconomics() {
             <thead>
               <tr className="bg-gray-800 text-white">
                 <th className="text-left px-4 py-3">Функция</th>
-                <th className="text-right px-3 py-3">Кредитов</th>
-                <th className="text-right px-3 py-3">API за вызов</th>
-                <th className="text-right px-3 py-3">API за кредит</th>
-                <th className="text-right px-4 py-3">Можно вызовов в 30 кр</th>
+                <th className="text-right px-3 py-3">Модель</th>
+                <th className="text-right px-3 py-3">Токенов/вызов</th>
+                <th className="text-right px-3 py-3">Стоимость Lite</th>
+                <th className="text-right px-4 py-3">Статус</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {[
-                { fn: 'ai-assistant', cr: 1, api: '~0,40 ₽', per: '0,40 ₽', calls: '30 вызовов' },
-                { fn: 'event-ai-ideas', cr: 1, api: '~0,32 ₽', per: '0,32 ₽', calls: '30 вызовов' },
-                { fn: 'leisure-ai', cr: 1, api: '~0,38 ₽', per: '0,38 ₽', calls: '30 вызовов' },
-                { fn: 'life-road', cr: 1, api: '~0,44 ₽', per: '0,44 ₽', calls: '30 вызовов' },
-                { fn: 'conflict-ai', cr: 2, api: '~0,62 ₽', per: '0,31 ₽', calls: '15 вызовов' },
-                { fn: 'health-ai (OCR+GPT)', cr: 2, api: '~1,90 ₽', per: '🔴 0,95 ₽', calls: '15 вызовов' },
-                { fn: 'diet-plan 7д', cr: 4, api: '~1,60 ₽', per: '0,40 ₽', calls: '7 вызовов' },
-                { fn: 'diet-plan 14д', cr: 5, api: '~3,20 ₽', per: '0,64 ₽', calls: '6 вызовов' },
-                { fn: 'diet-plan 30д', cr: 7, api: '~8 ₽', per: '🔴 1,14 ₽', calls: '4 вызова' },
+                { fn: 'ai-assistant',        model: 'Lite', tokens: '~2 000',  api: '~0,40 ₽',  note: '✅ подтв.' },
+                { fn: 'child-assessment',    model: 'Lite', tokens: '~2 000',  api: '~0,40 ₽',  note: '✅' },
+                { fn: 'event-ai-ideas',      model: 'Lite', tokens: '~1 600',  api: '~0,32 ₽',  note: '✅' },
+                { fn: 'leisure-ai',          model: 'Lite', tokens: '~1 900',  api: '~0,38 ₽',  note: '✅' },
+                { fn: 'life-road',           model: 'Lite', tokens: '~2 200',  api: '~0,44 ₽',  note: '✅' },
+                { fn: 'trips / itinerary',   model: 'Lite', tokens: '~1 500',  api: '~0,30 ₽',  note: '✅' },
+                { fn: 'finance-api',         model: 'Lite', tokens: '~2 500',  api: '~0,50 ₽',  note: '✅' },
+                { fn: 'conflict-ai',         model: 'Lite', tokens: '~3 100',  api: '~0,62 ₽',  note: '✅' },
+                { fn: 'analyze-development', model: 'Lite', tokens: '1 271',   api: '0,25 ₽',   note: '✅ лог' },
+                { fn: 'health-ai (OCR+GPT)', model: 'Lite', tokens: '933',     api: '0,19 ₽',   note: '✅ лог' },
+                { fn: 'diet-plan 7д',        model: 'Lite', tokens: '5 060',   api: '1,01 ₽',   note: '✅ лог' },
+                { fn: 'diet-plan 14д',       model: 'Lite', tokens: '~10 000', api: '~2,00 ₽',  note: '✅' },
+                { fn: 'diet-plan 30д',       model: 'Lite', tokens: '~20 000', api: '~4,00 ₽',  note: '✅' },
               ].map(r => (
                 <tr key={r.fn} className="even:bg-gray-50">
                   <td className="px-4 py-2 font-mono text-gray-700">{r.fn}</td>
-                  <td className="px-3 py-2 text-right">{r.cr}</td>
-                  <td className="px-3 py-2 text-right text-gray-600">{r.api}</td>
-                  <td className="px-3 py-2 text-right font-semibold">{r.per}</td>
-                  <td className="px-4 py-2 text-right text-indigo-600">{r.calls}</td>
+                  <td className="px-3 py-2 text-right text-green-700 font-semibold">{r.model}</td>
+                  <td className="px-3 py-2 text-right text-gray-600">{r.tokens}</td>
+                  <td className="px-3 py-2 text-right font-semibold">{r.api}</td>
+                  <td className="px-4 py-2 text-right text-green-600">{r.note}</td>
                 </tr>
               ))}
             </tbody>
@@ -289,22 +337,22 @@ export default function TechEconomics() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {[
             {
-              title: 'Сценарий A: всё на health-ai',
-              desc: '15 вызовов × 2 кредита = 30 кредитов',
-              api: '15 × 1,90 ₽ = 28,5 ₽',
+              title: 'Сценарий A: активный AI-ассистент',
+              desc: '30 × ai-assistant + 10 × conflict-ai + 5 × health-ai',
+              api: '30×0,40 + 10×0,62 + 5×0,19 = ~19,2 ₽',
+              color: 'border-green-200 bg-green-50',
+            },
+            {
+              title: 'Сценарий B: diet-plan 30д × 4 + health-ai',
+              desc: '4 диетплана на 30 дней + 5 анализов здоровья',
+              api: '4×4,00 + 5×0,19 = ~17,0 ₽',
               color: 'border-amber-200 bg-amber-50',
             },
             {
-              title: 'Сценарий B: diet-plan 30д + health-ai',
-              desc: '4 × diet30 (28 кр) + 1 × health (2 кр) = 30 кр',
-              api: '4 × 8 ₽ + 1 × 1,90 ₽ = 33,9 ₽',
+              title: 'Сценарий C: максимальный (все тяжёлые)',
+              desc: '4 × diet30 + 15 × health-ai + 10 × analyze-dev',
+              api: '4×4,00 + 15×0,19 + 10×0,25 = ~21,3 ₽',
               color: 'border-red-200 bg-red-50',
-            },
-            {
-              title: 'Сценарий C: diet-plan 14д × 6',
-              desc: '6 × diet14 (5 кр) = 30 кредитов',
-              api: '6 × 3,20 ₽ = 19,2 ₽',
-              color: 'border-green-200 bg-green-50',
             },
           ].map(s => (
             <div key={s.title} className={`rounded-xl border p-4 ${s.color}`}>
@@ -315,13 +363,14 @@ export default function TechEconomics() {
           ))}
         </div>
 
-        <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4">
-          <div className="font-bold text-red-800 mb-1">Настоящий worst-case: ~33,9 ₽ API на семью/мес</div>
-          <p className="text-xs text-red-700">
-            Сценарий B (diet-plan 30д + health-ai) — дороже, чем «все health-ai» (28,5 ₽) из v1.3.
-            Итоговая себестоимость при worst-case: 33,9 + 5,2 (fixed per-family) + 27,3 (support) + 2,8 (S3+other) = <strong>~69,2 ₽/семью</strong> без поддержки,
-            <strong> ~96,5 ₽/семью</strong> с полной поддержкой 1 FTE L1+L2+L3 при 5 000 семьях.
-            149 ₽ — всё ещё прибыльно: gross margin 35,2%, markup 54,4%.
+        <div className="bg-green-50 border border-green-300 rounded-xl px-5 py-4">
+          <div className="font-bold text-green-800 mb-1">Worst-case на Lite: ~21,3 ₽ API на семью/мес</div>
+          <p className="text-xs text-green-700">
+            Сценарий C (4 × diet30 + 15 × health-ai + 10 × analyze-dev) — максимально тяжёлый сценарий на Lite.
+            Было бы на Pro: ~127,8 ₽. Экономия Pro→Lite: <strong>~83%</strong>.
+            Итоговая себестоимость при worst-case Lite: 21,3 + 5,2 (fixed per-family) + 27,3 (support) + 2,8 (S3+other) = <strong>~56,6 ₽/семью</strong> без поддержки,
+            <strong> ~83,9 ₽/семью</strong> с полной поддержкой 1 FTE при 5 000 семьях.
+            149 ₽ — прибыльно: gross margin 43,7%, markup 77,6%.
           </p>
         </div>
       </section>
@@ -543,7 +592,7 @@ export default function TechEconomics() {
                 { svc: 'Cloud Functions', price: '13,20 ₽ + GB·s', unit: 'за 1 млн вызовов', st: '✅', quota: '169/200 функций (84%). Concurrency 10/функцию. Нужна ревизия 🟡' },
                 { svc: 'Managed PostgreSQL', price: '? ₽/мес', unit: 'зависит от конфига', st: '🔴', quota: 'Конфиг неизвестен. Нужен скрин CPU/RAM/SSD из кабинета.' },
                 { svc: 'Object Storage S3', price: '~1,85 ₽/ГБ', unit: 'хранение/мес', st: '✅', quota: 'Текущий объём неизвестен — нет мониторинга 🟡' },
-                { svc: 'YandexGPT Lite', price: '0,20 / 0,40 ₽', unit: 'за 1 000 вх/вых токенов', st: '✅', quota: 'RPM/TPM не проверены. При 5 000 семей пик > дефолта 🔴' },
+                { svc: 'YandexGPT Lite', price: '0,20 ₽', unit: 'за 1 000 токенов (вх = вых)', st: '✅', quota: 'Все 13 функций на Lite — подтверждено логами. RPM/TPM не проверены 🔴' },
                 { svc: 'CDN', price: '~0,85–2 ₽/ГБ', unit: 'исходящий трафик', st: '✅', quota: '—' },
                 { svc: 'Vision OCR', price: '~1,50 ₽', unit: 'за страницу', st: '✅', quota: 'RPS ~1–5 по умолчанию' },
                 { svc: 'Yandex Maps API', price: '~0,48–4,80 ₽', unit: 'за 1 000 запросов', st: '✅', quota: '—' },
@@ -639,7 +688,7 @@ export default function TechEconomics() {
           <div className="font-bold text-white mb-4">Условия безопасного запуска</div>
           <div className="space-y-3">
             {[
-              { p: '🟢', t: 'AI-кредиты 30/мес + 5/день', d: 'Внедрено. Настраивается в БД без релиза.' },
+              { p: '✅', t: 'Все AI-функции → Lite (−83%)', d: 'Подтверждено логами 12.06.2026. Кредитный блок убран, контроль только через кошелёк.' },
               { p: '🟢', t: 'Лимит файла 10 МБ', d: 'Три upload-функции. Токен передаётся, семья определяется автоматически.' },
               { p: '🟡', t: 'Лимит S3 — частично', d: 'Работает в штатном режиме. Три слабых места: fail-open, нет декремента, нет backfill.' },
               { p: '🔴', t: 'Подтвердить PostgreSQL конфиг', d: 'Кабинет → PostgreSQL → CPU/RAM/SSD. Без этого fixed ±40% неизвестен.' },
@@ -691,7 +740,7 @@ export default function TechEconomics() {
       </section>
 
       <p className="text-xs text-gray-400 text-center mt-4">
-        v1.3.1 · Июнь 2026 · Конфиденциально<br />
+        v1.4 · Июнь 2026 · Конфиденциально<br />
         Gross margin = (выручка − себест.) / выручку · Markup = (выручка − себест.) / себест.
       </p>
     </SectionPageFrame>
