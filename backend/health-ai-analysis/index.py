@@ -206,7 +206,7 @@ def handler(event: dict, context) -> dict:
         
         # Просим GPT описать что на изображении (без OCR)
         fallback_payload = {
-            'modelUri': f'gpt://{gpt_folder_id}/yandexgpt',
+            'modelUri': f'gpt://{gpt_folder_id}/yandexgpt-lite',
             'completionOptions': {
                 'stream': False,
                 'temperature': 0.3,
@@ -269,7 +269,7 @@ def handler(event: dict, context) -> dict:
         }
     
     yandex_payload = {
-        'modelUri': f'gpt://{gpt_folder_id}/yandexgpt',
+        'modelUri': f'gpt://{gpt_folder_id}/yandexgpt-lite',
         'completionOptions': {
             'stream': False,
             'temperature': 0.3,
@@ -310,6 +310,8 @@ def handler(event: dict, context) -> dict:
     
     ai_response = yandex_response.json()
     interpretation = ai_response['result']['alternatives'][0]['message']['text']
+    _usage = ai_response.get('result', {}).get('usage', {})
+    print(f'[AI_LOG] function=health-ai-analysis model=yandexgpt-lite input_tokens={_usage.get("inputTextTokens", "?")} output_tokens={_usage.get("completionTokens", "?")} total={_usage.get("totalTokens", "?")}')
     
     # Извлекаем показатели и предупреждения
     ocr_lower = ocr_text.lower()

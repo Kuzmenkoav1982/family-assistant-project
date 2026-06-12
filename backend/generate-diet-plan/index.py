@@ -322,12 +322,12 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     }
 
     payload = {
-        'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+        'modelUri': f'gpt://{folder_id}/yandexgpt-lite',
         'completionOptions': {
             'stream': False,
             'temperature': 0.4,
             # bug31: увеличены лимиты токенов, чтобы укладывался полный план на 30 дней
-            'maxTokens': 64000 if duration_days >= 30 else 32000 if duration_days > 7 else 8000
+            'maxTokens': 32000 if duration_days >= 30 else 16000 if duration_days > 7 else 8000
         },
         'messages': [
             {
@@ -439,6 +439,8 @@ def handle_check(api_key: str, body: Dict, event: Optional[Dict] = None) -> Dict
     ai_response = result.get('response', {})
     alternatives = ai_response.get('alternatives', [])
     ai_text = alternatives[0].get('message', {}).get('text', '') if alternatives else ''
+    _usage = ai_response.get('usage', {})
+    print(f'[AI_LOG] function=generate-diet-plan model=yandexgpt-lite input_tokens={_usage.get("inputTextTokens", "?")} output_tokens={_usage.get("completionTokens", "?")} total={_usage.get("totalTokens", "?")}')
 
     plan = parse_plan(ai_text)
 

@@ -201,7 +201,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Content-Type': 'application/json'
             },
             json={
-                'modelUri': f'gpt://{folder_id}/yandexgpt/latest',
+                'modelUri': f'gpt://{folder_id}/yandexgpt-lite',
                 'completionOptions': {
                     'stream': False,
                     'temperature': 0.7,
@@ -250,6 +250,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     result = yandex_response.json()
+    _usage = result.get('result', {}).get('usage', {})
+    print(f'[AI_LOG] function=analyze-development model=yandexgpt-lite input_tokens={_usage.get("inputTextTokens", "?")} output_tokens={_usage.get("completionTokens", "?")} total={_usage.get("totalTokens", "?")}')
     content = result['result']['alternatives'][0]['message']['text'].strip()
     
     if content.startswith('```json'):
