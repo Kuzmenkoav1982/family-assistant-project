@@ -1,0 +1,237 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/icon';
+import SectionPageFrame from '@/components/ui/SectionPageFrame';
+
+// Три варианта письма: рекомендованное, короткое, с двумя сценариями
+type LetterVariant = 'recommended' | 'short' | 'two-options';
+
+const VARIANTS: { id: LetterVariant; label: string; desc: string }[] = [
+  { id: 'recommended', label: 'Рекомендованное', desc: 'Полное письмо с гибридной моделью' },
+  { id: 'short',       label: 'Короткое',        desc: 'На 1 экран — если уже общались' },
+  { id: 'two-options', label: 'Два варианта',     desc: 'Гибрид + фикс, банк выбирает' },
+];
+
+const LETTERS: Record<LetterVariant, { subject: string; body: string }> = {
+  recommended: {
+    subject: 'Партнёрская модель — «Наша Семья»',
+    body: `Алексей, добрый день!
+
+Спасибо за вопрос и интерес к партнёрскому формату.
+
+Мы видим оптимальную модель не как разовую оплату «за подключение навсегда», а как оплату за активированное подключение в расчёте на месяц — то есть банк оплачивает только реально подключённые и используемые аккаунты.
+
+На текущий момент можем предложить следующий формат:
+
+1. Пилотный запуск
+   до 500 активированных подключений — 350 ₽ / подключение / месяц
+
+2. Масштабный запуск
+   от 1 000 активированных подключений — 149 ₽ / подключение / месяц
+
+В базовую стоимость входят:
+— доступ к основному функционалу сервиса,
+— стандартные AI-сценарии,
+— хранение данных в рамках тарифа,
+— базовая поддержка.
+
+Дополнительно для партнёрской модели можем настроить ежемесячный партнёрский баланс на пользователя.
+
+Например, банк может предоставлять каждому подключённому пользователю оплаченный лимит использования — 50 / 100 / 150 ₽ в месяц. После исчерпания этого объёма пользователь:
+— либо продолжает пользоваться базовыми функциями,
+— либо самостоятельно пополняет свой кошелёк и продолжает пользоваться расширенными сценариями — без дополнительных расходов для банка.
+
+Для банка это означает полностью прогнозируемый бюджет: базовая стоимость фиксируется на активированное подключение, а дополнительное индивидуальное потребление оплачивается пользователем самостоятельно.
+
+На наш взгляд, это самая прозрачная модель:
+— у банка предсказуемый бюджет,
+— пользователь не упирается в жёсткую блокировку,
+— дополнительное потребление не ложится автоматически на банк.
+
+Если вам удобно, мы можем подготовить отдельный расчёт для сценариев запуска на 500 / 1 000 / 5 000 подключений.
+
+С уважением,
+Алексей`,
+  },
+
+  short: {
+    subject: 'Стоимость подключения — «Наша Семья»',
+    body: `Алексей, добрый день!
+
+По стоимости — мы работаем по модели оплаты за активированное подключение в месяц:
+
+— Пилот (до 500 подкл.) — 350 ₽ / подключение / месяц
+— Масштаб (от 1 000 подкл.) — 149 ₽ / подключение / месяц
+
+В стоимость входит базовый функционал, AI-сценарии, хранилище и поддержка.
+
+Дополнительно можем настроить ежемесячный партнёрский баланс на пользователя — банк задаёт сумму, после её исчерпания пользователь продолжает сам. Бюджет банка при этом остаётся фиксированным.
+
+Если нужен расчёт на конкретное число подключений — подготовим.
+
+С уважением,
+Алексей`,
+  },
+
+  'two-options': {
+    subject: 'Два варианта партнёрской модели — «Наша Семья»',
+    body: `Алексей, добрый день!
+
+Мы подготовили два варианта — на ваш выбор.
+
+───────────────────────────────
+Вариант A — Гибридная модель (рекомендуем)
+───────────────────────────────
+Банк оплачивает фиксированную сумму за активированное подключение:
+— Пилот (до 500): 350 ₽ / подключение / месяц
+— Масштаб (от 1 000): 149 ₽ / подключение / месяц
+
+Дополнительно банк может задать ежемесячный партнёрский баланс на пользователя (50 / 100 / 150 ₽). После исчерпания — пользователь пополняет сам. Бюджет банка не меняется.
+
+Плюс: у банка прогнозируемый бюджет, пользователь не блокируется.
+
+───────────────────────────────
+Вариант B — Фиксированная модель
+───────────────────────────────
+Всё включено в рамках fair use:
+— Пилот (до 500): 490 ₽ / подключение / месяц
+— Масштаб (от 1 000): 199 ₽ / подключение / месяц
+
+При крупных объёмах (5 000+) — индивидуальные условия.
+
+───────────────────────────────
+
+Если подскажете ориентир по числу подключений на старте (500 / 1 000 / 5 000), сразу направим конкретный расчёт по удобному варианту.
+
+С уважением,
+Алексей`,
+  },
+};
+
+export default function BankLetter() {
+  const [variant, setVariant] = useState<LetterVariant>('recommended');
+  const [copied, setCopied] = useState(false);
+  const letter = LETTERS[variant];
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(`Тема: ${letter.subject}\n\n${letter.body}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <SectionPageFrame
+      title="Шаблон письма банку"
+      subtitle="Конфиденциально — только для собственника"
+      backPath="/tech-economics"
+      variant="light"
+      width="normal"
+      accentColor="text-gray-800"
+      rightAction={
+        <Button
+          variant="default" size="sm"
+          className="bg-gray-800 hover:bg-gray-900 text-white print:hidden"
+          onClick={() => window.print()}
+        >
+          <Icon name="Printer" className="w-4 h-4 mr-1" />Распечатать
+        </Button>
+      }
+    >
+      {/* Зачем отдельное письмо */}
+      <div className="bg-blue-50 border-l-4 border-blue-400 rounded-xl px-5 py-4 mb-6">
+        <div className="font-bold text-blue-900 mb-1">Почему письмо — отдельно от owner-документа</div>
+        <div className="text-sm text-blue-800 space-y-1">
+          <p>Банку в первом касании не нужно видеть внутренние риски, FTE, 169/200 функций и слабые места.</p>
+          <p>Письмо — короткое, коммерчески понятное. Owner-doc — только если попросят детальный разбор.</p>
+        </div>
+      </div>
+
+      {/* Выбор варианта */}
+      <div className="mb-5">
+        <div className="text-sm font-semibold text-gray-700 mb-2">Выберите вариант письма:</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {VARIANTS.map(v => (
+            <button
+              key={v.id}
+              onClick={() => setVariant(v.id)}
+              className={`rounded-xl border-2 p-3 text-left transition-all ${
+                variant === v.id
+                  ? 'border-indigo-500 bg-indigo-50'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div className={`font-semibold text-sm mb-0.5 ${variant === v.id ? 'text-indigo-800' : 'text-gray-800'}`}>
+                {v.label}
+              </div>
+              <div className="text-xs text-gray-500">{v.desc}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Тема */}
+      <div className="bg-gray-100 rounded-xl px-4 py-3 mb-3 flex items-center gap-3">
+        <span className="text-xs text-gray-500 shrink-0">Тема письма:</span>
+        <span className="text-sm font-semibold text-gray-800">{letter.subject}</span>
+      </div>
+
+      {/* Тело письма */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm mb-4">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+          <span className="text-xs text-gray-500 font-medium">Текст письма</span>
+          <Button
+            size="sm" variant="outline"
+            className="text-xs h-7 print:hidden"
+            onClick={handleCopy}
+          >
+            <Icon name={copied ? 'Check' : 'Copy'} className="w-3.5 h-3.5 mr-1" />
+            {copied ? 'Скопировано' : 'Скопировать'}
+          </Button>
+        </div>
+        <pre className="px-5 py-4 text-sm text-gray-800 whitespace-pre-wrap font-sans leading-relaxed">
+          {letter.body}
+        </pre>
+      </div>
+
+      {/* Усиливающая фраза */}
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-4 mb-6">
+        <div className="text-xs font-bold text-indigo-700 mb-1">💡 Усиливающая фраза — если нужно продать сильнее:</div>
+        <p className="text-sm text-indigo-800 italic">
+          «Для банка это означает полностью прогнозируемый бюджет: базовая стоимость фиксируется
+          на активированное подключение, а дополнительное индивидуальное потребление оплачивается
+          пользователем самостоятельно.»
+        </p>
+      </div>
+
+      {/* Что НЕ обещать */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 mb-6">
+        <div className="font-bold text-amber-800 mb-2">🚫 Не обещать банку до финального аудита</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 text-xs text-amber-700">
+          {[
+            'Цену 99 ₽ — не доказана экономически',
+            'SLA 99,9% — нет мониторинга',
+            'Безлимитный AI за фиксированную цену',
+            '24/7 поддержку — нет L1',
+            'Безопасность мед. данных — нет юр. аудита',
+            '«Точно потянем 5 000» — нет нагрузочных тестов',
+          ].map(i => <div key={i}>— {i}</div>)}
+        </div>
+      </div>
+
+      {/* Ссылка на owner-doc */}
+      <div className="text-center">
+        <a
+          href="/tech-economics"
+          className="inline-flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 hover:underline"
+        >
+          <Icon name="FileText" className="w-4 h-4" />
+          Перейти к полному owner-документу (TechEconomics v1.5)
+        </a>
+      </div>
+
+      <p className="text-xs text-gray-400 text-center mt-6">
+        v1.0 · Июнь 2026 · Конфиденциально
+      </p>
+    </SectionPageFrame>
+  );
+}

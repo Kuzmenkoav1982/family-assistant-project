@@ -258,6 +258,7 @@ const Videos = lazy(() => import("./pages/Videos"));
 
 // ─── Internal / Owner docs ─────────────────────────────────────────────────
 const TechEconomics = lazy(() => import("./pages/TechEconomics"));
+const BankLetter = lazy(() => import("./pages/BankLetter"));
 
 // ─── Decks / Presentations ─────────────────────────────────────────────────
 const Presentation = lazy(() => import("./pages/Presentation"));
@@ -606,6 +607,7 @@ const App = () => {
                       <Route path="/pricing-policy" element={<PricingPolicy />} />
                       <Route path="/installation-guide" element={<InstallationGuide />} />
                       <Route path="/tech-economics" element={<TechEconomics />} />
+                      <Route path="/bank-letter" element={<BankLetter />} />
                       <Route path="/pricing" element={<Navigate to="/wallet" replace />} />
                       <Route path="/payment-success" element={<PaymentSuccess />} />
                       <Route path="/ideas" element={<IdeasBoard />} />

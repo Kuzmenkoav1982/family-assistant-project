@@ -80,10 +80,10 @@ export default function TechEconomics() {
       {/* ═══ 0 — Статус ═══ */}
       <section id="s0" className="mb-10">
         <div className="bg-green-50 border-l-4 border-green-500 rounded-xl px-6 py-5 mb-3">
-          <div className="font-bold text-green-900 mb-1">v1.4 — миграция AI на Lite подтверждена живыми вызовами</div>
+          <div className="font-bold text-green-900 mb-1">v1.5 — миграция AI на Lite подтверждена живыми вызовами</div>
           <p className="text-sm text-green-800">
-            Все 13 AI-функций переведены на YandexGPT Lite (12.06.2026). Логи подтверждают модель и токены.
-            Кредитный блок убран — контроль только через кошелёк в рублях.
+            12 GPT-функций переведены на YandexGPT Lite, 1 image-функция работает на YandexART (12.06.2026).
+            Логи подтверждают модель и токены. Кредитный блок убран — контроль только через кошелёк в рублях.
             Экономия на токенах <strong>~83%</strong> относительно Pro.
             <strong> Для финальной версии ещё нужно:</strong> скриншот PostgreSQL + billing из кабинета Яндекс.Облака,
             квоты YandexGPT из AI Studio, фактический объём S3.
@@ -111,10 +111,15 @@ export default function TechEconomics() {
                     <td className="py-1 text-right font-semibold text-green-700">{(r.t * 0.0002).toFixed(2)} ₽</td>
                   </tr>
                 ))}
-                <tr className="border-t border-blue-300 font-bold text-blue-900">
-                  <td className="pt-1 pr-3">Итого (Pro было бы)</td>
+                <tr className="border-t border-blue-300 text-blue-800">
+                  <td className="pt-1 pr-3 font-semibold">Итого (Pro)</td>
                   <td className="pt-1 pr-3 text-right">7 264</td>
-                  <td className="pt-1 text-right"><span className="line-through text-red-500 mr-1">8,72 ₽</span><span className="text-green-700">1,45 ₽</span></td>
+                  <td className="pt-1 text-right font-semibold text-red-500 line-through">8,72 ₽</td>
+                </tr>
+                <tr className="font-bold text-green-800">
+                  <td className="pr-3">Итого на Lite (−83%)</td>
+                  <td className="pr-3 text-right">7 264</td>
+                  <td className="text-right text-green-700">1,45 ₽</td>
                 </tr>
               </tbody>
             </table>
@@ -374,13 +379,27 @@ export default function TechEconomics() {
         </div>
 
         <div className="bg-green-50 border border-green-300 rounded-xl px-5 py-4">
-          <div className="font-bold text-green-800 mb-1">Worst-case на Lite: ~21,3 ₽ API на семью/мес</div>
-          <p className="text-xs text-green-700">
-            Сценарий C (4 × diet30 + 15 × health-ai + 10 × analyze-dev) — максимально тяжёлый сценарий на Lite.
-            Было бы на Pro: ~127,8 ₽. Экономия Pro→Lite: <strong>~83%</strong>.
-            Итоговая себестоимость при worst-case Lite: 21,3 + 5,2 (fixed per-family) + 27,3 (support) + 2,8 (S3+other) = <strong>~56,6 ₽/семью</strong> без поддержки,
-            <strong> ~83,9 ₽/семью</strong> с полной поддержкой 1 FTE при 5 000 семьях.
-            149 ₽ — прибыльно: gross margin 43,7%, markup 77,6%.
+          <div className="font-bold text-green-800 mb-1">Worst-case GPT на Lite: ~21,3 ₽/семью/мес</div>
+          <p className="text-xs text-green-700 mb-2">
+            Сценарий C — максимально тяжёлый сценарий. На Pro было бы ~127,8 ₽. Экономия Pro→Lite: <strong>~83%</strong>.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+            {[
+              { label: 'GPT-часть (Lite)', val: '21,3 ₽', sub: 'worst-case сценарий C' },
+              { label: 'Без поддержки', val: '29,3 ₽', sub: '21,3 + 5,2 fixed + 2,8 S3' },
+              { label: 'С поддержкой 1 FTE', val: '56,6 ₽', sub: '29,3 + 27,3 support' },
+              { label: 'Gross margin (149 ₽)', val: '61,5%', sub: 'см. раздел 1 / вывод' },
+            ].map(c => (
+              <div key={c.label} className="bg-white border border-green-200 rounded-lg p-2 text-center">
+                <div className="text-[10px] text-gray-500 mb-0.5">{c.label}</div>
+                <div className="font-bold text-green-800">{c.val}</div>
+                <div className="text-[10px] text-gray-400">{c.sub}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-amber-700 mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            ⚠️ <strong>Важно:</strong> health-ai в сценариях учитывает только GPT-часть (0,19 ₽).
+            OCR/Vision тарифицируется отдельно (~1,50 ₽/стр.) и не входит в приведённые расчёты.
           </p>
         </div>
       </section>
@@ -771,9 +790,9 @@ export default function TechEconomics() {
               <tr className="bg-gray-800 text-white">
                 <th className="text-left px-4 py-3">Сценарий</th>
                 <th className="text-right px-3 py-3">Цена/мес</th>
-                <th className="text-right px-3 py-3">Выручка 5k</th>
-                <th className="text-right px-3 py-3">Себест. 5k</th>
-                <th className="text-right px-3 py-3">Прибыль 5k</th>
+                <th className="text-right px-3 py-3">Выручка</th>
+                <th className="text-right px-3 py-3">Себестоимость</th>
+                <th className="text-right px-3 py-3">Прибыль</th>
                 <th className="text-right px-4 py-3">Gross margin</th>
               </tr>
             </thead>
@@ -799,6 +818,15 @@ export default function TechEconomics() {
 
         {/* Что НЕ обещать */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="col-span-1 md:col-span-2 bg-indigo-50 border border-indigo-200 rounded-xl px-5 py-3 flex items-center justify-between">
+            <div>
+              <div className="font-semibold text-indigo-800 text-sm">Готовый шаблон письма банку</div>
+              <div className="text-xs text-indigo-600 mt-0.5">3 варианта: рекомендованное · короткое · два варианта на выбор</div>
+            </div>
+            <a href="/bank-letter" className="shrink-0 ml-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              Открыть →
+            </a>
+          </div>
           <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-4">
             <div className="font-bold text-red-800 mb-2">🚫 Не обещать первым</div>
             <div className="text-xs text-red-700 space-y-1">
