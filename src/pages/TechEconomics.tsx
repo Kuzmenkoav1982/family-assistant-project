@@ -145,7 +145,7 @@ export default function TechEconomics() {
             { icon: '🟡', label: 'Лимит S3', value: 'Частично — 3 слабых места' },
             { icon: '✅', label: 'leisure-ai + upload', value: 'Авторизация закрыта' },
             { icon: '🔴', label: 'PostgreSQL', value: 'Конфиг не подтверждён' },
-            { icon: '🔴', label: 'Квоты AI', value: 'RPM/TPM не проверены' },
+            { icon: '✅', label: 'Квоты AI', value: 'RPM/TPM лимитов нет — подтв. поддержкой' },
             { icon: '🟡', label: 'Удаление файлов', value: 'Нет декремента S3' },
             { icon: '🟡', label: 'Cloud Functions', value: '169/200 — нужна ревизия' },
           ].map(c => (
@@ -724,28 +724,33 @@ export default function TechEconomics() {
                 <div className="text-xs text-gray-500">/ подключение / мес</div>
               </div>
               <div className="bg-white rounded-xl p-3 border border-indigo-200">
-                <div className="text-xs text-indigo-500 mb-1">Масштаб (1 000+)</div>
+                <div className="text-xs text-indigo-500 mb-1">Масштаб (1 000–4 999)</div>
                 <div className="text-2xl font-bold text-indigo-800">149 ₽</div>
                 <div className="text-xs text-gray-500">/ подключение / мес</div>
               </div>
+            </div>
+
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-3 py-2 mb-4 text-xs text-indigo-700">
+              <strong>Единица тарификации:</strong> 1 подключение = 1 Family ID = 1 семья (не за человека).
+              5 000+ — индивидуально; для 500–999 — расчёт под объём.
             </div>
 
             <div className="text-xs text-gray-700 space-y-1.5 mb-4">
               <div className="font-semibold text-gray-800 mb-1">Что входит в базовую стоимость:</div>
               {[
                 'Доступ к основному функционалу сервиса',
-                'Стандартные AI-сценарии',
-                'Хранение данных в рамках тарифа',
+                'Стандартные сценарии использования',
                 'Базовая поддержка',
+                'Хранение сервисных данных для работы аккаунта',
               ].map(i => <div key={i} className="flex gap-2"><span className="text-green-500">✓</span>{i}</div>)}
             </div>
 
             <div className="bg-indigo-100 rounded-xl p-3 text-xs">
-              <div className="font-semibold text-indigo-800 mb-1.5">Партнёрский баланс (опционально)</div>
+              <div className="font-semibold text-indigo-800 mb-1.5">Лимит партнёрского кошелька (опционально)</div>
               <p className="text-indigo-700 mb-2">
-                Банк задаёт ежемесячный баланс на пользователя — например, 50 / 100 / 150 ₽.
-                После исчерпания пользователь продолжает пользоваться базовыми функциями
-                или <strong>сам пополняет кошелёк</strong>.
+                Банк задаёт ежемесячный лимит на 1 Family ID — например, 50 / 100 / 150 ₽.
+                После исчерпания списания на банк не производятся: семья продолжает базовыми функциями
+                или <strong>сама пополняет кошелёк</strong>. Потолок: 149 ₽ + 100 ₽ = максимум 249 ₽ / семью / мес.
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {[['50 ₽', 'минимальный'], ['100 ₽', 'стандартный'], ['150 ₽', 'расширенный']].map(([val, lbl]) => (
@@ -777,7 +782,7 @@ export default function TechEconomics() {
                 <div className="text-xs text-gray-400">/ подключение / мес</div>
               </div>
               <div className="bg-white rounded-xl p-3 border border-gray-200">
-                <div className="text-xs text-gray-500 mb-1">Масштаб (1 000+)</div>
+                <div className="text-xs text-gray-500 mb-1">Масштаб (1 000–4 999)</div>
                 <div className="text-2xl font-bold text-gray-700">199 ₽</div>
                 <div className="text-xs text-gray-400">/ подключение / мес</div>
               </div>
@@ -941,9 +946,9 @@ export default function TechEconomics() {
           <div className="font-bold text-indigo-200 mb-4">Безопасные тарифы при выполнении условий</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { tier: 'Пилот (до 500)', price: '350 ₽/мес', ai: 'партнёрский баланс опционально', s3: '500 МБ', note: 'Модель A. GM 78,6% на 500 подкл.', ok: true },
-              { tier: 'Масштаб (1 000+)', price: '149 ₽/мес', ai: 'партнёрский баланс опционально', s3: '2 ГБ', note: 'Модель A. GM 68,0% при 5 000 подкл.', ok: true },
-              { tier: 'Масштаб 5 000+', price: 'инд. условия', ai: 'после аудита квот RPM', s3: 'после аудита', note: '99 ₽ — не объявлять', ok: false },
+              { tier: 'Пилот (до 500)', price: '350 ₽/мес', ai: 'лимит кошелька опционально', s3: '500 МБ', note: 'Модель A. GM 78,6% на 500 подкл.', ok: true },
+              { tier: 'Масштаб (1 000–4 999)', price: '149 ₽/мес', ai: 'лимит кошелька опционально', s3: '2 ГБ', note: 'Модель A. GM 68,0% при 5 000 подкл.', ok: true },
+              { tier: 'Масштаб 5 000+', price: 'инд. условия', ai: 'квоты RPM/TPM — лимитов нет ✅', s3: 'после аудита', note: '99 ₽ — не объявлять', ok: false },
             ].map(t => (
               <div key={t.tier} className={`rounded-xl p-4 ${t.ok ? 'bg-white/10' : 'bg-red-900/30 border border-red-700/40'}`}>
                 <div className="text-xs font-bold text-indigo-300 mb-1">{t.tier}</div>
