@@ -612,6 +612,22 @@ export default function TechEconomics() {
       {/* ═══ 7 — Тарифы / квоты ═══ */}
       <section id="s7" className="mb-10">
         <h2 className="text-xl font-bold text-gray-900 mb-2">7. Тарифы и квоты аккаунта</h2>
+
+        {/* Подтверждённый ответ поддержки Яндекса */}
+        <div className="bg-green-50 border-l-4 border-green-500 rounded-xl px-5 py-4 mb-4">
+          <div className="font-bold text-green-900 mb-1">✅ Квоты YandexGPT подтверждены поддержкой (14.06.2026, тикет DT238233)</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-xs text-green-800 mt-2">
+            <div>• <strong>RPM-лимита нет</strong> — в синхронном режиме до 10 одновременных генераций</div>
+            <div>• <strong>TPM-лимита нет</strong> — отдельных квот на токены/мин нет</div>
+            <div>• Асинхрон: 10 зап/сек отправка · 50 зап/сек приём · 5 000 зап/час</div>
+            <div>• <strong>Lite и Pro — единые квоты</strong> на всё облако, отдельных нет</div>
+          </div>
+          <p className="text-[11px] text-green-700 mt-2">
+            Снимает 🔴-риск «RPM/TPM не проверены». Для пилота (500 семей) текущих квот достаточно;
+            при 5 000+ — повышение по запросу (бесплатно).
+          </p>
+        </div>
+
         <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
           <table className="w-full text-xs">
             <thead>
@@ -628,7 +644,7 @@ export default function TechEconomics() {
                 { svc: 'Cloud Functions', price: '13,20 ₽ + GB·s', unit: 'за 1 млн вызовов', st: '✅', quota: '169/200 функций (84%). Concurrency 10/функцию. Нужна ревизия 🟡' },
                 { svc: 'Managed PostgreSQL', price: '? ₽/мес', unit: 'зависит от конфига', st: '🔴', quota: 'Конфиг неизвестен. Нужен скрин CPU/RAM/SSD из кабинета.' },
                 { svc: 'Object Storage S3', price: '~1,85 ₽/ГБ', unit: 'хранение/мес', st: '✅', quota: 'Текущий объём неизвестен — нет мониторинга 🟡' },
-                { svc: 'YandexGPT Lite', price: '0,20 ₽', unit: 'за 1 000 токенов (вх = вых)', st: '✅', quota: '12 GPT-функций на Lite (3 подтв. логами, 9 — кодом); 1 image → YandexART. RPM/TPM не проверены 🔴' },
+                { svc: 'YandexGPT Lite', price: '0,20 ₽', unit: 'за 1 000 токенов (вх = вых)', st: '✅', quota: '12 GPT-функций (3 логами, 9 кодом); 1 image → YandexART. RPM/TPM лимитов нет — подтв. поддержкой ✅' },
                 { svc: 'CDN', price: '~0,85–2 ₽/ГБ', unit: 'исходящий трафик', st: '✅', quota: '—' },
                 { svc: 'Vision OCR', price: '~1,50 ₽', unit: 'за страницу', st: '✅', quota: 'RPS ~1–5 по умолчанию' },
                 { svc: 'Yandex Maps API', price: '~0,48–4,80 ₽', unit: 'за 1 000 запросов', st: '✅', quota: '—' },
@@ -905,7 +921,7 @@ export default function TechEconomics() {
               { p: '🟢', t: 'Лимит файла 10 МБ', d: 'Три upload-функции. Токен передаётся, семья определяется автоматически.' },
               { p: '🟡', t: 'Лимит S3 — частично', d: 'Работает в штатном режиме. Три слабых места: fail-open, нет декремента, нет backfill.' },
               { p: '🔴', t: 'Подтвердить PostgreSQL конфиг', d: 'Кабинет → PostgreSQL → CPU/RAM/SSD. Без этого fixed ±40% неизвестен.' },
-              { p: '🔴', t: 'Проверить квоты YandexGPT', d: 'AI Studio → Квоты → RPM. При 5 000 семей пиковый RPM может превысить дефолт.' },
+              { p: '✅', t: 'Квоты YandexGPT подтверждены', d: 'Поддержка (14.06): RPM/TPM лимитов нет, Lite/Pro единые квоты. Для пилота хватает, при 5 000+ — повышение по запросу.' },
               { p: '🟡', t: 'Ревизия Cloud Functions (169/200)', d: 'Удалить устаревшие/тестовые. Остаток всего 31 функция.' },
               { p: '🟢', t: 'L1-поддержка до 5 000 семей', d: '0,5–1,0 FTE аутсорс ~39–78 000 ₽/мес. Без этого собственник тонет в обращениях.' },
             ].map((c, i) => (

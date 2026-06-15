@@ -3,16 +3,49 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 
-// Три варианта письма: рекомендованное, короткое, с двумя сценариями
-type LetterVariant = 'recommended' | 'short' | 'two-options';
+// Варианты письма банку
+type LetterVariant = 'answer' | 'recommended' | 'short' | 'two-options';
 
 const VARIANTS: { id: LetterVariant; label: string; desc: string }[] = [
+  { id: 'answer',      label: 'Ответ на вопрос', desc: 'Прямой ответ: цена, период, зависимость от объёма' },
   { id: 'recommended', label: 'Рекомендованное', desc: 'Полное письмо с гибридной моделью' },
   { id: 'short',       label: 'Короткое',        desc: 'На 1 экран — если уже общались' },
   { id: 'two-options', label: 'Два варианта',     desc: 'Гибрид + фикс, банк выбирает' },
 ];
 
 const LETTERS: Record<LetterVariant, { subject: string; body: string }> = {
+  answer: {
+    subject: 'Re: стоимость подключения — «Наша Семья»',
+    body: `Алексей, добрый день!
+
+Спасибо за вопрос. Отвечаю по пунктам.
+
+1. Период оплаты
+Стоимость считается за одно активированное подключение в расчёте на месяц — то есть это не разовая оплата «за подключение навсегда», а ежемесячная оплата только за реально подключённые и используемые аккаунты.
+
+2. Зависит ли цена от числа подключений
+Да, цена снижается с ростом объёма:
+— Пилот, до 500 подключений — 350 ₽ / подключение / месяц
+— Масштаб, от 1 000 подключений — 149 ₽ / подключение / месяц
+— От 5 000 подключений — готовы обсуждать индивидуальные условия под плановый объём.
+
+3. Что входит в стоимость
+— доступ к основному функционалу сервиса,
+— AI-сценарии,
+— хранение данных в рамках тарифа,
+— базовая поддержка.
+
+4. Контроль бюджета банка
+Дополнительно можем настроить ежемесячный партнёрский баланс на пользователя — например, 50 / 100 / 150 ₽. После исчерпания этого объёма пользователь продолжает пользоваться базовыми функциями либо самостоятельно пополняет кошелёк и продолжает расширенные сценарии — без дополнительных расходов для банка.
+
+Для банка это означает полностью прогнозируемый бюджет: базовая стоимость фиксируется на активированное подключение, а дополнительное индивидуальное потребление оплачивается пользователем самостоятельно.
+
+Если подскажете ориентир по числу подключений на старте (500 / 1 000 / 5 000), мы направим точный расчёт под ваш сценарий.
+
+С уважением,
+Алексей`,
+  },
+
   recommended: {
     subject: 'Партнёрская модель — «Наша Семья»',
     body: `Алексей, добрый день!
@@ -109,7 +142,7 @@ const LETTERS: Record<LetterVariant, { subject: string; body: string }> = {
 };
 
 export default function BankLetter() {
-  const [variant, setVariant] = useState<LetterVariant>('recommended');
+  const [variant, setVariant] = useState<LetterVariant>('answer');
   const [copied, setCopied] = useState(false);
   const letter = LETTERS[variant];
 
@@ -149,7 +182,7 @@ export default function BankLetter() {
       {/* Выбор варианта */}
       <div className="mb-5">
         <div className="text-sm font-semibold text-gray-700 mb-2">Выберите вариант письма:</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {VARIANTS.map(v => (
             <button
               key={v.id}
