@@ -294,19 +294,11 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             status='success'
         )
 
-        track_event('signup_completed', source='backend',
-                    user_id=str(user['id']),
-                    family_id=user_data.get('family_id'),
-                    properties={'via_invite': bool(invite_code), 'is_new_user': not bool(existing_user)})
-        if user_data.get('family_id') and not invite_code:
-            track_event('family_created', source='backend',
-                        user_id=str(user['id']),
-                        family_id=user_data['family_id'])
-
         return {
             'success': True,
             'token': token,
-            'user': user_data
+            'user': user_data,
+            '_is_new_family': bool(user_data.get('family_id') and not invite_code),
         }
     except Exception as e:
         cur.close()
@@ -392,10 +384,6 @@ def login_user(phone: str, password: str, ip_address: str = 'unknown') -> Dict[s
             details={'phone': phone, 'method': 'password'},
             status='success'
         )
-
-        track_event('login_success', source='backend',
-                    user_id=str(user['id']),
-                    family_id=user_data.get('family_id'))
 
         return {
             'success': True,
@@ -1663,16 +1651,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     member_name=body.get('member_name'),
                     relationship=body.get('relationship')
                 )
-            # Дополняем signup_completed анонимным ID для связки воронки
-            if result.get('success') and (_anon_id or _sess_id):
+            # Единственная запись signup_completed — здесь, с полным контекстом
+            if result.get('success'):
                 user_obj = result.get('user', {})
                 track_event('signup_completed', source='backend',
                             user_id=user_obj.get('id'),
                             family_id=user_obj.get('family_id'),
                             anonymous_id=_anon_id,
                             session_id=_sess_id,
-                            properties={'identity_linked': True,
+                            properties={'identity_linked': bool(_anon_id or _sess_id),
                                         'via_invite': bool(body.get('invite_code'))})
+                if result.get('_is_new_family') and user_obj.get('family_id'):
+                    track_event('family_created', source='backend',
+                                user_id=user_obj.get('id'),
+                                family_id=user_obj['family_id'],
+                                anonymous_id=_anon_id,
+                                session_id=_sess_id)
         elif action == 'login':
             if body.get('email'):
                 result = login_user_email(
@@ -1686,15 +1680,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     password=body.get('password'),
                     ip_address=ip_address
                 )
-            # Дополняем login_success анонимным ID для связки воронки
-            if result.get('success') and (_anon_id or _sess_id):
+            # Единственная запись login_success — здесь, с полным контекстом
+            if result.get('success'):
                 user_obj = result.get('user', {})
                 track_event('login_success', source='backend',
                             user_id=user_obj.get('id'),
                             family_id=user_obj.get('family_id'),
                             anonymous_id=_anon_id,
                             session_id=_sess_id,
-                            properties={'identity_linked': True})
+                            properties={'identity_linked': bool(_anon_id or _sess_id)})
         elif action == 'request_reset':
             result = request_password_reset(
                 phone=body.get('phone')
