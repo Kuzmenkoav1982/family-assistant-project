@@ -18,6 +18,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from audit_helper import log_auth_action
 from rate_limit_helper import check_rate_limit
+from track_event_helper import track_event
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 YANDEX_CLIENT_ID = os.environ.get('YANDEX_CLIENT_ID')
@@ -292,7 +293,16 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             details={'phone': phone, 'has_invite': bool(invite_code)},
             status='success'
         )
-        
+
+        track_event('signup_completed', source='backend',
+                    user_id=str(user['id']),
+                    family_id=user_data.get('family_id'),
+                    properties={'via_invite': bool(invite_code), 'is_new_user': not bool(existing_user)})
+        if user_data.get('family_id') and not invite_code:
+            track_event('family_created', source='backend',
+                        user_id=str(user['id']),
+                        family_id=user_data['family_id'])
+
         return {
             'success': True,
             'token': token,
@@ -382,7 +392,11 @@ def login_user(phone: str, password: str, ip_address: str = 'unknown') -> Dict[s
             details={'phone': phone, 'method': 'password'},
             status='success'
         )
-        
+
+        track_event('login_success', source='backend',
+                    user_id=str(user['id']),
+                    family_id=user_data.get('family_id'))
+
         return {
             'success': True,
             'token': token,

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from track_event_helper import track_event
 
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -146,6 +147,11 @@ def create_task(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         print(f"[create_task] Task created successfully: {task}")
         cur.close()
         conn.close()
+        if task:
+            track_event('task_created', source='backend',
+                        family_id=family_id,
+                        properties={'category': task.get('category'), 'points': task.get('points'),
+                                    'priority': task.get('priority'), 'is_recurring': task.get('is_recurring')})
         return dict(task) if task else {}
     except Exception as e:
         print(f"[create_task] Error: {e}")

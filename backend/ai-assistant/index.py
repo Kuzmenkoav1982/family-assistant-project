@@ -9,6 +9,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from ai_credits_utils import check_and_spend_ai_credits
+from track_event_helper import track_event
 
 SCHEMA = '"t_p5815085_family_assistant_pro"'
 
@@ -400,6 +401,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                           temperature, max_tokens_cfg, history_depth_cfg,
                           approx_input_tokens, approx_output_tokens, latency_ms, 'ok', None,
                           prompt_checksum)
+
+        track_event('ai_request_sent', source='backend',
+                    user_id=str(user_id) if user_id else None,
+                    family_id=str(family_id) if family_id else None,
+                    properties={'role': role_code, 'model': model_name,
+                                'tokens_in': approx_input_tokens, 'tokens_out': approx_output_tokens,
+                                'latency_ms': latency_ms})
 
         return {
             'statusCode': 200,

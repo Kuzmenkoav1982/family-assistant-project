@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
 import { saveAuthSession } from '@/lib/authStorage';
+import { trackProductEvent } from '@/lib/product-events';
 import SEOHead from '@/components/SEOHead';
 
 const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
@@ -87,6 +88,7 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackProductEvent('signup_started', { via_invite: !!inviteCode });
     
     if (!formData.name || !formData.email || !formData.password) {
       toast({
@@ -171,7 +173,7 @@ export default function Register() {
         }
       } else {
         await checkRateLimit();
-        
+        trackProductEvent('signup_failed', { reason: data.error || 'unknown' });
         toast({
           title: 'Ошибка регистрации',
           description: data.error || 'Не удалось создать аккаунт',
@@ -179,6 +181,7 @@ export default function Register() {
         });
       }
     } catch (error) {
+      trackProductEvent('signup_failed', { reason: 'network_error' });
       toast({
         title: 'Ошибка сети',
         description: 'Не удалось связаться с сервером',

@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { storage } from '@/lib/storage';
 import { saveAuthSession } from '@/lib/authStorage';
+import { trackProductEvent } from '@/lib/product-events';
 import SEOHead from '@/components/SEOHead';
 
 const AUTH_URL = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
@@ -165,7 +166,7 @@ export default function Login() {
         }, 500);
       } else {
         await checkRateLimit();
-        
+        trackProductEvent('login_failed', { reason: data.error || 'invalid_credentials' });
         toast({
           title: 'Неверный email или пароль',
           description: 'Проверьте правильность введенных данных и попробуйте снова',
@@ -174,7 +175,7 @@ export default function Login() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      
+      trackProductEvent('login_failed', { reason: 'network_error' });
       toast({
         title: 'Ошибка подключения',
         description: 'Проверьте интернет-соединение и попробуйте снова',

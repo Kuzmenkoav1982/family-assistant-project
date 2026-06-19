@@ -6,6 +6,7 @@ from typing import Dict, Any, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import requests
+from track_event_helper import track_event
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 MESSAGES_TABLE = 'family_chat_messages'
@@ -373,6 +374,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 max_targets = create_chat_notifications(cur, recipients, ctx['member_name'], content, conv['kind']) or []
 
                 conn.commit()
+
+                track_event('chat_message_sent', source='backend',
+                            user_id=str(ctx.get('user_id', '')),
+                            family_id=str(family_id),
+                            properties={'conv_kind': conv.get('kind')})
 
                 # Отправка в MAX-бот после коммита БД (best-effort)
                 for max_chat_id, max_text in max_targets:
