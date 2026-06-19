@@ -1640,7 +1640,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         )
         
         action = body.get('action')
-        
+        # Identity stitching: анонимные идентификаторы, переданные фронтом
+        _anon_id = body.get('_anonymous_id')
+        _sess_id = body.get('_session_id')
+
         if action == 'register':
             if body.get('email'):
                 result = register_user_email(
@@ -1660,6 +1663,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     member_name=body.get('member_name'),
                     relationship=body.get('relationship')
                 )
+            # Дополняем signup_completed анонимным ID для связки воронки
+            if result.get('success') and (_anon_id or _sess_id):
+                user_obj = result.get('user', {})
+                track_event('signup_completed', source='backend',
+                            user_id=user_obj.get('id'),
+                            family_id=user_obj.get('family_id'),
+                            anonymous_id=_anon_id,
+                            session_id=_sess_id,
+                            properties={'identity_linked': True,
+                                        'via_invite': bool(body.get('invite_code'))})
         elif action == 'login':
             if body.get('email'):
                 result = login_user_email(
@@ -1673,6 +1686,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     password=body.get('password'),
                     ip_address=ip_address
                 )
+            # Дополняем login_success анонимным ID для связки воронки
+            if result.get('success') and (_anon_id or _sess_id):
+                user_obj = result.get('user', {})
+                track_event('login_success', source='backend',
+                            user_id=user_obj.get('id'),
+                            family_id=user_obj.get('family_id'),
+                            anonymous_id=_anon_id,
+                            session_id=_sess_id,
+                            properties={'identity_linked': True})
         elif action == 'request_reset':
             result = request_password_reset(
                 phone=body.get('phone')

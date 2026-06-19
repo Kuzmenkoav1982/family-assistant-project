@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET funnel stats default period",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {"funnel": [], "counts": {}},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET funnel stats 30d",
+      "method": "GET",
+      "path": "/?period=30d",
+      "expectedStatus": 200
+    }
+  ]
+}

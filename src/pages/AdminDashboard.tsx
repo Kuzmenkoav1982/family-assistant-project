@@ -166,6 +166,7 @@ export default function AdminDashboard() {
   const navItems = [
     { icon: 'LayoutGrid', label: 'Панель управления', short: 'Панель', href: '/admin/panel' },
     { icon: 'TrendingUp', label: 'Посещаемость', short: 'Трафик', href: '/admin/traffic' },
+    { icon: 'Filter', label: 'Воронка продукта', short: 'Воронка', href: '/admin/funnel' },
     { icon: 'Mic', label: 'Алиса', short: 'Алиса', href: '/admin/alice' },
     { icon: 'MessageCircle', label: 'MAX', short: 'MAX', href: '/admin/max' },
     { icon: 'Newspaper', label: 'Блог', short: 'Блог', href: '/admin/blog' },
@@ -191,7 +192,7 @@ export default function AdminDashboard() {
     { icon: 'DollarSign', label: 'Финансы', tab: 'finance', color: 'from-green-400 to-emerald-500' },
     { icon: 'Ticket', label: 'Промокоды', tab: 'promo', color: 'from-pink-400 to-rose-500' },
     { icon: 'Megaphone', label: 'Рассылки', tab: 'broadcasts', color: 'from-orange-400 to-red-500' },
-    { icon: 'TrendingUp', label: 'Воронка', tab: 'funnel', color: 'from-purple-400 to-violet-500' },
+    { icon: 'TrendingDown', label: 'Воронка', tab: 'funnel', color: 'from-purple-400 to-violet-500', href: '/admin/funnel' },
     { icon: 'AlertCircle', label: 'Ошибки', tab: 'errors', color: 'from-red-400 to-pink-500' },
     { icon: 'Inbox', label: 'Тикеты', tab: 'tickets', color: 'from-cyan-400 to-teal-500' },
     { icon: 'Trophy', label: 'Топ семей', tab: 'top', color: 'from-yellow-400 to-orange-500' },

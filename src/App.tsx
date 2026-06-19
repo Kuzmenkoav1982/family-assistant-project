@@ -287,6 +287,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers"));
 const AdminTraffic = lazy(() => import("./pages/AdminTraffic"));
+const AdminFunnel = lazy(() => import("./pages/AdminFunnel"));
 const AdminSupport = lazy(() => import("./pages/AdminSupport"));
 const AdminSupportDesk = lazy(() => import("./pages/AdminSupportDesk"));
 const AdminSubscriptions = lazy(() => import("./pages/AdminSubscriptions"));
@@ -545,6 +546,7 @@ const App = () => {
                       <Route path="/admin/support-desk" element={<AdminRoute><AdminSupportDesk /></AdminRoute>} />
                       <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
                       <Route path="/admin/traffic" element={<AdminRoute><AdminTraffic /></AdminRoute>} />
+                      <Route path="/admin/funnel" element={<AdminRoute><AdminFunnel /></AdminRoute>} />
                       <Route path="/admin/welcome" element={<AdminRoute><AdminWelcomeAnalytics /></AdminRoute>} />
                       <Route path="/admin/alice" element={<AdminRoute><AdminAlice /></AdminRoute>} />
                       <Route path="/admin/max" element={<AdminRoute><AdminMAX /></AdminRoute>} />

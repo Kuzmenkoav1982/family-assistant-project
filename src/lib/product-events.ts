@@ -5,7 +5,7 @@ const API_URL = (func2url as Record<string, string>)['track-event'] || '';
 const ANON_KEY = 'pe_anonymous_id';
 const SESSION_KEY = 'pe_session_id';
 
-function getAnonId(): string {
+export function getAnonId(): string {
   try {
     let id = localStorage.getItem(ANON_KEY);
     if (!id) {
@@ -16,7 +16,7 @@ function getAnonId(): string {
   } catch { return ''; }
 }
 
-function getSessionId(): string {
+export function getSessionId(): string {
   try {
     let id = sessionStorage.getItem(SESSION_KEY);
     if (!id) {

@@ -8,7 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { sendMetrikaGoal, METRIKA_GOALS } from '@/utils/metrika';
 import { saveAuthSession } from '@/lib/authStorage';
-import { trackProductEvent } from '@/lib/product-events';
+import { trackProductEvent, getAnonId, getSessionId } from '@/lib/product-events';
 import SEOHead from '@/components/SEOHead';
 
 const AUTH_API = 'https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0';
@@ -137,7 +137,9 @@ export default function Register() {
           name: formData.name,
           invite_code: inviteCode,
           member_name: inviteCode ? formData.name : undefined,
-          relationship: inviteCode ? 'Член семьи' : undefined
+          relationship: inviteCode ? 'Член семьи' : undefined,
+          _anonymous_id: getAnonId(),
+          _session_id: getSessionId(),
         })
       });
 
