@@ -7,13 +7,12 @@ interface LazySectionProps {
 }
 
 /**
- * Монтирует children только когда секция близка к области видимости.
- * Это убирает работу основного потока для секций ниже фолда — улучшает TBT и LCP.
- * Заранее резервирует место через minHeight чтобы не было CLS.
+ * Монтирует children заранее (rootMargin большой), чтобы не было CLS при скролле.
+ * minHeight резервирует место только до первого монтирования.
  */
 export default function LazySection({
   children,
-  rootMargin = '200px',
+  rootMargin = '600px',
   minHeight = 400,
 }: LazySectionProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -40,7 +39,7 @@ export default function LazySection({
   }, [rootMargin]);
 
   return (
-    <div ref={ref} style={!isVisible ? { minHeight } : undefined}>
+    <div ref={ref} style={isVisible ? undefined : { minHeight }}>
       {isVisible ? children : null}
     </div>
   );
