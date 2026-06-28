@@ -88,13 +88,14 @@ export default function useDietProgress() {
     }
   }, [data?.has_plan]);
 
-  const activityFetchedRef = useRef(false);
+  const activityFetchedPlanRef = useRef<number | null>(null);
   useEffect(() => {
-    if (data?.has_plan && !activityFetchedRef.current) {
-      activityFetchedRef.current = true;
+    const planId = data?.plan?.id ?? null;
+    if (data?.has_plan && planId !== null && activityFetchedPlanRef.current !== planId) {
+      activityFetchedPlanRef.current = planId;
       fetchTodayActivity();
     }
-  }, [data?.has_plan]);
+  }, [data?.has_plan, data?.plan?.id]);
 
   const handleLogWeight = async () => {
     if (!newWeight || !data?.plan) return;
