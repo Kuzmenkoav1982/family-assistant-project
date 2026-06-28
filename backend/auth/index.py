@@ -800,13 +800,13 @@ def oauth_login_vk(frontend_url: str = '') -> Dict[str, Any]:
     state_key = secrets.token_urlsafe(24)
     
     frontend = frontend_url or 'https://nasha-semiya.ru/login'
-    expires_at = datetime.now() + timedelta(minutes=10)
+    expires_at = datetime.now() + timedelta(minutes=30)
     
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute(
-            f"DELETE FROM {SCHEMA}.oauth_pkce_states WHERE expires_at < CURRENT_TIMESTAMP"
+            f"DELETE FROM {SCHEMA}.oauth_pkce_states WHERE expires_at < CURRENT_TIMESTAMP - INTERVAL '1 hour'"
         )
         insert_sql = f"""
             INSERT INTO {SCHEMA}.oauth_pkce_states (state_key, code_verifier, frontend_url, provider, expires_at)
@@ -864,16 +864,16 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
             if row and row['expires_at'] >= datetime.now():
                 code_verifier = row['code_verifier']
                 frontend_url_from_state = row['frontend_url']
-                cur_s.execute(
-                    f"DELETE FROM {SCHEMA}.oauth_pkce_states WHERE state_key = {escape_string(state)}"
-                )
             cur_s.close()
             conn_s.close()
         except Exception:
             pass
     
     if not code_verifier:
-        return {'error': 'PKCE code_verifier не найден или state истёк. Попробуйте войти заново.'}
+        return {
+            'error': 'PKCE code_verifier не найден или state истёк. Попробуйте войти заново.',
+            'frontend_url': frontend_url_from_state or None,
+        }
     
     token_url = 'https://id.vk.com/oauth2/auth'
     token_data = urllib.parse.urlencode({
@@ -900,6 +900,18 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
         access_token = token_response.get('access_token')
         if not access_token:
             return {'error': f'Не получен access_token от VK. Ответ: {json.dumps(token_response)}'}
+        
+        if state:
+            try:
+                conn_d = get_db_connection()
+                cur_d = conn_d.cursor()
+                cur_d.execute(
+                    f"DELETE FROM {SCHEMA}.oauth_pkce_states WHERE state_key = {escape_string(state)}"
+                )
+                cur_d.close()
+                conn_d.close()
+            except Exception:
+                pass
         
         user_info_url = 'https://id.vk.com/oauth2/user_info'
         user_info_data = urllib.parse.urlencode({
