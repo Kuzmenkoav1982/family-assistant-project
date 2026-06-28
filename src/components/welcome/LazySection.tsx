@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, ReactNode } from 'react';
+import { ReactNode } from 'react';
 
 interface LazySectionProps {
   children: ReactNode;
@@ -7,40 +7,23 @@ interface LazySectionProps {
 }
 
 /**
- * Монтирует children заранее (rootMargin большой), чтобы не было CLS при скролле.
- * minHeight резервирует место только до первого монтирования.
+ * Откладывает рендеринг секций за экраном через нативный content-visibility: auto.
+ * Браузер сам пропускает отрисовку невидимых секций и резервирует под них место
+ * (contain-intrinsic-size), но НЕ удаляет их из DOM — поэтому при скролле
+ * не возникает скачков прокрутки (jump-to-top), как было с IntersectionObserver.
  */
 export default function LazySection({
   children,
-  rootMargin = '600px',
   minHeight = 400,
 }: LazySectionProps) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') {
-      setIsVisible(true);
-      return;
-    }
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          setIsVisible(true);
-          obs.disconnect();
-        }
-      },
-      { rootMargin }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [rootMargin]);
-
   return (
-    <div ref={ref} style={isVisible ? undefined : { minHeight }}>
-      {isVisible ? children : null}
+    <div
+      style={{
+        contentVisibility: 'auto',
+        containIntrinsicSize: `auto ${minHeight}px`,
+      }}
+    >
+      {children}
     </div>
   );
 }
