@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { DashboardData, AnalysisData, NotifSetting, TodayActivityData } from '@/data/dietProgressTypes';
 import { API_URL, SYNC_API } from '@/data/dietProgressTypes';
@@ -50,19 +50,32 @@ export default function useDietProgress() {
   const authToken = localStorage.getItem('authToken') || '';
   const headers = { 'Content-Type': 'application/json', 'X-Auth-Token': authToken };
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchDashboard = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const res = await fetch(`${API_URL}?action=dashboard`, { headers: { 'X-Auth-Token': authToken } });
+      const res = await fetch(`${API_URL}?action=dashboard`, {
+        headers: { 'X-Auth-Token': authToken },
+        signal: controller.signal,
+      });
       const json = await res.json();
       setData(json);
     } catch (e) {
-      console.error('[DietProgress] fetch error:', e);
+      if ((e as Error)?.name !== 'AbortError') {
+        console.error('[DietProgress] fetch error:', e);
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, [authToken]);
 
-  useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+  useEffect(() => {
+    fetchDashboard();
+    return () => abortRef.current?.abort();
+  }, [fetchDashboard]);
 
   useEffect(() => {
     if (data?.has_plan && !motivation && !loadingMotivation) {
@@ -75,8 +88,12 @@ export default function useDietProgress() {
     }
   }, [data?.has_plan]);
 
+  const activityFetchedRef = useRef(false);
   useEffect(() => {
-    if (data?.has_plan) fetchTodayActivity();
+    if (data?.has_plan && !activityFetchedRef.current) {
+      activityFetchedRef.current = true;
+      fetchTodayActivity();
+    }
   }, [data?.has_plan]);
 
   const handleLogWeight = async () => {
