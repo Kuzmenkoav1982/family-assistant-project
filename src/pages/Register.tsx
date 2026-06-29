@@ -28,6 +28,7 @@ export default function Register() {
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [agreedToPolicy, setAgreedToPolicy] = useState(false);
 
   const handleOAuthRedirect = (url: string) => {
     if (window.top !== window.self) {
@@ -103,6 +104,15 @@ export default function Register() {
       toast({
         title: 'Ошибка',
         description: 'Пароль должен быть не менее 6 символов',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!agreedToPolicy) {
+      toast({
+        title: 'Требуется согласие',
+        description: 'Поставьте галочку согласия на обработку персональных данных',
         variant: 'destructive'
       });
       return;
@@ -272,16 +282,25 @@ export default function Register() {
               </div>
             </div>
 
-            <p className="text-xs text-gray-400 text-center">
-              Нажимая «Зарегистрироваться», вы принимаете{' '}
-              <Link to="/privacy-policy" target="_blank" className="text-purple-600 hover:underline">
-                политику конфиденциальности
-              </Link>
-              {' '}и{' '}
-              <Link to="/terms-of-service" target="_blank" className="text-purple-600 hover:underline">
-                условия использования
-              </Link>
-            </p>
+            <label className="flex items-start gap-2 text-xs text-gray-600 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedToPolicy}
+                onChange={(e) => setAgreedToPolicy(e.target.checked)}
+                disabled={loading}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-purple-600"
+              />
+              <span>
+                Я согласен(а) на обработку персональных данных и принимаю{' '}
+                <Link to="/privacy-policy" target="_blank" className="text-purple-600 hover:underline">
+                  политику конфиденциальности
+                </Link>
+                {' '}и{' '}
+                <Link to="/terms-of-service" target="_blank" className="text-purple-600 hover:underline">
+                  условия использования
+                </Link>
+              </span>
+            </label>
 
             {rateLimitInfo && !rateLimitInfo.blocked && rateLimitInfo.remaining <= 2 && (
               <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
@@ -305,7 +324,7 @@ export default function Register() {
             <Button 
               type="submit" 
               className="w-full"
-              disabled={loading || rateLimitInfo?.blocked}
+              disabled={loading || rateLimitInfo?.blocked || !agreedToPolicy}
             >
               {loading ? (
                 <>

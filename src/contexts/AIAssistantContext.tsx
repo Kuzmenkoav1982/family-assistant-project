@@ -34,7 +34,7 @@ const defaultRoles: AIAssistantRole[] = [
   { id: 'organizer', name: 'Организатор', icon: 'Calendar', description: 'Планирование задач', emoji: '📋' },
   { id: 'educator', name: 'Воспитатель', icon: 'GraduationCap', description: 'Советы по детям', emoji: '👨‍🏫' },
   { id: 'finance', name: 'Финансовый советник', icon: 'Wallet', description: 'Бюджет и экономика', emoji: '💰' },
-  { id: 'psychologist', name: 'Психолог', icon: 'Heart', description: 'Отношения в семье', emoji: '💖' },
+  { id: 'psychologist', name: 'ИИ-помощник', icon: 'Heart', description: 'Отношения в семье', emoji: '💖' },
   { id: 'fitness', name: 'Фитнес-тренер', icon: 'Dumbbell', description: 'Здоровье и спорт', emoji: '💪' },
   { id: 'nutritionist', name: 'Диетолог', icon: 'Apple', description: 'Правильное питание', emoji: '🍎' },
   { id: 'travel', name: 'Тревел-планер', icon: 'Plane', description: 'Организация поездок', emoji: '✈️' },

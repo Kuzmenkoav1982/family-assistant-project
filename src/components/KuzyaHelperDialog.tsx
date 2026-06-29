@@ -26,7 +26,7 @@ const KUZYA_ROLES = {
     ]
   },
   psychologist: {
-    name: 'Семейный психолог',
+    name: 'Семейный ИИ-помощник',
     icon: 'Brain',
     color: 'bg-purple-100 text-purple-700 border-purple-300',
     description: 'Консультации по семейным отношениям',

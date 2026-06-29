@@ -11,6 +11,7 @@
  * Demo-режим намеренно пропускается — там нет реального пользователя/токена.
  */
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { storage } from '@/lib/storage';
@@ -19,11 +20,20 @@ import func2url from '../../backend/func2url.json';
 
 const CONSENT_URL = (func2url as Record<string, string>)['consent'];
 
+// Страницы, которые НЕ блокируются стеной согласия: с них пользователь может
+// выйти, удалить аккаунт или скачать данные, не давая согласия (без тупика).
+const ALLOWED_WITHOUT_CONSENT = ['/settings'];
+
 type GateState = 'checking' | 'need_consent' | 'ok';
 
 export default function ConsentGate({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
   const [state, setState] = useState<GateState>('checking');
   const [submitting, setSubmitting] = useState(false);
+
+  const isAllowedPath = ALLOWED_WITHOUT_CONSENT.some(
+    (p) => pathname === p || pathname.startsWith(p + '/')
+  );
 
   const isDemo = (() => {
     try {
@@ -94,6 +104,12 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
     );
   }
 
+  if (state === 'need_consent' && isAllowedPath) {
+    // На разрешённых страницах (например /settings) не блокируем — пользователь
+    // должен иметь возможность выйти/удалить аккаунт/скачать данные.
+    return <>{children}</>;
+  }
+
   if (state === 'need_consent') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white p-4">
@@ -133,8 +149,8 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
           </div>
 
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-            <a href="/settings" className="underline">Скачать мои данные</a>
-            <a href="/settings" className="underline">Запросить удаление аккаунта</a>
+            <a href="/settings?section=account" className="underline">Скачать мои данные</a>
+            <a href="/settings?section=account" className="underline">Удалить аккаунт</a>
           </div>
         </div>
       </div>

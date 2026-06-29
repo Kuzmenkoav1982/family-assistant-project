@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
         <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
         
         <div className="space-y-6 text-gray-700 leading-relaxed">
-          <p className="text-sm text-gray-500">Дата последнего обновления: {new Date().toLocaleDateString('ru-RU')}</p>
+          <p className="text-sm text-gray-500">Редакция от 30.06.2026 (версия 2026-06-30)</p>
 
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">1. Общие положения</h2>
