@@ -107,10 +107,10 @@ export function FirstLoginWelcome({ isFirstLogin, onClose }: FirstLoginWelcomePr
               </div>
               <div>
                 <h3 className="font-semibold text-orange-900 mb-1">
-                  Познакомьтесь с AI-ассистентом "Домовой"
+                  Познакомьтесь с семейным ИИ-помощником «Домовой»
                 </h3>
                 <p className="text-sm text-orange-800">
-                  Ваш умный помощник по дому: повар, психолог, финансист, педагог и другие роли.
+                  Ваш умный помощник по дому: повар, помощник по планированию, наставник по семейному быту, финансист и другие роли.
                 </p>
               </div>
             </div>

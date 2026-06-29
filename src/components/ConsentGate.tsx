@@ -94,9 +94,9 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
     window.location.href = '/welcome';
   };
 
-  if (state === 'checking') {
+  if (state === 'checking' && !isAllowedPath) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-slate-50 to-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-primary mx-auto mb-3" />
           <p className="text-sm text-gray-600">Загрузка…</p>
@@ -113,7 +113,7 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
 
   if (state === 'need_consent') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white p-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-br from-slate-50 to-white p-4 overflow-auto">
         <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl border p-6 sm:p-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center">

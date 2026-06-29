@@ -27,8 +27,8 @@ export default function ConsultationTab({
 
   const handleShareConsultation = async (q: string, answer: string, topic?: string) => {
     const cleanAnswer = stripMarkdown(answer);
-    const title = topic || 'Консультация психолога';
-    const shareText = `🧠 ${title}\n\n❓ ${q.slice(0, 200)}${q.length > 200 ? '...' : ''}\n\n💡 Рекомендация психолога:\n${cleanAnswer}\n\n📲 Приложение «Наша Семья» — nasha-semiya.ru`;
+    const title = topic || 'Идеи от семейного ИИ-помощника';
+    const shareText = `🧠 ${title}\n\n❓ ${q.slice(0, 200)}${q.length > 200 ? '...' : ''}\n\n💡 Идеи от ИИ-помощника:\n${cleanAnswer}\n\n📲 Приложение «Наша Семья» — nasha-semiya.ru`;
     if (navigator.share) {
       try {
         await navigator.share({ title, text: shareText });
@@ -78,7 +78,7 @@ export default function ConsultationTab({
             </div>
             <div>
               <h3 className="font-semibold text-gray-800">Опишите ситуацию</h3>
-              <p className="text-xs text-gray-500">ИИ-психолог проанализирует и даст рекомендации</p>
+              <p className="text-xs text-gray-500">Семейный ИИ-помощник предложит идеи для размышления</p>
             </div>
           </div>
 
@@ -133,7 +133,7 @@ export default function ConsultationTab({
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center animate-pulse">
               <Icon name="Brain" size={24} className="text-teal-600" />
             </div>
-            <p className="text-sm text-gray-500">Психолог анализирует вашу ситуацию...</p>
+            <p className="text-sm text-gray-500">ИИ-помощник анализирует вашу ситуацию...</p>
             <div className="flex gap-1">
               <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
               <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -149,7 +149,7 @@ export default function ConsultationTab({
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2 text-teal-800">
                 <Icon name="Sparkles" size={18} className="text-teal-500" />
-                Рекомендация психолога
+                Идеи от ИИ-помощника
               </CardTitle>
             </CardHeader>
             <CardContent className="prose prose-sm max-w-none">
