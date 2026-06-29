@@ -44,6 +44,7 @@ import { Navigate } from 'react-router-dom';
 import { storage } from '@/lib/storage';
 import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
 import Welcome from '@/pages/Welcome';
+import ConsentGate from '@/components/ConsentGate';
 import {
   ADMIN_SESSION_EVENT,
   ADMIN_SESSION_TOKEN_KEY,
@@ -93,7 +94,7 @@ export function ProtectedRoute({ children }: GuardProps) {
     return <Welcome />;
   }
 
-  return <>{children}</>;
+  return <ConsentGate>{children}</ConsentGate>;
 }
 
 /**

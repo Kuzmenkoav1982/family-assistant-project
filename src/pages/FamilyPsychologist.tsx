@@ -36,8 +36,8 @@ export default function FamilyPsychologist() {
   return (
     <>
       <SEOHead
-        title="Семейный психолог ИИ — консультации, упражнения, релаксация"
-        description="Бесплатный семейный психолог онлайн: ИИ-консультации по воспитанию детей, решению конфликтов, техники релаксации, упражнения для укрепления семьи, справочник возрастных кризисов от 0 до 19 лет."
+        title="Семейный ИИ-помощник — идеи для семейных ситуаций, упражнения, релаксация"
+        description="Семейный ИИ-помощник: информационный сервис для саморефлексии и семейного диалога. Идеи по воспитанию детей и решению конфликтов, техники релаксации, упражнения, справочник возрастных кризисов от 0 до 19 лет. Не заменяет специалиста."
         path="/psychologist"
       />
       <div className="min-h-screen bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 p-3 lg:p-8">
@@ -51,8 +51,8 @@ export default function FamilyPsychologist() {
 
           <SectionAIAdvisor
             role="psychologist"
-            title="ИИ-Психолог"
-            description="Отношения, конфликты, эмоции"
+            title="Семейный ИИ-помощник"
+            description="Идеи для размышления над семейными ситуациями"
             gradientFrom="from-fuchsia-500"
             gradientTo="to-purple-600"
             accentBg="bg-fuchsia-50"

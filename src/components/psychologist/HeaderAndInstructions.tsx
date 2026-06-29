@@ -11,15 +11,24 @@ export default function HeaderAndInstructions() {
       <div className="relative rounded-2xl overflow-hidden mb-2">
         <img
           src="https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/files/2760770a-4c93-462f-8458-4e964ee731f5.jpg"
-          alt="Семейный психолог ИИ"
+          alt="Семейный ИИ-помощник"
           className="w-full h-36 sm:h-48 object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 p-4">
-          <h1 className="text-xl sm:text-3xl font-bold text-white mb-0.5">Семейный психолог ИИ</h1>
-          <p className="text-xs sm:text-sm text-white/80">Консультации, техники релаксации, упражнения для семьи</p>
+          <h1 className="text-xl sm:text-3xl font-bold text-white mb-0.5">Семейный ИИ-помощник</h1>
+          <p className="text-xs sm:text-sm text-white/80">Информационный сервис для саморефлексии и семейного диалога</p>
         </div>
       </div>
+
+      <Alert className="bg-amber-50 border-amber-200 mb-2">
+        <Icon name="Info" className="h-4 w-4 text-amber-600" />
+        <AlertDescription className="text-amber-800 text-xs">
+          Сервис не является психологической, психотерапевтической или медицинской помощью,
+          не ставит диагнозы и не заменяет обращение к специалисту. В кризисной ситуации
+          звоните 112 или на детский телефон доверия 8-800-2000-122.
+        </AlertDescription>
+      </Alert>
 
       <Collapsible open={isInstructionOpen} onOpenChange={setIsInstructionOpen}>
         <Alert className="bg-gradient-to-r from-teal-50 to-cyan-50 border-teal-200">
@@ -35,7 +44,7 @@ export default function HeaderAndInstructions() {
                   <div className="space-y-2 text-xs">
                     <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
                       <p className="font-medium">1. Консультация</p>
-                      <p className="text-[11px] text-teal-700">Опишите семейную ситуацию — ИИ-психолог проанализирует и даст рекомендации. Стоимость: 3 руб.</p>
+                      <p className="text-[11px] text-teal-700">Опишите семейную ситуацию — ИИ-помощник предложит идеи для размышления. Стоимость: 3 руб.</p>
                     </div>
                     <div className="p-1.5 bg-white/60 rounded border-l-[3px] border-teal-500">
                       <p className="font-medium">2. Релаксация</p>

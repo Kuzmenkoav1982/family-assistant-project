@@ -89,7 +89,17 @@ def handler(event: dict, context) -> dict:
             'body': json.dumps({'error': 'Method not allowed'}),
             'isBase64Encoded': False
         }
-    
+
+    # ВРЕМЕННОЕ ОТКЛЮЧЕНИЕ (приватность ПДн здоровья).
+    # Отправка медданных во внешний LLM (Yandex Vision/GPT) приостановлена до
+    # внедрения отдельного явного согласия и обезличивания. Ранний возврат стоит
+    # ДО списания средств и ДО любых внешних вызовов, чтобы исключить обходные пути.
+    return respond(503, {
+        'error': 'feature_disabled',
+        'disabled': True,
+        'message': 'Функция AI-анализа медицинских данных временно недоступна до внедрения отдельного согласия и дополнительной защиты данных.'
+    })
+
     body = json.loads(event.get('body', '{}'))
     image_base64 = body.get('image')
     analysis_type = body.get('type', 'general')

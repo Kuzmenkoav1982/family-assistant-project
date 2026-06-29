@@ -1,31 +1,24 @@
 {
   "tests": [
     {
-      "name": "Test: missing image returns 400",
-      "method": "POST",
-      "path": "/",
-      "body": {
-        "type": "general"
-      },
-      "expectedStatus": 400,
-      "expectedBody": {
-        "error": "Image data is required"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Test: image with no auth returns 401",
+      "name": "Feature disabled returns 503 (privacy)",
       "method": "POST",
       "path": "/",
       "body": {
         "image": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
         "type": "general"
       },
-      "expectedStatus": 401,
+      "expectedStatus": 503,
       "expectedBody": {
-        "error": "string"
+        "disabled": true
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "OPTIONS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
     }
   ]
 }

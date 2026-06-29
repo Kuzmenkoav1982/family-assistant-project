@@ -1,4 +1,5 @@
 {
+  "consent": "https://functions.poehali.dev/311122d9-506d-4857-acb5-4e357a10c7e4",
   "funnel-stats": "https://functions.poehali.dev/e28ce6a3-b51c-40cb-9d39-c8dce23f5de5",
   "track-event": "https://functions.poehali.dev/53e8d483-3858-423b-bcf1-fe6cafa8c9d9",
   "generate-docs-pdf": "https://functions.poehali.dev/34151507-d55d-4df2-8a56-799ac5674349",

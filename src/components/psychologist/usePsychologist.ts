@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
 import { loadFromStorage, saveToStorage } from './utils';
 import { SYSTEM_PROMPT, QUICK_TOPICS } from './data/prompts';
+import { detectCrisis, CRISIS_RESPONSE } from './safety';
 import type { ConsultationRecord, ExerciseRecord, RelaxationRecord } from './types';
 
 export function usePsychologist() {
@@ -66,6 +67,25 @@ export function usePsychologist() {
         description: 'Опишите ситуацию подробнее (минимум 20 символов)',
         variant: 'destructive',
       });
+      return;
+    }
+
+    // Safety-перехват: кризисные темы не отправляем в LLM, показываем экстренную помощь.
+    if (detectCrisis(question)) {
+      setCurrentResponse(CRISIS_RESPONSE);
+      const record: ConsultationRecord = {
+        id: Date.now().toString(),
+        topic: 'Экстренная помощь',
+        question,
+        answer: CRISIS_RESPONSE,
+        date: new Date().toISOString(),
+      };
+      const updated = [record, ...consultationHistory].slice(0, 50);
+      setConsultationHistory(updated);
+      saveToStorage('psychologist_history', updated);
+      setTimeout(() => {
+        responseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
       return;
     }
 
