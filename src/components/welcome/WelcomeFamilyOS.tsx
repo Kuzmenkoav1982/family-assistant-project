@@ -46,7 +46,7 @@ const CYCLES: CycleCard[] = [
     order: 3,
     title: 'Осмысление',
     question: 'Что для нас важно?',
-    description: 'ИИ-психолог, мастерская жизни, зеркало родителя — пространство тихого размышления и инсайтов.',
+    description: 'Семейный ИИ-помощник, мастерская жизни, зеркало родителя — пространство тихого размышления и инсайтов.',
     icon: 'Lightbulb',
     color: 'from-amber-400 to-orange-500',
     borderColor: 'border-amber-200',
