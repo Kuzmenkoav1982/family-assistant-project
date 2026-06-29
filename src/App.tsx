@@ -86,6 +86,7 @@ const Documentation = lazy(() => import("./pages/Documentation"));
 const InstallationGuide = lazy(() => import("./pages/InstallationGuide"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Settings = lazy(() => import("./pages/Settings"));
+const AccountActions = lazy(() => import("./pages/AccountActions"));
 const Referral = lazy(() => import("./pages/Referral"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 
@@ -571,6 +572,7 @@ const App = () => {
                       <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
                       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                      <Route path="/account-actions" element={<ProtectedRoute><AccountActions /></ProtectedRoute>} />
                       <Route path="/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
                       {/* SEC-1.2b: MEDIUM-risk — личные данные питания */}
                       <Route path="/nutrition" element={<ProtectedRoute><NutritionHub /></ProtectedRoute>} />

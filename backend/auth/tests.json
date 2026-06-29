@@ -37,7 +37,7 @@
       "expectedStatus": 200
     },
     {
-      "name": "Register with email + invalid invite_code",
+      "name": "Register with email + invalid invite_code (с согласием)",
       "method": "POST",
       "path": "/",
       "body": {
@@ -45,11 +45,29 @@
         "email": "invitetest_smoke@example.com",
         "password": "password123",
         "name": "Тест",
+        "consent": true,
         "invite_code": "INVALID1"
       },
       "expectedStatus": 400,
       "expectedBody": {
         "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Register email без согласия -> отказ (152-ФЗ)",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "register",
+        "email": "consent_no_agree_smoke@example.com",
+        "password": "password123",
+        "name": "Тест",
+        "consent": false
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Необходимо согласие на обработку персональных данных"
       },
       "bodyMatcher": "partial"
     }

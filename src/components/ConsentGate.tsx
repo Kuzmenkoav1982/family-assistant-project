@@ -20,9 +20,10 @@ import func2url from '../../backend/func2url.json';
 
 const CONSENT_URL = (func2url as Record<string, string>)['consent'];
 
-// Страницы, которые НЕ блокируются стеной согласия: с них пользователь может
-// выйти, удалить аккаунт или скачать данные, не давая согласия (без тупика).
-const ALLOWED_WITHOUT_CONSENT = ['/settings'];
+// Страницы, которые НЕ блокируются стеной согласия: только «действия с аккаунтом»
+// (выйти / удалить / скачать данные). Сознательно НЕ открываем весь /settings,
+// чтобы до согласия не было доступа к данным профиля и семьи.
+const ALLOWED_WITHOUT_CONSENT = ['/account-actions'];
 
 type GateState = 'checking' | 'need_consent' | 'ok';
 
@@ -149,8 +150,8 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
           </div>
 
           <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-            <a href="/settings?section=account" className="underline">Скачать мои данные</a>
-            <a href="/settings?section=account" className="underline">Удалить аккаунт</a>
+            <a href="/account-actions" className="underline">Скачать мои данные</a>
+            <a href="/account-actions" className="underline">Удалить аккаунт</a>
           </div>
         </div>
       </div>

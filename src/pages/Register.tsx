@@ -148,6 +148,8 @@ export default function Register() {
           invite_code: inviteCode,
           member_name: inviteCode ? formData.name : undefined,
           relationship: inviteCode ? 'Член семьи' : undefined,
+          consent: agreedToPolicy,
+          consent_version: '2026-06-30',
           _anonymous_id: getAnonId(),
           _session_id: getSessionId(),
         })

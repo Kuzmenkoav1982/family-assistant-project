@@ -27,6 +27,8 @@ VK_APP_ID = os.environ.get('VK_APP_ID')
 VK_APP_SECRET = os.environ.get('VK_APP_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 NOTIFICATIONS_URL = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774'
+# Единый источник истины по версии политики (совпадает с фронтендом и функцией consent).
+CONSENT_POLICY_VERSION = '2026-06-30'
 
 # Yandex/VK OAuth credentials читаются из env-переменных:
 # YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, VK_APP_ID, VK_APP_SECRET
@@ -92,6 +94,21 @@ def get_db_connection():
     conn = psycopg2.connect(DATABASE_URL)
     conn.autocommit = True
     return conn
+
+def log_consent(cur, user_id, policy_version: str, ip: str = '', user_agent: str = '') -> None:
+    """Фиксирует факт согласия на обработку ПДн в том же серверном потоке регистрации.
+    Использует переданный курсор — запись попадает в ту же транзакцию, что и создание юзера."""
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.user_consents
+            (user_id, consent_type, policy_version, ip_address, user_agent)
+            VALUES (
+                {escape_string(user_id)},
+                'privacy_policy',
+                {escape_string(policy_version)},
+                {escape_string((ip or '')[:64])},
+                {escape_string(user_agent or '')}
+            )"""
+    )
 
 def register_user(phone: str, password: str, family_name: Optional[str] = None, skip_family_creation: bool = False, invite_code: Optional[str] = None, member_name: Optional[str] = None, relationship: Optional[str] = None) -> Dict[str, Any]:
     if not phone:
@@ -1061,13 +1078,23 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
 def register_user_email(email: str, password: str, name: str = '',
                         invite_code: Optional[str] = None,
                         member_name: Optional[str] = None,
-                        relationship: Optional[str] = None) -> Dict[str, Any]:
-    """Регистрация через email. Если передан invite_code — присоединяет к существующей семье."""
+                        relationship: Optional[str] = None,
+                        consent: bool = False,
+                        consent_version: Optional[str] = None,
+                        ip_address: str = '',
+                        user_agent: str = '') -> Dict[str, Any]:
+    """Регистрация через email. Если передан invite_code — присоединяет к существующей семье.
+    Требует явного согласия на обработку ПДн (consent=True) и фиксирует его в user_consents."""
     if not email or '@' not in email:
         return {'error': 'Некорректный email'}
     
     if len(password) < 6:
         return {'error': 'Пароль должен быть минимум 6 символов'}
+
+    # Серверная валидация согласия: без него регистрация невозможна (152-ФЗ).
+    if not consent:
+        return {'error': 'Необходимо согласие на обработку персональных данных'}
+    policy_version = consent_version or CONSENT_POLICY_VERSION
     
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -1091,6 +1118,9 @@ def register_user_email(email: str, password: str, name: str = '',
         """
         cur.execute(insert_user)
         user = cur.fetchone()
+
+        # Фиксируем согласие в том же потоке, сразу после создания пользователя.
+        log_consent(cur, user['id'], policy_version, ip_address, user_agent)
         
         # Если есть invite_code — присоединяем к существующей семье
         if invite_code:
@@ -1349,6 +1379,7 @@ def delete_user_account(user_id: str) -> Dict[str, Any]:
         
         cur.execute(f"DELETE FROM {SCHEMA}.verification_codes WHERE user_id = {escape_string(user_id)}")
         cur.execute(f"DELETE FROM {SCHEMA}.password_reset_tokens WHERE user_id = {escape_string(user_id)}")
+        cur.execute(f"DELETE FROM {SCHEMA}.user_consents WHERE user_id = {escape_string(user_id)}")
         cur.execute(f"DELETE FROM {SCHEMA}.sessions WHERE user_id = {escape_string(user_id)}")
         cur.execute(f"DELETE FROM {SCHEMA}.payments WHERE user_id = {escape_string(user_id)}")
         cur.execute(f"DELETE FROM {SCHEMA}.family_invites WHERE created_by = {escape_string(user_id)}")
@@ -1652,7 +1683,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     name=body.get('name', ''),
                     invite_code=body.get('invite_code'),
                     member_name=body.get('member_name'),
-                    relationship=body.get('relationship')
+                    relationship=body.get('relationship'),
+                    consent=bool(body.get('consent')),
+                    consent_version=body.get('consent_version'),
+                    ip_address=ip_address,
+                    user_agent=headers.get('User-Agent') or headers.get('user-agent', '')
                 )
             else:
                 result = register_user(
