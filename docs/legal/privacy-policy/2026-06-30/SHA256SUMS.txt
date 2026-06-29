@@ -1,0 +1,8 @@
+# Заполняется ПОСЛЕ снятия слепка с прода.
+# Формат: <sha256>  <имя файла>
+# Пример:
+#   <hash_html>  privacy-policy-2026-06-30.html
+#   <hash_pdf>   privacy-policy-2026-06-30.pdf
+#
+# Как посчитать:
+#   sha256sum privacy-policy-2026-06-30.html privacy-policy-2026-06-30.pdf > SHA256SUMS.txt

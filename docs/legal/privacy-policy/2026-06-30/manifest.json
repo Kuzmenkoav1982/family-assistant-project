@@ -1,0 +1,22 @@
+{
+  "document_type": "privacy_policy",
+  "version": "2026-06-30",
+  "source_url": "https://nasha-semiya.ru/privacy-policy",
+  "published_at": "",
+  "generated_at": "",
+  "build_id": "",
+  "commit_hash": "f5be5b3",
+  "language": "ru",
+  "status": "placeholder-until-production-snapshot",
+  "artifacts": {
+    "html": "privacy-policy-2026-06-30.html",
+    "pdf": "privacy-policy-2026-06-30.pdf",
+    "checksums": "SHA256SUMS.txt"
+  },
+  "notes": [
+    "Слепок снимается ПОСЛЕ прод-выката с боевого source_url, а не из исходника.",
+    "После снятия заполнить: published_at, generated_at, build_id; при необходимости обновить commit_hash на фактический коммит прод-выката.",
+    "status сменить на 'published-snapshot' после добавления html/pdf и SHA256SUMS.",
+    "Единый источник версии политики — env CURRENT_PRIVACY_POLICY_VERSION (backend auth и consent)."
+  ]
+}
