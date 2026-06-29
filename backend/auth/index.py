@@ -27,8 +27,9 @@ VK_APP_ID = os.environ.get('VK_APP_ID')
 VK_APP_SECRET = os.environ.get('VK_APP_SECRET')
 SCHEMA = 't_p5815085_family_assistant_pro'
 NOTIFICATIONS_URL = 'https://functions.poehali.dev/82852794-3586-44b2-8796-f0de94642774'
-# Единый источник истины по версии политики (совпадает с фронтендом и функцией consent).
-CONSENT_POLICY_VERSION = '2026-06-30'
+# Единый источник истины по версии политики — env-переменная (Вариант B).
+# Фолбэк '2026-06-30' оставлен, чтобы прод не сломался, если переменная не задана.
+CONSENT_POLICY_VERSION = os.environ.get('CURRENT_PRIVACY_POLICY_VERSION', '2026-06-30')
 
 # Yandex/VK OAuth credentials читаются из env-переменных:
 # YANDEX_CLIENT_ID, YANDEX_CLIENT_SECRET, VK_APP_ID, VK_APP_SECRET

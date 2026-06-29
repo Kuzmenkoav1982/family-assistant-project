@@ -8,7 +8,9 @@ import os
 import psycopg2
 
 SCHEMA = 't_p5815085_family_assistant_pro'
-CURRENT_POLICY_VERSION = '2026-06-30'
+# Единый источник истины по версии политики — env-переменная (Вариант B).
+# Фолбэк '2026-06-30' оставлен на случай, если переменная ещё не задана.
+CURRENT_POLICY_VERSION = os.environ.get('CURRENT_PRIVACY_POLICY_VERSION', '2026-06-30')
 
 CORS = {
     'Access-Control-Allow-Origin': '*',
