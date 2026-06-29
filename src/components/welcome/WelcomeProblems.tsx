@@ -59,7 +59,7 @@ const problems = [
   },
   {
     before: 'Ссоры из-за бытовых мелочей',
-    after: 'Конфликт-AI и AI-психолог для семьи',
+    after: 'Конфликт-AI и семейный ИИ-помощник',
     icon: 'HeartHandshake',
     color: 'text-rose-500',
     bg: 'bg-rose-100',

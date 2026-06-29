@@ -3,7 +3,7 @@ import Icon from '@/components/ui/icon';
 const aiFunctions = [
   { icon: 'Apple', color: '#f97316', bg: '#ffedd5', label: 'ИИ-Диета', hub: 'Питание', desc: 'Персональный рацион по здоровью семьи', angle: 0 },
   { icon: 'GraduationCap', color: '#3b82f6', bg: '#dbeafe', label: 'AI-план развития', hub: 'Развитие', desc: 'Индивидуальный план по возрасту ребёнка', angle: 33 },
-  { icon: 'Brain', color: '#8b5cf6', bg: '#ede9fe', label: 'AI-психолог', hub: 'Развитие', desc: 'Поддержка и рекомендации для семьи', angle: 66 },
+  { icon: 'Brain', color: '#8b5cf6', bg: '#ede9fe', label: 'ИИ-помощник', hub: 'Развитие', desc: 'Поддержка и идеи для семьи', angle: 66 },
   { icon: 'HeartHandshake', color: '#d946ef', bg: '#fae8ff', label: 'Зеркало родителя', hub: 'Семейный код', desc: 'Тест PARI + ИИ-разбор результатов', angle: 99 },
   { icon: 'MessageCircle', color: '#7c3aed', bg: '#f3e8ff', label: 'Конфликт-AI', hub: 'Развитие', desc: 'Разрешение конфликтов внутри семьи', angle: 132 },
   { icon: 'ChefHat', color: '#ef4444', bg: '#fee2e2', label: 'AI-рецепты', hub: 'Питание', desc: 'Блюда из того, что есть в холодильнике', angle: 165 },

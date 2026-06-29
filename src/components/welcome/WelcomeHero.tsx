@@ -32,7 +32,7 @@ const PHONE_SCREENS = [
   },
   {
     src: 'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/11abe1e4-5fcf-4a9b-b26f-076fa5403010.jpeg',
-    alt: 'Раздел «Развитие» — психолог и навыки',
+    alt: 'Раздел «Развитие» — ИИ-помощник и навыки',
     rotate: 'rotate-6',
     z: 'z-10',
     offset: 'translate-y-6',
