@@ -134,7 +134,6 @@ export default function SettingsMenu({ open: externalOpen, onOpenChange }: Setti
                 onDeleteAccount={handleDeleteAccount}
                 onLogout={() => {
                   setIsOpen(false);
-                  navigate('/login');
                 }}
               />
             </TabsContent>

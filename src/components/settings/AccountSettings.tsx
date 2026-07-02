@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
+import { clearAuthSession } from '@/lib/authStorage';
 
 interface AccountSettingsProps {
   onDeleteAccount: () => Promise<void>;
@@ -72,10 +73,9 @@ export default function AccountSettings({ onDeleteAccount, onLogout }: AccountSe
             </div>
             <Button
               onClick={() => {
-                localStorage.removeItem('authToken');
-                localStorage.removeItem('user');
+                clearAuthSession();
                 if (onLogout) onLogout();
-                window.location.href = '/login';
+                window.location.href = '/welcome';
               }}
               variant="outline"
               className="w-full mt-4"
