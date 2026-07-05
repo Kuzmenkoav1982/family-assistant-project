@@ -58,21 +58,19 @@ def wallet_spend(user_id, family_id, amount, reason, description):
 
 
 def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
+    """История берётся из ai_assistant_messages (UUID family_id) — новая таблица,
+    совместимая с текущим форматом семей. Старая chat_messages использовала
+    integer family_id и не подходит для UUID-семей (см. инцидент 2026-07-05)."""
+    if not family_id:
+        return []
     try:
-        try:
-            fid_int = int(str(family_id))
-        except (ValueError, TypeError):
-            return []
         conn = get_db_connection()
         cursor = conn.cursor()
-        query = f"""
-            SELECT role, content 
-            FROM chat_messages 
-            WHERE family_id = {fid_int}
-            ORDER BY created_at DESC 
-            LIMIT {int(limit)}
-        """
-        cursor.execute(query)
+        cursor.execute(
+            "SELECT role, content FROM t_p5815085_family_assistant_pro.ai_assistant_messages "
+            "WHERE family_id = %s ORDER BY created_at DESC LIMIT %s",
+            (str(family_id), int(limit))
+        )
         rows = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -85,28 +83,19 @@ def load_chat_history(family_id: str, limit: int = 10) -> List[Dict[str, str]]:
         return []
 
 
-def save_message(family_id: str, user_id: Optional[int], role: str, content: str):
+def save_message(family_id: str, user_id: Optional[str], role: str, content: str):
+    """Сохраняет сообщение в ai_assistant_messages (UUID-совместимая таблица)."""
+    if not family_id:
+        print('[WARN] save_message: family_id пуст, сообщение не сохранено')
+        return
     try:
-        try:
-            fid_int = int(str(family_id))
-        except (ValueError, TypeError):
-            print(f'[WARN] save_message: family_id не int: {family_id}')
-            return
-        uid_val = 'NULL'
-        if user_id is not None:
-            try:
-                uid_val = str(int(str(user_id)))
-            except (ValueError, TypeError):
-                uid_val = 'NULL'
         conn = get_db_connection()
         cursor = conn.cursor()
-        safe_role = role.replace("'", "''")
-        safe_content = content.replace("'", "''")
-        query = f"""
-            INSERT INTO chat_messages (family_id, sender_id, role, content, type, created_at)
-            VALUES ({fid_int}, {uid_val}, '{safe_role}', '{safe_content}', 'text', NOW())
-        """
-        cursor.execute(query)
+        cursor.execute(
+            "INSERT INTO t_p5815085_family_assistant_pro.ai_assistant_messages "
+            "(family_id, user_id, role, content) VALUES (%s, %s, %s, %s)",
+            (str(family_id), str(user_id) if user_id else None, role, content)
+        )
         conn.commit()
         cursor.close()
         conn.close()

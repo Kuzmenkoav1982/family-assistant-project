@@ -348,7 +348,12 @@ def handle_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
 
 
 def save_ai_plan(user_id, family_id, plan: Dict, body: Dict, operation_id: str) -> Optional[str]:
-    """Сохраняет ИИ-план в таблицу ai_diet_plans и возвращает его id."""
+    """Сохраняет ИИ-план в таблицу ai_diet_plans и возвращает его id.
+
+    Использует параметризованные запросы (не ручную склейку SQL-строк) —
+    прошлая версия ломалась на спецсимволах в тексте от YandexGPT
+    (см. инцидент 2026-07-05: деньги списаны, план сгенерирован, но не сохранён).
+    """
     if not user_id:
         return None
     try:
@@ -359,20 +364,23 @@ def save_ai_plan(user_id, family_id, plan: Dict, body: Dict, operation_id: str) 
             quiz = json.dumps(body.get('quizData') or {}, ensure_ascii=False)
             program = json.dumps(body.get('programData') or {}, ensure_ascii=False)
             plan_json = json.dumps(plan, ensure_ascii=False)
-            family_part = "'%s'" % str(family_id) if family_id else 'NULL'
             cur.execute(
                 "UPDATE t_p5815085_family_assistant_pro.ai_diet_plans SET is_active = false "
-                "WHERE user_id = '%s' AND is_active = true" % str(user_id)
+                "WHERE user_id = %s AND is_active = true",
+                (str(user_id),)
             )
             cur.execute(
                 "INSERT INTO t_p5815085_family_assistant_pro.ai_diet_plans "
                 "(user_id, family_id, duration_days, plan_data, quiz_data, program_data, operation_id) "
-                "VALUES ('%s', %s, %d, '%s', '%s', '%s', '%s') RETURNING id" % (
-                    str(user_id), family_part, duration,
-                    plan_json.replace("'", "''"),
-                    quiz.replace("'", "''"),
-                    program.replace("'", "''"),
-                    operation_id.replace("'", "''"),
+                "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                (
+                    str(user_id),
+                    str(family_id) if family_id else None,
+                    duration,
+                    plan_json,
+                    quiz,
+                    program,
+                    operation_id,
                 )
             )
             row = cur.fetchone()
@@ -381,7 +389,7 @@ def save_ai_plan(user_id, family_id, plan: Dict, body: Dict, operation_id: str) 
         finally:
             conn.close()
     except Exception as e:
-        print(f"[generate-diet-plan] save plan error: {e}")
+        print(f"[generate-diet-plan] save plan error: {type(e).__name__}: {e}")
         return None
 
 
