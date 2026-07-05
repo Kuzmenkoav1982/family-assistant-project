@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { QuizData, GeneratedPlan, MedTableHint } from '@/data/dietQuizData';
-import { initialData, steps, diseaseMedTables, DIET_PLAN_API_URL, MEAL_API, DIET_PROGRESS_API, WALLET_API, AI_DIET_COST } from '@/data/dietQuizData';
+import { initialData, steps, diseaseMedTables, dayNameToValue, DIET_PLAN_API_URL, MEAL_API, DIET_PROGRESS_API, WALLET_API, AI_DIET_COST } from '@/data/dietQuizData';
 
 export default function useDietQuiz() {
   const navigate = useNavigate();
@@ -76,7 +76,6 @@ export default function useDietQuiz() {
         if (d.status === 'done') {
           if (d.plan?.days) {
             setGeneratedPlan(d.plan);
-            if (d.diet_plan_id) setSavedPlanId(d.diet_plan_id);
           } else if (d.rawText) {
             setRawText(d.rawText);
           } else {
@@ -114,7 +113,6 @@ export default function useDietQuiz() {
         await pollOperation(json.operationId);
       } else if (json.plan?.days) {
         setGeneratedPlan(json.plan);
-        if (json.diet_plan_id) setSavedPlanId(json.diet_plan_id);
       } else {
         setError('Не удалось запустить генерацию. Попробуйте ещё раз.');
       }
@@ -124,35 +122,78 @@ export default function useDietQuiz() {
     setIsGenerating(false);
   };
 
+  const savePlanToDB = async (plan: GeneratedPlan) => {
+    try {
+      const authToken = localStorage.getItem('authToken') || '';
+      const allMeals: Array<Record<string, unknown>> = [];
+      for (const day of plan.days) {
+        for (const meal of day.meals) {
+          allMeals.push({
+            day: day.day, type: meal.type, time: meal.time,
+            name: meal.name, description: meal.description,
+            calories: meal.calories, protein: meal.protein,
+            fats: meal.fats, carbs: meal.carbs,
+            ingredients: meal.ingredients || [],
+          });
+        }
+      }
+      const res = await fetch(DIET_PROGRESS_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+        body: JSON.stringify({
+          action: 'save_plan', plan_type: 'ai_personal',
+          plan: {
+            daily_calories: plan.daily_calories,
+            daily_water_ml: (plan as Record<string, unknown>).daily_water_ml || null,
+            daily_steps: (plan as Record<string, unknown>).daily_steps || null,
+            exercise_recommendation: (plan as Record<string, unknown>).exercise_recommendation || null,
+          },
+          quiz_data: {
+            current_weight_kg: data.current_weight_kg,
+            target_weight_kg: data.target_weight_kg,
+          },
+          meals: allMeals,
+        }),
+      });
+      const result = await res.json();
+      if (result.success && result.plan_id) {
+        setSavedPlanId(result.plan_id);
+      }
+    } catch (e) {
+      console.error('[useDietQuiz] Failed to save plan to DB:', e);
+    }
+  };
+
   const handleSaveToMenu = async (replaceExisting: boolean) => {
     if (!generatedPlan) return;
     setIsSaving(true);
+
+    const meals: Array<Record<string, unknown>> = [];
+    for (const day of generatedPlan.days) {
+      const dayValue = dayNameToValue[day.day] || day.day.toLowerCase();
+      for (const meal of day.meals) {
+        meals.push({
+          day: dayValue,
+          mealType: meal.type,
+          dishName: meal.name,
+          description: `${meal.description || ''} (${meal.calories} ккал, Б:${meal.protein} Ж:${meal.fats} У:${meal.carbs})`,
+          emoji: meal.emoji || '🍽',
+          ingredients: meal.ingredients || [],
+        });
+      }
+    }
+
     try {
       const authToken = localStorage.getItem('authToken') || '';
       const headers = { 'Content-Type': 'application/json', 'X-Auth-Token': authToken };
       const res = await fetch(MEAL_API, {
         method: 'POST', headers,
-        body: JSON.stringify({
-          action: 'import_ai_plan',
-          plan: generatedPlan,
-          replace_existing: replaceExisting,
-        }),
+        body: JSON.stringify({ action: 'bulk_add', meals, clearExisting: replaceExisting }),
       });
       const json = await res.json();
       if (json.success) {
-        if (savedPlanId) {
-          await fetch(DIET_PROGRESS_API, {
-            method: 'POST', headers,
-            body: JSON.stringify({
-              action: 'activate_plan',
-              plan_id: savedPlanId,
-              duration_days: parseInt(data.duration_days),
-              target_calories_daily: generatedPlan.daily_calories,
-              target_weight_loss_kg: data.target_weight_kg
-                ? parseFloat(data.current_weight_kg) - parseFloat(data.target_weight_kg)
-                : null,
-            }),
-          });
+        if (!savedPlanId) {
+          await savePlanToDB(generatedPlan);
         }
         setSaved(true);
       } else {

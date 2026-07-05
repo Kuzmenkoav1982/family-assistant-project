@@ -72,6 +72,11 @@ export const DIET_PRICE_BY_DAYS: Record<number, number> = {
   30: 49,
 };
 
+export const dayNameToValue: Record<string, string> = {
+  'Понедельник': 'monday', 'Вторник': 'tuesday', 'Среда': 'wednesday',
+  'Четверг': 'thursday', 'Пятница': 'friday', 'Суббота': 'saturday', 'Воскресенье': 'sunday',
+};
+
 export function calcDietPrice(days: number): number {
   if (DIET_PRICE_BY_DAYS[days] !== undefined) return DIET_PRICE_BY_DAYS[days];
   if (days <= 7) return 17;
