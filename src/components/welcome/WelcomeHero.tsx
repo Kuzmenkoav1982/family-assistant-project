@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
 
 // Синхронное определение breakpoint — без мигания, без useEffect
 function getIsMobile() {
@@ -108,6 +109,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                     onClick={() => {
                       localStorage.setItem('isDemoMode', 'true');
                       localStorage.setItem('demoStartTime', Date.now().toString());
+                      window.dispatchEvent(new CustomEvent(AUTH_SESSION_EVENT));
                       navigate('/');
                     }}
                     size="lg"

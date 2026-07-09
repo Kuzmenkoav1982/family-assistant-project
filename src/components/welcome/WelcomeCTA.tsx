@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
 
 const MAMA = 'https://cdn.poehali.dev/files/e7230598-9d77-4116-be67-0ef731d8c863.jpg';
 const PAPA = 'https://cdn.poehali.dev/files/8f60262a-1ae2-4766-9842-50aa2637721d.jpg';
@@ -75,6 +76,7 @@ export default function WelcomeCTA({ isLoggedIn }: WelcomeCTAProps) {
                     onClick={() => {
                       localStorage.setItem('isDemoMode', 'true');
                       localStorage.setItem('demoStartTime', Date.now().toString());
+                      window.dispatchEvent(new CustomEvent(AUTH_SESSION_EVENT));
                       navigate('/');
                     }}
                     size="lg"

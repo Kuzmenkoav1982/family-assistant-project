@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
 
 interface WelcomeHowToStartProps {
   isLoggedIn: boolean;
@@ -125,6 +126,7 @@ export default function WelcomeHowToStart({ isLoggedIn }: WelcomeHowToStartProps
                 onClick={() => {
                   localStorage.setItem('isDemoMode', 'true');
                   localStorage.setItem('demoStartTime', Date.now().toString());
+                  window.dispatchEvent(new CustomEvent(AUTH_SESSION_EVENT));
                   navigate('/');
                 }}
                 size="lg"
