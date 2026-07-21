@@ -1,4 +1,5 @@
 {
+  "admin-user-reward": "https://functions.poehali.dev/8e4d0b58-22aa-4da1-b6b7-cefe4c39be1b",
   "consent": "https://functions.poehali.dev/311122d9-506d-4857-acb5-4e357a10c7e4",
   "funnel-stats": "https://functions.poehali.dev/e28ce6a3-b51c-40cb-9d39-c8dce23f5de5",
   "track-event": "https://functions.poehali.dev/53e8d483-3858-423b-bcf1-fe6cafa8c9d9",
