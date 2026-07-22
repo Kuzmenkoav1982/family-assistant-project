@@ -67,6 +67,14 @@ const cards: RouteCard[] = [
     tone: 'reserve',
   },
   {
+    group: 'Реестр российского ПО',
+    title: 'Комплект для Реестра РПО',
+    description:
+      'Заявление №372122. Ответ эксперту, схема архитектуры, пояснительная записка, тех. стек, подтверждение размещения в РФ и сценарий демо. Сохраняется в PDF/PPTX.',
+    href: '/strategy/reestr',
+    tone: 'secondary',
+  },
+  {
     group: 'Архив',
     title: 'Legacy',
     description:
