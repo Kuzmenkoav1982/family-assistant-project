@@ -75,7 +75,7 @@ export const CANONICAL_METRICS = {
     recordDate: '18.08.2026',
     protocol: 'протокол экспертного совета от 29.07.2026 №593пр',
     badge: 'Реестр российского ПО №34764',
-    url: 'https://reestr.digital.gov.ru/reestr/34764/',
+    url: 'https://reestr.digital.gov.ru/reestr/14449511/',
   },
   productStatus: {
     short: 'Ядро платформы работает в production',

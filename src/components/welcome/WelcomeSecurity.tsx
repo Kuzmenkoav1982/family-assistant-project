@@ -102,7 +102,7 @@ export default function WelcomeSecurity() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <a
-                href="https://reestr.digital.gov.ru/reestr/34764/"
+                href="https://reestr.digital.gov.ru/reestr/14449511/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-emerald-700 transition-colors"

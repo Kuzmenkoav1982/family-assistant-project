@@ -80,7 +80,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
               </li>
             </ul>
             <a
-              href="https://reestr.digital.gov.ru/reestr/34764/"
+              href="https://reestr.digital.gov.ru/reestr/14449511/"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex items-start gap-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 hover:bg-emerald-500/15 transition-colors"

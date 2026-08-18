@@ -72,7 +72,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 Семейная операционка — ОС вашей семьи
               </div>
               <a
-                href="https://reestr.digital.gov.ru/reestr/34764/"
+                href="https://reestr.digital.gov.ru/reestr/14449511/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-full text-sm font-semibold hover:bg-emerald-100 transition-colors"
