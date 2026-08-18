@@ -60,7 +60,7 @@ type GuardProps = { children: React.ReactNode };
  * При отсутствии — рендерит Welcome (НЕ редиректит на /welcome, чтобы не
  * терять текущий URL — это то же поведение, что было inline).
  */
-function checkAuthSync(): boolean {
+export function checkAuthSync(): boolean {
   try {
     const token = storage.getItem('authToken');
     const isDemoMode = localStorage.getItem('isDemoMode') === 'true';

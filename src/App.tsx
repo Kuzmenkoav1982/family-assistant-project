@@ -3,16 +3,32 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import PageWrapper from "@/components/PageWrapper";
+import { checkAuthSync } from "@/components/RouteGuards";
 
 // Публичные роуты — глобальные UI-компоненты там не нужны
 const PUBLIC_ROUTES = ['/welcome', '/login', '/register', '/reset-password', '/demo'];
 
 function GlobalUI() {
   const { pathname } = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(checkAuthSync);
+
+  useEffect(() => {
+    const checkAuth = () => setIsAuthenticated(checkAuthSync());
+    window.addEventListener('storage', checkAuth);
+    window.addEventListener(AUTH_SESSION_EVENT, checkAuth);
+    return () => {
+      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener(AUTH_SESSION_EVENT, checkAuth);
+    };
+  }, []);
+
   const isPublic = PUBLIC_ROUTES.some(r => pathname === r || (pathname.startsWith(r + '/') && r !== '/'));
-  if (isPublic) return null;
+  // На "/" ProtectedRoute молча подставляет гостевой Welcome без редиректа —
+  // без проверки авторизации здесь авторизованный UI (нижний бар, сайдбар,
+  // ИИ-виджет) утекал бы поверх гостевой главной.
+  if (isPublic || !isAuthenticated) return null;
   return (
     <Suspense fallback={null}>
       <PWAInstallPrompt />

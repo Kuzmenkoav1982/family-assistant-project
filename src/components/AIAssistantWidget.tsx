@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { checkAuthSync } from '@/components/RouteGuards';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import { buildFamilyContext } from '@/lib/domovoy-context';
 import { getDomovoyContext, useDomovoyContext } from '@/hooks/useDomovoyContext';
@@ -133,9 +134,12 @@ const AIAssistantWidget = () => {
   const [isButtonDragging, setIsButtonDragging] = useState(false);
   const [buttonDragStart, setButtonDragStart] = useState({ x: 0, y: 0 });
 
-  // Скрываем виджет на страницах регистрации и присоединения
+  // Скрываем виджет на страницах регистрации и присоединения.
+  // "/" тоже скрываем для неавторизованных: ProtectedRoute на "/" молча
+  // подставляет гостевой Welcome без редиректа на /welcome, и по одному
+  // только pathname это не отличить от авторизованного визита.
   const hiddenPages = ['/welcome', '/login', '/register', '/join', '/onboarding'];
-  const isWelcomePage = hiddenPages.includes(location.pathname);
+  const isWelcomePage = hiddenPages.includes(location.pathname) || (location.pathname === '/' && !checkAuthSync());
 
   // Скрываем виджет автоматически при переходе
   useEffect(() => {
