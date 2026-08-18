@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import { trackReestrBadgeClick } from '@/lib/welcomeBadgeAnalytics';
 
 interface WelcomeFooterProps {
   openTelegramSupport: () => void;
@@ -83,6 +84,7 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
               href="https://reestr.digital.gov.ru/reestr/14449511/"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackReestrBadgeClick('footer')}
               className="mt-4 flex items-start gap-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 hover:bg-emerald-500/15 transition-colors"
             >
               <Icon name="BadgeCheck" size={18} className="text-emerald-400 flex-shrink-0 mt-0.5" />

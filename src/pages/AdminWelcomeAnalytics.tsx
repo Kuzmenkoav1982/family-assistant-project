@@ -22,9 +22,38 @@ interface PageViewsStats {
   month: number;
 }
 
+interface SectionClickStat {
+  section_index: number;
+  section_title: string;
+  total_clicks?: number;
+  clicks?: number;
+  unique_sessions?: number;
+  sessions?: number;
+}
+
 interface AnalyticsData {
   page_views?: PageViewsStats;
   video_views?: VideoViewsStats;
+  total?: SectionClickStat[];
+  today?: SectionClickStat[];
+  week?: SectionClickStat[];
+  month?: SectionClickStat[];
+}
+
+// Бейдж "В Реестре российского ПО" трекается как section_index = -1 с разным
+// section_title в зависимости от размещения (Hero / Footer / Security).
+const REESTR_BADGE_PREFIX = 'Реестр РПО:';
+
+function sumReestrClicks(rows: SectionClickStat[] | undefined): number {
+  if (!rows) return 0;
+  return rows
+    .filter((r) => r.section_title?.startsWith(REESTR_BADGE_PREFIX))
+    .reduce((acc, r) => acc + (r.clicks ?? r.total_clicks ?? 0), 0);
+}
+
+function reestrBreakdown(rows: SectionClickStat[] | undefined): SectionClickStat[] {
+  if (!rows) return [];
+  return rows.filter((r) => r.section_title?.startsWith(REESTR_BADGE_PREFIX));
 }
 
 const WELCOME_API = 'https://functions.poehali.dev/fe19c08e-4cc1-4aa8-a1af-b03678b7ba22';
@@ -79,6 +108,12 @@ export default function AdminWelcomeAnalytics() {
   const videoRate = page?.total && video?.total
     ? ((video.total / page.total) * 100).toFixed(1)
     : '0';
+
+  const reestrToday = sumReestrClicks(stats.today);
+  const reestrWeek = sumReestrClicks(stats.week);
+  const reestrMonth = sumReestrClicks(stats.month);
+  const reestrTotalRows = reestrBreakdown(stats.total);
+  const reestrTotal = reestrTotalRows.reduce((acc, r) => acc + (r.total_clicks ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 p-6">
@@ -172,6 +207,50 @@ export default function AdminWelcomeAnalytics() {
                 <p className="text-xs text-gray-500">Доскроллили до видео</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-emerald-900">
+              <Icon name="BadgeCheck" size={24} />
+              Клики по бейджу «Реестр российского ПО»
+            </CardTitle>
+            <CardDescription>
+              Суммарно по всем трём размещениям (Hero, блок безопасности, футер).
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <div className="text-3xl font-bold text-emerald-600">{reestrToday}</div>
+                <p className="text-sm text-gray-600 mt-1">Сегодня</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-emerald-600">{reestrWeek}</div>
+                <p className="text-sm text-gray-600 mt-1">За неделю</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-emerald-600">{reestrMonth}</div>
+                <p className="text-sm text-gray-600 mt-1">За месяц</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-emerald-600">{reestrTotal}</div>
+                <p className="text-sm text-gray-600 mt-1">Всего</p>
+              </div>
+            </div>
+
+            {reestrTotalRows.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-emerald-100 space-y-2">
+                <p className="text-xs text-gray-500 mb-2">По размещению на странице</p>
+                {reestrTotalRows.map((row) => (
+                  <div key={row.section_title} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">{row.section_title.replace(REESTR_BADGE_PREFIX, '').trim()}</span>
+                    <span className="font-semibold text-emerald-700">{row.total_clicks} кликов</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

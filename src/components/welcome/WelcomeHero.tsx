@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { AUTH_SESSION_EVENT } from '@/lib/authStorage';
+import { trackReestrBadgeClick } from '@/lib/welcomeBadgeAnalytics';
 
 // Синхронное определение breakpoint — без мигания, без useEffect
 function getIsMobile() {
@@ -75,6 +76,7 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
                 href="https://reestr.digital.gov.ru/reestr/14449511/"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackReestrBadgeClick('hero')}
                 className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-full text-sm font-semibold hover:bg-emerald-100 transition-colors"
                 title="Реестровая запись №34764 от 18.08.2026"
               >

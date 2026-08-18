@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import { trackReestrBadgeClick } from '@/lib/welcomeBadgeAnalytics';
 
 const SECURITY_ITEMS = [
   {
@@ -105,6 +106,7 @@ export default function WelcomeSecurity() {
                 href="https://reestr.digital.gov.ru/reestr/14449511/"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackReestrBadgeClick('security')}
                 className="inline-flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-emerald-700 transition-colors"
               >
                 <Icon name="BadgeCheck" size={12} />
