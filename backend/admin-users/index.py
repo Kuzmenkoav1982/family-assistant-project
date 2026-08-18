@@ -431,6 +431,18 @@ def broadcasts_send(data):
             VALUES ('{title}', '{message}', '{target}', {user_count}, 'sent') RETURNING id
         """)
         new_id = cur.fetchone()[0]
+
+        # Реальные уведомления в личный кабинет каждого пользователя из аудитории —
+        # без этого admin_broadcasts был только записью статистики, а пользователи
+        # ничего не видели в колокольчике.
+        cur.execute(f"""
+            INSERT INTO {SCHEMA}.notifications
+                (user_id, type, title, message, target_url, channel, status, sent_at, created_at)
+            SELECT id, 'broadcast', '{title}', '{message}', '/notifications', 'in_app', 'sent', NOW(), NOW()
+            FROM {SCHEMA}.users
+            {cond}
+        """)
+
         conn.commit()
         result = {'success': True, 'id': str(new_id), 'sent_to': user_count}
     except Exception as e:
