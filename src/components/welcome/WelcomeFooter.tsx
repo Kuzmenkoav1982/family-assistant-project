@@ -79,6 +79,22 @@ export default function WelcomeFooter({ openTelegramSupport }: WelcomeFooterProp
                 </a>
               </li>
             </ul>
+            <a
+              href="https://reestr.digital.gov.ru/reestr/34764/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 flex items-start gap-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 p-3 hover:bg-emerald-500/15 transition-colors"
+            >
+              <Icon name="BadgeCheck" size={18} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-emerald-300 leading-snug">
+                  Реестр российского ПО
+                </p>
+                <p className="text-[11px] text-gray-400 leading-snug mt-0.5">
+                  Реестровая запись №34764 от 18.08.2026
+                </p>
+              </div>
+            </a>
             <div className="mt-4 pt-4 border-t border-gray-700">
               <p className="text-xs text-gray-400 mb-1">ИП Кузьменко А.В.</p>
               <p className="text-xs text-gray-400">ОГРНИП: 325774600908955</p>

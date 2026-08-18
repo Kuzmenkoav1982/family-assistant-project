@@ -86,7 +86,7 @@ const ringChannels: RingItem[] = [
   { name: 'Web', icon: 'Globe', status: 'live' },
   { name: 'API регионам', icon: 'Code', status: 'planned', moduleId: 'region-api' },
   { name: 'HR / B2B2C', icon: 'Briefcase', status: 'planned', moduleId: 'b2b2c' },
-  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'dev', moduleId: 'rpo' }, // Депонирование выполнено, реестр — документы поданы, ожидаем включения
+  { name: 'Реестр ПО', icon: 'BadgeCheck', status: 'live', moduleId: 'rpo' }, // Включено в Реестр РПО: запись №34764 от 18.08.2026
 ];
 
 const rings: RingDef[] = [

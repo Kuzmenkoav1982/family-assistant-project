@@ -402,14 +402,36 @@ export function PresentationContentSections() {
       {/* СЛАЙД: Реестр ПО */}
       <SectionCard className="bg-gradient-to-br from-sky-50 to-blue-50">
         <SectionTitle icon="FileCheck" iconColor="bg-sky-600" title="Реестр российского ПО" />
-        <div className="bg-white rounded-2xl p-3 sm:p-5 border border-sky-200 mb-4">
+        <div className="bg-white rounded-2xl p-3 sm:p-5 border border-emerald-300 mb-4">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-              <Icon name="Clock" size={20} className="text-amber-600" />
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+              <Icon name="BadgeCheck" size={20} className="text-emerald-600" />
             </div>
             <div>
-              <p className="font-bold text-gray-800 text-sm">На стадии регистрации</p>
-              <p className="text-xs text-gray-500">Включение в Единый реестр российского ПО ожидается в ближайшее время</p>
+              <p className="font-bold text-gray-800 text-sm">Включено в Реестр российского ПО ✓</p>
+              <p className="text-xs text-gray-500">
+                Реестровая запись №34764 от 18.08.2026 · протокол экспертного совета Минцифры России от 29.07.2026 №593пр
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-emerald-50 rounded-lg p-2 border border-emerald-200">
+              <p className="text-gray-500 text-[10px] uppercase tracking-wide font-medium">Реестровая запись</p>
+              <p className="font-bold text-gray-800">№34764</p>
+            </div>
+            <div className="bg-emerald-50 rounded-lg p-2 border border-emerald-200">
+              <p className="text-gray-500 text-[10px] uppercase tracking-wide font-medium">Дата включения</p>
+              <p className="font-bold text-gray-800">18.08.2026</p>
+            </div>
+          </div>
+          <div className="mt-3 space-y-1.5 text-xs text-gray-700">
+            <div className="flex items-start gap-2">
+              <Icon name="Check" size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+              <span>Право участвовать в госзакупках и поставлять ПО госзаказчикам (ПП РФ №1236)</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <Icon name="Check" size={14} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+              <span>Освобождение от НДС при реализации лицензий (пп. 26 п. 2 ст. 149 НК РФ)</span>
             </div>
           </div>
         </div>

@@ -38,6 +38,11 @@ const SECURITY_ITEMS = [
   },
   {
     icon: 'BadgeCheck',
+    title: 'Реестр российского ПО',
+    desc: 'Включено в реестр Минцифры России — запись №34764 от 18.08.2026.',
+  },
+  {
+    icon: 'FileCheck2',
     title: 'Зарегистрированный продукт',
     desc: 'Программа депонирована в РЦИС, свидетельство №0607-331-313.',
   },
@@ -90,11 +95,21 @@ export default function WelcomeSecurity() {
                 Российский продукт, защищённый законом
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed">
-                ИП Кузьменко А.В. · ОГРНИП 325774600908955 · Программа депонирована в РЦИС.
+                ИП Кузьменко А.В. · ОГРНИП 325774600908955 · Включено в Единый реестр российских
+                программ для ЭВМ и баз данных (запись №34764 от 18.08.2026) · Программа депонирована в РЦИС.
                 Никаких иностранных серверов и сторонних сервисов с доступом к данным семьи.
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
+              <a
+                href="https://reestr.digital.gov.ru/reestr/34764/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-emerald-700 transition-colors"
+              >
+                <Icon name="BadgeCheck" size={12} />
+                Реестр РПО №34764
+              </a>
               <span className="inline-flex items-center gap-1.5 bg-white border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-semibold">
                 <Icon name="Flag" size={12} />
                 152-ФЗ

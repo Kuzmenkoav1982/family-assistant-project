@@ -66,9 +66,21 @@ export default function WelcomeHero({ isLoggedIn }: WelcomeHeroProps) {
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
-              <Icon name="Sparkles" size={16} />
-              Семейная операционка — ОС вашей семьи
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 mb-6">
+              <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">
+                <Icon name="Sparkles" size={16} />
+                Семейная операционка — ОС вашей семьи
+              </div>
+              <a
+                href="https://reestr.digital.gov.ru/reestr/34764/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-full text-sm font-semibold hover:bg-emerald-100 transition-colors"
+                title="Реестровая запись №34764 от 18.08.2026"
+              >
+                <Icon name="BadgeCheck" size={16} />
+                В Реестре российского ПО
+              </a>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 leading-[1.08] tracking-tight text-gray-900">
