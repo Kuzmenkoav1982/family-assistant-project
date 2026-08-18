@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { useNotificationCenter, NotificationItem } from '@/hooks/useNotificationCenter';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
@@ -49,6 +50,7 @@ export default function Notifications() {
   const navigate = useNavigate();
   const { notifications, unreadCount, isLoading, fetchNotifications, markRead, markAllRead } = useNotificationCenter();
   const [activeFilter, setActiveFilter] = useState('');
+  const [openNotification, setOpenNotification] = useState<NotificationItem | null>(null);
 
   useEffect(() => {
     fetchNotifications(50, 0, activeFilter || undefined);
@@ -56,8 +58,13 @@ export default function Notifications() {
 
   const handleClick = (n: NotificationItem) => {
     if (n.status !== 'read') markRead(n.id);
+    // У части уведомлений (например, рассылок) нет реальной ссылки-назначения —
+    // target_url совпадает со страницей уведомлений или пуст. Тогда открываем
+    // полный текст в модалке, а не пытаемся "перейти в никуда".
     if (n.target_url && n.target_url !== '/notifications') {
       navigate(n.target_url);
+    } else {
+      setOpenNotification(n);
     }
   };
 
@@ -150,6 +157,32 @@ export default function Notifications() {
           })}
         </div>
       )}
+
+      <Dialog open={!!openNotification} onOpenChange={(v) => !v && setOpenNotification(null)}>
+        <DialogContent className="max-w-md">
+          {openNotification && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${getMeta(openNotification.type).color}`}>
+                    <Icon name={getMeta(openNotification.type).icon} size={20} />
+                  </div>
+                  <DialogTitle className="text-left">{openNotification.title}</DialogTitle>
+                </div>
+              </DialogHeader>
+              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                {openNotification.message}
+              </p>
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {getMeta(openNotification.type).label}
+                </Badge>
+                <span className="text-xs text-gray-400">{formatTime(openNotification.created_at)}</span>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </SectionPageFrame>
   );
 }
