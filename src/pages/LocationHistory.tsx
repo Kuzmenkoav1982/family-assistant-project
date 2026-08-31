@@ -211,21 +211,22 @@ export default function LocationHistory() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Заголовок */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate('/family-tracker')}
-            className="rounded-full"
+            className="rounded-full shrink-0"
           >
             <Icon name="ArrowLeft" size={24} />
           </Button>
-          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center text-white">
-            <Icon name="History" size={24} />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center text-white shrink-0">
+            <Icon name="History" size={20} className="sm:hidden" />
+            <Icon name="History" size={24} className="hidden sm:block" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">История перемещений</h1>
-            <p className="text-gray-600">Просматривайте маршруты членов семьи за день</p>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 leading-tight">История перемещений</h1>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600">Просматривайте маршруты членов семьи за день</p>
           </div>
         </div>
 
@@ -236,12 +237,12 @@ export default function LocationHistory() {
               {/* Выбор члена семьи */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Член семьи</label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {familyMembers.map((member) => (
                     <button
                       key={member.id}
                       onClick={() => setSelectedMember(member.id)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all shrink-0 ${
                         selectedMember === member.id
                           ? 'border-purple-500 bg-purple-50'
                           : 'border-gray-200 hover:border-purple-300'
@@ -271,7 +272,7 @@ export default function LocationHistory() {
                           </span>
                         )}
                       </div>
-                      <span className="font-medium">{member.name}</span>
+                      <span className="font-medium whitespace-nowrap">{member.name}</span>
                     </button>
                   ))}
                 </div>
@@ -297,13 +298,13 @@ export default function LocationHistory() {
           <div className="lg:col-span-2">
             <Card className="shadow-xl">
               <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+                <CardTitle className="flex flex-wrap items-center justify-between gap-2">
                   <span className="flex items-center gap-2">
                     <Icon name="Map" size={20} />
                     Маршрут за день
                   </span>
                   {history.length > 0 && (
-                    <Badge className="bg-purple-100 text-purple-800">
+                    <Badge className="bg-purple-100 text-purple-800 whitespace-nowrap">
                       📍 {history.length} точек • 📏 {calculateTotalDistance()} км
                     </Badge>
                   )}
@@ -312,7 +313,7 @@ export default function LocationHistory() {
               <CardContent>
                 <div
                   id="history-map"
-                  className="w-full h-[500px] rounded-lg bg-gray-100"
+                  className="w-full h-[300px] sm:h-[400px] lg:h-[500px] rounded-lg bg-gray-100"
                 />
               </CardContent>
             </Card>
