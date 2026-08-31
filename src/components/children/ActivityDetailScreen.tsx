@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import Icon from "@/components/ui/icon";
 import {
@@ -30,7 +30,9 @@ export interface ActivityFull {
   name: string;
   type: string;            // Секция / Кружок / Репетитор / Онлайн-курс
   area: string;            // sport / education / creativity / social / music
-  schedule?: string;       // "Вт, Чт 17:00"
+  schedule?: string;       // "Вт, Чт 17:00" — собирается автоматически из daysOfWeek/timeOfDay
+  daysOfWeek?: number[];   // [1,3,5] — Пн/Ср/Пт (0=Вс..6=Сб)
+  timeOfDay?: string;      // "17:00"
   cost?: number;
   status: ActivityStatus;
   description?: string;
@@ -47,6 +49,8 @@ interface ActivityDetailScreenProps {
   activity: ActivityFull;
   onBack: () => void;
   onUpdate?: (updated: ActivityFull) => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 // ─── Конфиг областей ─────────────────────────────────────────────────────────
@@ -142,9 +146,13 @@ function AddResultDialog({
 
 // ─── Главный компонент ────────────────────────────────────────────────────────
 
-export default function ActivityDetailScreen({ activity, onBack, onUpdate }: ActivityDetailScreenProps) {
+export default function ActivityDetailScreen({ activity, onBack, onUpdate, onEdit, onDelete }: ActivityDetailScreenProps) {
   const [data, setData] = useState<ActivityFull>(activity);
   const [showAddResult, setShowAddResult] = useState(false);
+
+  useEffect(() => {
+    setData(activity);
+  }, [activity]);
 
   const areaCfg = AREA_CONFIG[data.area] ?? AREA_CONFIG["hobby"];
   const statusCfg = STATUS_CONFIG[data.status] ?? STATUS_CONFIG["active"];
@@ -165,12 +173,36 @@ export default function ActivityDetailScreen({ activity, onBack, onUpdate }: Act
 
   const isActive = data.status === "active";
 
+  const headerRight = (onEdit || onDelete) ? (
+    <div className="flex items-center gap-1.5">
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          className="w-8 h-8 rounded-xl bg-white/70 border border-slate-100 flex items-center justify-center"
+          aria-label="Изменить"
+        >
+          <Icon name="Pencil" size={14} className="text-slate-500" />
+        </button>
+      )}
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          className="w-8 h-8 rounded-xl bg-white/70 border border-slate-100 flex items-center justify-center"
+          aria-label="Удалить"
+        >
+          <Icon name="Trash2" size={14} className="text-rose-500" />
+        </button>
+      )}
+    </div>
+  ) : undefined;
+
   return (
     <ScreenPage>
       <ScreenHeader
         title={data.name}
         subtitle={`${statusCfg.label} · ${data.type}`}
         onBack={onBack}
+        right={headerRight}
       />
 
       <ScreenBody>

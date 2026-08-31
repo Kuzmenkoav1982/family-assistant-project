@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronRight, Plus } from "lucide-react";
 import Icon from "@/components/ui/icon";
+import { useChildrenData } from "@/hooks/useChildrenData";
 import ActivityDetailScreen, { ActivityFull, ActivityStatus } from "./ActivityDetailScreen";
 import {
   ScreenPage,
@@ -35,6 +36,8 @@ interface RawActivity {
   schedule?: string;
   cost?: number;
   status: string;
+  days_of_week?: number[];
+  time_of_day?: string;
 }
 
 interface ActivitiesScreenProps {
@@ -70,53 +73,97 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; color: string }
 
 const ACTIVITY_TYPES = ["Секция", "Кружок", "Репетитор", "Онлайн-курс", "Самостоятельно"];
 const AREAS_LIST = Object.keys(AREA_CONFIG);
+const WEEKDAYS = [
+  { value: 1, label: "Пн" },
+  { value: 2, label: "Вт" },
+  { value: 3, label: "Ср" },
+  { value: 4, label: "Чт" },
+  { value: 5, label: "Пт" },
+  { value: 6, label: "Сб" },
+  { value: 0, label: "Вс" },
+];
 
-// ─── Диалог добавления занятия ────────────────────────────────────────────────
+// ─── Выбор дней недели ─────────────────────────────────────────────────────────
+
+function WeekdayPicker({
+  value,
+  onChange,
+}: {
+  value: number[];
+  onChange: (days: number[]) => void;
+}) {
+  const toggle = (day: number) => {
+    onChange(value.includes(day) ? value.filter(d => d !== day) : [...value, day]);
+  };
+  return (
+    <div className="flex gap-1.5">
+      {WEEKDAYS.map(d => (
+        <button
+          key={d.value}
+          type="button"
+          onClick={() => toggle(d.value)}
+          className={`flex-1 h-9 rounded-lg text-xs font-semibold border transition-colors ${
+            value.includes(d.value)
+              ? "bg-slate-800 text-white border-slate-800"
+              : "bg-slate-50 text-slate-500 border-slate-100 hover:bg-slate-100"
+          }`}
+        >
+          {d.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Диалог добавления/редактирования занятия ─────────────────────────────────
 
 function AddActivityDialog({
   developments,
+  initial,
   onClose,
-  onAdd,
+  onSubmit,
 }: {
   developments: Development[];
+  initial?: ActivityFull;
   onClose: () => void;
-  onAdd: (activity: ActivityFull) => void;
+  onSubmit: (activity: Omit<ActivityFull, "id" | "development_id"> & { development_id?: string }) => void;
 }) {
-  const [name, setName] = useState("");
-  const [type, setType] = useState("Секция");
-  const [area, setArea] = useState("sport");
-  const [schedule, setSchedule] = useState("");
-  const [cost, setCost] = useState("");
+  const [name, setName] = useState(initial?.name ?? "");
+  const [type, setType] = useState(initial?.type ?? "Секция");
+  const [area, setArea] = useState(initial?.area ?? "sport");
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>(initial?.daysOfWeek ?? []);
+  const [timeOfDay, setTimeOfDay] = useState(initial?.timeOfDay ?? "");
+  const [cost, setCost] = useState(initial?.cost ? String(initial.cost) : "");
 
   const canSubmit = name.trim().length >= 2;
+  const isEdit = !!initial;
 
-  const handleAdd = () => {
+  const handleSubmit = () => {
     if (!canSubmit) return;
-    // Находим или создаём development для этой области
     const dev = developments.find(d => d.area === area);
-    const devId = dev?.id ?? `new-${area}`;
-    onAdd({
-      id: Date.now().toString(),
-      development_id: devId,
+    onSubmit({
+      development_id: dev?.id,
       name: name.trim(),
       type,
       area,
-      schedule: schedule.trim() || undefined,
+      daysOfWeek,
+      timeOfDay: timeOfDay.trim() || undefined,
+      schedule: undefined,
       cost: cost ? parseInt(cost) : undefined,
-      status: "active",
+      status: initial?.status ?? "active",
     });
     onClose();
   };
 
   return (
     <AdaptiveDialog
-      title="Добавить занятие"
+      title={isEdit ? "Изменить занятие" : "Добавить занятие"}
       onClose={onClose}
       footer={
         <DialogSubmit
-          label="Добавить занятие"
+          label={isEdit ? "Сохранить изменения" : "Добавить занятие"}
           disabled={!canSubmit}
-          onClick={handleAdd}
+          onClick={handleSubmit}
           variant="dark"
         />
       }
@@ -174,13 +221,18 @@ function AddActivityDialog({
         />
       </FormField>
 
-      {/* Расписание */}
-      <FormField label="Расписание">
-        <FormInput
-          value={schedule}
-          onChange={setSchedule}
-          placeholder="Вт, Чт 17:00 или По субботам 10:00"
-          focusColor="focus:border-sky-300"
+      {/* Дни недели */}
+      <FormField label="Дни занятий">
+        <WeekdayPicker value={daysOfWeek} onChange={setDaysOfWeek} />
+      </FormField>
+
+      {/* Время */}
+      <FormField label="Время">
+        <input
+          type="time"
+          value={timeOfDay}
+          onChange={e => setTimeOfDay(e.target.value)}
+          className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:outline-none focus:border-sky-300"
         />
       </FormField>
 
@@ -194,6 +246,12 @@ function AddActivityDialog({
           inputMode="numeric"
         />
       </FormField>
+
+      {daysOfWeek.length > 0 && (
+        <p className="text-xs text-slate-400 -mt-1 mb-1">
+          Занятие появится в общем календаре семьи каждую неделю по выбранным дням
+        </p>
+      )}
     </AdaptiveDialog>
   );
 }
@@ -266,12 +324,13 @@ function ActivityListCard({
 
 // ─── Главный компонент ────────────────────────────────────────────────────────
 
-export default function ActivitiesScreen({ child, childData, onBack }: ActivitiesScreenProps) {
+export default function ActivitiesScreen({ child, onBack }: ActivitiesScreenProps) {
   const firstName = (child.name || "Ребёнок").split(" ")[0];
-  const devs = (childData?.development ?? child.development ?? []) as Development[];
+  const { data, loading, addItem, updateItem, deleteItem } = useChildrenData(child.id);
+  const devs = (data?.development ?? []) as unknown as Development[];
 
   // Разворачиваем все активности в плоский список с данными об области
-  const [localActivities, setLocalActivities] = useState<ActivityFull[]>(() =>
+  const activities = useMemo<ActivityFull[]>(() =>
     devs.flatMap(dev =>
       (dev.activities ?? []).map(a => ({
         id: a.id,
@@ -280,36 +339,99 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
         type: a.type,
         area: dev.area,
         schedule: a.schedule,
+        daysOfWeek: a.days_of_week,
+        timeOfDay: a.time_of_day,
         cost: a.cost,
         status: (a.status ?? "active") as ActivityStatus,
       }))
-    )
+    ),
+    [devs]
   );
 
-  const [openActivity, setOpenActivity] = useState<ActivityFull | null>(null);
+  const [openActivityId, setOpenActivityId] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [editActivity, setEditActivity] = useState<ActivityFull | null>(null);
 
-  const activeCount = localActivities.filter(a => a.status === "active").length;
+  const openActivity = activities.find(a => a.id === openActivityId) ?? null;
+  const activeCount = activities.filter(a => a.status === "active").length;
 
-  const handleAdd = (activity: ActivityFull) => {
-    setLocalActivities(prev => [activity, ...prev]);
+  const handleAdd = async (payload: Omit<ActivityFull, "id" | "development_id"> & { development_id?: string }) => {
+    let developmentId = payload.development_id;
+
+    // Для выбранного направления ещё нет области развития — создаём её сначала
+    if (!developmentId) {
+      const areaResult = await addItem("development_area", {
+        area: payload.area,
+        current_level: 0,
+        target_level: 100,
+        family_id: localStorage.getItem("familyId") || "",
+      });
+      if (!areaResult.success || !areaResult.id) {
+        alert(areaResult.error || "Не удалось создать область развития");
+        return;
+      }
+      developmentId = String(areaResult.id);
+    }
+
+    const result = await addItem("activity", {
+      development_id: developmentId,
+      area: payload.area,
+      type: payload.type,
+      name: payload.name,
+      days_of_week: payload.daysOfWeek,
+      time_of_day: payload.timeOfDay,
+      cost: payload.cost,
+      status: payload.status,
+    });
+    if (!result.success) {
+      alert(result.error || "Не удалось сохранить занятие");
+    }
   };
 
-  const handleUpdate = (updated: ActivityFull) => {
-    setLocalActivities(prev => prev.map(a => a.id === updated.id ? updated : a));
+  const handleUpdate = async (id: string, payload: Omit<ActivityFull, "id" | "development_id"> & { development_id?: string }) => {
+    const result = await updateItem("activity", id, {
+      area: payload.area,
+      type: payload.type,
+      name: payload.name,
+      days_of_week: payload.daysOfWeek,
+      time_of_day: payload.timeOfDay,
+      cost: payload.cost,
+      status: payload.status,
+    });
+    if (!result.success) {
+      alert(result.error || "Не удалось сохранить изменения");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Удалить это занятие? Оно также пропадёт из общего календаря семьи.")) return;
+    const result = await deleteItem("activity", id);
+    if (!result.success) {
+      alert(result.error || "Не удалось удалить занятие");
+    } else {
+      setOpenActivityId(null);
+    }
   };
 
   // Открыта карточка занятия — рендерим отдельный экран
   if (openActivity) {
     return (
-      <ActivityDetailScreen
-        activity={openActivity}
-        onBack={() => setOpenActivity(null)}
-        onUpdate={updated => {
-          handleUpdate(updated);
-          setOpenActivity(updated);
-        }}
-      />
+      <>
+        <ActivityDetailScreen
+          activity={openActivity}
+          onBack={() => setOpenActivityId(null)}
+          onEdit={() => setEditActivity(openActivity)}
+          onDelete={() => handleDelete(openActivity.id)}
+        />
+        {editActivity && (
+          <AddActivityDialog
+            developments={devs}
+            initial={editActivity}
+            onClose={() => setEditActivity(null)}
+            onSubmit={payload => handleUpdate(editActivity.id, payload)}
+          />
+        )}
+      </>
     );
   }
 
@@ -324,9 +446,24 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
     </button>
   );
 
+  // ─── Loading ────────────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <ScreenPage>
+        <ScreenHeader title="Мои занятия" onBack={onBack} />
+        <ScreenBody>
+          <div className="flex items-center justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-400" />
+          </div>
+        </ScreenBody>
+      </ScreenPage>
+    );
+  }
+
   // ─── Empty state ────────────────────────────────────────────────────────────
 
-  if (localActivities.length === 0) {
+  if (activities.length === 0) {
     return (
       <ScreenPage>
         <ScreenHeader title="Мои занятия" onBack={onBack} />
@@ -338,7 +475,7 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
           onAction={() => setShowAdd(true)}
         />
         {showAdd && (
-          <AddActivityDialog developments={devs} onClose={() => setShowAdd(false)} onAdd={handleAdd} />
+          <AddActivityDialog developments={devs} onClose={() => setShowAdd(false)} onSubmit={handleAdd} />
         )}
       </ScreenPage>
     );
@@ -346,9 +483,9 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
 
   // ─── Основной экран ─────────────────────────────────────────────────────────
 
-  const activeActivities  = localActivities.filter(a => a.status === "active");
-  const plannedActivities = localActivities.filter(a => a.status === "planned");
-  const pausedActivities  = localActivities.filter(a => a.status === "paused" || a.status === "completed");
+  const activeActivities  = activities.filter(a => a.status === "active");
+  const plannedActivities = activities.filter(a => a.status === "planned");
+  const pausedActivities  = activities.filter(a => a.status === "paused" || a.status === "completed");
 
   // Инсайт — что занимает больше времени
   const topArea = activeActivities
@@ -386,7 +523,7 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
         {activeActivities.length > 0 && (
           <section className="space-y-2.5">
             {activeActivities.map(a => (
-              <ActivityListCard key={a.id} activity={a} onClick={() => setOpenActivity(a)} />
+              <ActivityListCard key={a.id} activity={a} onClick={() => setOpenActivityId(a.id)} />
             ))}
           </section>
         )}
@@ -399,7 +536,7 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
             </p>
             <div className="space-y-2.5">
               {plannedActivities.map(a => (
-                <ActivityListCard key={a.id} activity={a} onClick={() => setOpenActivity(a)} />
+                <ActivityListCard key={a.id} activity={a} onClick={() => setOpenActivityId(a.id)} />
               ))}
             </div>
           </section>
@@ -413,7 +550,7 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
             </p>
             <div className="space-y-2.5">
               {pausedActivities.map(a => (
-                <ActivityListCard key={a.id} activity={a} onClick={() => setOpenActivity(a)} />
+                <ActivityListCard key={a.id} activity={a} onClick={() => setOpenActivityId(a.id)} />
               ))}
             </div>
           </section>
@@ -427,7 +564,7 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
               {activeActivities.filter(a => !a.lastResult).slice(0, 2).map(a => (
                 <button
                   key={a.id}
-                  onClick={() => setOpenActivity(a)}
+                  onClick={() => setOpenActivityId(a.id)}
                   className="w-full flex items-center gap-2.5 bg-white/80 rounded-xl px-3 py-2 hover:bg-white transition-colors text-left"
                 >
                   <Icon name="Plus" size={12} className="text-sky-400 flex-shrink-0" />
@@ -448,7 +585,7 @@ export default function ActivitiesScreen({ child, childData, onBack }: Activitie
       </ScreenBody>
 
       {showAdd && (
-        <AddActivityDialog developments={devs} onClose={() => setShowAdd(false)} onAdd={handleAdd} />
+        <AddActivityDialog developments={devs} onClose={() => setShowAdd(false)} onSubmit={handleAdd} />
       )}
     </ScreenPage>
   );

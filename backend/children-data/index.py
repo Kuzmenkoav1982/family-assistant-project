@@ -35,6 +35,74 @@ def _get_actor_user_id(child_id: str, cur) -> Optional[str]:
 # Типы данных, которые влияют на портфолио
 _PORTFOLIO_TYPES = frozenset({'grade', 'dream', 'medication', 'vaccination', 'doctor_visit', 'mood'})
 
+WEEKDAY_SHORT = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб']  # индекс совпадает с JS Date.getDay() и recurring_days_of_week
+
+
+def _build_schedule_text(days_of_week, time_of_day) -> Optional[str]:
+    '''Собирает читаемую строку расписания из дней недели и времени, напр. "Пн, Ср, Пт 17:00"'''
+    if not days_of_week:
+        return None
+    names = [WEEKDAY_SHORT[d] for d in sorted(set(days_of_week)) if 0 <= d <= 6]
+    if not names:
+        return None
+    text = ', '.join(names)
+    if time_of_day:
+        text += f' {time_of_day}'
+    return text
+
+
+def _get_family_id_by_child(child_id: str, cur) -> Optional[str]:
+    '''Находит family_id по id ребёнка (family_members.id)'''
+    cur.execute(f"SELECT family_id FROM {SCHEMA}.family_members WHERE id = {escape_sql_string(child_id)} LIMIT 1")
+    row = cur.fetchone()
+    return str(row['family_id']) if row and row.get('family_id') else None
+
+
+def _sync_activity_calendar_event(cur, child_id: str, name: str, days_of_week, time_of_day, status: str, existing_event_id) -> Optional[int]:
+    '''
+    Создаёт/обновляет/удаляет повторяющееся событие в общем календаре для кружка.
+    Кружок появляется в календаре только если указаны дни недели и статус "active".
+    '''
+    should_have_event = bool(days_of_week) and status == 'active'
+
+    if not should_have_event:
+        if existing_event_id:
+            cur.execute(f"DELETE FROM {SCHEMA}.calendar_events WHERE id = {escape_sql_string(existing_event_id)}")
+        return None
+
+    days_array_sql = 'ARRAY[' + ','.join(str(int(d)) for d in days_of_week) + ']::integer[]'
+
+    if existing_event_id:
+        cur.execute(f"""
+            UPDATE {SCHEMA}.calendar_events
+            SET title = {escape_sql_string(name)},
+                time = {escape_sql_string(time_of_day)},
+                is_recurring = TRUE,
+                recurring_frequency = 'weekly',
+                recurring_interval = 1,
+                recurring_days_of_week = {days_array_sql},
+                child_id = {escape_sql_string(child_id)},
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = {escape_sql_string(existing_event_id)}
+        """)
+        return existing_event_id
+
+    family_id = _get_family_id_by_child(child_id, cur)
+    if not family_id:
+        return None
+
+    cur.execute(f"""
+        INSERT INTO {SCHEMA}.calendar_events
+        (family_id, title, date, time, category, visibility, color, child_id,
+         is_recurring, recurring_frequency, recurring_interval, recurring_days_of_week)
+        VALUES ({escape_sql_string(family_id)}, {escape_sql_string(name)}, CURRENT_DATE,
+                {escape_sql_string(time_of_day)}, 'education', 'family', '#8b5cf6',
+                {escape_sql_string(child_id)},
+                TRUE, 'weekly', 1, {days_array_sql})
+        RETURNING id
+    """)
+    return cur.fetchone()['id']
+
 def escape_sql_string(value: Any) -> str:
     '''Экранирование значений для Simple Query Protocol'''
     if value is None:
@@ -576,15 +644,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     conn.commit()
                     
                 elif data_type == 'activity':
+                    days_of_week = data.get('days_of_week') or []
+                    time_of_day = data.get('time_of_day') or None
+                    status = data.get('status', 'active')
+                    name = data.get('name')
+                    schedule_text = _build_schedule_text(days_of_week, time_of_day) or data.get('schedule', '')
+
+                    days_array_sql = 'ARRAY[' + ','.join(str(int(d)) for d in days_of_week) + ']::integer[]' if days_of_week else 'NULL'
+
                     cur.execute(f"""
                         INSERT INTO {schema}.children_activities 
-                        (development_id, type, name, schedule, cost, status)
+                        (development_id, type, name, schedule, cost, status, days_of_week, time_of_day, description, started)
                         VALUES ({escape_sql_string(data.get('development_id'))}, {escape_sql_string(data.get('type'))},
-                                {escape_sql_string(data.get('name'))}, {escape_sql_string(data.get('schedule', ''))},
-                                {escape_sql_string(data.get('cost', 0))}, {escape_sql_string(data.get('status', 'active'))})
+                                {escape_sql_string(name)}, {escape_sql_string(schedule_text)},
+                                {escape_sql_string(data.get('cost', 0))}, {escape_sql_string(status)},
+                                {days_array_sql}, {escape_sql_string(time_of_day)},
+                                {escape_sql_string(data.get('description', ''))}, {escape_sql_string(data.get('started'))})
                         RETURNING id
                     """)
                     result_id = cur.fetchone()['id']
+
+                    calendar_event_id = _sync_activity_calendar_event(
+                        cur, child_id, name, days_of_week, time_of_day, status, None
+                    )
+                    if calendar_event_id:
+                        cur.execute(f"""
+                            UPDATE {schema}.children_activities SET calendar_event_id = {escape_sql_string(calendar_event_id)}
+                            WHERE id = {escape_sql_string(result_id)}
+                        """)
+
                     conn.commit()
                     
                 elif data_type == 'test':
@@ -800,6 +888,42 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                             target_level = {escape_sql_string(data.get('target_level'))}
                         WHERE id = {record_id_safe}
                     """)
+
+                elif data_type == 'activity':
+                    days_of_week = data.get('days_of_week') or []
+                    time_of_day = data.get('time_of_day') or None
+                    status = data.get('status', 'active')
+                    name = data.get('name')
+                    schedule_text = _build_schedule_text(days_of_week, time_of_day) or data.get('schedule', '')
+                    days_array_sql = 'ARRAY[' + ','.join(str(int(d)) for d in days_of_week) + ']::integer[]' if days_of_week else 'NULL'
+
+                    cur.execute(f"SELECT calendar_event_id FROM {schema}.children_activities WHERE id = {record_id_safe}")
+                    existing_row = cur.fetchone()
+                    existing_event_id = existing_row['calendar_event_id'] if existing_row else None
+
+                    cur.execute(f"""
+                        UPDATE {schema}.children_activities
+                        SET name = {escape_sql_string(name)},
+                            type = {escape_sql_string(data.get('type'))},
+                            schedule = {escape_sql_string(schedule_text)},
+                            cost = {escape_sql_string(data.get('cost', 0))},
+                            status = {escape_sql_string(status)},
+                            days_of_week = {days_array_sql},
+                            time_of_day = {escape_sql_string(time_of_day)},
+                            description = {escape_sql_string(data.get('description', ''))},
+                            started = {escape_sql_string(data.get('started'))},
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = {record_id_safe}
+                    """)
+
+                    new_event_id = _sync_activity_calendar_event(
+                        cur, child_id, name, days_of_week, time_of_day, status, existing_event_id
+                    )
+                    if new_event_id != existing_event_id:
+                        cur.execute(f"""
+                            UPDATE {schema}.children_activities SET calendar_event_id = {escape_sql_string(new_event_id)}
+                            WHERE id = {record_id_safe}
+                        """)
                     
                 elif data_type == 'purchase_item':
                     update_fields = []
@@ -905,6 +1029,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'body': json.dumps({'success': False, 'error': f'Неизвестный тип данных: {data_type}'})
                     }
                 
+                if data_type == 'activity':
+                    cur.execute(f"SELECT calendar_event_id FROM {schema}.children_activities WHERE id = {record_id_safe}")
+                    act_row = cur.fetchone()
+                    if act_row and act_row.get('calendar_event_id'):
+                        cur.execute(f"DELETE FROM {schema}.calendar_events WHERE id = {escape_sql_string(act_row['calendar_event_id'])}")
+
                 cur.execute(f"DELETE FROM {schema}.{table_map[data_type]} WHERE id = {record_id_safe}")
                 conn.commit()
 
