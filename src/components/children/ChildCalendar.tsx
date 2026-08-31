@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,122 +7,164 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import type { FamilyMember } from '@/types/family.types';
-
-interface ChildEvent {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  category: 'health' | 'school' | 'hobby' | 'sport' | 'other';
-  color: string;
-  reminderEnabled: boolean;
-}
+import type { CalendarEvent } from '@/types/family.types';
 
 interface ChildCalendarProps {
   child: FamilyMember;
 }
 
-const CATEGORY_CONFIG = {
+type ChildEventCategory = 'health' | 'education' | 'leisure' | 'family' | 'personal';
+
+const CATEGORY_CONFIG: Record<ChildEventCategory, { label: string; icon: string; color: string }> = {
   health: { label: 'Здоровье', icon: 'Heart', color: '#ef4444' },
-  school: { label: 'Школа', icon: 'GraduationCap', color: '#8b5cf6' },
-  hobby: { label: 'Кружки', icon: 'Palette', color: '#f59e0b' },
-  sport: { label: 'Спорт', icon: 'Trophy', color: '#10b981' },
-  other: { label: 'Другое', icon: 'Calendar', color: '#3b82f6' }
+  education: { label: 'Школа', icon: 'GraduationCap', color: '#8b5cf6' },
+  leisure: { label: 'Кружки', icon: 'Palette', color: '#f59e0b' },
+  family: { label: 'Спорт', icon: 'Trophy', color: '#10b981' },
+  personal: { label: 'Другое', icon: 'Calendar', color: '#3b82f6' },
 };
 
+const WEEKDAYS = [
+  { value: 1, label: 'Пн' },
+  { value: 2, label: 'Вт' },
+  { value: 3, label: 'Ср' },
+  { value: 4, label: 'Чт' },
+  { value: 5, label: 'Пт' },
+  { value: 6, label: 'Сб' },
+  { value: 0, label: 'Вс' },
+];
+
+const emptyForm = {
+  title: '',
+  description: '',
+  date: '',
+  time: '',
+  category: 'personal' as ChildEventCategory,
+  reminderEnabled: true,
+  daysOfWeek: [] as number[],
+};
+
+/** Проверяет, попадает ли повторяющееся событие на конкретную дату (еженедельно по дням недели) */
+function isRecurringOnDate(event: CalendarEvent, targetDate: Date): boolean {
+  if (!event.isRecurring || !event.recurringPattern) return false;
+  const eventDate = new Date(event.date + 'T00:00:00');
+  if (targetDate < eventDate) return false;
+  if (event.recurringPattern.endDate) {
+    const end = new Date(event.recurringPattern.endDate);
+    if (targetDate > end) return false;
+  }
+  const { frequency, daysOfWeek } = event.recurringPattern;
+  if (frequency === 'weekly' && daysOfWeek && daysOfWeek.length > 0) {
+    return daysOfWeek.includes(targetDate.getDay());
+  }
+  return false;
+}
+
 export function ChildCalendar({ child }: ChildCalendarProps) {
-  const [events, setEvents] = useState<ChildEvent[]>([]);
+  const { events, loading, createEvent, updateEvent, deleteEvent } = useCalendarEvents();
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState<ChildEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'upcoming' | 'month'>('upcoming');
+  const [newEvent, setNewEvent] = useState(emptyForm);
 
-  const [newEvent, setNewEvent] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
-    category: 'other' as ChildEvent['category'],
-    reminderEnabled: true
-  });
+  // Только события этого ребёнка
+  const childEvents = useMemo(
+    () => events.filter(e => e.childId === child.id),
+    [events, child.id]
+  );
 
-  // Загрузка событий из localStorage
-  useEffect(() => {
-    const storageKey = `child_calendar_${child.id}`;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      setEvents(JSON.parse(saved));
-    }
-  }, [child.id]);
+  const resetForm = () => setNewEvent(emptyForm);
 
-  // Сохранение событий в localStorage
-  const saveEvents = (updatedEvents: ChildEvent[]) => {
-    const storageKey = `child_calendar_${child.id}`;
-    localStorage.setItem(storageKey, JSON.stringify(updatedEvents));
-    setEvents(updatedEvents);
+  const openEdit = (event: CalendarEvent) => {
+    setEditEvent(event);
+    setNewEvent({
+      title: event.title,
+      description: event.description || '',
+      date: event.date,
+      time: event.time || '',
+      category: (event.category as ChildEventCategory) || 'personal',
+      reminderEnabled: event.reminderEnabled ?? true,
+      daysOfWeek: event.recurringPattern?.daysOfWeek || [],
+    });
+    setSelectedEvent(null);
+    setShowAddDialog(true);
   };
 
-  const addEvent = () => {
+  const handleSubmit = async () => {
     if (!newEvent.title || !newEvent.date) return;
 
-    const event: ChildEvent = {
-      id: Date.now().toString(),
+    const payload = {
       title: newEvent.title,
       description: newEvent.description,
       date: newEvent.date,
       time: newEvent.time,
       category: newEvent.category,
       color: CATEGORY_CONFIG[newEvent.category].color,
-      reminderEnabled: newEvent.reminderEnabled
+      visibility: 'family' as const,
+      assignedTo: child.id,
+      childId: child.id,
+      reminderEnabled: newEvent.reminderEnabled,
+      isRecurring: newEvent.daysOfWeek.length > 0,
+      recurringFrequency: 'weekly' as const,
+      recurringInterval: 1,
+      recurringDaysOfWeek: newEvent.daysOfWeek,
     };
 
-    saveEvents([...events, event]);
-    setShowAddDialog(false);
-    setNewEvent({
-      title: '',
-      description: '',
-      date: '',
-      time: '',
-      category: 'other',
-      reminderEnabled: true
-    });
+    const result = editEvent
+      ? await updateEvent(editEvent.id, payload)
+      : await createEvent(payload);
+
+    if (result.success) {
+      setShowAddDialog(false);
+      setEditEvent(null);
+      resetForm();
+    } else {
+      alert(result.error || 'Не удалось сохранить событие');
+    }
   };
 
-  const deleteEvent = (eventId: string) => {
-    if (confirm('Удалить событие?')) {
-      saveEvents(events.filter(e => e.id !== eventId));
+  const handleDelete = async (eventId: string) => {
+    if (!confirm('Удалить событие? Оно пропадёт и из общего календаря семьи.')) return;
+    const result = await deleteEvent(eventId);
+    if (result.success) {
       setSelectedEvent(null);
+    } else {
+      alert(result.error || 'Не удалось удалить событие');
     }
   };
 
   const getUpcomingEvents = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
-    return events
-      .filter(e => {
+    const horizon = new Date(today);
+    horizon.setDate(horizon.getDate() + 90);
+
+    const singleOccurrences: Array<{ event: CalendarEvent; occursOn: Date }> = [];
+
+    childEvents.forEach(e => {
+      if (filterCategory !== 'all' && e.category !== filterCategory) return;
+
+      if (e.isRecurring) {
+        for (let d = new Date(today); d <= horizon; d.setDate(d.getDate() + 1)) {
+          if (isRecurringOnDate(e, new Date(d))) {
+            singleOccurrences.push({ event: e, occursOn: new Date(d) });
+            break; // ближайшее вхождение достаточно для списка "предстоящие"
+          }
+        }
+      } else {
         const eventDate = new Date(e.date);
         eventDate.setHours(0, 0, 0, 0);
-        return eventDate >= today;
-      })
-      .filter(e => filterCategory === 'all' || e.category === filterCategory)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 10);
-  };
+        if (eventDate >= today) {
+          singleOccurrences.push({ event: e, occursOn: eventDate });
+        }
+      }
+    });
 
-  const getEventsForMonth = () => {
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    
-    return events
-      .filter(e => {
-        const eventDate = new Date(e.date);
-        return eventDate.getMonth() === currentMonth && eventDate.getFullYear() === currentYear;
-      })
-      .filter(e => filterCategory === 'all' || e.category === filterCategory)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return singleOccurrences
+      .sort((a, b) => a.occursOn.getTime() - b.occursOn.getTime())
+      .slice(0, 10);
   };
 
   const formatDate = (dateStr: string) => {
@@ -137,7 +179,15 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
   };
 
-  const displayedEvents = viewMode === 'upcoming' ? getUpcomingEvents() : getEventsForMonth();
+  const formatRecurring = (event: CalendarEvent) => {
+    if (!event.recurringPattern?.daysOfWeek?.length) return null;
+    const names = event.recurringPattern.daysOfWeek
+      .map(d => WEEKDAYS.find(w => w.value === d)?.label)
+      .filter(Boolean);
+    return `Каждую неделю: ${names.join(', ')}`;
+  };
+
+  const displayedEvents = getUpcomingEvents();
 
   return (
     <Card>
@@ -145,56 +195,41 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <CardTitle className="flex items-center gap-2">
             <Icon name="Calendar" size={20} />
-            Личный календарь {child.name}
+            Календарь {child.name}
           </CardTitle>
-          <Button onClick={() => setShowAddDialog(true)} className="gap-2 w-full sm:w-auto whitespace-nowrap">
+          <Button
+            onClick={() => { setEditEvent(null); resetForm(); setShowAddDialog(true); }}
+            className="gap-2 w-full sm:w-auto whitespace-nowrap"
+          >
             <Icon name="Plus" size={16} />
             <span className="hidden sm:inline">Добавить событие</span>
             <span className="sm:hidden">Добавить</span>
           </Button>
         </div>
+        <p className="text-xs text-gray-400 mt-1">
+          События сохраняются в общем календаре семьи и видны всем
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Фильтры */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="flex gap-2">
-            <Button
-              variant={viewMode === 'upcoming' ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1 sm:flex-initial whitespace-nowrap"
-              onClick={() => setViewMode('upcoming')}
-            >
-              Предстоящие
-            </Button>
-            <Button
-              variant={viewMode === 'month' ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1 sm:flex-initial whitespace-nowrap"
-              onClick={() => setViewMode('month')}
-            >
-              Этот месяц
-            </Button>
-          </div>
-
-          <Select value={filterCategory} onValueChange={setFilterCategory}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="Категория" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все категории</SelectItem>
-              {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-                <SelectItem key={key} value={key}>
-                  {config.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Фильтр по категории */}
+        <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <SelectTrigger className="w-full sm:w-40">
+            <SelectValue placeholder="Категория" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все категории</SelectItem>
+            {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
+              <SelectItem key={key} value={key}>
+                {config.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         {/* Статистика */}
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {Object.entries(CATEGORY_CONFIG).map(([key, config]) => {
-            const count = events.filter(e => e.category === key).length;
+            const count = childEvents.filter(e => e.category === key).length;
             return (
               <div
                 key={key}
@@ -210,7 +245,11 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
         </div>
 
         {/* Список событий */}
-        {displayedEvents.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400" />
+          </div>
+        ) : displayedEvents.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <Icon name="Calendar" size={48} className="mx-auto mb-3 opacity-30" />
             <p>Нет событий</p>
@@ -218,8 +257,9 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
           </div>
         ) : (
           <div className="space-y-2">
-            {displayedEvents.map(event => {
-              const config = CATEGORY_CONFIG[event.category];
+            {displayedEvents.map(({ event, occursOn }) => {
+              const config = CATEGORY_CONFIG[event.category as ChildEventCategory] || CATEGORY_CONFIG.personal;
+              const recurringLabel = formatRecurring(event);
               return (
                 <div
                   key={event.id}
@@ -229,17 +269,23 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <h4 className="font-semibold text-gray-900">{event.title}</h4>
                         <Badge variant="outline" className="text-xs">
                           <Icon name={config.icon as any} size={12} className="mr-1" />
                           {config.label}
                         </Badge>
+                        {event.isRecurring && (
+                          <Badge variant="outline" className="text-xs gap-1">
+                            <Icon name="Repeat" size={11} />
+                            Повтор
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 text-sm text-gray-600">
                         <span className="flex items-center gap-1">
                           <Icon name="Calendar" size={14} />
-                          {formatDate(event.date)}
+                          {formatDate(occursOn.toISOString().split('T')[0])}
                         </span>
                         {event.time && (
                           <span className="flex items-center gap-1">
@@ -248,6 +294,9 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
                           </span>
                         )}
                       </div>
+                      {recurringLabel && (
+                        <p className="text-xs text-gray-400 mt-1">{recurringLabel}</p>
+                      )}
                       {event.description && (
                         <p className="text-sm text-gray-500 mt-1">{event.description}</p>
                       )}
@@ -263,11 +312,11 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
         )}
       </CardContent>
 
-      {/* Диалог добавления события */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      {/* Диалог добавления/редактирования события */}
+      <Dialog open={showAddDialog} onOpenChange={(v) => { setShowAddDialog(v); if (!v) { setEditEvent(null); resetForm(); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Добавить событие для {child.name}</DialogTitle>
+            <DialogTitle>{editEvent ? `Изменить событие` : `Добавить событие для ${child.name}`}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
@@ -318,6 +367,36 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
             </div>
 
             <div>
+              <label className="text-sm font-medium mb-2 block">Повторять по дням недели (необязательно)</label>
+              <div className="flex gap-1.5">
+                {WEEKDAYS.map(d => (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => {
+                      const days = newEvent.daysOfWeek.includes(d.value)
+                        ? newEvent.daysOfWeek.filter(x => x !== d.value)
+                        : [...newEvent.daysOfWeek, d.value];
+                      setNewEvent({ ...newEvent, daysOfWeek: days });
+                    }}
+                    className={`flex-1 h-9 rounded-lg text-xs font-semibold border transition-colors ${
+                      newEvent.daysOfWeek.includes(d.value)
+                        ? 'bg-gray-900 text-white border-gray-900'
+                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    {d.label}
+                  </button>
+                ))}
+              </div>
+              {newEvent.daysOfWeek.length > 0 && (
+                <p className="text-xs text-gray-400 mt-1.5">
+                  Событие будет повторяться каждую неделю и появится в общем календаре семьи
+                </p>
+              )}
+            </div>
+
+            <div>
               <label className="text-sm font-medium mb-2 block">Описание (необязательно)</label>
               <Textarea
                 placeholder="Дополнительная информация..."
@@ -342,11 +421,11 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
           </div>
 
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+            <Button variant="outline" onClick={() => { setShowAddDialog(false); setEditEvent(null); resetForm(); }}>
               Отмена
             </Button>
-            <Button onClick={addEvent} disabled={!newEvent.title || !newEvent.date}>
-              Добавить
+            <Button onClick={handleSubmit} disabled={!newEvent.title || !newEvent.date}>
+              {editEvent ? 'Сохранить' : 'Добавить'}
             </Button>
           </div>
         </DialogContent>
@@ -358,14 +437,14 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Icon name={CATEGORY_CONFIG[selectedEvent.category].icon as any} size={20} />
+                <Icon name={(CATEGORY_CONFIG[selectedEvent.category as ChildEventCategory]?.icon || 'Calendar') as any} size={20} />
                 {selectedEvent.title}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge style={{ backgroundColor: selectedEvent.color, color: 'white' }}>
-                  {CATEGORY_CONFIG[selectedEvent.category].label}
+                  {CATEGORY_CONFIG[selectedEvent.category as ChildEventCategory]?.label || 'Другое'}
                 </Badge>
                 {selectedEvent.reminderEnabled && (
                   <Badge variant="outline" className="gap-1">
@@ -386,6 +465,12 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
                     <span>{selectedEvent.time}</span>
                   </div>
                 )}
+                {formatRecurring(selectedEvent) && (
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Icon name="Repeat" size={16} />
+                    <span>{formatRecurring(selectedEvent)}</span>
+                  </div>
+                )}
               </div>
 
               {selectedEvent.description && (
@@ -400,7 +485,11 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
               <Button variant="outline" onClick={() => setSelectedEvent(null)}>
                 Закрыть
               </Button>
-              <Button variant="destructive" onClick={() => deleteEvent(selectedEvent.id)}>
+              <Button variant="outline" onClick={() => openEdit(selectedEvent)}>
+                <Icon name="Pencil" size={14} className="mr-1.5" />
+                Изменить
+              </Button>
+              <Button variant="destructive" onClick={() => handleDelete(selectedEvent.id)}>
                 Удалить
               </Button>
             </div>

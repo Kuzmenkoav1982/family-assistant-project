@@ -106,6 +106,8 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
             event_dict['recurringInterval'] = event_dict['recurring_interval']
         if 'recurring_days_of_week' in event_dict:
             event_dict['recurringDaysOfWeek'] = event_dict['recurring_days_of_week']
+        if 'child_id' in event_dict and event_dict['child_id']:
+            event_dict['childId'] = str(event_dict['child_id'])
         
         # Формируем recurringPattern для фронта
         if event_dict.get('isRecurring'):
@@ -151,14 +153,19 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     if recurring_end_date == '':
         recurring_end_date = None
     
+    child_id = event_data.get('childId') or None
+    if child_id == '':
+        child_id = None
+
     cur.execute(
         f"""
         INSERT INTO {SCHEMA}.calendar_events 
         (family_id, title, description, date, time, duration, location, category, 
          visibility, color, reminder_time, assigned_to, attendees, created_by_name, created_by_avatar,
          reminder_enabled, reminder_days, reminder_date,
-         is_recurring, recurring_frequency, recurring_interval, recurring_end_date, recurring_days_of_week)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+         is_recurring, recurring_frequency, recurring_interval, recurring_end_date, recurring_days_of_week,
+         child_id)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id, date, created_at
         """,
         (
@@ -184,7 +191,8 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
             event_data.get('recurringFrequency'),
             event_data.get('recurringInterval', 1),
             recurring_end_date,
-            recurring_days
+            recurring_days,
+            child_id
         )
     )
     result = cur.fetchone()
@@ -283,6 +291,10 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
     recurring_end_date = event_data.get('recurringEndDate') or None
     if recurring_end_date == '':
         recurring_end_date = None
+
+    child_id = event_data.get('childId') or None
+    if child_id == '':
+        child_id = None
     
     cur.execute(
         f"""
@@ -293,6 +305,7 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
             reminder_enabled = %s, reminder_days = %s, reminder_date = %s,
             is_recurring = %s, recurring_frequency = %s, recurring_interval = %s,
             recurring_end_date = %s, recurring_days_of_week = %s,
+            child_id = %s,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = %s AND family_id = %s
         """,
@@ -317,6 +330,7 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
             event_data.get('recurringInterval'),
             recurring_end_date,
             recurring_days,
+            child_id,
             event_id,
             family_id
         )

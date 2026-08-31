@@ -267,6 +267,7 @@ export interface CalendarEvent {
   createdBy?: string;
   assignedTo?: string;
   attendees?: string[];
+  childId?: string;
   reminderEnabled?: boolean;
   reminderDays?: number;
   reminderDate?: string;
