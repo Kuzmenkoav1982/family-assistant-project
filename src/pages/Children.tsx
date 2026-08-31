@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import SEOHead from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
+import Icon from '@/components/ui/icon';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import Footer from '@/components/Footer';
 import { ParentDashboard } from '@/components/children/ParentDashboard';
@@ -101,7 +102,7 @@ export default function Children() {
           {selectedChild && (
             <>
               <div className="mb-6">
-                <div className="flex gap-3 overflow-x-auto pb-4">
+                <div className="flex items-center gap-3 overflow-x-auto pb-4">
                   {children.map((child) => (
                     <Button
                       key={child.id}
@@ -115,6 +116,14 @@ export default function Children() {
                       {child.name}
                     </Button>
                   ))}
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddChildDialog(true)}
+                    className="whitespace-nowrap font-semibold border-dashed border-2 border-blue-400 text-blue-600 hover:bg-blue-50 hover:text-blue-700 shrink-0"
+                  >
+                    <Icon name="Plus" size={18} className="mr-1.5" />
+                    Добавить ребёнка
+                  </Button>
                 </div>
               </div>
 

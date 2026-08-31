@@ -20,10 +20,16 @@ const TYPE_META: Record<string, { icon: string; color: string; label: string }> 
   leisure:      { icon: 'Sparkles',    color: 'text-cyan-500 bg-cyan-50',     label: 'Досуг' },
   subscription: { icon: 'CreditCard',  color: 'text-violet-500 bg-violet-50', label: 'Подписка' },
   achievement:  { icon: 'Trophy',      color: 'text-amber-600 bg-amber-50',   label: 'Достижения' },
+  support_reply:{ icon: 'Headphones',  color: 'text-blue-600 bg-blue-50',     label: 'Поддержка' },
 };
+
+// Типы уведомлений, у которых важен сам текст, а не переход по ссылке:
+// их всегда открываем в модалке целиком.
+const TEXT_FIRST_TYPES = ['support_reply', 'announcement', 'broadcast'];
 
 const FILTER_TABS = [
   { key: '', label: 'Все' },
+  { key: 'support_reply', label: 'Поддержка' },
   { key: 'medication', label: 'Лекарства' },
   { key: 'calendar', label: 'Календарь' },
   { key: 'task', label: 'Задачи' },
@@ -61,7 +67,10 @@ export default function Notifications() {
     // У части уведомлений (например, рассылок) нет реальной ссылки-назначения —
     // target_url совпадает со страницей уведомлений или пуст. Тогда открываем
     // полный текст в модалке, а не пытаемся "перейти в никуда".
-    if (n.target_url && n.target_url !== '/notifications') {
+    // Длинные текстовые уведомления (ответ поддержки, рассылка) читаются целиком
+    // в модалке — переход по ссылке "съел" бы сам текст.
+    const isTextFirst = TEXT_FIRST_TYPES.includes(n.type) || (n.message || '').length > 160;
+    if (!isTextFirst && n.target_url && n.target_url !== '/notifications') {
       navigate(n.target_url);
     } else {
       setOpenNotification(n);
@@ -179,6 +188,19 @@ export default function Notifications() {
                 </Badge>
                 <span className="text-xs text-gray-400">{formatTime(openNotification.created_at)}</span>
               </div>
+              {openNotification.target_url && openNotification.target_url !== '/notifications' && (
+                <Button
+                  onClick={() => {
+                    const url = openNotification.target_url;
+                    setOpenNotification(null);
+                    navigate(url);
+                  }}
+                  className="w-full"
+                >
+                  Перейти
+                  <Icon name="ArrowRight" size={16} className="ml-1.5" />
+                </Button>
+              )}
             </>
           )}
         </DialogContent>
