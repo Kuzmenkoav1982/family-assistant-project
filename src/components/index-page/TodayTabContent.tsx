@@ -97,11 +97,13 @@ export default function TodayTabContent({
     return taskDate === today && !task.completed;
   });
 
-  const todayEvents = calendarEvents.filter(event => event.date === today);
+  const todayEvents = calendarEvents
+    .filter(event => event.date === today)
+    .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
   const upcomingEvents = calendarEvents
     .filter(event => event.date > today)
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '').localeCompare(b.time || ''))
     .slice(0, 3);
 
   const myTasks = todayTasks.filter(

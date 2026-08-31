@@ -166,7 +166,12 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
     });
 
     return singleOccurrences
-      .sort((a, b) => a.occursOn.getTime() - b.occursOn.getTime())
+      .sort((a, b) => {
+        const dateDiff = a.occursOn.getTime() - b.occursOn.getTime();
+        if (dateDiff !== 0) return dateDiff;
+        // В один день события сортируем по времени начала, а не по порядку добавления в календарь
+        return (a.event.time || '').localeCompare(b.event.time || '');
+      })
       .slice(0, 10);
   };
 

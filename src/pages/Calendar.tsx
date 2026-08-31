@@ -269,7 +269,11 @@ export default function Calendar() {
       });
     }
 
-    allEvents.push(...matchingEvents);
+    // Сортируем события по времени начала, а не по порядку добавления в календарь
+    const sortedMatchingEvents = [...matchingEvents].sort((a, b) =>
+      (a.time || '').localeCompare(b.time || '')
+    );
+    allEvents.push(...sortedMatchingEvents);
 
     const tasksForDate = tasks.filter(t => t.dueDate === dateStr);
     allEvents.push(...tasksForDate);
