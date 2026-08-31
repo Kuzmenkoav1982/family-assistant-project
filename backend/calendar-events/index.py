@@ -42,7 +42,7 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
     cur.execute(
         f"""
         SELECT 
-            id, family_id, title, description, date, time, duration, location, 
+            id, family_id, title, description, date, time, end_time, duration, location, 
             category, created_by, assigned_to, visibility, color, reminder_time,
             attendees, child_id, completed, created_by_name, created_by_avatar,
             reminder_enabled, reminder_days, reminder_date,
@@ -98,6 +98,8 @@ def get_events(family_id: int) -> List[Dict[str, Any]]:
             event_dict['reminderDays'] = event_dict['reminder_days']
         if 'reminder_time' in event_dict:
             event_dict['reminderTime'] = event_dict['reminder_time']
+        if 'end_time' in event_dict:
+            event_dict['endTime'] = event_dict['end_time']
         if 'is_recurring' in event_dict:
             event_dict['isRecurring'] = event_dict['is_recurring']
         if 'recurring_frequency' in event_dict:
@@ -160,12 +162,12 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
     cur.execute(
         f"""
         INSERT INTO {SCHEMA}.calendar_events 
-        (family_id, title, description, date, time, duration, location, category, 
+        (family_id, title, description, date, time, end_time, duration, location, category, 
          visibility, color, reminder_time, assigned_to, attendees, created_by_name, created_by_avatar,
          reminder_enabled, reminder_days, reminder_date,
          is_recurring, recurring_frequency, recurring_interval, recurring_end_date, recurring_days_of_week,
          child_id)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id, date, created_at
         """,
         (
@@ -174,6 +176,7 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
             event_data.get('description', ''),
             event_data.get('date'),
             event_data.get('time'),
+            event_data.get('endTime'),
             event_data.get('duration'),
             event_data.get('location'),
             event_data.get('category', 'personal'),
@@ -239,6 +242,7 @@ def create_event(family_id: int, member_name: str, member_avatar: str, event_dat
         event_dict['title'] = event_data.get('title', '')
         event_dict['description'] = event_data.get('description', '')
         event_dict['time'] = event_data.get('time', '')
+        event_dict['endTime'] = event_data.get('endTime', '')
         event_dict['category'] = event_data.get('category', 'personal')
         event_dict['color'] = event_data.get('color', '#3b82f6')
         event_dict['visibility'] = event_data.get('visibility', 'family')
@@ -299,7 +303,7 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
     cur.execute(
         f"""
         UPDATE {SCHEMA}.calendar_events
-        SET title = %s, description = %s, date = %s, time = %s, duration = %s,
+        SET title = %s, description = %s, date = %s, time = %s, end_time = %s, duration = %s,
             location = %s, category = %s, visibility = %s, color = %s,
             reminder_time = %s, assigned_to = %s, attendees = %s,
             reminder_enabled = %s, reminder_days = %s, reminder_date = %s,
@@ -314,6 +318,7 @@ def update_event(event_id: int, family_id: int, event_data: Dict[str, Any]) -> b
             event_data.get('description'),
             event_data.get('date'),
             event_data.get('time'),
+            event_data.get('endTime'),
             event_data.get('duration'),
             event_data.get('location'),
             event_data.get('category'),

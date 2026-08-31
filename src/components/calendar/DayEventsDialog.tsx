@@ -128,7 +128,7 @@ export function DayEventsDialog({
                 {isEvent(event) && event.time && (
                   <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                     <Icon name="Clock" size={14} />
-                    <span>{event.time}</span>
+                    <span>{event.time}{event.endTime ? `–${event.endTime}` : ''}</span>
                   </div>
                 )}
 

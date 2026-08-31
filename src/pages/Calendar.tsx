@@ -66,6 +66,7 @@ export default function Calendar() {
     description: '',
     date: '',
     time: '',
+    endTime: '',
     category: 'personal',
     color: '#3b82f6',
     visibility: 'family' as 'family' | 'private',
@@ -379,6 +380,7 @@ export default function Calendar() {
       description: '',
       date: '',
       time: '',
+      endTime: '',
       category: 'personal',
       color: '#3b82f6',
       visibility: 'family',
@@ -412,6 +414,7 @@ export default function Calendar() {
       description: recommendation.description || '',
       date: recommendation.date || '',
       time: recommendation.time || '',
+      endTime: '',
       category: categoryMap[recommendation.category] || 'personal',
       color: '#8b5cf6',
       visibility: 'family',
@@ -443,6 +446,7 @@ export default function Calendar() {
       description: newEvent.description,
       date: newEvent.date,
       time: newEvent.time,
+      endTime: newEvent.endTime,
       category: newEvent.category,
       color: newEvent.color,
       visibility: newEvent.visibility,
@@ -484,6 +488,7 @@ export default function Calendar() {
       description: event.description || '',
       date: event.date,
       time: event.time || '',
+      endTime: event.endTime || '',
       category: event.category,
       color: event.color,
       visibility: event.visibility,
@@ -521,6 +526,7 @@ export default function Calendar() {
       description: '',
       date: dateStr,
       time: '',
+      endTime: '',
       category: 'personal',
       color: '#3b82f6',
       visibility: 'family',
@@ -638,14 +644,14 @@ export default function Calendar() {
                 {'date' in selectedEvent && (
                   <div className="flex items-center gap-2 text-sm">
                     <Icon name="Calendar" size={16} className="text-gray-500" />
-                    <span>{new Date(selectedEvent.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                    <span>{new Date(selectedEvent.date + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
                 )}
                 
                 {'time' in selectedEvent && selectedEvent.time && (
                   <div className="flex items-center gap-2 text-sm">
                     <Icon name="Clock" size={16} className="text-gray-500" />
-                    <span>{selectedEvent.time}</span>
+                    <span>{selectedEvent.time}{'endTime' in selectedEvent && selectedEvent.endTime ? `–${selectedEvent.endTime}` : ''}</span>
                   </div>
                 )}
                 

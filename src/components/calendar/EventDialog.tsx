@@ -18,6 +18,7 @@ interface EventDialogProps {
     description: string;
     date: string;
     time: string;
+    endTime: string;
     category: string;
     color: string;
     visibility: 'family' | 'private';
@@ -106,23 +107,33 @@ export function EventDialog({
             />
           </div>
 
+          <div>
+            <Label htmlFor="date">Дата *</Label>
+            <Input
+              id="date"
+              type="date"
+              value={newEvent.date}
+              onChange={(e) => onEventChange('date', e.target.value)}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div>
-              <Label htmlFor="date">Дата *</Label>
-              <Input
-                id="date"
-                type="date"
-                value={newEvent.date}
-                onChange={(e) => onEventChange('date', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="time">Время</Label>
+              <Label htmlFor="time">Время начала</Label>
               <Input
                 id="time"
                 type="time"
                 value={newEvent.time}
                 onChange={(e) => onEventChange('time', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endTime">Время окончания</Label>
+              <Input
+                id="endTime"
+                type="time"
+                value={newEvent.endTime}
+                onChange={(e) => onEventChange('endTime', e.target.value)}
               />
             </div>
           </div>

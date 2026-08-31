@@ -40,6 +40,7 @@ const emptyForm = {
   description: '',
   date: '',
   time: '',
+  endTime: '',
   category: 'personal' as ChildEventCategory,
   reminderEnabled: true,
   daysOfWeek: [] as number[],
@@ -51,7 +52,7 @@ function isRecurringOnDate(event: CalendarEvent, targetDate: Date): boolean {
   const eventDate = new Date(event.date + 'T00:00:00');
   if (targetDate < eventDate) return false;
   if (event.recurringPattern.endDate) {
-    const end = new Date(event.recurringPattern.endDate);
+    const end = new Date(event.recurringPattern.endDate + 'T00:00:00');
     if (targetDate > end) return false;
   }
   const { frequency, daysOfWeek } = event.recurringPattern;
@@ -84,6 +85,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
       description: event.description || '',
       date: event.date,
       time: event.time || '',
+      endTime: event.endTime || '',
       category: (event.category as ChildEventCategory) || 'personal',
       reminderEnabled: event.reminderEnabled ?? true,
       daysOfWeek: event.recurringPattern?.daysOfWeek || [],
@@ -100,6 +102,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
       description: newEvent.description,
       date: newEvent.date,
       time: newEvent.time,
+      endTime: newEvent.endTime,
       category: newEvent.category,
       color: CATEGORY_CONFIG[newEvent.category].color,
       visibility: 'family' as const,
@@ -154,8 +157,8 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
           }
         }
       } else {
-        const eventDate = new Date(e.date);
-        eventDate.setHours(0, 0, 0, 0);
+        // 'T00:00:00' без указания зоны — Date парсит как локальное время (не UTC), иначе дата съезжает на день назад
+        const eventDate = new Date(e.date + 'T00:00:00');
         if (eventDate >= today) {
           singleOccurrences.push({ event: e, occursOn: eventDate });
         }
@@ -168,8 +171,12 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
   };
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // dateStr — YYYY-MM-DD. Парсим как локальную полночь (без 'T00:00:00' Date трактует строку как UTC,
+    // из-за чего в часовых поясах восточнее UTC дата "съезжает" на день назад).
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
@@ -177,6 +184,14 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
     if (date.toDateString() === tomorrow.toDateString()) return 'Завтра';
 
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  };
+
+  /** Форматирует Date-объект в YYYY-MM-DD в локальном часовом поясе (не UTC!) */
+  const toLocalDateStr = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   };
 
   const formatRecurring = (event: CalendarEvent) => {
@@ -285,12 +300,12 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
                       <div className="flex items-center gap-3 text-sm text-gray-600">
                         <span className="flex items-center gap-1">
                           <Icon name="Calendar" size={14} />
-                          {formatDate(occursOn.toISOString().split('T')[0])}
+                          {formatDate(toLocalDateStr(occursOn))}
                         </span>
                         {event.time && (
                           <span className="flex items-center gap-1">
                             <Icon name="Clock" size={14} />
-                            {event.time}
+                            {event.time}{event.endTime ? `–${event.endTime}` : ''}
                           </span>
                         )}
                       </div>
@@ -347,21 +362,29 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
               </Select>
             </div>
 
+            <div>
+              <label className="text-sm font-medium mb-2 block">Дата</label>
+              <Input
+                type="date"
+                value={newEvent.date}
+                onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Дата</label>
-                <Input
-                  type="date"
-                  value={newEvent.date}
-                  onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Время</label>
+                <label className="text-sm font-medium mb-2 block">Время начала</label>
                 <Input
                   type="time"
                   value={newEvent.time}
                   onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Время окончания (необязательно)</label>
+                <Input
+                  type="time"
+                  value={newEvent.endTime}
+                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
                 />
               </div>
             </div>
@@ -462,7 +485,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
                 {selectedEvent.time && (
                   <div className="flex items-center gap-2 text-gray-700">
                     <Icon name="Clock" size={16} />
-                    <span>{selectedEvent.time}</span>
+                    <span>{selectedEvent.time}{selectedEvent.endTime ? `–${selectedEvent.endTime}` : ''}</span>
                   </div>
                 )}
                 {formatRecurring(selectedEvent) && (

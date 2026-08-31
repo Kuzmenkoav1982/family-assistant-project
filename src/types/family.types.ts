@@ -274,6 +274,7 @@ export interface CalendarEvent {
   description?: string;
   date: string;
   time?: string;
+  endTime?: string;
   category: 'personal' | 'family' | 'work' | 'health' | 'education' | 'leisure';
   color: string;
   visibility: 'family' | 'private';
