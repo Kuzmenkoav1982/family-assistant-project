@@ -100,7 +100,7 @@ export default function Calendar() {
 
       if (e.reminderDate && e.reminderTime) {
         if (e.reminderDate === todayStr && e.reminderTime === currentTime) {
-          notifyCalendarEvent(e.title, new Date(e.date).toLocaleDateString('ru-RU'), false);
+          notifyCalendarEvent(e.title, new Date(e.date + 'T00:00:00').toLocaleDateString('ru-RU'), false);
           localStorage.setItem(notificationKey, 'true');
           return true;
         }
@@ -190,7 +190,7 @@ export default function Calendar() {
     if (targetDate < eventDate) return false;
     
     if (event.recurringPattern.endDate) {
-      const endDate = new Date(event.recurringPattern.endDate);
+      const endDate = new Date(event.recurringPattern.endDate + 'T00:00:00');
       if (targetDate > endDate) return false;
     }
 
@@ -351,24 +351,24 @@ export default function Calendar() {
 
   const handlePreviousPeriod = () => {
     setCurrentDate(prev => {
-      const newDate = new Date(prev);
       if (viewMode === 'month') {
-        newDate.setMonth(prev.getMonth() - 1);
-      } else {
-        newDate.setDate(prev.getDate() - 7);
+        // День всегда 1 — иначе setMonth() на дате типа "31 августа" переполняет короткий
+        // месяц (сентябрь = 30 дней) и перескакивает сразу на октябрь
+        return new Date(prev.getFullYear(), prev.getMonth() - 1, 1);
       }
+      const newDate = new Date(prev);
+      newDate.setDate(prev.getDate() - 7);
       return newDate;
     });
   };
 
   const handleNextPeriod = () => {
     setCurrentDate(prev => {
-      const newDate = new Date(prev);
       if (viewMode === 'month') {
-        newDate.setMonth(prev.getMonth() + 1);
-      } else {
-        newDate.setDate(prev.getDate() + 7);
+        return new Date(prev.getFullYear(), prev.getMonth() + 1, 1);
       }
+      const newDate = new Date(prev);
+      newDate.setDate(prev.getDate() + 7);
       return newDate;
     });
   };
@@ -470,12 +470,12 @@ export default function Calendar() {
     if (editingEventId) {
       const result = await updateEvent(editingEventId, eventData);
       if (result.success) {
-        notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), true);
+        notifyCalendarEvent(eventData.title, new Date(eventData.date + 'T00:00:00').toLocaleDateString('ru-RU'), true);
       }
     } else {
       const result = await createEvent(eventData);
       if (result.success) {
-        notifyCalendarEvent(eventData.title, new Date(eventData.date).toLocaleDateString('ru-RU'), false);
+        notifyCalendarEvent(eventData.title, new Date(eventData.date + 'T00:00:00').toLocaleDateString('ru-RU'), false);
       }
     }
 

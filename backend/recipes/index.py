@@ -1,13 +1,74 @@
 import json
 import os
+import re
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from typing import Dict, Any, List, Optional
 import base64
 import requests
+from bs4 import BeautifulSoup
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
+
+def structure_recipe_with_gpt(raw_text: str) -> Dict[str, str]:
+    '''Просит YandexGPT разложить сырой текст рецепта на название/ингредиенты/инструкции'''
+    api_key = os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+
+    fallback = {'name': '', 'ingredients': '', 'instructions': raw_text}
+
+    if not api_key or not folder_id or not raw_text.strip():
+        return fallback
+
+    prompt = f"""Вот текст рецепта (может быть распознан с фото или взят с сайта):
+
+{raw_text[:6000]}
+
+Разбери его на три части: название блюда, список ингредиентов, пошаговый способ приготовления.
+Ответь ТОЛЬКО валидным JSON без пояснений в формате:
+{{"name": "Название блюда", "ingredients": "ингредиент 1 - количество\\nингредиент 2 - количество", "instructions": "1. шаг один\\n2. шаг два"}}"""
+
+    try:
+        response = requests.post(
+            'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+            headers={
+                'Authorization': f'Api-Key {api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'modelUri': f'gpt://{folder_id}/yandexgpt-lite/latest',
+                'completionOptions': {
+                    'stream': False,
+                    'temperature': 0.2,
+                    'maxTokens': 2000
+                },
+                'messages': [
+                    {'role': 'system', 'text': 'Ты помощник кулинара, структурируешь рецепты в JSON. Отвечай только валидным JSON.'},
+                    {'role': 'user', 'text': prompt}
+                ]
+            },
+            timeout=30
+        )
+
+        if response.status_code != 200:
+            return fallback
+
+        result = response.json()
+        gpt_text = result.get('result', {}).get('alternatives', [{}])[0].get('message', {}).get('text', '')
+
+        json_match = re.search(r'\{.*\}', gpt_text, re.DOTALL)
+        if not json_match:
+            return fallback
+
+        parsed = json.loads(json_match.group(0))
+        return {
+            'name': parsed.get('name', '') or '',
+            'ingredients': parsed.get('ingredients', '') or '',
+            'instructions': parsed.get('instructions', '') or raw_text
+        }
+    except Exception:
+        return fallback
 
 def escape_string(value: Any) -> str:
     if value is None:
@@ -187,6 +248,65 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             action = body_data.get('action', 'create')
             
+            if action == 'parse_url':
+                recipe_url = (body_data.get('url') or '').strip()
+                
+                if not recipe_url:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps({'error': 'URL required'}),
+                        'isBase64Encoded': False
+                    }
+                
+                try:
+                    page_response = requests.get(
+                        recipe_url,
+                        headers={'User-Agent': 'Mozilla/5.0 (compatible; RecipeBot/1.0)'},
+                        timeout=15
+                    )
+                except Exception:
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps({'success': False, 'error': 'Не удалось открыть ссылку'}),
+                        'isBase64Encoded': False
+                    }
+                
+                if page_response.status_code != 200:
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps({'success': False, 'error': 'Страница недоступна'}),
+                        'isBase64Encoded': False
+                    }
+                
+                soup = BeautifulSoup(page_response.text, 'html.parser')
+                for tag in soup(['script', 'style', 'nav', 'header', 'footer']):
+                    tag.decompose()
+                page_text = soup.get_text(separator='\n')
+                page_text = '\n'.join(line.strip() for line in page_text.split('\n') if line.strip())
+                
+                if not page_text:
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                        'body': json.dumps({'success': False, 'error': 'Не удалось прочитать текст со страницы'}),
+                        'isBase64Encoded': False
+                    }
+                
+                parsed_data = structure_recipe_with_gpt(page_text)
+                
+                return {
+                    'statusCode': 200,
+                    'headers': {'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json'},
+                    'body': json.dumps({
+                        'success': True,
+                        'parsed': parsed_data
+                    }),
+                    'isBase64Encoded': False
+                }
+            
             if action == 'ocr':
                 image_url = body_data.get('image_url')
                 
@@ -270,11 +390,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
                 full_text = '\n'.join(text_blocks)
                 
-                parsed_data = {
-                    'name': '',
-                    'ingredients': '',
-                    'instructions': full_text
-                }
+                parsed_data = structure_recipe_with_gpt(full_text)
                 
                 return {
                     'statusCode': 200,

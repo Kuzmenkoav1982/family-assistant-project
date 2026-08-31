@@ -151,6 +151,33 @@ export const useOCR = () => {
   });
 };
 
+export interface ParseUrlResponse {
+  success: boolean;
+  error?: string;
+  parsed?: {
+    name: string;
+    ingredients: string;
+    instructions: string;
+  };
+}
+
+export const useParseRecipeUrl = () => {
+  return useMutation({
+    mutationFn: async (url: string): Promise<ParseUrlResponse> => {
+      const response = await fetch(RECIPES_API_URL, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          action: 'parse_url',
+          url
+        })
+      });
+
+      return response.json();
+    }
+  });
+};
+
 export interface StorageStats {
   total_size_bytes: number;
   total_size_mb: number;

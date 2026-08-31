@@ -72,13 +72,17 @@ interface AddRecipeDialogProps {
   onRecipeChange: (recipe: NewRecipe) => void;
   onSave: () => void;
   isSaving: boolean;
-  addMethod: 'text' | 'photo' | 'ocr';
-  onMethodChange: (method: 'text' | 'photo' | 'ocr') => void;
+  addMethod: 'text' | 'photo' | 'ocr' | 'url';
+  onMethodChange: (method: 'text' | 'photo' | 'ocr' | 'url') => void;
   uploadedImages: string[];
   onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: (index: number) => void;
   onOCR: () => void;
   isOCRProcessing: boolean;
+  recipeUrl: string;
+  onRecipeUrlChange: (url: string) => void;
+  onParseUrl: () => void;
+  isUrlParsing: boolean;
 }
 
 export function AddRecipeDialog({
@@ -94,7 +98,11 @@ export function AddRecipeDialog({
   onImageUpload,
   onRemoveImage,
   onOCR,
-  isOCRProcessing
+  isOCRProcessing,
+  recipeUrl,
+  onRecipeUrlChange,
+  onParseUrl,
+  isUrlParsing
 }: AddRecipeDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -103,8 +111,8 @@ export function AddRecipeDialog({
           <DialogTitle>Добавить рецепт</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={addMethod} onValueChange={(v) => onMethodChange(v as 'text' | 'photo' | 'ocr')}>
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={addMethod} onValueChange={(v) => onMethodChange(v as 'text' | 'photo' | 'ocr' | 'url')}>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="text">
               <Icon name="FileText" size={16} className="mr-2" />
               Текст
@@ -116,6 +124,10 @@ export function AddRecipeDialog({
             <TabsTrigger value="ocr">
               <Icon name="ScanText" size={16} className="mr-2" />
               Распознать
+            </TabsTrigger>
+            <TabsTrigger value="url">
+              <Icon name="Link" size={16} className="mr-2" />
+              По ссылке
             </TabsTrigger>
           </TabsList>
 
@@ -322,7 +334,53 @@ export function AddRecipeDialog({
                 </div>
               )}
             </div>
-            {newRecipe.name && (
+            {(newRecipe.name || newRecipe.ingredients || newRecipe.instructions) && (
+              <div className="space-y-4">
+                <div>
+                  <Label>Название</Label>
+                  <Input
+                    value={newRecipe.name}
+                    onChange={(e) => onRecipeChange({ ...newRecipe, name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Ингредиенты</Label>
+                  <Textarea
+                    value={newRecipe.ingredients}
+                    onChange={(e) => onRecipeChange({ ...newRecipe, ingredients: e.target.value })}
+                    rows={5}
+                  />
+                </div>
+                <div>
+                  <Label>Инструкции</Label>
+                  <Textarea
+                    value={newRecipe.instructions}
+                    onChange={(e) => onRecipeChange({ ...newRecipe, instructions: e.target.value })}
+                    rows={5}
+                  />
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="url" className="space-y-4 mt-4">
+            <div>
+              <Label>Ссылка на рецепт</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  value={recipeUrl}
+                  onChange={(e) => onRecipeUrlChange(e.target.value)}
+                  placeholder="https://example.com/recipe/borsch"
+                />
+                <Button onClick={onParseUrl} disabled={isUrlParsing || !recipeUrl.trim()}>
+                  {isUrlParsing ? 'Загружаю...' : 'Загрузить'}
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">
+                Вставьте ссылку на рецепт с любого сайта — AI найдёт и разложит его на название, ингредиенты и шаги приготовления
+              </p>
+            </div>
+            {(newRecipe.name || newRecipe.ingredients || newRecipe.instructions) && (
               <div className="space-y-4">
                 <div>
                   <Label>Название</Label>

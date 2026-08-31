@@ -26,6 +26,21 @@
         "error": "Authentication required"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Parse recipe by URL (unauthorized)",
+      "method": "POST",
+      "path": "/",
+      "headers": {},
+      "body": {
+        "action": "parse_url",
+        "url": "https://example.com/recipe"
+      },
+      "expectedStatus": 401,
+      "expectedBody": {
+        "error": "Authentication required"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

@@ -10,7 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useToast } from '@/hooks/use-toast';
-import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR, useStorageStats } from '@/hooks/useRecipes';
+import { useRecipes, useCreateRecipe, useUpdateRecipe, useDeleteRecipe, useOCR, useParseRecipeUrl, useStorageStats } from '@/hooks/useRecipes';
 import type { Recipe, RecipeCategory, CuisineType, DifficultyLevel } from '@/types/recipe.types';
 import { RecipesFilters } from '@/components/recipes/RecipesFilters';
 import { RecipeCard } from '@/components/recipes/RecipeCard';
@@ -29,8 +29,9 @@ export default function Recipes() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
-  const [addMethod, setAddMethod] = useState<'text' | 'photo' | 'ocr'>('text');
+  const [addMethod, setAddMethod] = useState<'text' | 'photo' | 'ocr' | 'url'>('text');
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [recipeUrl, setRecipeUrl] = useState('');
   const [isInstructionOpen, setIsInstructionOpen] = useState(false);
 
   const [newRecipe, setNewRecipe] = useState({
@@ -59,6 +60,7 @@ export default function Recipes() {
   const updateRecipe = useUpdateRecipe();
   const deleteRecipe = useDeleteRecipe();
   const ocrMutation = useOCR();
+  const parseUrlMutation = useParseRecipeUrl();
   const { data: storageStats } = useStorageStats();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,6 +161,27 @@ export default function Recipes() {
       toast({ title: 'Успех', description: 'Текст распознан! Проверьте и отредактируйте данные' });
     } catch (error) {
       toast({ title: 'Ошибка', description: 'Не удалось распознать текст', variant: 'destructive' });
+    }
+  };
+
+  const handleParseUrl = async () => {
+    if (!recipeUrl.trim()) return;
+
+    try {
+      const result = await parseUrlMutation.mutateAsync(recipeUrl.trim());
+      if (!result.success || !result.parsed) {
+        toast({ title: 'Ошибка', description: result.error || 'Не удалось загрузить рецепт по ссылке', variant: 'destructive' });
+        return;
+      }
+      setNewRecipe(prev => ({
+        ...prev,
+        name: result.parsed!.name || prev.name,
+        ingredients: result.parsed!.ingredients || prev.ingredients,
+        instructions: result.parsed!.instructions || prev.instructions
+      }));
+      toast({ title: 'Успех', description: 'Рецепт загружен! Проверьте и отредактируйте данные' });
+    } catch (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось загрузить рецепт по ссылке', variant: 'destructive' });
     }
   };
 
@@ -314,6 +337,7 @@ export default function Recipes() {
     });
     setUploadedImages([]);
     setAddMethod('text');
+    setRecipeUrl('');
   };
 
   return (
@@ -627,6 +651,10 @@ export default function Recipes() {
           onRemoveImage={(index) => setUploadedImages(prev => prev.filter((_, i) => i !== index))}
           onOCR={handleOCR}
           isOCRProcessing={ocrMutation.isPending}
+          recipeUrl={recipeUrl}
+          onRecipeUrlChange={setRecipeUrl}
+          onParseUrl={handleParseUrl}
+          isUrlParsing={parseUrlMutation.isPending}
         />
 
         <RecipeViewDialog
