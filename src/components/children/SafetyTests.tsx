@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, Trophy, Star } from "lucide-react";
 import { track } from "@/lib/analytics";
+import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 
 // ─── Константы ────────────────────────────────────────────────────────────────
 
@@ -599,9 +600,15 @@ function TestScreen({ test, ageGroup, ageSource, onBack, onComplete }: TestScree
 interface SafetyTestsProps {
   onBack?: () => void;
   childAge?: number;
+  /** Для сохранения результатов на сервере — обязателен, чтобы прогресс не терялся */
+  childId?: string;
+  /** Результаты, уже загруженные с сервера (member.safetyProgress) */
+  initialResults?: SavedResults | null;
 }
 
-export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
+export default function SafetyTests({ onBack, childAge, childId, initialResults }: SafetyTestsProps) {
+  const { updateMember } = useFamilyMembersContext();
+
   // Приоритет: 1) ручной выбор → 2) из профиля → 3) null (показать выбор)
   // Резолвим group и source синхронно в одном вычислении
   const [resolvedGroup, resolvedSource] = useState<[AgeGroup | null, AgeGroupSource]>(() => {
@@ -620,7 +627,7 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
   const [ageGroup, setAgeGroup] = useState<AgeGroup | null>(resolvedGroup);
   const [ageSource, setAgeSource] = useState<AgeGroupSource>(resolvedSource);
   const [activeTest, setActiveTest] = useState<SafetyTest | null>(null);
-  const [allResults, setAllResults] = useState<SavedResults>(loadResults);
+  const [allResults, setAllResults] = useState<SavedResults>(() => initialResults ?? loadResults());
 
   // Эмитируем tests_open после резолва source (не из ChildMasterScreen).
   // Финальный дедуп от StrictMode-дублей — на уровне analytics.ts (ONE_SHOT_EVENTS).
@@ -635,11 +642,20 @@ export default function SafetyTests({ onBack, childAge }: SafetyTestsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isFirstResultsRender = useRef(true);
   useEffect(() => {
     try {
       localStorage.setItem(LS_RESULTS_KEY, JSON.stringify(allResults));
     } catch { /* ignore */ }
-  }, [allResults]);
+    if (isFirstResultsRender.current) {
+      isFirstResultsRender.current = false;
+      return;
+    }
+    if (childId) {
+      updateMember({ id: childId, safetyProgress: allResults });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allResults, childId]);
 
   const handleComplete = (testId: string, pct: number) => {
     if (!ageGroup) return;

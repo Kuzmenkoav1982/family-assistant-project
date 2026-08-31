@@ -22,6 +22,9 @@ interface FamilyMember {
   achievements?: string[];
   responsibilities?: string[];
   permissions?: Record<string, boolean>;
+  dreamGoal?: { targetAmount: number; savedAmount: number; dreamTitle: string; dreamEmoji: string } | null;
+  safetyProgress?: Record<string, Record<string, number>> | null;
+  regionProgress?: { completed: boolean; bestScore: number; lastScore: number; levelTitle: string } | null;
 }
 
 interface FamilyMembersContextType {

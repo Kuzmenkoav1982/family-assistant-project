@@ -92,7 +92,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
         profile_data = member_dict.get('profile_data', {})
         if profile_data:
             # Добавляем поля из profile_data в основной словарь
-            for field in ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus']:
+            for field in ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus', 'dreamGoal', 'safetyProgress', 'regionProgress']:
                 if field in profile_data:
                     member_dict[field] = profile_data[field]
         result.append(member_dict)
@@ -275,7 +275,7 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], r
             fields.append(f"development = '{development_json}'::jsonb")
         
         # Обновляем profile_data с дополнительными полями
-        profile_fields = ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus']
+        profile_fields = ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus', 'dreamGoal', 'safetyProgress', 'regionProgress']
         profile_updated = False
         for field in profile_fields:
             if field in data:

@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, MapPin } from "lucide-react";
 import { track } from "@/lib/analytics";
+import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import {
   yaroslavlRegionFacts,
   yaroslavlRegionQuiz,
@@ -20,7 +21,7 @@ function getLevel(score: number) {
   );
 }
 
-function loadProgress(): YaroslavlRegionProgress | null {
+function loadCachedProgress(): YaroslavlRegionProgress | null {
   try {
     const raw = localStorage.getItem(YAROSLAVL_REGION_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
@@ -29,10 +30,10 @@ function loadProgress(): YaroslavlRegionProgress | null {
   }
 }
 
-function saveProgress(p: YaroslavlRegionProgress) {
+function cacheProgress(p: YaroslavlRegionProgress) {
   try {
     localStorage.setItem(YAROSLAVL_REGION_STORAGE_KEY, JSON.stringify(p));
-  } catch (e) {
+  } catch {
     // ignore
   }
 }
@@ -277,15 +278,18 @@ type View = "home" | "facts" | "quiz" | "family";
 
 interface MyRegionYaroslavlProps {
   onBack?: () => void;
+  /** ID ребёнка — обязателен для сохранения прогресса на сервере */
+  childId?: string;
+  /** Прогресс, уже загруженный с сервера (member.regionProgress) */
+  initialProgress?: YaroslavlRegionProgress | null;
 }
 
-export default function MyRegionYaroslavl({ onBack }: MyRegionYaroslavlProps) {
+export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: MyRegionYaroslavlProps) {
+  const { updateMember } = useFamilyMembersContext();
   const [view, setView] = useState<View>("home");
-  const [progress, setProgress] = useState<YaroslavlRegionProgress | null>(loadProgress);
-
-  useEffect(() => {
-    if (progress) saveProgress(progress);
-  }, [progress]);
+  const [progress, setProgress] = useState<YaroslavlRegionProgress | null>(
+    () => initialProgress ?? loadCachedProgress()
+  );
 
   const handleQuizComplete = (score: number) => {
     const level = getLevel(score);
@@ -298,6 +302,10 @@ export default function MyRegionYaroslavl({ onBack }: MyRegionYaroslavlProps) {
       levelTitle: level.title,
     };
     setProgress(newProgress);
+    cacheProgress(newProgress);
+    if (childId) {
+      updateMember({ id: childId, regionProgress: newProgress });
+    }
     if (isNewBest) {
       track('kids_region_best_score', { props: { score, level: level.title } });
     }

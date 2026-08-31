@@ -1,11 +1,16 @@
 import { useMemo } from "react";
 import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
-import { readSafetyProgress, readRegionProgress, hasAnyProgress } from "@/lib/childProgress";
+import { readSafetyProgress, readRegionProgress, hasAnyProgress, type SavedSafetyResults } from "@/lib/childProgress";
+import type { YaroslavlRegionProgress } from "@/data/yaroslavlRegionData";
 
 interface ChildProgressBlockProps {
   onOpenTests: () => void;
   onOpenRegion: () => void;
   childAge?: number;
+  /** Прогресс тестов безопасности с сервера (member.safetyProgress) */
+  safetyProgress?: SavedSafetyResults | null;
+  /** Прогресс квиза "Мой край" с сервера (member.regionProgress) */
+  regionProgress?: YaroslavlRegionProgress | null;
 }
 
 // ─── Первый вход — онбординг «С чего начать» ─────────────────────────────────
@@ -84,9 +89,9 @@ function OnboardingBlock({ onOpenTests, onOpenRegion, childAge }: ChildProgressB
 
 // ─── Есть прогресс — блок «Мой прогресс» ────────────────────────────────────
 
-function ProgressBlock({ onOpenTests, onOpenRegion }: ChildProgressBlockProps) {
-  const safety = useMemo(() => readSafetyProgress(), []);
-  const region = useMemo(() => readRegionProgress(), []);
+function ProgressBlock({ onOpenTests, onOpenRegion, safetyProgress, regionProgress }: ChildProgressBlockProps) {
+  const safety = useMemo(() => readSafetyProgress(safetyProgress), [safetyProgress]);
+  const region = useMemo(() => readRegionProgress(regionProgress), [regionProgress]);
 
   const ageLabel = safety.ageGroup === "7_10" ? "7–10 лет" : safety.ageGroup === "11_15" ? "11–15 лет" : null;
   const safetyPct = safety.overallPct;
@@ -180,7 +185,10 @@ function ProgressBlock({ onOpenTests, onOpenRegion }: ChildProgressBlockProps) {
 // ─── Основной экспорт ─────────────────────────────────────────────────────────
 
 export default function ChildProgressBlock(props: ChildProgressBlockProps) {
-  const hasProgress = useMemo(() => hasAnyProgress(), []);
+  const hasProgress = useMemo(
+    () => hasAnyProgress(props.safetyProgress, props.regionProgress),
+    [props.safetyProgress, props.regionProgress]
+  );
   return hasProgress
     ? <ProgressBlock {...props} />
     : <OnboardingBlock {...props} />;

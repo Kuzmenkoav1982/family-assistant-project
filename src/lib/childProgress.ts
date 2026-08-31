@@ -1,5 +1,6 @@
-// Утилита чтения прогресса детского модуля из localStorage.
-// Единый источник правды — используется в ChildProgressBlock и ChildMasterScreen.
+// Утилита чтения прогресса детского модуля.
+// Источник правды — сервер (member.safetyProgress / member.regionProgress),
+// localStorage используется только как быстрый локальный кэш до подгрузки данных.
 
 import { YAROSLAVL_REGION_STORAGE_KEY, type YaroslavlRegionProgress } from "@/data/yaroslavlRegionData";
 
@@ -11,6 +12,7 @@ const LS_AGE_KEY = "safety_tests_age_group";
 export type AgeGroup = "7_10" | "11_15";
 
 export type SafetyResults = Record<string, number>; // { fire: 75, scam: 100, ... }
+export type SavedSafetyResults = Record<AgeGroup, SafetyResults>;
 
 export interface SafetyProgress {
   ageGroup: AgeGroup | null;
@@ -36,15 +38,22 @@ function getLevel(pct: number) {
   return LEVEL_CONFIG.find(l => pct >= l.min && pct <= l.max) ?? LEVEL_CONFIG[0];
 }
 
-export function readSafetyProgress(): SafetyProgress {
+/**
+ * Читает прогресс тестов по безопасности.
+ * @param serverResults — результаты с сервера (member.safetyProgress), приоритетнее localStorage
+ */
+export function readSafetyProgress(serverResults?: SavedSafetyResults | null): SafetyProgress {
   try {
     const ageRaw = localStorage.getItem(LS_AGE_KEY);
     const ageGroup: AgeGroup | null = ageRaw === "7_10" || ageRaw === "11_15" ? ageRaw : null;
 
-    const raw = localStorage.getItem(LS_RESULTS_KEY);
-    const allResults: Record<AgeGroup, Record<string, number>> = raw
-      ? JSON.parse(raw)
-      : { "7_10": {}, "11_15": {} };
+    let allResults: SavedSafetyResults;
+    if (serverResults) {
+      allResults = serverResults;
+    } else {
+      const raw = localStorage.getItem(LS_RESULTS_KEY);
+      allResults = raw ? JSON.parse(raw) : { "7_10": {}, "11_15": {} };
+    }
 
     const results: SafetyResults = ageGroup ? (allResults[ageGroup] ?? {}) : {};
     const doneScores = Object.values(results);
@@ -76,11 +85,18 @@ export interface RegionProgress {
   completed: boolean;
 }
 
-export function readRegionProgress(): RegionProgress {
+/**
+ * Читает прогресс квиза "Мой край".
+ * @param serverProgress — прогресс с сервера (member.regionProgress), приоритетнее localStorage
+ */
+export function readRegionProgress(serverProgress?: YaroslavlRegionProgress | null): RegionProgress {
   try {
-    const raw = localStorage.getItem(YAROSLAVL_REGION_STORAGE_KEY);
-    if (!raw) return { bestScore: null, levelTitle: null, completed: false };
-    const p: YaroslavlRegionProgress = JSON.parse(raw);
+    let p: YaroslavlRegionProgress | null = serverProgress ?? null;
+    if (!p) {
+      const raw = localStorage.getItem(YAROSLAVL_REGION_STORAGE_KEY);
+      p = raw ? JSON.parse(raw) : null;
+    }
+    if (!p) return { bestScore: null, levelTitle: null, completed: false };
     return {
       bestScore: p.bestScore ?? null,
       levelTitle: p.levelTitle ?? null,
@@ -93,8 +109,8 @@ export function readRegionProgress(): RegionProgress {
 
 // ─── Общий статус «есть ли вообще прогресс» ───────────────────────────────────
 
-export function hasAnyProgress(): boolean {
-  const s = readSafetyProgress();
-  const r = readRegionProgress();
+export function hasAnyProgress(serverSafety?: SavedSafetyResults | null, serverRegion?: YaroslavlRegionProgress | null): boolean {
+  const s = readSafetyProgress(serverSafety);
+  const r = readRegionProgress(serverRegion);
   return s.doneCount > 0 || r.bestScore !== null;
 }

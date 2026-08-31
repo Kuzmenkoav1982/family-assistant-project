@@ -7,6 +7,7 @@ import MyRegionYaroslavl from "@/components/children/MyRegionYaroslavl";
 import ChildProgressBlock from "@/components/children/ChildProgressBlock";
 import DreamGoalScreen from "@/components/children/DreamGoalScreen";
 import { track } from "@/lib/analytics";
+import type { SavedSafetyResults } from "@/lib/childProgress";
 import {
   ScreenPage,
   ScreenBody,
@@ -35,6 +36,13 @@ interface Development {
   target_level: number;
 }
 
+interface DreamGoal {
+  targetAmount: number;
+  savedAmount: number;
+  dreamTitle: string;
+  dreamEmoji: string;
+}
+
 interface ChildMasterScreenProps {
   child: {
     id: string;
@@ -49,6 +57,9 @@ interface ChildMasterScreenProps {
     dreams?: Dream[];
     development?: Development[];
     achievements?: string[];
+    dreamGoal?: DreamGoal | null;
+    safetyProgress?: Record<string, Record<string, number>> | null;
+    regionProgress?: { completed: boolean; bestScore: number; lastScore: number; levelTitle: string } | null;
     [key: string]: unknown;
   };
   childData?: {
@@ -148,8 +159,8 @@ export default function ChildMasterScreen({
   const dreams = (childData?.dreams ?? child.dreams ?? []) as Dream[];
   const activeDream = dreams.find(d => !d.achieved) ?? dreams[0];
 
-  // Прогресс цели из localStorage (DreamGoalScreen)
-  const dreamGoalRaw = (() => { try { const r = localStorage.getItem(`dream_goal_v1_${child.id}`); return r ? JSON.parse(r) : null; } catch { return null; } })();
+  // Прогресс цели — приходит с сервера (member.dreamGoal)
+  const dreamGoalRaw = child.dreamGoal ?? null;
   const dreamGoalPct = dreamGoalRaw ? Math.min(Math.round((dreamGoalRaw.savedAmount / dreamGoalRaw.targetAmount) * 100), 100) : null;
   const dreamGoalLabel = dreamGoalRaw
     ? `${dreamGoalRaw.savedAmount.toLocaleString("ru")} / ${dreamGoalRaw.targetAmount.toLocaleString("ru")} ₽`
@@ -195,7 +206,12 @@ export default function ChildMasterScreen({
     return (
       <ScreenPage>
         <ScreenBody>
-          <SafetyTests onBack={closeTests} childAge={child.age} />
+          <SafetyTests
+            onBack={closeTests}
+            childAge={child.age}
+            childId={child.id}
+            initialResults={child.safetyProgress as SavedSafetyResults | null | undefined}
+          />
         </ScreenBody>
       </ScreenPage>
     );
@@ -205,7 +221,11 @@ export default function ChildMasterScreen({
     return (
       <ScreenPage>
         <ScreenBody>
-          <MyRegionYaroslavl onBack={closeRegion} />
+          <MyRegionYaroslavl
+            onBack={closeRegion}
+            childId={child.id}
+            initialProgress={child.regionProgress}
+          />
         </ScreenBody>
       </ScreenPage>
     );
@@ -218,6 +238,7 @@ export default function ChildMasterScreen({
           <DreamGoalScreen
             childId={child.id}
             dreamTitle={activeDream?.title}
+            initialGoal={dreamGoalRaw}
             onBack={() => setShowDreamGoal(false)}
           />
         </ScreenBody>
@@ -267,6 +288,8 @@ export default function ChildMasterScreen({
           onOpenTests={() => setShowSafetyTests(true)}
           onOpenRegion={() => { setShowMyRegion(true); track('kids_region_open', { page: '/children' }); }}
           childAge={child.age}
+          safetyProgress={child.safetyProgress as SavedSafetyResults | null | undefined}
+          regionProgress={child.regionProgress}
         />
 
         {/* ── БЛОК 2: МОЯ МЕЧТА — тёплый песочный, не "золотой" ── */}

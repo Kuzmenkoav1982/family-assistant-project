@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
-import { ArrowLeft, Plus, Minus, CheckCircle2, Sparkles, Trophy, PiggyBank, Edit2 } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Plus, CheckCircle2, Sparkles, Trophy, Edit2 } from "lucide-react";
 import { MONTSERRAT } from "@/components/children/ui";
 import { track } from "@/lib/analytics";
+import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 
 // ─── Типы ─────────────────────────────────────────────────────────────────────
 
@@ -12,18 +13,20 @@ interface DreamGoal {
   dreamEmoji: string;
 }
 
+// Локальный кэш на время загрузки — сама цель хранится на сервере в profile_data.dreamGoal
 const LS_KEY_PREFIX = "dream_goal_v1_";
 
-function loadGoal(childId: string): DreamGoal | null {
+function loadCachedGoal(childId: string): DreamGoal | null {
   try {
     const raw = localStorage.getItem(LS_KEY_PREFIX + childId);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
 
-function saveGoal(childId: string, g: DreamGoal) {
+function cacheGoal(childId: string, g: DreamGoal | null) {
   try {
-    localStorage.setItem(LS_KEY_PREFIX + childId, JSON.stringify(g));
+    if (g) localStorage.setItem(LS_KEY_PREFIX + childId, JSON.stringify(g));
+    else localStorage.removeItem(LS_KEY_PREFIX + childId);
   } catch { /* ignore */ }
 }
 
@@ -157,20 +160,30 @@ const ADD_AMOUNTS = [50, 100, 200, 500, 1000];
 interface DreamGoalScreenProps {
   childId: string;
   dreamTitle?: string;
+  /** Цель, полученная с сервера (member.dreamGoal) — приоритетнее локального кэша */
+  initialGoal?: DreamGoal | null;
   onBack: () => void;
 }
 
-export default function DreamGoalScreen({ childId, dreamTitle, onBack }: DreamGoalScreenProps) {
-  const [goal, setGoal] = useState<DreamGoal | null>(() => loadGoal(childId));
+export default function DreamGoalScreen({ childId, dreamTitle, initialGoal, onBack }: DreamGoalScreenProps) {
+  const { updateMember } = useFamilyMembersContext();
+  const [goal, setGoal] = useState<DreamGoal | null>(() => initialGoal ?? loadCachedGoal(childId));
   const [showCelebration, setShowCelebration] = useState(false);
   const [addAmount, setAddAmount] = useState<number | null>(null);
   const [customInput, setCustomInput] = useState("");
   const [editing, setEditing] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (goal) saveGoal(childId, goal);
-  }, [goal, childId]);
+  const persistGoal = async (g: DreamGoal | null) => {
+    cacheGoal(childId, g);
+    setSaving(true);
+    const result = await updateMember({ id: childId, dreamGoal: g });
+    setSaving(false);
+    if (!result.success) {
+      alert(result.error || "Не удалось сохранить — попробуйте ещё раз");
+    }
+  };
 
   // Нет цели → форма создания
   if (!goal || editing) {
@@ -190,6 +203,7 @@ export default function DreamGoalScreen({ childId, dreamTitle, onBack }: DreamGo
           onSave={(g) => {
             setGoal(g);
             setEditing(false);
+            persistGoal(g);
             track("kids_dream_goal_set", { props: { target: g.targetAmount } });
           }}
         />
@@ -202,7 +216,7 @@ export default function DreamGoalScreen({ childId, dreamTitle, onBack }: DreamGo
     return (
       <CelebrationScreen
         dreamTitle={goal.dreamTitle}
-        onReset={() => { setGoal(null); setShowCelebration(false); saveGoal(childId, null as unknown as DreamGoal); localStorage.removeItem(LS_KEY_PREFIX + childId); }}
+        onReset={() => { setGoal(null); setShowCelebration(false); persistGoal(null); }}
         onBack={onBack}
       />
     );
@@ -219,6 +233,7 @@ export default function DreamGoalScreen({ childId, dreamTitle, onBack }: DreamGo
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 1200);
     track("kids_dream_saving_added", { props: { amount, total: next.savedAmount } });
+    persistGoal(next);
     if (next.savedAmount >= next.targetAmount) {
       setTimeout(() => setShowCelebration(true), 800);
     }
@@ -238,7 +253,9 @@ export default function DreamGoalScreen({ childId, dreamTitle, onBack }: DreamGo
         </button>
         <div className="flex-1">
           <p className="font-bold text-slate-800 text-base leading-none">Коплю на мечту</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Каждый рубль приближает к цели</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            {saving ? "Сохраняю…" : "Каждый рубль приближает к цели"}
+          </p>
         </div>
         <button onClick={() => setEditing(true)} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
           <Edit2 size={14} className="text-slate-400" />
@@ -360,7 +377,7 @@ export default function DreamGoalScreen({ childId, dreamTitle, onBack }: DreamGo
 
       {/* Сбросить цель */}
       <button
-        onClick={() => { localStorage.removeItem(LS_KEY_PREFIX + childId); setGoal(null); }}
+        onClick={() => { setGoal(null); persistGoal(null); }}
         className="text-[11px] text-slate-300 hover:text-slate-400 transition text-center"
       >
         Сбросить и начать заново

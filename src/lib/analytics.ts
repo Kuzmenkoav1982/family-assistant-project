@@ -97,7 +97,10 @@ export type KidsEvent =
   | 'kids_region_facts_open'        // открыл факты
   | 'kids_region_quiz_start'        // начал квиз
   | 'kids_region_quiz_finish'       // завершил квиз
-  | 'kids_region_best_score';       // обновил лучший результат
+  | 'kids_region_best_score'        // обновил лучший результат
+  // Мечта / копилка
+  | 'kids_dream_goal_set'           // поставил новую цель мечты
+  | 'kids_dream_saving_added';      // пополнил копилку мечты
 
 const URL = (func2url as Record<string, string>)['analytics-events'];
 
@@ -161,6 +164,9 @@ export interface TrackProps {
   child_id?: string;
   age_group?: string;
   age_group_source?: string;
+  target?: number;
+  amount?: number;
+  total?: number;
 }
 
 export interface TrackOptions {
