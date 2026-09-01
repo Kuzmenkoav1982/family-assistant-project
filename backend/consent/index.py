@@ -76,6 +76,8 @@ def handler(event: dict, context) -> dict:
                 'accepted': bool(row),
                 'acceptedAt': row[1] if row else None,
             })
+        except Exception as e:
+            return _resp(500, {'error': f'Не удалось проверить согласие: {e}'})
         finally:
             conn.close()
 
@@ -99,6 +101,9 @@ def handler(event: dict, context) -> dict:
             conn.commit()
             return _resp(200, {'success': True, 'consentId': row[0], 'acceptedAt': row[1],
                                'policyVersion': version})
+        except Exception as e:
+            conn.rollback()
+            return _resp(500, {'success': False, 'error': f'Не удалось сохранить согласие: {e}'})
         finally:
             conn.close()
 

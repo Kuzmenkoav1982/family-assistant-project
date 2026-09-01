@@ -31,6 +31,7 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
   const { pathname } = useLocation();
   const [state, setState] = useState<GateState>('checking');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const isAllowedPath = ALLOWED_WITHOUT_CONSENT.some(
     (p) => pathname === p || pathname.startsWith(p + '/')
@@ -75,6 +76,7 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
     const token = storage.getItem('authToken');
     if (!token) return;
     setSubmitting(true);
+    setError(null);
     try {
       const res = await fetch(CONSENT_URL, {
         method: 'POST',
@@ -83,7 +85,13 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
       });
       if (res.ok) {
         setState('ok');
+      } else {
+        setError('Не удалось сохранить согласие. Попробуйте ещё раз.');
       }
+    } catch {
+      // Сетевая ошибка (обрыв связи, блокировка запроса и т.п.) — не даём
+      // пользователю зависнуть на экране без объяснений.
+      setError('Нет соединения с сервером. Проверьте интернет и попробуйте снова.');
     } finally {
       setSubmitting(false);
     }
@@ -139,6 +147,10 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
               Пользовательское соглашение
             </a>
           </div>
+
+          {error && (
+            <p className="text-sm text-red-600 mb-3">{error}</p>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Button onClick={handleAccept} disabled={submitting} className="flex-1">
