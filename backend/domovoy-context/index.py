@@ -180,7 +180,7 @@ def collect_context(family_id: str) -> Dict[str, Any]:
         # Активные финансовые цели
         finance_goals = safe_query(
             cur,
-            f"SELECT title, target_amount, current_amount, target_date "
+            f"SELECT name AS title, target_amount, current_amount, target_date "
             f"FROM {SCHEMA}.finance_goals "
             f"WHERE family_id::text = {esc(family_id)} "
             f"AND status = 'active' ORDER BY created_at DESC LIMIT 5"
@@ -294,20 +294,20 @@ def collect_context(family_id: str) -> Dict[str, Any]:
         # ───────── КАЛЕНДАРЬ (ближайшие 7 дней) ─────────
         events = safe_query(
             cur,
-            f"SELECT title, event_date, start_time, location "
+            f"SELECT title, date, time, location "
             f"FROM {SCHEMA}.calendar_events "
             f"WHERE family_id::text = {esc(family_id)} "
-            f"AND event_date >= CURRENT_DATE "
-            f"AND event_date <= CURRENT_DATE + INTERVAL '7 days' "
-            f"ORDER BY event_date ASC, start_time ASC LIMIT 10"
+            f"AND date >= CURRENT_DATE "
+            f"AND date <= CURRENT_DATE + INTERVAL '7 days' "
+            f"ORDER BY date ASC, time ASC LIMIT 10"
         )
         context['calendar'] = {
             'upcoming_count': len(events),
             'upcoming_events': [
                 {
                     'title': e.get('title'),
-                    'date': str(e.get('event_date')) if e.get('event_date') else None,
-                    'time': str(e.get('start_time')) if e.get('start_time') else None,
+                    'date': str(e.get('date')) if e.get('date') else None,
+                    'time': str(e.get('time')) if e.get('time') else None,
                 }
                 for e in events[:5]
             ],
