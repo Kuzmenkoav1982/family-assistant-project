@@ -1,6 +1,8 @@
 """
 Генерация персонального плана питания через YandexGPT (асинхронный режим).
 Два действия: start — запускает генерацию, check — проверяет результат.
+Фото блюд и открытки генерируются через модель Alice AI ART (новый синхронный Images API),
+с fallback на старый асинхронный imageGenerationAsync (отключается Yandex 7 сентября 2026).
 Списание с семейного кошелька при каждой генерации.
 """
 
@@ -549,6 +551,53 @@ def parse_recipe(text: str) -> list:
     return [line.strip().lstrip('0123456789.-) ') for line in cleaned.split('\n') if line.strip() and len(line.strip()) > 5]
 
 
+YANDEX_IMAGES_API_URL = 'https://ai.api.cloud.yandex.net/v1/images/generations'
+
+
+def _upload_diet_image(image_b64: str, prefix: str) -> Optional[str]:
+    try:
+        import base64
+        import boto3
+        import hashlib
+        s3 = boto3.client(
+            's3',
+            endpoint_url='https://bucket.poehali.dev',
+            aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+            aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
+        )
+        file_hash = hashlib.md5(image_b64[:100].encode()).hexdigest()[:12]
+        key = f'{prefix}/{file_hash}.png'
+        s3.put_object(Bucket='files', Key=key, Body=base64.b64decode(image_b64), ContentType='image/png')
+        return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+    except Exception as e:
+        print(f"[generate-diet-plan] S3 upload error: {e}")
+        return None
+
+
+def _generate_image_sync(prompt: str, folder_id: str, api_key: str, s3_prefix: str) -> Optional[str]:
+    """Генерирует изображение через новый синхронный Images API (модель Alice AI ART) и сохраняет в S3."""
+    art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
+    headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
+    payload = {
+        'model': f'art://{folder_id}/aliceai-image-art-3.0',
+        'prompt': prompt[:500],
+        'response_format': 'b64_json',
+    }
+    try:
+        response = requests.post(YANDEX_IMAGES_API_URL, headers=headers, json=payload, timeout=25)
+        if response.status_code != 200:
+            print(f"[generate-diet-plan] Images API error: {response.status_code} {response.text[:300]}")
+            return None
+        data = response.json()
+        image_b64 = (data.get('data') or [{}])[0].get('b64_json')
+        if not image_b64:
+            return None
+        return _upload_diet_image(image_b64, s3_prefix)
+    except Exception as e:
+        print(f"[generate-diet-plan] Images API exception: {e}")
+        return None
+
+
 def handle_photo_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, Any]:
     import random
     dish_name = body.get('dishName', '')
@@ -557,6 +606,14 @@ def handle_photo_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, An
     if not dish_name:
         return respond(400, {'error': 'Название блюда не передано'})
 
+    prompt = f'Фотореалистичное изображение блюда "{dish_name}". {description}. Красивая подача на тарелке, вид сверху, профессиональная фуд-фотография, тёплое освещение.'
+
+    print(f"[generate-diet-plan] Starting photo generation for: {dish_name}")
+    cdn_url = _generate_image_sync(prompt, folder_id, api_key, 'diet-photos')
+    if cdn_url:
+        return respond(200, {'success': True, 'status': 'done', 'imageUrl': cdn_url})
+
+    print("[generate-diet-plan] New Images API failed, falling back to legacy async API")
     art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
@@ -564,17 +621,11 @@ def handle_photo_start(api_key: str, folder_id: str, body: Dict) -> Dict[str, An
     payload = {
         'modelUri': f'art://{folder_id}/yandex-art/latest',
         'generationOptions': {'seed': random.randint(1, 1000000)},
-        'messages': [
-            {
-                'weight': 1,
-                'text': f'Фотореалистичное изображение блюда "{dish_name}". {description}. Красивая подача на тарелке, вид сверху, профессиональная фуд-фотография, тёплое освещение.'
-            }
-        ]
+        'messages': [{'weight': 1, 'text': prompt}]
     }
 
-    print(f"[generate-diet-plan] Starting photo generation for: {dish_name}")
     response = requests.post(url, headers=headers, json=payload, timeout=25)
-    print(f"[generate-diet-plan] Photo start status={response.status_code}")
+    print(f"[generate-diet-plan] Photo legacy start status={response.status_code}")
 
     if response.status_code != 200:
         print(f"[generate-diet-plan] Photo error: {response.text[:300]}")
@@ -652,13 +703,19 @@ def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str,
     if not event_title:
         return respond(400, {'error': 'Название события не передано'})
 
-    art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
-
     theme_hint = f', тема оформления: {theme}' if theme else ''
     if wishes:
         prompt = f'{wishes}. Праздничная открытка-приглашение на "{event_title}"{theme_hint}. {style} дизайн, без текста на изображении, высокое качество.'
     else:
         prompt = f'Красивая праздничная открытка-приглашение на событие "{event_title}"{theme_hint}. Яркий {style} дизайн, праздничная атмосфера, цветы, декоративные элементы, тёплые тона, без текста на изображении, высокое качество.'
+
+    print(f"[greeting] Starting greeting card generation for: {event_title}, prompt: {prompt[:200]}")
+    cdn_url = _generate_image_sync(prompt, folder_id, api_key, 'greeting-cards')
+    if cdn_url:
+        return respond(200, {'success': True, 'status': 'done', 'imageUrl': cdn_url})
+
+    print("[greeting] New Images API failed, falling back to legacy async API")
+    art_api_key = os.environ.get('YANDEX_ART_API_KEY', api_key)
 
     url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
     headers = {'Authorization': f'Api-Key {art_api_key}', 'Content-Type': 'application/json'}
@@ -668,9 +725,8 @@ def handle_greeting_start(api_key: str, folder_id: str, body: Dict) -> Dict[str,
         'messages': [{'weight': 1, 'text': prompt}]
     }
 
-    print(f"[greeting] Starting greeting card generation for: {event_title}, prompt: {prompt[:200]}")
     response = requests.post(url, headers=headers, json=payload, timeout=25)
-    print(f"[greeting] Start status={response.status_code}")
+    print(f"[greeting] Legacy start status={response.status_code}")
 
     if response.status_code != 200:
         print(f"[greeting] Error: {response.text[:300]}")

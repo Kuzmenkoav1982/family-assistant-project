@@ -115,7 +115,10 @@ export default function InvitationSection({ event, onUpdate }: InvitationSection
       }
 
       const result = await response.json();
-      if (result.status === 'started' && result.operationId) {
+      if (result.status === 'done' && result.imageUrl) {
+        setPreviewImage(result.imageUrl);
+        toast({ title: 'Готово!', description: 'Открытка сгенерирована' });
+      } else if (result.status === 'started' && result.operationId) {
         await pollGreeting(result.operationId);
       } else {
         throw new Error(result.error || 'Unexpected response');

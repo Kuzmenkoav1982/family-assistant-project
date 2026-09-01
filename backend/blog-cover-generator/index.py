@@ -1,5 +1,5 @@
 """
-Генератор обложек для блога через YandexART.
+Генератор обложек для блога через модель Alice AI ART (Yandex AI Studio, новый Images API).
 POST /?action=generate — сгенерировать обложку для одного поста по id
 POST /?action=generate-all — сгенерировать обложки для всех постов без cover_image_url
 
@@ -19,6 +19,10 @@ from psycopg2.extras import RealDictCursor
 SCHEMA = 't_p5815085_family_assistant_pro'
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
+YANDEX_IMAGES_API_URL = 'https://ai.api.cloud.yandex.net/v1/images/generations'
+
+# Старый асинхронный API (art://.../yandex-art-2.0) отключается Yandex 7 сентября 2026.
+# Оставлен как fallback на переходный период — используется только если новый API недоступен.
 YANDEX_API_URL = 'https://llm.api.cloud.yandex.net/foundationModels/v1/imageGenerationAsync'
 YANDEX_OPERATION_URL = 'https://llm.api.cloud.yandex.net/operations/'
 
@@ -98,12 +102,44 @@ def build_prompt(title: str, category_slug: Optional[str]) -> str:
     )
 
 
-def call_yandex_art(prompt: str) -> Optional[bytes]:
-    """Запускает YandexART, дожидается результата (макс ~60 сек)."""
+def call_yandex_images_api(prompt: str) -> Optional[bytes]:
+    """Генерирует изображение через новый синхронный Images API (модель Alice AI ART)."""
+    api_key = os.environ.get('YANDEX_ART_API_KEY') or os.environ.get('YANDEX_GPT_API_KEY')
+    folder_id = os.environ.get('YANDEX_FOLDER_ID')
+    if not api_key or not folder_id:
+        print('[ERROR] Yandex API keys not configured')
+        return None
+
+    headers = {
+        'Authorization': f'Api-Key {api_key}',
+        'Content-Type': 'application/json',
+    }
+    payload = {
+        'model': f'art://{folder_id}/aliceai-image-art-3.0',
+        'prompt': prompt[:500],
+        'response_format': 'b64_json',
+    }
+    try:
+        resp = requests.post(YANDEX_IMAGES_API_URL, headers=headers, json=payload, timeout=45)
+        if resp.status_code != 200:
+            print(f'[ERROR] Yandex Images API: {resp.status_code} {resp.text[:200]}')
+            return None
+        data = resp.json()
+        image_b64 = (data.get('data') or [{}])[0].get('b64_json')
+        if not image_b64:
+            return None
+        return base64.b64decode(image_b64)
+    except Exception as e:
+        print(f'[ERROR] Yandex Images API: {e}')
+        return None
+
+
+def call_yandex_art_legacy(prompt: str) -> Optional[bytes]:
+    """Старый асинхронный API YandexART. Yandex отключает его 7 сентября 2026 —
+    используется только как fallback на время переходного периода."""
     api_key = os.environ.get('YANDEX_ART_API_KEY')
     folder_id = os.environ.get('YANDEX_FOLDER_ID')
     if not api_key or not folder_id:
-        print('[ERROR] YandexART keys not configured')
         return None
 
     headers = {
@@ -122,7 +158,7 @@ def call_yandex_art(prompt: str) -> Optional[bytes]:
     try:
         resp = requests.post(YANDEX_API_URL, headers=headers, json=payload, timeout=15)
         if resp.status_code != 200:
-            print(f'[ERROR] YandexART start: {resp.status_code} {resp.text[:200]}')
+            print(f'[ERROR] YandexART legacy start: {resp.status_code} {resp.text[:200]}')
             return None
         op_id = resp.json().get('id')
         if not op_id:
@@ -140,11 +176,20 @@ def call_yandex_art(prompt: str) -> Optional[bytes]:
                 if image_b64:
                     return base64.b64decode(image_b64)
                 return None
-        print('[WARN] YandexART timeout')
+        print('[WARN] YandexART legacy timeout')
         return None
     except Exception as e:
-        print(f'[ERROR] YandexART: {e}')
+        print(f'[ERROR] YandexART legacy: {e}')
         return None
+
+
+def call_yandex_art(prompt: str) -> Optional[bytes]:
+    """Генерирует изображение: сперва новый Images API, при сбое — старый (до его отключения)."""
+    image = call_yandex_images_api(prompt)
+    if image:
+        return image
+    print('[WARN] New Images API failed, falling back to legacy imageGenerationAsync')
+    return call_yandex_art_legacy(prompt)
 
 
 def upload_to_s3(image_bytes: bytes, post_id: int) -> Optional[str]:
