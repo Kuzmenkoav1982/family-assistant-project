@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useShopping } from '@/hooks/useShopping';
 import { useNotifications } from '@/hooks/useNotifications';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 import { toast } from 'sonner';
 
 const CATEGORIES = [
@@ -391,7 +392,7 @@ export default function Shopping() {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {item.added_by_name} • {new Date(item.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          {item.added_by_name} • {parseUtcDate(item.created_at)?.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                       <Button
