@@ -10,6 +10,7 @@ import SectionAIAdvisor from '@/components/SectionAIAdvisor';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { calculatePariResults, getOverallScore, PARI_SCALES, type PariScaleResult } from '@/data/pariTestData';
 import func2url from '../../backend/func2url.json';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 const API = (func2url as Record<string, string>)['child-assessment'];
 
@@ -210,7 +211,7 @@ export default function PariResults() {
                     </div>
                   </div>
                   <p className="text-[11px] text-muted-foreground mt-2">
-                    с {new Date(previous.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                    с {parseUtcDate(previous.created_at)?.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
                   </p>
                 </div>
               )}

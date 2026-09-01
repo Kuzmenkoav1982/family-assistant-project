@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Icon from '@/components/ui/icon';
 import type { FamilyMember } from '@/types/family.types';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface AssessmentsArchiveProps {
   child: FamilyMember;
@@ -96,7 +97,7 @@ export function AssessmentsArchive({ child, onPlanDeleted }: AssessmentsArchiveP
   }
 
   const progressData = archivedPlans.map(plan => ({
-    date: new Date(plan.created_at).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' }),
+    date: parseUtcDate(plan.created_at)?.toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' }) ?? '',
     score: plan.plan_data.overall_score,
   }));
 
@@ -140,7 +141,7 @@ export function AssessmentsArchive({ child, onPlanDeleted }: AssessmentsArchiveP
                 <Icon name="CheckCircle" size={20} className="text-green-600" />
                 <div>
                   <p className="font-medium text-sm">
-                    {new Date(plan.created_at).toLocaleDateString('ru-RU')}
+                    {parseUtcDate(plan.created_at)?.toLocaleDateString('ru-RU')}
                   </p>
                   <p className="text-xs text-gray-600">
                     Оценка: {plan.plan_data.overall_score}%

@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { adminFetch } from '@/lib/adminFetch';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 const ADMIN_API = 'https://functions.poehali.dev/d881b99a-9341-4b0b-9e54-0cfb6f7de905';
 const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b'];
@@ -355,7 +356,7 @@ export default function AdminDomovoy() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-xs">
-                          {new Date(donation.created_at).toLocaleString('ru-RU')}
+                          {parseUtcDate(donation.created_at)?.toLocaleString('ru-RU')}
                         </TableCell>
                       </TableRow>
                     ))}

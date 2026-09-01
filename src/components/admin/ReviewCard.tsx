@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Icon from "@/components/ui/icon";
+import { parseUtcDate } from "@/lib/parseUtcDate";
 
 interface Review {
   id: number;
@@ -57,7 +58,7 @@ const ReviewCard = ({ review, REVIEWS_API_URL, loadReviews, toast }: ReviewCardP
               <div>
                 <p className="text-xs text-muted-foreground">Дата создания</p>
                 <p className="font-semibold">
-                  {new Date(review.created_at).toLocaleString('ru-RU', {
+                  {parseUtcDate(review.created_at)?.toLocaleString('ru-RU', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -70,7 +71,7 @@ const ReviewCard = ({ review, REVIEWS_API_URL, loadReviews, toast }: ReviewCardP
                 <div>
                   <p className="text-xs text-muted-foreground">Дата публикации</p>
                   <p className="font-semibold">
-                    {new Date(review.published_at).toLocaleString('ru-RU', {
+                    {parseUtcDate(review.published_at)?.toLocaleString('ru-RU', {
                       day: '2-digit',
                       month: '2-digit',
                       year: 'numeric',

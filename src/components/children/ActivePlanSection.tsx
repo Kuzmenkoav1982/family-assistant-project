@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import Icon from '@/components/ui/icon';
 import type { FamilyMember } from '@/types/family.types';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface ActivePlanSectionProps {
   child: FamilyMember;
@@ -155,7 +156,7 @@ export function ActivePlanSection({ child, onPlanDeleted }: ActivePlanSectionPro
         </div>
 
         <p className="text-xs text-gray-500">
-          Создан: {new Date(activePlan.created_at).toLocaleDateString('ru-RU')}
+          Создан: {parseUtcDate(activePlan.created_at)?.toLocaleDateString('ru-RU')}
         </p>
       </CardContent>
     </Card>

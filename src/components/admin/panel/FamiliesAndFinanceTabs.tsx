@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import MiniStat from './MiniStat';
 import { apiGet, FamiliesResponse, FinanceData } from './types';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 export function FamiliesTab() {
   const [data, setData] = useState<FamiliesResponse | null>(null);
@@ -95,10 +96,10 @@ export function FamiliesTab() {
                     )}
                     <div className="flex gap-3 mt-2 text-[10px] text-gray-500">
                       {f.created_at && (
-                        <span>Создана: {new Date(f.created_at).toLocaleDateString('ru-RU')}</span>
+                        <span>Создана: {parseUtcDate(f.created_at)?.toLocaleDateString('ru-RU')}</span>
                       )}
                       {f.last_activity && (
-                        <span>Активн: {new Date(f.last_activity).toLocaleDateString('ru-RU')}</span>
+                        <span>Активн: {parseUtcDate(f.last_activity)?.toLocaleDateString('ru-RU')}</span>
                       )}
                     </div>
                   </div>
@@ -179,7 +180,7 @@ export function FinanceTab() {
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold">{fmt(p.amount)}</div>
                   <div className="text-gray-500 truncate">
-                    {p.method || '—'} · {p.created_at ? new Date(p.created_at).toLocaleString('ru-RU') : '—'}
+                    {p.method || '—'} · {p.created_at ? parseUtcDate(p.created_at)?.toLocaleString('ru-RU') : '—'}
                   </div>
                 </div>
                 <Badge

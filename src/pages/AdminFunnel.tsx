@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import func2url from '@/../backend/func2url.json';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 type Period = '24h' | '7d' | '30d';
 
@@ -247,8 +248,8 @@ export default function AdminFunnel() {
                         {data.recent.map((ev, i) => (
                           <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
                             <td className="p-3 text-slate-400 whitespace-nowrap">
-                              {new Date(ev.created_at).toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                              <span className="block text-[10px]">{new Date(ev.created_at).toLocaleDateString('ru')}</span>
+                              {parseUtcDate(ev.created_at)?.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              <span className="block text-[10px]">{parseUtcDate(ev.created_at)?.toLocaleDateString('ru')}</span>
                             </td>
                             <td className="p-3">
                               <span className={`inline-block px-1.5 py-0.5 rounded border text-[10px] font-medium ${EVENT_COLORS[ev.event_name] || 'bg-slate-50 text-slate-600 border-slate-200'}`}>

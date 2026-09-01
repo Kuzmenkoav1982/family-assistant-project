@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 const IDEAS_API = 'https://functions.poehali.dev/5f414b77-7ce9-4a88-b0dd-8b870ec6939b';
 
@@ -602,7 +603,7 @@ export default function IdeasBoard() {
                 </CardHeader>
                 
                 <CardFooter className="text-sm text-gray-500">
-                  Автор: {idea.author.name} • {new Date(idea.created_at).toLocaleDateString('ru-RU')}
+                  Автор: {idea.author.name} • {parseUtcDate(idea.created_at)?.toLocaleDateString('ru-RU')}
                 </CardFooter>
               </Card>
             ))}
@@ -625,7 +626,7 @@ export default function IdeasBoard() {
                   </div>
                   <DialogTitle className="text-2xl">{selectedIdea.title}</DialogTitle>
                   <DialogDescription>
-                    Автор: {selectedIdea.author.name} • {new Date(selectedIdea.created_at).toLocaleDateString('ru-RU')}
+                    Автор: {selectedIdea.author.name} • {parseUtcDate(selectedIdea.created_at)?.toLocaleDateString('ru-RU')}
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -666,7 +667,7 @@ export default function IdeasBoard() {
                                   )}
                                 </span>
                                 <span className="text-sm text-gray-500">
-                                  {new Date(comment.created_at).toLocaleDateString('ru-RU')}
+                                  {parseUtcDate(comment.created_at)?.toLocaleDateString('ru-RU')}
                                 </span>
                               </div>
                               <p className="text-gray-700">{comment.text}</p>

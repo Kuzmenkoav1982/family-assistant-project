@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/lib/auth-context';
 import func2url from '../../backend/func2url.json';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface Ticket {
   id: number;
@@ -108,7 +109,7 @@ export default function MyTicketsPage() {
               <div className="flex items-center justify-between text-xs text-gray-400">
                 <span className="flex items-center gap-1">
                   <Icon name="Clock" size={11} />
-                  {new Date(ticket.created_at).toLocaleDateString('ru-RU', {
+                  {parseUtcDate(ticket.created_at)?.toLocaleDateString('ru-RU', {
                     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                   })}
                 </span>

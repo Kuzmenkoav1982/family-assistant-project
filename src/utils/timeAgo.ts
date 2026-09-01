@@ -1,7 +1,9 @@
+import { parseUtcDate } from '@/lib/parseUtcDate';
+
 export function formatTimeAgo(iso: string | null | undefined): string {
   if (!iso) return 'давно';
-  const date = new Date(iso);
-  if (isNaN(date.getTime())) return 'давно';
+  const date = parseUtcDate(iso);
+  if (!date) return 'давно';
   const diff = Date.now() - date.getTime();
   const sec = Math.floor(diff / 1000);
   if (sec < 60) return 'только что';

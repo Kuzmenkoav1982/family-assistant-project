@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import { DialogLockContext } from '@/contexts/DialogLockContext';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface FamilyMember {
   id: string;
@@ -42,7 +43,7 @@ function sortMembersByPriority(members: FamilyMember[], currentMemberId?: string
     const pa = getPriority(a);
     const pb = getPriority(b);
     if (pa !== pb) return pa - pb;
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    return (parseUtcDate(a.created_at)?.getTime() ?? 0) - (parseUtcDate(b.created_at)?.getTime() ?? 0);
   });
 }
 

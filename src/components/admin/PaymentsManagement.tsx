@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { readAdminSessionEmail, hasValidLocalAdminSession } from '@/lib/adminAuth';
 import { adminFetch } from '@/lib/adminFetch';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 // SEC-1.3c: admin_secret_key_2024 удалён. Backend payments-tbank/payments-sber
 // не проверяли этот токен — он не давал реальной защиты и при этом утекал
@@ -210,7 +211,7 @@ export default function PaymentsManagement() {
                         <div className="flex items-center gap-4 text-sm">
                           <span className="font-bold text-xl text-purple-600">{payment.amount}₽</span>
                           <span className="text-gray-500">
-                            Создано: {new Date(payment.created_at).toLocaleString('ru-RU')}
+                            Создано: {parseUtcDate(payment.created_at)?.toLocaleString('ru-RU')}
                           </span>
                         </div>
                       </div>

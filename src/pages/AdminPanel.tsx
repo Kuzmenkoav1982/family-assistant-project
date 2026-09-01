@@ -14,6 +14,7 @@ import func2url from '@/../backend/func2url.json';
 import AdminRatingCampaigns from '@/components/admin/AdminRatingCampaigns';
 import AdminReferralProgram from '@/components/admin/AdminReferralProgram';
 import { adminFetch } from '@/lib/adminFetch';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 const API = (func2url as Record<string, string>)['admin-users'];
 
@@ -310,10 +311,10 @@ function FamiliesTab() {
                     )}
                     <div className="flex gap-3 mt-2 text-[10px] text-gray-500">
                       {f.created_at && (
-                        <span>Создана: {new Date(f.created_at).toLocaleDateString('ru-RU')}</span>
+                        <span>Создана: {parseUtcDate(f.created_at)?.toLocaleDateString('ru-RU')}</span>
                       )}
                       {f.last_activity && (
-                        <span>Активн: {new Date(f.last_activity).toLocaleDateString('ru-RU')}</span>
+                        <span>Активн: {parseUtcDate(f.last_activity)?.toLocaleDateString('ru-RU')}</span>
                       )}
                     </div>
                   </div>
@@ -394,7 +395,7 @@ function FinanceTab() {
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold">{fmt(p.amount)}</div>
                   <div className="text-gray-500 truncate">
-                    {p.method || '—'} · {p.created_at ? new Date(p.created_at).toLocaleString('ru-RU') : '—'}
+                    {p.method || '—'} · {p.created_at ? parseUtcDate(p.created_at)?.toLocaleString('ru-RU') : '—'}
                   </div>
                 </div>
                 <Badge
@@ -619,7 +620,7 @@ function BroadcastsTab({ toast }: { toast: ReturnType<typeof useToast>['toast'] 
                 </div>
                 <p className="text-xs text-gray-700 line-clamp-2">{b.message}</p>
                 <div className="flex gap-3 text-[10px] text-gray-500 mt-2">
-                  {b.created_at && <span>{new Date(b.created_at).toLocaleString('ru-RU')}</span>}
+                  {b.created_at && <span>{parseUtcDate(b.created_at)?.toLocaleString('ru-RU')}</span>}
                   <span>Аудитория: {b.target}</span>
                 </div>
               </CardContent>
@@ -754,7 +755,7 @@ function ErrorsTab() {
                 {e.path && <p className="text-xs text-gray-600 mt-0.5">Путь: {e.path}</p>}
                 {e.created_at && (
                   <p className="text-[10px] text-gray-500 mt-1">
-                    {new Date(e.created_at).toLocaleString('ru-RU')}
+                    {parseUtcDate(e.created_at)?.toLocaleString('ru-RU')}
                   </p>
                 )}
               </div>
@@ -810,7 +811,7 @@ function TicketsTab() {
                 <p className="text-xs text-gray-700 mt-1 line-clamp-3">{t.description}</p>
                 {t.created_at && (
                   <p className="text-[10px] text-gray-500 mt-1">
-                    {new Date(t.created_at).toLocaleString('ru-RU')}
+                    {parseUtcDate(t.created_at)?.toLocaleString('ru-RU')}
                   </p>
                 )}
               </div>

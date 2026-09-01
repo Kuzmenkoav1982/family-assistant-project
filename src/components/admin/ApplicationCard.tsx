@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Icon from "@/components/ui/icon";
+import { parseUtcDate } from "@/lib/parseUtcDate";
 
 interface Application {
   id: number;
@@ -100,7 +101,7 @@ const ApplicationCard = (props: ApplicationCardProps) => {
               <div>
                 <p className="text-xs text-muted-foreground">Дата подачи</p>
                 <p className="font-semibold text-sm">
-                  {app.created_at ? new Date(app.created_at).toLocaleString('ru-RU', {
+                  {app.created_at ? parseUtcDate(app.created_at)?.toLocaleString('ru-RU', {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
@@ -237,7 +238,7 @@ const ApplicationCard = (props: ApplicationCardProps) => {
               <div>
                 <p className="text-xs text-muted-foreground">Дата подачи</p>
                 <p className="font-semibold text-sm">
-                  {app.created_at ? new Date(app.created_at).toLocaleDateString('ru-RU') : '—'}
+                  {app.created_at ? parseUtcDate(app.created_at)?.toLocaleDateString('ru-RU') : '—'}
                 </p>
               </div>
             </div>
@@ -289,7 +290,7 @@ const ApplicationCard = (props: ApplicationCardProps) => {
             <div>
               <p className="text-xs text-muted-foreground">Удалено</p>
               <p className="font-semibold text-sm">
-                {app.deleted_at ? new Date(app.deleted_at).toLocaleString('ru-RU', {
+                {app.deleted_at ? parseUtcDate(app.deleted_at)?.toLocaleString('ru-RU', {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',

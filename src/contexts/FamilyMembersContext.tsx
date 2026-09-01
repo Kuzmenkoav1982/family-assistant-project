@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { DialogLockContext } from '@/contexts/DialogLockContext';
 import { initialFamilyMembers } from '@/data/mockData';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface FamilyMember {
   id: string;
@@ -92,8 +93,8 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
       const priorityA = getMemberSortPriority(a, currentUserMemberId);
       const priorityB = getMemberSortPriority(b, currentUserMemberId);
       if (priorityA !== priorityB) return priorityA - priorityB;
-      const dateA = new Date(a.created_at).getTime();
-      const dateB = new Date(b.created_at).getTime();
+      const dateA = parseUtcDate(a.created_at)?.getTime() ?? 0;
+      const dateB = parseUtcDate(b.created_at)?.getTime() ?? 0;
       return dateA - dateB;
     });
     return sorted;

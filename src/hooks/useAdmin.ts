@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { parseUtcDate } from "@/lib/parseUtcDate";
 import type { Contest, Application, Result, Review, CertificateRow } from "@/data/adminTypes";
 import {
   API_URL, UPLOAD_URL, RESULTS_API_URL, APPLICATIONS_API_URL,
@@ -104,7 +105,7 @@ export default function useAdmin() {
     if (resultFilters.contest_name) filtered = filtered.filter(r => r.contest_name?.toLowerCase().includes(resultFilters.contest_name.toLowerCase()));
     if (resultFilters.full_name) filtered = filtered.filter(r => r.full_name?.toLowerCase().includes(resultFilters.full_name.toLowerCase()));
     if (resultFilters.result !== 'all') filtered = filtered.filter(r => r.result === resultFilters.result);
-    if (resultFilters.date) filtered = filtered.filter(r => r.created_at && new Date(r.created_at).toDateString() === new Date(resultFilters.date!).toDateString());
+    if (resultFilters.date) filtered = filtered.filter(r => r.created_at && parseUtcDate(r.created_at)?.toDateString() === new Date(resultFilters.date!).toDateString());
     setFilteredResults(filtered);
   }, [results, resultFilters]);
 

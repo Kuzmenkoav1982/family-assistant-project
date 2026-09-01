@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import func2url from '@/../backend/func2url.json';
 import { adminFetch } from '@/lib/adminFetch';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface NamedCount {
   name: string;
@@ -98,7 +99,7 @@ export default function AdminTraffic() {
             oauth: users.filter((u: UserFromAPI) => u.oauth_provider).length,
             today: users.filter((u: UserFromAPI) => {
               if (!u.created_at) return false;
-              return new Date(u.created_at).toDateString() === today.toDateString();
+              return parseUtcDate(u.created_at)?.toDateString() === today.toDateString();
             }).length,
           });
         }

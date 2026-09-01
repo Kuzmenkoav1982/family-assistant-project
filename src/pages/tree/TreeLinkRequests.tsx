@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 const API = 'https://functions.poehali.dev/1c2b8fba-a386-476a-a78e-dd0d78f1aa61';
 
@@ -189,7 +190,7 @@ export default function TreeLinkRequests({ isOwnerOrAdmin, autoOpen, highlightRe
                   <p className="text-xs text-gray-400 truncate">{req.email}</p>
                 </div>
                 <span className="text-[10px] text-gray-400 flex-shrink-0">
-                  {new Date(req.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+                  {parseUtcDate(req.created_at)?.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
                 </span>
               </div>
 

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import SectionPageFrame from '@/components/ui/SectionPageFrame';
 import { useDemoMode } from '@/contexts/DemoModeContext';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 type Period = 'week' | 'month' | 'quarter' | 'half-year' | 'year';
 
@@ -218,7 +219,9 @@ export default function Analytics() {
       }
       
       const periodTasks = tasks.filter((t: any) => {
-        const taskDate = new Date(t.created_at || t.due_date || Date.now());
+        const taskDate = t.created_at
+          ? (parseUtcDate(t.created_at) ?? new Date())
+          : new Date(t.due_date || Date.now());
         return taskDate >= periodStart && taskDate <= periodEnd;
       }).length;
       

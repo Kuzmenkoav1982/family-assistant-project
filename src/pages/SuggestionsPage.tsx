@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useAuth } from '@/lib/auth-context';
 import func2url from '../../backend/func2url.json';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface SuggestionItem {
   id: string;
@@ -175,7 +176,7 @@ export default function SuggestionsPage() {
                     <p className="text-sm text-gray-500 mb-3">{item.user_name}</p>
                     <p className="text-gray-700 mb-3">{item.description}</p>
                     <p className="text-xs text-gray-400">
-                      {new Date(item.created_at).toLocaleDateString('ru-RU', {
+                      {parseUtcDate(item.created_at)?.toLocaleDateString('ru-RU', {
                         day: 'numeric',
                         month: 'long',
                         year: 'numeric'

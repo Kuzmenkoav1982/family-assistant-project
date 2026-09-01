@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import func2url from '../../backend/func2url.json';
 import { adminFetch } from '@/lib/adminFetch';
 import { hasValidLocalAdminSession } from '@/lib/adminAuth';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface Ticket {
   id: number;
@@ -122,7 +123,7 @@ export default function AdminSupportDesk() {
         ...(sd.items || []).map((t: Ticket) => ({ ...t, type: 'support' })),
         ...(rd.items || []).map((t: Ticket) => ({ ...t, type: 'review' })),
         ...(sgd.items || []).map((t: Ticket) => ({ ...t, type: 'suggestion' })),
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      ].sort((a, b) => (parseUtcDate(b.created_at)?.getTime() ?? 0) - (parseUtcDate(a.created_at)?.getTime() ?? 0));
       setTickets(all);
     } finally { setLoading(false); }
   };
@@ -303,7 +304,7 @@ export default function AdminSupportDesk() {
                 {t.priority === 'critical' && <span className="text-red-500 font-bold">↑↑</span>}
               </div>
               <div className="text-xs text-gray-400 mt-0.5">
-                {new Date(t.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                {parseUtcDate(t.created_at)?.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </div>
             </button>
           ))}
@@ -347,7 +348,7 @@ export default function AdminSupportDesk() {
                     )}
                     <span className="flex items-center gap-1">
                       <Icon name="Clock" size={13} />
-                      {new Date(ticket.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      {parseUtcDate(ticket.created_at)?.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 </div>
@@ -461,7 +462,7 @@ export default function AdminSupportDesk() {
                           <Icon name={m.message_type === 'reply' ? 'Mail' : m.message_type === 'note' ? 'StickyNote' : 'Sparkles'} size={11} />
                           <span className="font-medium">{m.message_type === 'reply' ? 'Ответ' : m.message_type === 'note' ? 'Заметка' : 'AI черновик'}</span>
                           <span>·</span>
-                          <span>{new Date(m.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{parseUtcDate(m.created_at)?.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <p className="text-gray-800 whitespace-pre-wrap">
                           {m.message_type === 'ai_draft'

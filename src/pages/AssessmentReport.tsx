@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import Icon from '@/components/ui/icon';
 import Footer from '@/components/Footer';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface CategoryAnalysis {
   category: string;
@@ -181,7 +182,7 @@ export default function AssessmentReport() {
             </Button>
             <h1 className="text-3xl font-bold">Отчёт оценки развития</h1>
             <p className="text-gray-600 mt-1">
-              Создан: {new Date(plan.created_at).toLocaleDateString('ru-RU')}
+              Создан: {parseUtcDate(plan.created_at)?.toLocaleDateString('ru-RU')}
             </p>
           </div>
           <Badge

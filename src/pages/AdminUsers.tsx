@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import func2url from '@/../backend/func2url.json';
 import { adminFetch } from '@/lib/adminFetch';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface User {
   id: string;
@@ -100,7 +101,9 @@ export default function AdminUsers() {
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '—';
-    return new Date(dateString).toLocaleString('ru-RU', {
+    const date = parseUtcDate(dateString);
+    if (!date) return '—';
+    return date.toLocaleString('ru-RU', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
@@ -135,8 +138,8 @@ export default function AdminUsers() {
     today: users.filter(u => {
       if (!u.created_at) return false;
       const today = new Date();
-      const createdDate = new Date(u.created_at);
-      return createdDate.toDateString() === today.toDateString();
+      const createdDate = parseUtcDate(u.created_at);
+      return !!createdDate && createdDate.toDateString() === today.toDateString();
     }).length
   };
 

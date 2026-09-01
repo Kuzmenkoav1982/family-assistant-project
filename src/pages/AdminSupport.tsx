@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import func2url from '../../backend/func2url.json';
 import { adminFetch } from '@/lib/adminFetch';
 import { hasValidLocalAdminSession, adminLogout } from '@/lib/adminAuth';
+import { parseUtcDate } from '@/lib/parseUtcDate';
 
 interface FeedbackItem {
   id: string;
@@ -159,7 +160,7 @@ export default function AdminSupport() {
             )}
             <span className="flex items-center gap-1">
               <Icon name="Clock" size={14} />
-              {new Date(item.created_at).toLocaleDateString('ru-RU', {
+              {parseUtcDate(item.created_at)?.toLocaleDateString('ru-RU', {
                 day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
               })}
             </span>
