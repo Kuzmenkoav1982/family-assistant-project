@@ -565,7 +565,7 @@ def _upload_diet_image(image_b64: str, prefix: str) -> Optional[str]:
             aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
             aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY']
         )
-        file_hash = hashlib.md5(image_b64[:100].encode()).hexdigest()[:12]
+        file_hash = hashlib.md5(image_b64.encode()).hexdigest()[:12]
         key = f'{prefix}/{file_hash}.png'
         s3.put_object(Bucket='files', Key=key, Body=base64.b64decode(image_b64), ContentType='image/png')
         return f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
@@ -672,7 +672,7 @@ def handle_photo_check(api_key: str, body: Dict) -> Dict[str, Any]:
         )
 
         import hashlib
-        file_hash = hashlib.md5(image_b64[:100].encode()).hexdigest()[:12]
+        file_hash = hashlib.md5(image_b64.encode()).hexdigest()[:12]
         key = f'diet-photos/{file_hash}.png'
 
         s3.put_object(
