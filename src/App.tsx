@@ -287,6 +287,7 @@ const StrategyHub = lazy(() => import("./pages/StrategyHub"));
 const ReestrDeck = lazy(() => import("./pages/ReestrDeck"));
 const BankDeck = lazy(() => import("./pages/BankDeck"));
 const A7Deck = lazy(() => import("./pages/A7Deck"));
+const StrategyCsiDeck = lazy(() => import("./pages/StrategyCsiDeck"));
 const DomovoyV2Demo = lazy(() => import("./pages/DomovoyV2Demo"));
 const MatryoshkaDeck = lazy(() => import("./pages/MatryoshkaDeck"));
 const InvestorDeck = lazy(() => import("./pages/InvestorDeck"));
@@ -550,6 +551,7 @@ const App = () => {
                       <Route path="/strategy/appendix" element={<AppendixDeck />} />
                       <Route path="/strategy/hub" element={<StrategyHub />} />
                       <Route path="/strategy/reestr" element={<ReestrDeck />} />
+                      <Route path="/strategy/csi" element={<StrategyCsiDeck />} />
                       <Route path="/strategy-legacy" element={<StrategyDeck />} />
                       <Route path="/matryoshka" element={<MatryoshkaDeck />} />
                       <Route path="/award-card" element={<AwardCard />} />
