@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import { useCalendarEvents } from '@/hooks/useCalendarEvents';
 import type { FamilyMember } from '@/types/family.types';
 import type { CalendarEvent } from '@/types/family.types';
+import { isEventPastToday } from '@/utils/eventTime';
 
 interface ChildCalendarProps {
   child: FamilyMember;
@@ -69,6 +70,7 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
   const [editEvent, setEditEvent] = useState<CalendarEvent | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [newEvent, setNewEvent] = useState(emptyForm);
+  const [showPastToday, setShowPastToday] = useState(false);
 
   // Только события этого ребёнка
   const childEvents = useMemo(
@@ -165,14 +167,24 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
       }
     });
 
-    return singleOccurrences
-      .sort((a, b) => {
-        const dateDiff = a.occursOn.getTime() - b.occursOn.getTime();
-        if (dateDiff !== 0) return dateDiff;
-        // В один день события сортируем по времени начала, а не по порядку добавления в календарь
-        return (a.event.time || '').localeCompare(b.event.time || '');
-      })
-      .slice(0, 10);
+    const sorted = singleOccurrences.sort((a, b) => {
+      const dateDiff = a.occursOn.getTime() - b.occursOn.getTime();
+      if (dateDiff !== 0) return dateDiff;
+      // В один день события сортируем по времени начала, а не по порядку добавления в календарь
+      return (a.event.time || '').localeCompare(b.event.time || '');
+    });
+
+    // Событие сегодня, которое уже прошло по времени — откладываем в отдельную группу,
+    // чтобы не мешало актуальным делам, но не терялось совсем (можно развернуть по клику)
+    const isTodayOccurrence = (occursOn: Date) => occursOn.getTime() === today.getTime();
+    const upcoming = sorted.filter(
+      ({ event, occursOn }) => !isTodayOccurrence(occursOn) || !isEventPastToday(event.time, event.endTime)
+    );
+    const pastToday = sorted.filter(
+      ({ event, occursOn }) => isTodayOccurrence(occursOn) && isEventPastToday(event.time, event.endTime)
+    );
+
+    return { upcoming: upcoming.slice(0, 10), pastToday };
   };
 
   const formatDate = (dateStr: string) => {
@@ -207,7 +219,59 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
     return `Каждую неделю: ${names.join(', ')}`;
   };
 
-  const displayedEvents = getUpcomingEvents();
+  const { upcoming: displayedEvents, pastToday } = getUpcomingEvents();
+
+  const renderEventCard = (event: CalendarEvent, occursOn: Date) => {
+    const config = CATEGORY_CONFIG[event.category as ChildEventCategory] || CATEGORY_CONFIG.personal;
+    const recurringLabel = formatRecurring(event);
+    return (
+      <div
+        key={event.id}
+        className="p-4 border-l-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+        style={{ borderLeftColor: event.color }}
+        onClick={() => setSelectedEvent(event)}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <h4 className="font-semibold text-gray-900">{event.title}</h4>
+              <Badge variant="outline" className="text-xs">
+                <Icon name={config.icon as any} size={12} className="mr-1" />
+                {config.label}
+              </Badge>
+              {event.isRecurring && (
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Icon name="Repeat" size={11} />
+                  Повтор
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-3 text-sm text-gray-600">
+              <span className="flex items-center gap-1">
+                <Icon name="Calendar" size={14} />
+                {formatDate(toLocalDateStr(occursOn))}
+              </span>
+              {event.time && (
+                <span className="flex items-center gap-1">
+                  <Icon name="Clock" size={14} />
+                  {event.time}{event.endTime ? `–${event.endTime}` : ''}
+                </span>
+              )}
+            </div>
+            {recurringLabel && (
+              <p className="text-xs text-gray-400 mt-1">{recurringLabel}</p>
+            )}
+            {event.description && (
+              <p className="text-sm text-gray-500 mt-1">{event.description}</p>
+            )}
+          </div>
+          {event.reminderEnabled && (
+            <Icon name="Bell" size={16} className="text-blue-500 flex-shrink-0" />
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Card>
@@ -269,65 +333,33 @@ export function ChildCalendar({ child }: ChildCalendarProps) {
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400" />
           </div>
-        ) : displayedEvents.length === 0 ? (
+        ) : displayedEvents.length === 0 && pastToday.length === 0 ? (
           <div className="text-center py-8 text-gray-400">
             <Icon name="Calendar" size={48} className="mx-auto mb-3 opacity-30" />
             <p>Нет событий</p>
             <p className="text-sm mt-1">Добавьте первое событие для {child.name}</p>
           </div>
-        ) : (
+        ) : displayedEvents.length > 0 && (
           <div className="space-y-2">
-            {displayedEvents.map(({ event, occursOn }) => {
-              const config = CATEGORY_CONFIG[event.category as ChildEventCategory] || CATEGORY_CONFIG.personal;
-              const recurringLabel = formatRecurring(event);
-              return (
-                <div
-                  key={event.id}
-                  className="p-4 border-l-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                  style={{ borderLeftColor: event.color }}
-                  onClick={() => setSelectedEvent(event)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h4 className="font-semibold text-gray-900">{event.title}</h4>
-                        <Badge variant="outline" className="text-xs">
-                          <Icon name={config.icon as any} size={12} className="mr-1" />
-                          {config.label}
-                        </Badge>
-                        {event.isRecurring && (
-                          <Badge variant="outline" className="text-xs gap-1">
-                            <Icon name="Repeat" size={11} />
-                            Повтор
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Icon name="Calendar" size={14} />
-                          {formatDate(toLocalDateStr(occursOn))}
-                        </span>
-                        {event.time && (
-                          <span className="flex items-center gap-1">
-                            <Icon name="Clock" size={14} />
-                            {event.time}{event.endTime ? `–${event.endTime}` : ''}
-                          </span>
-                        )}
-                      </div>
-                      {recurringLabel && (
-                        <p className="text-xs text-gray-400 mt-1">{recurringLabel}</p>
-                      )}
-                      {event.description && (
-                        <p className="text-sm text-gray-500 mt-1">{event.description}</p>
-                      )}
-                    </div>
-                    {event.reminderEnabled && (
-                      <Icon name="Bell" size={16} className="text-blue-500 flex-shrink-0" />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {displayedEvents.map(({ event, occursOn }) => renderEventCard(event, occursOn))}
+          </div>
+        )}
+
+        {/* Прошедшие сегодня события — свёрнуты по умолчанию, чтобы не путать с актуальными */}
+        {pastToday.length > 0 && (
+          <div className="pt-1">
+            <button
+              onClick={() => setShowPastToday(v => !v)}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <Icon name={showPastToday ? 'ChevronUp' : 'ChevronDown'} size={14} />
+              {showPastToday ? 'Скрыть прошедшие' : `Показать прошедшие сегодня (${pastToday.length})`}
+            </button>
+            {showPastToday && (
+              <div className="space-y-2 mt-2 opacity-60">
+                {pastToday.map(({ event, occursOn }) => renderEventCard(event, occursOn))}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

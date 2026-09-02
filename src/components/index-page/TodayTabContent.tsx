@@ -13,6 +13,7 @@ import FamilyOsCycleWidget from '@/components/index-page/FamilyOsCycleWidget';
 import FamilyOsLiveCard from '@/components/index-page/FamilyOsLiveCard';
 import AttentionBlock from '@/components/index-page/AttentionBlock';
 import ContinueBlock from '@/components/index-page/ContinueBlock';
+import { isEventPastToday } from '@/utils/eventTime';
 
 interface Task {
   id: string;
@@ -90,6 +91,7 @@ export default function TodayTabContent({
 }: TodayTabContentProps) {
   const navigate = useNavigate();
   const [familyMembersOpen, setFamilyMembersOpen] = useState(false);
+  const [showPastEvents, setShowPastEvents] = useState(false);
   const today = new Date().toISOString().split('T')[0];
 
   const todayTasks = tasks.filter(task => {
@@ -97,9 +99,12 @@ export default function TodayTabContent({
     return taskDate === today && !task.completed;
   });
 
-  const todayEvents = calendarEvents
+  const allTodayEvents = calendarEvents
     .filter(event => event.date === today)
     .sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+  const todayEvents = allTodayEvents.filter(event => !isEventPastToday(event.time, event.endTime));
+  const pastTodayEvents = allTodayEvents.filter(event => isEventPastToday(event.time, event.endTime));
 
   const upcomingEvents = calendarEvents
     .filter(event => event.date > today)
@@ -116,6 +121,52 @@ export default function TodayTabContent({
   const currentMember = getMemberById(currentUserId);
   const greeting = getGreeting();
   const dateStr = formatDate();
+
+  const renderCalendarEventCard = (event: CalendarEvent) => (
+    <div
+      key={event.id}
+      className={`p-3 rounded-lg border-l-4 bg-gray-50 ${CATEGORY_COLORS[event.category] || 'border-l-gray-300'}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-sm">{event.title}</p>
+          {event.description && (
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {event.time && (
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Icon name="Clock" size={11} />
+              {event.time}
+            </span>
+          )}
+          <Badge variant="outline" className="text-xs">
+            {CATEGORY_LABELS[event.category] || event.category}
+          </Badge>
+        </div>
+      </div>
+      {event.attendees && event.attendees.length > 0 && (
+        <div className="flex items-center gap-1 mt-2">
+          {event.attendees.slice(0, 5).map(memberId => {
+            const m = getMemberById(memberId);
+            return m ? (
+              <div
+                key={memberId}
+                className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs"
+                title={m.name}
+              >
+                {m.avatar || m.name[0]}
+              </div>
+            ) : null;
+          })}
+          {event.attendees.length > 5 && (
+            <span className="text-xs text-muted-foreground">+{event.attendees.length - 5}</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <TabsContent value="today" className="space-y-4 mt-0">
@@ -163,7 +214,7 @@ export default function TodayTabContent({
       />
 
       {/* Пустой день */}
-      {todayTasks.length === 0 && todayEvents.length === 0 && (
+      {todayTasks.length === 0 && todayEvents.length === 0 && pastTodayEvents.length === 0 && (
         <Card className="border-dashed border-2 border-green-200 bg-green-50/50">
           <CardContent className="pt-6 text-center py-10">
             <div className="text-4xl mb-3">🎉</div>
@@ -284,7 +335,7 @@ export default function TodayTabContent({
       )}
 
       {/* События сегодня */}
-      {todayEvents.length > 0 && (
+      {(todayEvents.length > 0 || pastTodayEvents.length > 0) && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center justify-between text-base">
@@ -301,51 +352,28 @@ export default function TodayTabContent({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 pt-0">
-            {todayEvents.map(event => (
-              <div
-                key={event.id}
-                className={`p-3 rounded-lg border-l-4 bg-gray-50 ${CATEGORY_COLORS[event.category] || 'border-l-gray-300'}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{event.title}</p>
-                    {event.description && (
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{event.description}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {event.time && (
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Icon name="Clock" size={11} />
-                        {event.time}
-                      </span>
-                    )}
-                    <Badge variant="outline" className="text-xs">
-                      {CATEGORY_LABELS[event.category] || event.category}
-                    </Badge>
-                  </div>
-                </div>
-                {event.attendees && event.attendees.length > 0 && (
-                  <div className="flex items-center gap-1 mt-2">
-                    {event.attendees.slice(0, 5).map(memberId => {
-                      const m = getMemberById(memberId);
-                      return m ? (
-                        <div
-                          key={memberId}
-                          className="w-5 h-5 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-xs"
-                          title={m.name}
-                        >
-                          {m.avatar || m.name[0]}
-                        </div>
-                      ) : null;
-                    })}
-                    {event.attendees.length > 5 && (
-                      <span className="text-xs text-muted-foreground">+{event.attendees.length - 5}</span>
-                    )}
+            {todayEvents.length > 0
+              ? todayEvents.map(event => renderCalendarEventCard(event))
+              : (
+                <p className="text-xs text-muted-foreground py-2">На сегодня больше ничего не запланировано</p>
+              )}
+
+            {pastTodayEvents.length > 0 && (
+              <div className="pt-1">
+                <button
+                  onClick={() => setShowPastEvents(v => !v)}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <Icon name={showPastEvents ? 'ChevronUp' : 'ChevronDown'} size={14} />
+                  {showPastEvents ? 'Скрыть прошедшие' : `Показать прошедшие (${pastTodayEvents.length})`}
+                </button>
+                {showPastEvents && (
+                  <div className="space-y-2 mt-2 opacity-60">
+                    {pastTodayEvents.map(event => renderCalendarEventCard(event))}
                   </div>
                 )}
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       )}

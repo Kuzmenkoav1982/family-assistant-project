@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
+import { isEventPastToday } from '@/utils/eventTime';
 
 interface DayEventsDialogProps {
   open: boolean;
@@ -23,6 +25,8 @@ export function DayEventsDialog({
   onEventEdit,
   onEventDelete
 }: DayEventsDialogProps) {
+  const [showPast, setShowPast] = useState(false);
+
   if (!selectedDate) return null;
 
   const isEvent = (item: CalendarEvent | Task | FamilyGoal): item is CalendarEvent => {
@@ -83,6 +87,100 @@ export function DayEventsDialog({
     return date.toLocaleDateString('ru-RU', options);
   };
 
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+
+  const isPast = (item: CalendarEvent | Task | FamilyGoal): boolean =>
+    isToday && isEvent(item) && isEventPastToday(item.time, item.endTime);
+
+  const upcomingItems = events.filter(item => !isPast(item));
+  const pastItems = events.filter(isPast);
+
+  const renderEventItem = (event: CalendarEvent | Task | FamilyGoal, idx: number) => (
+    <div
+      key={idx}
+      className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+    >
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <Icon name={getEventTypeIcon(event) as any} size={16} />
+            <h4 className="font-semibold">{event.title}</h4>
+          </div>
+          {isEvent(event) && event.description && (
+            <p className="text-sm text-gray-600">{event.description}</p>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Badge variant="outline">{getEventTypeLabel(event)}</Badge>
+          {isEvent(event) && (
+            <Badge className={getCategoryColor(event.category)}>
+              {getCategoryLabel(event.category)}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {isEvent(event) && event.time && (
+        <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+          <Icon name="Clock" size={14} />
+          <span>{event.time}{event.endTime ? `–${event.endTime}` : ''}</span>
+        </div>
+      )}
+
+      {isEvent(event) && event.isRecurring && (
+        <div className="flex items-center gap-2 text-sm text-purple-600 mb-2">
+          <Icon name="Repeat" size={14} />
+          <span>Повторяющееся событие</span>
+        </div>
+      )}
+
+      {isTask(event) && (
+        <Badge variant={event.completed ? 'default' : 'secondary'}>
+          {event.completed ? 'Выполнено' : 'В процессе'}
+        </Badge>
+      )}
+
+      {isGoal(event) && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-gray-600">Прогресс:</span>
+          <Badge variant="secondary">{event.progress}%</Badge>
+        </div>
+      )}
+
+      <div className="flex gap-2 mt-3">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onEventClick(event)}
+        >
+          <Icon name="Eye" size={14} className="mr-1" />
+          Просмотр
+        </Button>
+        {isEvent(event) && (
+          <>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEventEdit(event)}
+            >
+              <Icon name="Pencil" size={14} className="mr-1" />
+              Изменить
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEventDelete(event.id)}
+              className="text-red-600 hover:text-red-700"
+            >
+              <Icon name="Trash2" size={14} className="mr-1" />
+              Удалить
+            </Button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -100,91 +198,30 @@ export function DayEventsDialog({
               <p>Нет событий на этот день</p>
             </div>
           ) : (
-            events.map((event, idx) => (
-              <div
-                key={idx}
-                className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Icon name={getEventTypeIcon(event) as any} size={16} />
-                      <h4 className="font-semibold">{event.title}</h4>
-                    </div>
-                    {isEvent(event) && event.description && (
-                      <p className="text-sm text-gray-600">{event.description}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Badge variant="outline">{getEventTypeLabel(event)}</Badge>
-                    {isEvent(event) && (
-                      <Badge className={getCategoryColor(event.category)}>
-                        {getCategoryLabel(event.category)}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {isEvent(event) && event.time && (
-                  <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-                    <Icon name="Clock" size={14} />
-                    <span>{event.time}{event.endTime ? `–${event.endTime}` : ''}</span>
-                  </div>
+            <>
+              {upcomingItems.length > 0
+                ? upcomingItems.map((event, idx) => renderEventItem(event, idx))
+                : (
+                  <p className="text-sm text-center text-gray-400 py-4">На сегодня больше ничего не запланировано</p>
                 )}
 
-                {isEvent(event) && event.isRecurring && (
-                  <div className="flex items-center gap-2 text-sm text-purple-600 mb-2">
-                    <Icon name="Repeat" size={14} />
-                    <span>Повторяющееся событие</span>
-                  </div>
-                )}
-
-                {isTask(event) && (
-                  <Badge variant={event.status === 'completed' ? 'default' : 'secondary'}>
-                    {event.status === 'completed' ? 'Выполнено' : 'В процессе'}
-                  </Badge>
-                )}
-
-                {isGoal(event) && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-600">Прогресс:</span>
-                    <Badge variant="secondary">{event.progress}%</Badge>
-                  </div>
-                )}
-
-                <div className="flex gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onEventClick(event)}
+              {pastItems.length > 0 && (
+                <div className="pt-1">
+                  <button
+                    onClick={() => setShowPast(v => !v)}
+                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <Icon name="Eye" size={14} className="mr-1" />
-                    Просмотр
-                  </Button>
-                  {isEvent(event) && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onEventEdit(event)}
-                      >
-                        <Icon name="Pencil" size={14} className="mr-1" />
-                        Изменить
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => onEventDelete(event.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Icon name="Trash2" size={14} className="mr-1" />
-                        Удалить
-                      </Button>
-                    </>
+                    <Icon name={showPast ? 'ChevronUp' : 'ChevronDown'} size={14} />
+                    {showPast ? 'Скрыть прошедшие' : `Показать прошедшие (${pastItems.length})`}
+                  </button>
+                  {showPast && (
+                    <div className="space-y-3 mt-3 opacity-60">
+                      {pastItems.map((event, idx) => renderEventItem(event, idx))}
+                    </div>
                   )}
                 </div>
-              </div>
-            ))
+              )}
+            </>
           )}
         </div>
       </DialogContent>
