@@ -4,9 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import ImageLightbox from '@/components/ImageLightbox';
+import { useToast } from '@/hooks/use-toast';
+import { useCreateRecipe } from '@/hooks/useRecipes';
+import type { RecipeCategory } from '@/types/recipe.types';
 
 const DIET_PLAN_API_URL = 'https://functions.poehali.dev/18a28f19-8a37-4b2f-8434-ed8b1365f97a';
 const SHOPPING_API_URL = 'https://functions.poehali.dev/3f85241b-6c17-4d3d-a5f2-99b3af90af1b';
+
+const MEAL_TYPE_TO_CATEGORY: Record<string, RecipeCategory> = {
+  breakfast: 'breakfast',
+  lunch: 'main',
+  dinner: 'main',
+};
 
 interface MealPlan {
   id: string;
@@ -46,6 +55,8 @@ interface MealCardProps {
 }
 
 export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
+  const { toast } = useToast();
+  const createRecipe = useCreateRecipe();
   const [expanded, setExpanded] = useState(false);
   const [recipe, setRecipe] = useState<string[] | null>(null);
   const [loadingRecipe, setLoadingRecipe] = useState(false);
@@ -55,6 +66,7 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
   const [addedToShopping, setAddedToShopping] = useState(false);
   const [addingShopping, setAddingShopping] = useState(false);
   const [shoppingCount, setShoppingCount] = useState(0);
+  const [savedRecipe, setSavedRecipe] = useState(false);
 
   const bgColor = MEAL_TYPE_BG[meal.mealType] || 'bg-gray-100';
 
@@ -204,6 +216,65 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
     }
   };
 
+  const saveToRecipes = async () => {
+    if (savedRecipe || createRecipe.isPending) return;
+
+    let steps = recipe;
+    if (!steps) {
+      setLoadingRecipe(true);
+      try {
+        const authToken = localStorage.getItem('authToken') || '';
+        const res = await fetch(DIET_PLAN_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
+          body: JSON.stringify({ action: 'recipe', dishName: meal.dishName, ingredients: [] }),
+        });
+        if (res.status === 402) {
+          toast({ title: 'Недостаточно средств', description: 'Пополните кошелёк для генерации рецепта', variant: 'destructive' });
+          return;
+        }
+        const data = await res.json();
+        if (data.status === 'started' && data.operationId) {
+          steps = await pollResult(data.operationId, 'check_recipe', 'recipe') as string[] | null;
+        } else if (data.recipe) {
+          steps = data.recipe;
+        }
+        if (steps) setRecipe(steps);
+      } catch {
+        toast({ title: 'Ошибка', description: 'Не удалось получить рецепт', variant: 'destructive' });
+        return;
+      } finally {
+        setLoadingRecipe(false);
+      }
+    }
+
+    if (!steps || steps.length === 0) {
+      toast({ title: 'Ошибка', description: 'Рецепт ещё не готов, попробуйте ещё раз', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      const result = await createRecipe.mutateAsync({
+        name: meal.dishName,
+        description: meal.description || '',
+        category: MEAL_TYPE_TO_CATEGORY[meal.mealType] || 'other',
+        cuisine: 'russian',
+        servings: 1,
+        ingredients: (meal.ingredients || []).join('\n'),
+        instructions: steps.join('\n'),
+        image_url: photoUrl || undefined,
+      });
+      if (result?.success) {
+        setSavedRecipe(true);
+        toast({ title: 'Сохранено', description: 'Рецепт добавлен в раздел "Рецепты"' });
+      } else {
+        toast({ title: 'Ошибка', description: result?.error || 'Не удалось сохранить рецепт', variant: 'destructive' });
+      }
+    } catch {
+      toast({ title: 'Ошибка', description: 'Не удалось сохранить рецепт', variant: 'destructive' });
+    }
+  };
+
   return (
     <>
       <Card className="overflow-hidden">
@@ -328,6 +399,19 @@ export function MealCard({ meal, onEdit, onDelete }: MealCardProps) {
                     <><div className="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-1" />Добавляю...</>
                   ) : (
                     <><Icon name={addedToShopping ? 'Check' : 'ShoppingCart'} size={14} className="mr-1" />{addedToShopping ? `${shoppingCount} продуктов` : 'В покупки'}</>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={`text-xs h-8 ${savedRecipe ? 'text-green-600 border-green-300 bg-green-50' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); saveToRecipes(); }}
+                  disabled={savedRecipe || createRecipe.isPending || loadingRecipe}
+                >
+                  {createRecipe.isPending ? (
+                    <><div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mr-1" />Сохраняю...</>
+                  ) : (
+                    <><Icon name={savedRecipe ? 'Check' : 'BookmarkPlus'} size={14} className="mr-1" />{savedRecipe ? 'В рецептах' : 'Сохранить рецепт'}</>
                   )}
                 </Button>
                 <Button
