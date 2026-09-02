@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const CALENDAR_AI_URL = 'https://functions.poehali.dev/69dba587-f145-4cdc-bba4-3c78ae65fcb5';
 
@@ -31,6 +32,7 @@ const EVENT_CATEGORIES = [
 ];
 
 export function CalendarAI({ onAddEvent }: CalendarAIProps) {
+  const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<AIEventRecommendation[]>([]);
@@ -49,9 +51,10 @@ export function CalendarAI({ onAddEvent }: CalendarAIProps) {
   const handleGetRecommendations = async () => {
     setLoading(true);
     try {
+      const authToken = localStorage.getItem('authToken') || '';
       const response = await fetch(CALENDAR_AI_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': authToken },
         body: JSON.stringify({
           action: 'recommend',
           city,
@@ -61,10 +64,26 @@ export function CalendarAI({ onAddEvent }: CalendarAIProps) {
       });
 
       const data = await response.json();
+
+      if (response.status === 401) {
+        toast({ title: 'Требуется вход', description: 'Войдите в аккаунт, чтобы получить рекомендации', variant: 'destructive' });
+        return;
+      }
+
+      if (response.status === 402) {
+        toast({ title: 'Недостаточно средств', description: data.message || 'Пополните кошелёк семьи', variant: 'destructive' });
+        return;
+      }
+
+      if (!response.ok) {
+        toast({ title: 'Ошибка', description: data.error || 'Не удалось получить рекомендации', variant: 'destructive' });
+        return;
+      }
+
       setRecommendations(data.recommendations || []);
     } catch (error) {
       console.error('Error getting AI recommendations:', error);
-      alert('Ошибка при получении рекомендаций');
+      toast({ title: 'Ошибка', description: 'Не удалось получить рекомендации. Проверьте подключение к интернету', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
