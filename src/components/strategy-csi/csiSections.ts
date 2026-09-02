@@ -18,6 +18,5 @@ export const CSI_SECTIONS: CsiSection[] = [
   { id: 'csi-6', label: 'Честная граница текущего продукта', short: 'Границы' },
   { id: 'csi-7', label: 'Что даст пилот', short: 'Польза' },
   { id: 'csi-8', label: 'Измеримый результат и следующий шаг', short: 'Дальше' },
-  { id: 'csi-9', label: 'Если гипотеза подтвердится', short: 'Прил. 1', appendix: true },
-  { id: 'csi-10', label: 'Вопросы к Спартаку', short: 'Прил. 2', appendix: true },
+  { id: 'csi-9', label: 'Если гипотеза подтвердится', short: 'Приложение', appendix: true },
 ];
