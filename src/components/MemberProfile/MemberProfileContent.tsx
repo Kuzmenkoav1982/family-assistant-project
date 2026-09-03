@@ -78,11 +78,11 @@ export function MemberProfileContent({
   return (
     <Card className="border-2 shadow-xl bg-white/80 backdrop-blur">
       <CardHeader className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="relative shrink-0">
               {member.photoUrl ? (
-                <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
                   <img 
                     src={member.photoUrl} 
                     alt={member.name}
@@ -90,41 +90,41 @@ export function MemberProfileContent({
                   />
                 </div>
               ) : (
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-4xl border-4 border-white shadow-lg">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-3xl sm:text-4xl border-4 border-white shadow-lg">
                   {member.avatarType === 'emoji' && member.avatar && !member.avatar.startsWith('http') ? member.avatar : '👤'}
                 </div>
               )}
-              <Badge className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-2 border-white">
+              <Badge className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white border-2 border-white text-[10px] sm:text-xs px-1.5">
                 Ур. {member.level}
               </Badge>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle className="text-xl sm:text-3xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
                   {member.name}
                 </CardTitle>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-7 px-2 text-xs border-purple-200 text-purple-600 hover:bg-purple-50"
+                  className="h-7 px-2 text-xs border-purple-200 text-purple-600 hover:bg-purple-50 shrink-0"
                   onClick={() => setActiveTab('edit')}
                 >
                   <Icon name="Pencil" size={12} className="mr-1" />
                   Изменить
                 </Button>
               </div>
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 flex-wrap">
                 <Badge variant="secondary">{member.role}</Badge>
                 {member.age && <Badge variant="outline">{member.age} лет</Badge>}
               </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="flex items-center gap-2 text-2xl font-bold text-purple-600">
-              <Icon name="Star" className="text-yellow-500" fill="currentColor" />
+          <div className="text-right shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 text-lg sm:text-2xl font-bold text-purple-600">
+              <Icon name="Star" className="text-yellow-500" fill="currentColor" size={20} />
               {member.points}
             </div>
-            <p className="text-sm text-muted-foreground">баллов</p>
+            <p className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">баллов</p>
           </div>
         </div>
 
