@@ -122,10 +122,18 @@ export default function TodayTabContent({
   const greeting = getGreeting();
   const dateStr = formatDate();
 
-  const renderCalendarEventCard = (event: CalendarEvent) => (
+  const renderCalendarEventCard = (event: CalendarEvent) => {
+    const memberId = event.childId || event.assignedTo;
+    const eventMember = memberId && memberId !== 'all' ? getMemberById(memberId) : undefined;
+    const borderStyle = eventMember?.member_color ? { borderLeftColor: eventMember.member_color } : undefined;
+
+    return (
     <div
       key={event.id}
-      className={`p-3 rounded-lg border-l-4 bg-gray-50 ${CATEGORY_COLORS[event.category] || 'border-l-gray-300'}`}
+      className={`p-3 rounded-lg border-l-4 bg-gray-50 ${
+        borderStyle ? '' : CATEGORY_COLORS[event.category] || 'border-l-gray-300'
+      }`}
+      style={borderStyle}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -144,6 +152,15 @@ export default function TodayTabContent({
           <Badge variant="outline" className="text-xs">
             {CATEGORY_LABELS[event.category] || event.category}
           </Badge>
+          {eventMember && (
+            <Badge
+              variant="outline"
+              className="text-xs"
+              style={{ borderColor: eventMember.member_color, color: eventMember.member_color }}
+            >
+              {eventMember.name}
+            </Badge>
+          )}
         </div>
       </div>
       {event.attendees && event.attendees.length > 0 && (
@@ -166,7 +183,8 @@ export default function TodayTabContent({
         </div>
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <TabsContent value="today" className="space-y-4 mt-0">
