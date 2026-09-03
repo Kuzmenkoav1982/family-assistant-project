@@ -28,6 +28,7 @@ export interface FamilyMember {
   photo_url?: string;
   photoUrl?: string;
   avatarType?: string;
+  member_color?: string;
   account_type?: 'full' | 'child_profile';
   points: number;
   level: number;

@@ -12,6 +12,7 @@ interface FamilyMember {
   avatar: string;
   avatar_type: string;
   photo_url?: string;
+  member_color?: string;
   points: number;
   level: number;
   workload: number;

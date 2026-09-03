@@ -62,9 +62,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif action == 'add_child_event':
             result = add_child_event(conn, family_id, child_id, body.get('event', {}))
         elif action == 'update_child_event':
-            result = update_child_event(conn, body.get('eventId'), body.get('event', {}))
+            result = update_child_event(conn, family_id, body.get('eventId'), body.get('event', {}))
         elif action == 'delete_child_event':
-            result = delete_child_event(conn, body.get('eventId'))
+            result = delete_child_event(conn, family_id, body.get('eventId'))
         else:
             conn.close()
             return error_response(f'Unknown action: {action}', 400)
@@ -158,8 +158,8 @@ def add_child_event(conn, family_id: str, child_id: str, event_data: Dict) -> Di
     return {'success': True, 'eventId': result['id'], 'message': 'Event added successfully'}
 
 
-def update_child_event(conn, event_id: str, event_data: Dict) -> Dict:
-    """Обновить событие в календаре"""
+def update_child_event(conn, family_id: str, event_id: str, event_data: Dict) -> Dict:
+    """Обновить событие в календаре (только внутри своей семьи)"""
     cursor = conn.cursor()
     
     fields = []
@@ -200,11 +200,12 @@ def update_child_event(conn, event_id: str, event_data: Dict) -> Dict:
     
     fields.append('updated_at = NOW()')
     values.append(event_id)
+    values.append(family_id)
     
     query = f"""
         UPDATE t_p5815085_family_assistant_pro.calendar_events
         SET {', '.join(fields)}
-        WHERE id = %s
+        WHERE id = %s AND family_id = %s
     """
     
     cursor.execute(query, values)
@@ -214,14 +215,14 @@ def update_child_event(conn, event_id: str, event_data: Dict) -> Dict:
     return {'success': True, 'message': 'Event updated successfully'}
 
 
-def delete_child_event(conn, event_id: str) -> Dict:
-    """Удалить событие из календаря"""
+def delete_child_event(conn, family_id: str, event_id: str) -> Dict:
+    """Удалить событие из календаря (только внутри своей семьи)"""
     cursor = conn.cursor()
     
     cursor.execute("""
         DELETE FROM t_p5815085_family_assistant_pro.calendar_events
-        WHERE id = %s
-    """, (event_id,))
+        WHERE id = %s AND family_id = %s
+    """, (event_id, family_id))
     
     conn.commit()
     cursor.close()

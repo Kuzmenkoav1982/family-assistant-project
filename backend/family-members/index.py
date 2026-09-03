@@ -71,7 +71,7 @@ def get_family_members(family_id: str) -> List[Dict[str, Any]]:
     query = f"""
         SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
                photo_url, points, level, workload, age, birth_date, birth_time, 
-               account_type, permissions, access_role, profile_data,
+               account_type, permissions, access_role, profile_data, member_color,
                tree_node_id, created_at, updated_at
         FROM {SCHEMA}.family_members
         WHERE family_id::text = {escape_string(family_id)}
@@ -147,7 +147,7 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
         query = f"""
             INSERT INTO {SCHEMA}.family_members
             (family_id, name, role, relationship, avatar, avatar_type, 
-             photo_url, points, level, workload, age, account_type, tree_node_id)
+             photo_url, points, level, workload, age, account_type, tree_node_id, member_color)
             VALUES (
                 {escape_string(family_id)},
                 {escape_string(data.get('name', ''))},
@@ -161,9 +161,10 @@ def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 {escape_string(data.get('workload', 0))},
                 {escape_string(data.get('age'))},
                 {escape_string(account_type)},
-                {tree_node_sql}
+                {tree_node_sql},
+                {escape_string(data.get('member_color'))}
             )
-            RETURNING id, name, role, relationship, avatar, points, level, workload, account_type, tree_node_id
+            RETURNING id, name, role, relationship, avatar, points, level, workload, account_type, tree_node_id, member_color
         """
         cur.execute(query)
         member = dict(cur.fetchone())
@@ -240,7 +241,8 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], r
         
         fields = []
         for field in ['name', 'role', 'relationship', 'avatar', 'avatar_type', 
-                      'photo_url', 'points', 'level', 'workload', 'age', 'account_type']:
+                      'photo_url', 'points', 'level', 'workload', 'age', 'account_type',
+                      'member_color']:
             if field in data:
                 fields.append(f"{field} = {escape_string(data[field])}")
 
@@ -298,7 +300,7 @@ def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], r
             UPDATE {SCHEMA}.family_members 
             SET {', '.join(fields)}
             WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}
-            RETURNING id, name, role, relationship, avatar, points, level, workload, birth_date, birth_time, account_type, access_role, permissions, profile_data
+            RETURNING id, name, role, relationship, avatar, points, level, workload, birth_date, birth_time, account_type, access_role, permissions, profile_data, member_color
         """
         
         cur.execute(query)

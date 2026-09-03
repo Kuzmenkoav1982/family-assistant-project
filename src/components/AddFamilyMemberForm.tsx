@@ -13,6 +13,11 @@ interface AddFamilyMemberFormProps {
   isChild?: boolean;
 }
 
+const memberColorPalette = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e',
+  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+];
+
 export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }: AddFamilyMemberFormProps) {
   const [formData, setFormData] = useState({
     name: editingMember?.name || '',
@@ -25,6 +30,7 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
     favorites: editingMember?.foodPreferences?.favorites?.join(', ') || '',
     dislikes: editingMember?.foodPreferences?.dislikes?.join(', ') || '',
     responsibilities: editingMember?.responsibilities?.join(', ') || '',
+    memberColor: editingMember?.member_color || memberColorPalette[0],
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState(editingMember?.avatar || '👤');
@@ -73,6 +79,7 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
         dislikes: formData.dislikes.split(',').map(s => s.trim()).filter(Boolean),
       },
       responsibilities: formData.responsibilities.split(',').map(s => s.trim()).filter(Boolean),
+      member_color: formData.memberColor,
     };
 
     setSubmitting(true);
@@ -225,6 +232,42 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
               </div>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="border-t pt-4">
+        <label className="block text-sm font-medium mb-2">Цвет в календаре</label>
+        <p className="text-xs text-muted-foreground mb-3">
+          События этого человека будут показываться этим цветом
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          {memberColorPalette.map((color) => (
+            <button
+              key={color}
+              type="button"
+              className={`w-8 h-8 rounded-full border-2 transition-all ${
+                formData.memberColor === color ? 'border-gray-900 scale-110' : 'border-gray-300'
+              }`}
+              style={{ backgroundColor: color }}
+              onClick={() => setFormData({ ...formData, memberColor: color })}
+              aria-label={`Выбрать цвет ${color}`}
+            />
+          ))}
+          <label
+            className="relative w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden shrink-0"
+            style={!memberColorPalette.includes(formData.memberColor) ? { backgroundColor: formData.memberColor, borderStyle: 'solid', borderColor: '#111827' } : undefined}
+            title="Выбрать свой цвет"
+          >
+            {memberColorPalette.includes(formData.memberColor) && (
+              <Icon name="Plus" size={14} className="text-gray-500" />
+            )}
+            <input
+              type="color"
+              value={formData.memberColor}
+              onChange={(e) => setFormData({ ...formData, memberColor: e.target.value })}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </label>
         </div>
       </div>
 

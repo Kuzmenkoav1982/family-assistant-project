@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
 import { isEventPastToday } from '@/utils/eventTime';
 
@@ -26,6 +27,7 @@ export function DayEventsDialog({
   onEventDelete
 }: DayEventsDialogProps) {
   const [showPast, setShowPast] = useState(false);
+  const { members } = useFamilyMembersContext();
 
   if (!selectedDate) return null;
 
@@ -39,6 +41,13 @@ export function DayEventsDialog({
 
   const isGoal = (item: CalendarEvent | Task | FamilyGoal): item is FamilyGoal => {
     return 'progress' in item;
+  };
+
+  const getMemberForEvent = (event: CalendarEvent | Task | FamilyGoal) => {
+    if (!isEvent(event)) return undefined;
+    const memberId = event.childId || event.assignedTo;
+    if (!memberId || memberId === 'all') return undefined;
+    return members.find(m => m.id === memberId);
   };
 
   const getEventTypeLabel = (event: CalendarEvent | Task | FamilyGoal): string => {
@@ -95,26 +104,37 @@ export function DayEventsDialog({
   const upcomingItems = events.filter(item => !isPast(item));
   const pastItems = events.filter(isPast);
 
-  const renderEventItem = (event: CalendarEvent | Task | FamilyGoal, idx: number) => (
+  const renderEventItem = (event: CalendarEvent | Task | FamilyGoal, idx: number) => {
+    const member = getMemberForEvent(event);
+    return (
     <div
       key={idx}
       className="p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+      style={member?.member_color ? { borderLeft: `4px solid ${member.member_color}` } : undefined}
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <Icon name={getEventTypeIcon(event) as any} size={16} />
+            <Icon name={getEventTypeIcon(event)} size={16} />
             <h4 className="font-semibold">{event.title}</h4>
           </div>
           {isEvent(event) && event.description && (
             <p className="text-sm text-gray-600">{event.description}</p>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
           <Badge variant="outline">{getEventTypeLabel(event)}</Badge>
           {isEvent(event) && (
             <Badge className={getCategoryColor(event.category)}>
               {getCategoryLabel(event.category)}
+            </Badge>
+          )}
+          {member && (
+            <Badge
+              variant="outline"
+              style={{ borderColor: member.member_color, color: member.member_color }}
+            >
+              {member.name}
             </Badge>
           )}
         </div>
@@ -179,7 +199,8 @@ export function DayEventsDialog({
         )}
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

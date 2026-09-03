@@ -190,6 +190,19 @@ export function EventDialog({
                 ))}
               </SelectContent>
             </Select>
+            {(() => {
+              const assignedMember = members.find(m => m.id === newEvent.assignedTo);
+              if (!assignedMember?.member_color) return null;
+              return (
+                <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: assignedMember.member_color }}
+                  />
+                  В календаре событие будет показано цветом {assignedMember.name}
+                </p>
+              );
+            })()}
           </div>
 
           <div>

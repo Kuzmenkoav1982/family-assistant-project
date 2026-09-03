@@ -2,7 +2,17 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import Icon from '@/components/ui/icon';
+import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
 import type { CalendarEvent, Task, FamilyGoal } from '@/types/family.types';
+
+const categoryIcons: Record<string, string> = {
+  personal: 'User',
+  family: 'Home',
+  work: 'Briefcase',
+  health: 'HeartPulse',
+  education: 'GraduationCap',
+  leisure: 'Smile',
+};
 
 type ViewMode = 'month' | 'week';
 
@@ -33,6 +43,7 @@ export function CalendarGrid({
   onEventDelete,
   onCreateEvent
 }: CalendarGridProps) {
+  const { members } = useFamilyMembersContext();
   const now = new Date();
   const todayYear = now.getFullYear();
   const todayMonth = now.getMonth();
@@ -50,8 +61,17 @@ export function CalendarGrid({
     return 'progress' in item;
   };
 
+  // Цвет карточки: приоритет — персональный цвет члена семьи (assignedTo/childId),
+  // иначе цвет категории события.
   const getEventColor = (event: CalendarEvent | Task | FamilyGoal): string => {
-    if (isEvent(event)) return event.color;
+    if (isEvent(event)) {
+      const memberId = event.childId || event.assignedTo;
+      if (memberId && memberId !== 'all') {
+        const member = members.find(m => m.id === memberId);
+        if (member?.member_color) return member.member_color;
+      }
+      return event.color;
+    }
     if (isTask(event)) return '#f59e0b';
     if (isGoal(event)) return '#8b5cf6';
     return '#3b82f6';
@@ -60,6 +80,10 @@ export function CalendarGrid({
   const getEventIcon = (event: CalendarEvent | Task | FamilyGoal) => {
     if (isTask(event)) return <Icon name="ListChecks" size={12} />;
     if (isGoal(event)) return <Icon name="Target" size={12} />;
+    if (isEvent(event)) {
+      const iconName = categoryIcons[event.category];
+      if (iconName) return <Icon name={iconName} size={12} />;
+    }
     return null;
   };
 
