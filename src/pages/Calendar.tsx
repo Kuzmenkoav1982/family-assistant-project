@@ -374,7 +374,10 @@ export default function Calendar() {
   };
 
   const handleToday = () => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    setCurrentDate(today);
+    setSelectedDate(today);
+    setShowDayEventsDialog(true);
   };
 
   const handleAddEvent = () => {
