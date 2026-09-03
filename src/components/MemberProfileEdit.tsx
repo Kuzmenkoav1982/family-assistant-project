@@ -10,6 +10,11 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { ImageCropDialog } from '@/components/ImageCropDialog';
 import type { FamilyMember } from '@/types/family.types';
 
+const memberColorPalette = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e',
+  '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+];
+
 interface MemberProfileEditProps {
   member: FamilyMember;
   onSave: (updates: Partial<FamilyMember>) => Promise<void>;
@@ -19,6 +24,7 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
   const [saving, setSaving] = useState(false);
   const [avatarType, setAvatarType] = useState<'emoji' | 'photo'>(member.photoUrl ? 'photo' : 'emoji');
   const [photoUrl, setPhotoUrl] = useState(member.photoUrl || '');
+  const [memberColor, setMemberColor] = useState(member.member_color || memberColorPalette[0]);
   const { upload, uploading: uploadingPhoto } = useFileUpload();
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState('');
@@ -119,6 +125,7 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
         avatar: formData.avatar,
         avatarType: avatarType,
         photoUrl: avatarType === 'photo' ? photoUrl : undefined,
+        member_color: memberColor,
         // Эти данные будут сохранены в profile_data на бэкенде
         foodPreferences: {
           favorites: formData.favorites.split(',').map(s => s.trim()).filter(Boolean),
@@ -373,6 +380,40 @@ export function MemberProfileEdit({ member, onSave }: MemberProfileEditProps) {
                   </div>
                 </div>
               )}
+            </div>
+
+            <div className="md:col-span-2 space-y-2">
+              <Label>Цвет в календаре</Label>
+              <p className="text-xs text-gray-500">События этого человека будут показываться этим цветом</p>
+              <div className="flex flex-wrap items-center gap-2">
+                {memberColorPalette.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      memberColor === color ? 'border-gray-900 scale-110' : 'border-gray-300'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setMemberColor(color)}
+                    aria-label={`Выбрать цвет ${color}`}
+                  />
+                ))}
+                <label
+                  className="relative w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden shrink-0"
+                  style={{ backgroundColor: memberColorPalette.includes(memberColor) ? undefined : memberColor }}
+                  title="Выбрать свой цвет"
+                >
+                  {memberColorPalette.includes(memberColor) && (
+                    <Icon name="Plus" size={16} className="text-gray-500" />
+                  )}
+                  <input
+                    type="color"
+                    value={memberColor}
+                    onChange={(e) => setMemberColor(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </label>
+              </div>
             </div>
           </div>
         </CardContent>
