@@ -11,8 +11,8 @@ export default function CsiAnchorNav({ activeId }: CsiAnchorNavProps) {
       className="sticky top-14 z-40 bg-[#fdfbf7]/90 backdrop-blur-md border-b border-amber-900/10 -mx-3 sm:-mx-6 px-3 sm:px-6 py-2 mb-6 relative"
     >
       <div
-        className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar pr-6"
-        style={{ scrollPaddingRight: '1.5rem' }}
+        className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar pr-16 sm:pr-20"
+        style={{ scrollPaddingRight: '5rem' }}
       >
         {CSI_SECTIONS.map((it) => {
           const isActive = activeId === it.id;
@@ -35,7 +35,7 @@ export default function CsiAnchorNav({ activeId }: CsiAnchorNavProps) {
       </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 right-0 h-full w-6 bg-gradient-to-l from-[#fdfbf7]/90 to-transparent"
+        className="pointer-events-none absolute top-0 right-0 h-full w-16 sm:w-20 bg-gradient-to-l from-[#fdfbf7]/95 to-transparent"
       />
     </div>
   );

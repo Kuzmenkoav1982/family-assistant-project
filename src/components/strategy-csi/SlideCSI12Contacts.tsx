@@ -27,7 +27,7 @@ export default function SlideCSI12Contacts() {
         <img
           src={LOGO_URL}
           alt="Наша Семья"
-          className="w-20 h-20 rounded-2xl shadow-sm object-cover"
+          className="w-20 h-20"
         />
         <div>
           <div className="text-lg font-bold text-stone-900">Алексей Кузьменко</div>

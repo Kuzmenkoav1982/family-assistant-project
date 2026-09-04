@@ -47,7 +47,7 @@ export default function SlideCSI02SharedMission() {
 
         <div className="bg-white/70 border border-amber-900/10 rounded-xl p-5">
           <div className="flex items-center gap-2.5 mb-4">
-            <img src={NS_LOGO_URL} alt="Наша Семья" className="w-9 h-9 rounded-lg shadow-sm" />
+            <img src={NS_LOGO_URL} alt="Наша Семья" className="w-9 h-9" />
             <span className="text-sm font-semibold text-stone-700 uppercase tracking-wider">
               «Наша Семья»
             </span>
