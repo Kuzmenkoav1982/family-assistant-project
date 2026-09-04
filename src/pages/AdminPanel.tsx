@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import func2url from '@/../backend/func2url.json';
 import AdminRatingCampaigns from '@/components/admin/AdminRatingCampaigns';
 import AdminReferralProgram from '@/components/admin/AdminReferralProgram';
+import NetworkFunctionsTab from '@/components/admin/panel/NetworkFunctionsTab';
 import { adminFetch } from '@/lib/adminFetch';
 import { parseUtcDate } from '@/lib/parseUtcDate';
 
@@ -168,6 +169,7 @@ export default function AdminPanel() {
             <TabsTrigger value="tickets" className="text-xs md:text-sm px-2 py-1.5">Тикеты</TabsTrigger>
             <TabsTrigger value="top" className="text-xs md:text-sm px-2 py-1.5">Топ семей</TabsTrigger>
             <TabsTrigger value="flags" className="text-xs md:text-sm px-2 py-1.5">Фич-флаги</TabsTrigger>
+            <TabsTrigger value="network" className="text-xs md:text-sm px-2 py-1.5">Сетевые функции</TabsTrigger>
             <TabsTrigger value="campaigns" className="text-xs md:text-sm px-2 py-1.5">Рейтинги и акции</TabsTrigger>
             <TabsTrigger value="referrals" className="text-xs md:text-sm px-2 py-1.5">Реферальная программа</TabsTrigger>
             <TabsTrigger value="hubs" className="text-xs md:text-sm px-2 py-1.5">Хабы</TabsTrigger>
@@ -201,6 +203,9 @@ export default function AdminPanel() {
           </TabsContent>
           <TabsContent value="flags" className="mt-4">
             <FlagsTab toast={toast} />
+          </TabsContent>
+          <TabsContent value="network" className="mt-4">
+            <NetworkFunctionsTab />
           </TabsContent>
           <TabsContent value="campaigns" className="mt-4">
             <AdminRatingCampaigns />

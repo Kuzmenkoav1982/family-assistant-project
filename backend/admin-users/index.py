@@ -14,6 +14,7 @@
 - tickets      — обращения пользователей (feedback)
 - top          — топ активных семей
 - flags        — фич-тумблеры (GET, POST)
+- network_functions — каталог сетевых функций семьи с описанием, критичностью и статистикой (GET)
 """
 
 import json
@@ -610,6 +611,230 @@ def flags_set(data):
     return result
 
 
+# ===== NETWORK FUNCTIONS (каталог сетевых функций семьи) =====
+NETWORK_FUNCTIONS_CATALOG = [
+    {
+        'key': 'family_tracker_enabled',
+        'name': 'Геолокация семьи',
+        'category': 'Безопасность и семья',
+        'purpose': 'Показывает на карте местоположение членов семьи в реальном времени, шлёт алерты при входе/выходе из заданных геозон (дом, школа).',
+        'criticality': 'high',
+        'affects': 'Виджет карты на главной, вкладка "Трекер", геозоны и уведомления о прибытии/уходе.',
+        'capabilities': ['Семейный трекер', 'Геозоны', 'Push о прибытии домой'],
+        'usage_query': ('family_location_tracking', 'записей координат за всё время'),
+    },
+    {
+        'key': 'family_chat_enabled',
+        'name': 'Семейный чат',
+        'category': 'Коммуникация',
+        'purpose': 'Внутренний чат семьи с сообщениями и реакциями — основной канал общения внутри приложения.',
+        'criticality': 'high',
+        'affects': 'Раздел "Чат", уведомления о новых сообщениях, счётчик непрочитанных.',
+        'capabilities': ['Семейный чат', 'Реакции на сообщения'],
+        'usage_query': ('family_chat_messages', 'сообщений отправлено'),
+    },
+    {
+        'key': 'push_notifications_enabled',
+        'name': 'Push-уведомления',
+        'category': 'Коммуникация',
+        'purpose': 'Доставка push-уведомлений в браузер/на телефон: напоминания о задачах, событиях, геозонах, сообщениях.',
+        'criticality': 'high',
+        'affects': 'Все сценарии напоминаний и алертов по всему приложению.',
+        'capabilities': ['Напоминания о задачах', 'Уведомления о событиях', 'Алерты геозон'],
+        'usage_query': ('push_subscriptions', 'активных подписок на устройствах'),
+    },
+    {
+        'key': 'ai_assistant_enabled',
+        'name': 'ИИ-помощник «Домовой»',
+        'category': 'ИИ и автоматизация',
+        'purpose': 'Диалоговый ассистент семьи: советы по быту, ответы на вопросы, рекомендации по расписанию и питанию.',
+        'criticality': 'medium',
+        'affects': 'Кнопка "Домовой" в шапке, чат с ассистентом, ИИ-рекомендации в разных разделах.',
+        'capabilities': ['Чат с Домовым', 'ИИ-рекомендации', 'Голосовые команды'],
+        'usage_query': ('ai_assistant_messages', 'сообщений в диалогах с ИИ'),
+    },
+    {
+        'key': 'alice_skill_enabled',
+        'name': 'Навык Яндекс.Алисы',
+        'category': 'Интеграции',
+        'purpose': 'Голосовое управление через колонку/приложение Алиса — добавление задач, чтение календаря голосом.',
+        'criticality': 'low',
+        'affects': 'Внешний навык Алисы, привязка аккаунта через /admin/alice.',
+        'capabilities': ['Голосовые команды через Алису'],
+        'usage_query': ('alice_commands_log', 'голосовых команд выполнено'),
+    },
+    {
+        'key': 'max_bot_enabled',
+        'name': 'Бот в MAX',
+        'category': 'Интеграции',
+        'purpose': 'Бот в мессенджере MAX для получения уведомлений и быстрых действий без захода в приложение.',
+        'criticality': 'low',
+        'affects': 'Обработка вебхуков MAX, отправка уведомлений в мессенджер.',
+        'capabilities': ['Уведомления в MAX', 'Быстрые команды боту'],
+        'usage_query': ('max_webhook_log', 'вебхуков обработано'),
+    },
+    {
+        'key': 'payments_enabled',
+        'name': 'Приём платежей',
+        'category': 'Монетизация',
+        'purpose': 'Приём оплаты подписок через ЮKassa/СБП/Т-Банк — основа платной модели.',
+        'criticality': 'critical',
+        'affects': 'Оформление и продление подписок, кнопки оплаты во всём приложении.',
+        'capabilities': ['Оплата подписки', 'Автопродление', 'История платежей'],
+        'usage_query': ('payments', 'платежей проведено'),
+    },
+    {
+        'key': 'referral_program_enabled',
+        'name': 'Реферальная программа',
+        'category': 'Монетизация',
+        'purpose': 'Приглашение друзей по реферальному коду с начислением бонусов пригласившему и другу.',
+        'criticality': 'low',
+        'affects': 'Раздел "Пригласить друзей", начисление бонусов на кошелёк.',
+        'capabilities': ['Реферальные коды', 'Бонусы за приглашения'],
+        'usage_query': ('referral_invites', 'приглашений отправлено'),
+    },
+    {
+        'key': 'rating_campaigns_enabled',
+        'name': 'Рейтинги и акции',
+        'category': 'Вовлечение',
+        'purpose': 'Соревнования между семьями, лидерборды, сезонные акции с призами за активность.',
+        'criticality': 'medium',
+        'affects': 'Раздел "Топ семей", баннеры акций, начисление призов.',
+        'capabilities': ['Топ семей', 'Сезонные акции', 'Призы за активность'],
+        'usage_query': ('rating_campaigns', 'активных кампаний'),
+    },
+    {
+        'key': 'telemedicine_enabled',
+        'name': 'Телемедицина',
+        'category': 'Здоровье',
+        'purpose': 'Онлайн-консультации с врачами прямо из раздела "Здоровье".',
+        'criticality': 'low',
+        'affects': 'Кнопка "Врач онлайн" в разделе здоровья.',
+        'capabilities': ['Онлайн-консультация с врачом'],
+        'usage_query': ('telemedicine_sessions', 'сессий проведено'),
+    },
+    {
+        'key': 'data_export_enabled',
+        'name': 'Экспорт персональных данных',
+        'category': 'Безопасность и соответствие',
+        'purpose': 'Выгрузка всех данных пользователя по требованию (152-ФЗ/GDPR) — юридически обязательная функция.',
+        'criticality': 'critical',
+        'affects': 'Кнопка "Скачать мои данные" в настройках профиля.',
+        'capabilities': ['Экспорт данных пользователя'],
+        'usage_query': ('security_audit_log', 'запросов на экспорт (лог аудита)'),
+    },
+    {
+        'key': 'oauth_login_enabled',
+        'name': 'Вход через OAuth',
+        'category': 'Безопасность и соответствие',
+        'purpose': 'Быстрый вход/регистрация через внешние провайдеры (Яндекс и др.) без пароля.',
+        'criticality': 'medium',
+        'affects': 'Кнопки "Войти через..." на странице входа и регистрации.',
+        'capabilities': ['Вход через Яндекс ID'],
+        'usage_query': ('users', 'пользователей всего (учёт по базе)'),
+    },
+    {
+        'key': 'analytics_tracking_enabled',
+        'name': 'Сбор аналитики',
+        'category': 'Аналитика',
+        'purpose': 'Фиксирует просмотры страниц и продуктовые события — основа отчётов в /admin/traffic и воронки.',
+        'criticality': 'medium',
+        'affects': 'Дашборды "Посещаемость", "Воронка", "Топ семей".',
+        'capabilities': ['Отчёты по трафику', 'Воронка регистрации'],
+        'usage_query': ('page_views', 'просмотров страниц зафиксировано'),
+    },
+    {
+        'key': 'registration_enabled',
+        'name': 'Регистрация новых пользователей',
+        'category': 'Доступ',
+        'purpose': 'Разрешает создание новых аккаунтов. Аварийный рубильник для остановки притока новых пользователей.',
+        'criticality': 'critical',
+        'affects': 'Страница /register и вход по телефону/почте для новых пользователей.',
+        'capabilities': ['Регистрация аккаунта'],
+        'usage_query': ('users', 'пользователей зарегистрировано всего'),
+    },
+    {
+        'key': 'broadcast_banner',
+        'name': 'Баннер-объявление на главной',
+        'category': 'Коммуникация',
+        'purpose': 'Показ информационного баннера всем семьям на главном экране (акции, технические работы).',
+        'criticality': 'low',
+        'affects': 'Верх главной страницы приложения.',
+        'capabilities': ['Баннер на главной'],
+        'usage_query': ('status_banners', 'баннеров создано'),
+    },
+    {
+        'key': 'portfolio_compare_enabled',
+        'name': 'Сравнение профилей в портфолио',
+        'category': 'Развитие детей',
+        'purpose': 'Позволяет взрослым сравнивать профили развития разных детей семьи в одном окне.',
+        'criticality': 'low',
+        'affects': 'Кнопка "Семейный обзор" на странице портфолио.',
+        'capabilities': ['Семейное портфолио: сравнение'],
+        'usage_query': ('analytics_events', "событий portfolio_* зафиксировано"),
+    },
+    {
+        'key': 'portfolio_ai_insights',
+        'name': 'AI-инсайты в портфолио',
+        'category': 'ИИ и автоматизация',
+        'purpose': 'YandexGPT анализирует достижения ребёнка и даёт персональные рекомендации по развитию.',
+        'criticality': 'medium',
+        'affects': 'Кнопка "Спросить ИИ" в портфолио ребёнка.',
+        'capabilities': ['ИИ-инсайты портфолио'],
+        'usage_query': ('analytics_events', 'событий portfolio_* зафиксировано'),
+    },
+    {
+        'key': 'portfolio_pdf_export',
+        'name': 'Экспорт портфолио в PDF',
+        'category': 'Развитие детей',
+        'purpose': 'Формирует PDF-версию портфолио ребёнка для печати/отправки в школу.',
+        'criticality': 'low',
+        'affects': 'Кнопка "Скачать PDF" в портфолио ребёнка.',
+        'capabilities': ['Экспорт портфолио в PDF'],
+        'usage_query': ('analytics_events', 'событий portfolio_* зафиксировано'),
+    },
+]
+
+
+def network_functions_list():
+    conn = _conn(); cur = conn.cursor()
+    try:
+        cur.execute(f"SELECT flag_key, is_enabled, updated_at FROM {SCHEMA}.feature_flags")
+        flag_rows = {r[0]: {'enabled': bool(r[1]), 'updated_at': r[2].isoformat() if r[2] else None}
+                     for r in cur.fetchall()}
+    except Exception:
+        conn.rollback()
+        flag_rows = {}
+
+    usage_cache: Dict[str, int] = {}
+    out = []
+    for item in NETWORK_FUNCTIONS_CATALOG:
+        table, label = item['usage_query']
+        if table not in usage_cache:
+            try:
+                cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.{table}")
+                usage_cache[table] = int(cur.fetchone()[0])
+            except Exception:
+                conn.rollback()
+                usage_cache[table] = 0
+        flag = flag_rows.get(item['key'], {'enabled': True, 'updated_at': None})
+        out.append({
+            'key': item['key'],
+            'name': item['name'],
+            'category': item['category'],
+            'purpose': item['purpose'],
+            'criticality': item['criticality'],
+            'affects': item['affects'],
+            'capabilities': item['capabilities'],
+            'enabled': flag['enabled'],
+            'updated_at': flag['updated_at'],
+            'usage_count': usage_cache[table],
+            'usage_label': label,
+        })
+    cur.close(); conn.close()
+    return {'functions': out}
+
+
 # ===== HANDLER =====
 def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
     """Универсальный админский API. Роутер по ?resource= параметру."""
@@ -674,6 +899,8 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
                 return _ok(get_top_families(), headers)
             if resource == 'flags':
                 return _ok(flags_list(), headers)
+            if resource == 'network_functions':
+                return _ok(network_functions_list(), headers)
             return _err(400, f'Unknown resource: {resource}', headers)
 
         if method == 'POST':
