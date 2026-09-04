@@ -26,6 +26,8 @@ export const LEGAL_ENTITY = {
   supportEmail: 'support@nasha-semiya.ru',
   infoEmail: 'info@nasha-semiya.ru',
   maxChannel: 'https://max.ru/id231805288780_biz',
+  ownerPhone: '+7 985 080-78-88',
+  ownerPhoneHref: '+79850807888',
 } as const;
 
 /** Статус ПО в Едином реестре российских программ для ЭВМ и баз данных */
@@ -39,6 +41,8 @@ export const SOFTWARE_REGISTRY = {
   /** Протокол экспертного совета Минцифры России */
   protocol: 'от 29.07.2026 № 593пр',
   authority: 'Минцифры России',
+  /** Карточка записи в реестре — Минцифры, reestr.digital.gov.ru */
+  registryUrl: 'https://reestr.digital.gov.ru/reestr/14449511/',
 } as const;
 
 /** Готовая строка реквизитов для футеров: «ИП Кузьменко А.В. | ОГРНИП: … | ИНН: …» */

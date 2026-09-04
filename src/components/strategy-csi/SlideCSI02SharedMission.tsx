@@ -1,6 +1,11 @@
 import Icon from '@/components/ui/icon';
 import CsiSlideFrame from './CsiSlideFrame';
 
+const CSI_LOGO_URL =
+  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5a2d382f-2406-4676-abfb-6e92d1fbc421.png';
+const NS_LOGO_URL =
+  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/c0fcb6ce-d833-4fce-b2d4-26dda0c44c4b.png';
+
 const csiPoints = [
   'увлекает человека исследованием своих предков',
   'обучает работе с семейными источниками',
@@ -27,9 +32,8 @@ export default function SlideCSI02SharedMission() {
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white/70 border border-amber-900/10 rounded-xl p-5">
-          <div className="text-sm font-semibold text-amber-800 mb-3 uppercase tracking-wider flex items-center gap-2">
-            <Icon name="Landmark" size={16} />
-            Центр семейной истории
+          <div className="flex items-center gap-3 mb-4">
+            <img src={CSI_LOGO_URL} alt="Центр семейной истории" className="h-9 w-auto" />
           </div>
           <ul className="space-y-2.5">
             {csiPoints.map((text, i) => (
@@ -42,9 +46,11 @@ export default function SlideCSI02SharedMission() {
         </div>
 
         <div className="bg-white/70 border border-amber-900/10 rounded-xl p-5">
-          <div className="text-sm font-semibold text-stone-700 mb-3 uppercase tracking-wider flex items-center gap-2">
-            <Icon name="Home" size={16} />
-            «Наша Семья»
+          <div className="flex items-center gap-2.5 mb-4">
+            <img src={NS_LOGO_URL} alt="Наша Семья" className="w-9 h-9 rounded-lg shadow-sm" />
+            <span className="text-sm font-semibold text-stone-700 uppercase tracking-wider">
+              «Наша Семья»
+            </span>
           </div>
           <ul className="space-y-2.5">
             {nsPoints.map((text, i) => (

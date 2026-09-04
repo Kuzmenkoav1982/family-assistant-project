@@ -97,7 +97,7 @@ export default function PromoCodesManager({ apiUrl }: Props) {
           applicable_plans: newPromo.applicable_plans.length > 0 ? newPromo.applicable_plans : null,
           max_uses: newPromo.max_uses ? parseInt(newPromo.max_uses) : null,
           valid_until: newPromo.valid_until || null,
-          admin_email: 'admin@family.com'
+          admin_email: 'support@nasha-semiya.ru'
         })
       });
 

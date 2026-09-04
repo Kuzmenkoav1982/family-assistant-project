@@ -120,7 +120,7 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
         body: JSON.stringify({
           subscription_id: selectedSub.id,
           days: parseInt(extendDays),
-          admin_email: 'admin@family.com'
+          admin_email: 'support@nasha-semiya.ru'
         })
       });
 
@@ -154,7 +154,7 @@ export default function SubscriptionsTable({ apiUrl }: Props) {
         body: JSON.stringify({
           subscription_id: selectedSub.id,
           new_plan: newPlanType,
-          admin_email: 'admin@family.com'
+          admin_email: 'support@nasha-semiya.ru'
         })
       });
 

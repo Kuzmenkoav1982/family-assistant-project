@@ -525,7 +525,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             sub_id = body.get('subscription_id', '')
             days = body.get('days', 30)
-            admin_email = body.get('admin_email', 'admin@family.com')
+            admin_email = body.get('admin_email', 'support@nasha-semiya.ru')
             
             result = extend_subscription(sub_id, days, admin_email)
             return {
@@ -539,7 +539,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body = json.loads(event.get('body', '{}'))
             sub_id = body.get('subscription_id', '')
             new_plan = body.get('new_plan', '')
-            admin_email = body.get('admin_email', 'admin@family.com')
+            admin_email = body.get('admin_email', 'support@nasha-semiya.ru')
             
             result = change_subscription_plan(sub_id, new_plan, admin_email)
             return {
@@ -560,7 +560,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # POST ?action=create-promo - создать промокод
         if method == 'POST' and action == 'create-promo':
             body = json.loads(event.get('body', '{}'))
-            admin_email = body.get('admin_email', 'admin@family.com')
+            admin_email = body.get('admin_email', 'support@nasha-semiya.ru')
             
             result = create_promo_code(body, admin_email)
             return {

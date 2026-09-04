@@ -36,6 +36,15 @@ export default function SlideCSI12Contacts() {
           </div>
           <div className="space-y-1.5 text-sm text-stone-800">
             <div className="flex items-center gap-2">
+              <Icon name="Phone" size={14} className="text-amber-700 shrink-0" />
+              <a
+                href={`tel:${LEGAL_ENTITY.ownerPhoneHref}`}
+                className="hover:underline"
+              >
+                {LEGAL_ENTITY.ownerPhone}
+              </a>
+            </div>
+            <div className="flex items-center gap-2">
               <Icon name="Globe" size={14} className="text-amber-700 shrink-0" />
               <a
                 href={LEGAL_ENTITY.siteUrl}
@@ -83,9 +92,19 @@ export default function SlideCSI12Contacts() {
               {LEGAL_ENTITY.ogrnip} / {LEGAL_ENTITY.inn}
             </div>
           </div>
-          <div className="bg-white rounded-lg px-3 py-2 border border-stone-100 sm:col-span-2">
-            <div className="text-[11px] text-stone-500 mb-0.5">
+          <a
+            href={SOFTWARE_REGISTRY.registryUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="bg-white rounded-lg px-3 py-2 border border-stone-100 sm:col-span-2 hover:border-amber-400 hover:bg-amber-50/50 transition-colors group"
+          >
+            <div className="text-[11px] text-stone-500 mb-0.5 flex items-center gap-1.5">
               Статус программного обеспечения
+              <Icon
+                name="ExternalLink"
+                size={11}
+                className="text-amber-600 group-hover:translate-x-0.5 transition-transform"
+              />
             </div>
             <div className="font-medium text-stone-900 leading-relaxed">
               Включено в {SOFTWARE_REGISTRY.registryName} — реестровая запись №{' '}
@@ -94,8 +113,11 @@ export default function SlideCSI12Contacts() {
                 Протокол экспертного совета {SOFTWARE_REGISTRY.authority}{' '}
                 {SOFTWARE_REGISTRY.protocol}
               </span>
+              <span className="block text-xs font-medium text-amber-700 mt-1">
+                Открыть карточку записи в реестре →
+              </span>
             </div>
-          </div>
+          </a>
         </div>
         <p className="text-xs text-stone-500 mt-3 leading-relaxed">
           Российский цифровой продукт, работающий в промышленной эксплуатации.
