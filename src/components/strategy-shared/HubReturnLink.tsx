@@ -86,7 +86,7 @@ export default function HubReturnLink({
     <a
       href={hubHref}
       data-hub-return
-      className="no-print fixed right-3 z-40 inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-full border border-slate-300 bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 shadow-sm backdrop-blur transition"
+      className="no-print fixed right-3 z-30 inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-full border border-slate-300 bg-white/90 hover:bg-white text-slate-700 hover:text-slate-900 shadow-sm backdrop-blur transition"
       style={{ top: topOffset }}
       title="К операторской панели"
     >
