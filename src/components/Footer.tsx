@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import Icon from '@/components/ui/icon';
 import { trackReestrBadgeClick } from '@/lib/welcomeBadgeAnalytics';
+import { LEGAL_ENTITY } from '@/lib/legalEntity';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -207,9 +208,9 @@ export default function Footer() {
               </div>
             </a>
             <div className="mt-4 pt-4 border-t border-gray-700">
-              <p className="text-xs text-gray-400 mb-1">ИП Кузьменко А.В.</p>
-              <p className="text-xs text-gray-400">ОГРНИП: 325774600908955</p>
-              <p className="text-xs text-gray-400">ИНН: 231805728780</p>
+              <p className="text-xs text-gray-400 mb-1">{LEGAL_ENTITY.shortName}</p>
+              <p className="text-xs text-gray-400">ОГРНИП: {LEGAL_ENTITY.ogrnip}</p>
+              <p className="text-xs text-gray-400">ИНН: {LEGAL_ENTITY.inn}</p>
             </div>
           </div>
 

@@ -35,7 +35,7 @@ export default function InstallationGuide() {
               <div><span className="font-semibold">Правообладатель:</span> ИП Кузьменко А.В.</div>
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              <span className="font-semibold">ОГРНИП:</span> 325774600908955 &nbsp;|&nbsp; <span className="font-semibold">ИНН:</span> 231805728780
+              <span className="font-semibold">ОГРНИП:</span> 325774600908955 &nbsp;|&nbsp; <span className="font-semibold">ИНН:</span> 231805288780
             </div>
           </div>
 

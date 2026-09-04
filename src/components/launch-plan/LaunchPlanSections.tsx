@@ -162,7 +162,7 @@ const sections: Section[] = [
         { name: 'Инфраструктура', cost: '31,600₽/мес', details: 'Хостинг, API, сервисы' },
       ],
       channels: [
-        'Email: support@familyorganizer.ru',
+        'Email: support@nasha-semiya.ru',
         'Telegram бот для вопросов',
         'FAQ на сайте',
         'Видео-инструкции на YouTube',

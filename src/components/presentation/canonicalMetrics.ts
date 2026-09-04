@@ -79,7 +79,7 @@ export const CANONICAL_METRICS = {
   },
   productStatus: {
     short: 'Ядро платформы работает в production',
-    full: 'Ядро платформы разработано и работает в production на nasha-semya.ru. Следующий слой — масштабирование каналов и AI-оркестрации.',
+    full: 'Ядро платформы разработано и работает в production на nasha-semiya.ru. Следующий слой — масштабирование каналов и AI-оркестрации.',
   },
 } as const;
 

@@ -1,4 +1,5 @@
 import Icon from '@/components/ui/icon';
+import { LEGAL_ENTITY, LEGAL_LINE, SOFTWARE_REGISTRY } from '@/lib/legalEntity';
 
 export function PresentationFooter() {
   return (
@@ -55,19 +56,25 @@ export function PresentationFooter() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
             <div className="bg-white rounded-xl p-3 border border-slate-100">
               <p className="text-xs text-gray-500 mb-1">Наименование</p>
-              <p className="font-semibold">ИП Кузьменко А.В.</p>
+              <p className="font-semibold">{LEGAL_ENTITY.shortName}</p>
             </div>
             <div className="bg-white rounded-xl p-3 border border-slate-100">
               <p className="text-xs text-gray-500 mb-1">Платформа</p>
-              <p className="font-semibold">nasha-semiya.ru</p>
+              <p className="font-semibold">{LEGAL_ENTITY.site}</p>
             </div>
             <div className="bg-white rounded-xl p-3 border border-slate-100">
               <p className="text-xs text-gray-500 mb-1">ОГРНИП</p>
-              <p className="font-semibold">325774600908955</p>
+              <p className="font-semibold">{LEGAL_ENTITY.ogrnip}</p>
             </div>
             <div className="bg-white rounded-xl p-3 border border-slate-100">
               <p className="text-xs text-gray-500 mb-1">ИНН</p>
-              <p className="font-semibold">231805288780</p>
+              <p className="font-semibold">{LEGAL_ENTITY.inn}</p>
+            </div>
+            <div className="bg-white rounded-xl p-3 border border-slate-100 sm:col-span-2">
+              <p className="text-xs text-gray-500 mb-1">Статус ПО</p>
+              <p className="font-semibold">
+                {SOFTWARE_REGISTRY.registryNameShort} — запись №{SOFTWARE_REGISTRY.recordNumber} от {SOFTWARE_REGISTRY.recordDate}
+              </p>
             </div>
           </div>
         </div>
@@ -77,9 +84,7 @@ export function PresentationFooter() {
         <p className="text-sm font-medium">
           © 2026 Наша семья. Все права защищены.
         </p>
-        <p className="text-xs">
-          ИП Кузьменко А.В. | ОГРНИП: 325774600908955 | ИНН: 231805288780
-        </p>
+        <p className="text-xs">{LEGAL_LINE}</p>
         <p className="text-xs text-gray-400">
           Объединяем семьи. Укрепляем общество.
         </p>

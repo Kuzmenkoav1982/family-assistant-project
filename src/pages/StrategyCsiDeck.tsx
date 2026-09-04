@@ -16,6 +16,9 @@ import SlideCSI06CurrentAndRoadmap from '@/components/strategy-csi/SlideCSI06Cur
 import SlideCSI07Value from '@/components/strategy-csi/SlideCSI07Value';
 import SlideCSI08MetricsAndNextStep from '@/components/strategy-csi/SlideCSI08MetricsAndNextStep';
 import SlideCSI09Expansion from '@/components/strategy-csi/SlideCSI09Expansion';
+import SlideCSI10Agenda from '@/components/strategy-csi/SlideCSI10Agenda';
+import SlideCSI11Boundaries from '@/components/strategy-csi/SlideCSI11Boundaries';
+import SlideCSI12Contacts from '@/components/strategy-csi/SlideCSI12Contacts';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -328,6 +331,9 @@ export default function StrategyCsiDeck() {
         <SlideCSI06CurrentAndRoadmap />
         <SlideCSI07Value />
         <SlideCSI08MetricsAndNextStep />
+        <SlideCSI10Agenda />
+        <SlideCSI11Boundaries />
+        <SlideCSI12Contacts />
         <SlideCSI09Expansion />
 
         <footer className="text-center text-xs sm:text-sm text-stone-400 py-8">

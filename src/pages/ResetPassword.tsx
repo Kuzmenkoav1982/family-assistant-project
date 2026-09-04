@@ -249,7 +249,7 @@ export default function ResetPassword() {
               <Icon name="Info" size={20} className="text-blue-600 mt-0.5" />
               <div className="space-y-1 text-sm text-blue-800">
                 <p className="font-semibold">Не можете восстановить доступ?</p>
-                <p>Свяжитесь с поддержкой: support@nasha-semya.ru</p>
+                <p>Свяжитесь с поддержкой: support@nasha-semiya.ru</p>
               </div>
             </div>
           </div>

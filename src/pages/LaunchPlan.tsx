@@ -271,7 +271,7 @@ export default function LaunchPlan() {
 ## 9. КОНТАКТЫ
 
 **Автор ТЗ:** Семейный Органайзер Team  
-**Email:** tech@familyorganizer.ru  
+**Email:** support@nasha-semiya.ru  
 **Дата создания:** ${new Date().toLocaleDateString('ru-RU')}  
 **Версия:** 1.0
 

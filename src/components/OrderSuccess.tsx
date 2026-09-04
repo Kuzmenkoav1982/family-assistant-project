@@ -94,7 +94,7 @@ export default function OrderSuccess({ orderNumber }: OrderSuccessProps) {
                 <div>
                   <p className="font-semibold text-sm">Поддержка</p>
                   <p className="text-xs text-muted-foreground">
-                    Если есть вопросы — напишите нам на support@example.com
+                    Если есть вопросы — напишите нам на support@nasha-semiya.ru
                   </p>
                 </div>
               </div>

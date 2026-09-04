@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
             <p className="mt-3">
               <strong>Оператор персональных данных:</strong> ИП Кузьменко А.В.<br />
               <strong>ОГРНИП:</strong> 325774600908955<br />
-              <strong>ИНН:</strong> 231805728780
+              <strong>ИНН:</strong> 231805288780
             </p>
             <p className="mt-3">
               Используя Сервис, вы соглашаетесь с условиями настоящей Политики. Если вы не согласны с этими 
@@ -230,7 +230,7 @@ export default function PrivacyPolicy() {
             <div className="bg-gray-50 rounded-lg p-4">
               <p><strong>Оператор ПДн:</strong> ИП Кузьменко А.В.</p>
               <p><strong>ОГРНИП:</strong> 325774600908955</p>
-              <p><strong>ИНН:</strong> 231805728780</p>
+              <p><strong>ИНН:</strong> 231805288780</p>
               <p><strong>Email:</strong> info@nasha-semiya.ru</p>
               <p className="mt-2 text-sm text-gray-600">Юридический адрес указан в ЕГРИП. По вопросам защиты персональных данных обращайтесь на указанный email.</p>
             </div>

@@ -23,7 +23,7 @@ export default function RefundPolicy() {
             <p className="mt-3">
               <strong>Исполнитель:</strong> ИП Кузьменко А.В.<br />
               <strong>ОГРНИП:</strong> 325774600908955<br />
-              <strong>ИНН:</strong> 231805728780
+              <strong>ИНН:</strong> 231805288780
             </p>
             <p className="mt-3">
               Политика разработана в соответствии с Законом РФ «О защите прав потребителей» и Гражданским кодексом РФ.
@@ -161,7 +161,7 @@ export default function RefundPolicy() {
             <div className="bg-gray-50 rounded-lg p-4">
               <p><strong>ИП Кузьменко А.В.</strong></p>
               <p><strong>ОГРНИП:</strong> 325774600908955</p>
-              <p><strong>ИНН:</strong> 231805728780</p>
+              <p><strong>ИНН:</strong> 231805288780</p>
               <p className="mt-3"><strong>Email для вопросов по возврату:</strong> payment@nasha-semiya.ru</p>
               <p className="text-sm text-gray-600 mt-2">Среднее время ответа: 1-3 рабочих дня</p>
             </div>
