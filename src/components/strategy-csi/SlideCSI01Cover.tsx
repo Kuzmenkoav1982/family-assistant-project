@@ -37,7 +37,7 @@ export default function SlideCSI01Cover() {
         </h1>
 
         <p className="text-base sm:text-xl text-stone-700 leading-relaxed mb-6 max-w-2xl mx-auto text-center">
-          «Наша Семья» × Центр семейной истории: рабочая концепция цифрового
+          Центр семейной истории × «Наша Семья»: рабочая концепция цифрового
           продолжения музейных и просветительских программ
         </p>
 

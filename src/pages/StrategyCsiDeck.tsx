@@ -176,8 +176,8 @@ export default function StrategyCsiDeck() {
       pptx.layout = 'LAYOUT_16x9';
       pptx.author = 'Наша Семья';
       pptx.company = 'ИП Кузьменко А.В.';
-      pptx.subject = 'Наша Семья × ЦСИ — рабочая концепция';
-      pptx.title = 'Наша Семья × Центр семейной истории';
+      pptx.subject = 'ЦСИ × Наша Семья — рабочая концепция';
+      pptx.title = 'Центр семейной истории × Наша Семья';
 
       const slideW = 10;
       const slideH = 5.625;
@@ -337,7 +337,7 @@ export default function StrategyCsiDeck() {
         <SlideCSI09Expansion />
 
         <footer className="text-center text-xs sm:text-sm text-stone-400 py-8">
-          «Наша Семья» × Центр семейной истории — рабочая концепция для
+          Центр семейной истории × «Наша Семья» — рабочая концепция для
           обсуждения · партнёрство не согласовано
         </footer>
       </div>
