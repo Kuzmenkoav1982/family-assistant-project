@@ -81,11 +81,150 @@ def categorize_referrer(ref: str) -> str:
     return 'Другие сайты'
 
 
+DECK_TITLES = {
+    '/strategy/csi': 'ЦСИ — Центр семейной истории',
+    '/strategy': 'Стратегия (основная)',
+    '/strategy/hub': 'Хаб презентаций',
+    '/strategy/proof': 'Доказательная база',
+    '/strategy/appendix': 'Приложение к стратегии',
+    '/strategy/reestr': 'Реестр российского ПО',
+    '/finance/strategy': 'Финансовая стратегия',
+    '/strategy-legacy': 'Стратегия (старая версия)',
+}
+
+
+def handle_decks(cur, params: Dict[str, Any], headers: Dict[str, str]) -> Dict[str, Any]:
+    '''Статистика просмотров презентаций: кто, откуда и когда смотрел.'''
+    deck_path = params.get('path', '')
+
+    cur.execute(
+        """
+        SELECT page_path, COUNT(*) AS views, COUNT(DISTINCT session_id) AS sessions,
+               COUNT(DISTINCT ip_address) AS uniq_ips, MAX(created_at) AS last_view
+        FROM page_views
+        WHERE page_path LIKE '/strategy%%' OR page_path LIKE '%%/strategy%%'
+        GROUP BY page_path
+        ORDER BY views DESC
+        """
+    )
+    decks = [
+        {
+            'path': r[0],
+            'title': DECK_TITLES.get(r[0], r[0]),
+            'views': int(r[1]),
+            'sessions': int(r[2]),
+            'unique_ips': int(r[3] or 0),
+            'last_view': r[4].isoformat() if r[4] else None,
+        }
+        for r in cur.fetchall()
+    ]
+
+    if not deck_path:
+        return {
+            'statusCode': 200,
+            'headers': headers,
+            'body': json.dumps({'decks': decks}),
+            'isBase64Encoded': False,
+        }
+
+    safe_path = deck_path.replace("'", "''")
+
+    cur.execute(
+        f"""
+        SELECT COUNT(*), COUNT(DISTINCT session_id), COUNT(DISTINCT ip_address),
+               MIN(created_at), MAX(created_at)
+        FROM page_views WHERE page_path = '{safe_path}'
+        """
+    )
+    t = cur.fetchone()
+
+    cur.execute(
+        f"""
+        SELECT session_id, MIN(created_at) AS started, MAX(created_at) AS ended,
+               COUNT(*) AS hits, MAX(ip_address::text) AS ip,
+               MAX(user_agent) AS ua, MIN(referrer) AS ref
+        FROM page_views
+        WHERE page_path = '{safe_path}' AND session_id IS NOT NULL AND session_id <> ''
+        GROUP BY session_id
+        ORDER BY MIN(created_at) DESC
+        LIMIT 100
+        """
+    )
+    visits = []
+    for r in cur.fetchall():
+        started, ended = r[1], r[2]
+        duration = int((ended - started).total_seconds()) if started and ended else 0
+        device, os_name, browser = parse_user_agent(r[5] or '')
+        visits.append({
+            'session_id': r[0],
+            'started': started.isoformat() if started else None,
+            'ended': ended.isoformat() if ended else None,
+            'duration_sec': duration,
+            'hits': int(r[3]),
+            'ip': (r[4] or '').split('/')[0],
+            'device': device,
+            'os': os_name,
+            'browser': browser,
+            'referrer': r[6] or '',
+            'source': categorize_referrer(r[6] or ''),
+        })
+
+    cur.execute(
+        f"""
+        SELECT referrer, user_agent FROM page_views WHERE page_path = '{safe_path}'
+        """
+    )
+    sources: Dict[str, int] = {}
+    devices: Dict[str, int] = {}
+    for ref, ua in cur.fetchall():
+        s = categorize_referrer(ref or '')
+        sources[s] = sources.get(s, 0) + 1
+        d, _, _ = parse_user_agent(ua or '')
+        devices[d] = devices.get(d, 0) + 1
+
+    cur.execute(
+        f"""
+        SELECT DATE(created_at), COUNT(*), COUNT(DISTINCT session_id)
+        FROM page_views WHERE page_path = '{safe_path}'
+        GROUP BY DATE(created_at) ORDER BY DATE(created_at) DESC LIMIT 30
+        """
+    )
+    daily = [
+        {'date': str(r[0]), 'views': int(r[1]), 'sessions': int(r[2])}
+        for r in cur.fetchall()
+    ]
+
+    result = {
+        'decks': decks,
+        'detail': {
+            'path': deck_path,
+            'title': DECK_TITLES.get(deck_path, deck_path),
+            'views': int(t[0]),
+            'sessions': int(t[1]),
+            'unique_ips': int(t[2] or 0),
+            'first_view': t[3].isoformat() if t[3] else None,
+            'last_view': t[4].isoformat() if t[4] else None,
+            'visits': visits,
+            'sources': [{'name': k, 'count': v} for k, v in sorted(sources.items(), key=lambda x: -x[1])],
+            'devices': [{'name': k, 'count': v} for k, v in sorted(devices.items(), key=lambda x: -x[1])],
+            'daily': daily,
+        },
+    }
+
+    return {
+        'statusCode': 200,
+        'headers': headers,
+        'body': json.dumps(result),
+        'isBase64Encoded': False,
+    }
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     API для отслеживания посещаемости и активности пользователей.
     POST - записать просмотр страницы.
     GET ?action=stats - получить расширенную статистику (устройства, источники, по часам).
+    GET ?action=decks[&path=/strategy/csi] - статистика по презентациям: визиты, источники, устройства.
     '''
     method = event.get('httpMethod', 'GET')
 
@@ -151,6 +290,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'GET':
             params = event.get('queryStringParameters') or {}
             action = params.get('action', 'stats')
+
+            if action == 'decks':
+                return handle_decks(cur, params, headers)
 
             if action != 'stats':
                 return {

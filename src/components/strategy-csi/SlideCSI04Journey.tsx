@@ -20,7 +20,7 @@ const stages = [
   {
     icon: 'HeartHandshake' as const,
     title: 'Добровольное продолжение',
-    desc: 'Возвращение в программу ЦСИ или предложение отдельных материалов Центру',
+    desc: 'Возвращение в программу ЦСИ или добровольное предложение отдельных материалов для возможного проекта Центра',
   },
 ];
 
@@ -57,6 +57,17 @@ export default function SlideCSI04Journey() {
         <p className="text-sm sm:text-base text-stone-900 leading-relaxed font-medium">
           Частный семейный контур закрыт по умолчанию. Передача материалов ЦСИ
           возможна только отдельно, добровольно и с явным согласием.
+        </p>
+      </div>
+
+      <div className="mt-3 flex items-start gap-3 bg-stone-100 border border-stone-200 rounded-xl px-4 py-3">
+        <Icon name="Info" size={16} className="text-stone-500 shrink-0 mt-0.5" />
+        <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+          Передача материалов не является обязательной частью пилота и возможна
+          только по отдельной процедуре — после согласования требований и
+          получения необходимых согласий. Что именно означает «передача»
+          (показать, предоставить копию, разрешить публикацию, включить в
+          исследование или выставку) — определяем вместе с Центром.
         </p>
       </div>
     </CsiSlideFrame>

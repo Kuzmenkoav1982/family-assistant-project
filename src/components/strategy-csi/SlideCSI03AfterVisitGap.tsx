@@ -7,14 +7,14 @@ const steps = [
   { icon: 'Home' as const, text: 'Вернулся домой' },
   { icon: 'HelpCircle' as const, text: 'Не знает, с чего начать' },
   { icon: 'MessagesSquare' as const, text: 'Материалы снова расходятся по телефону, чатам и бумажным папкам' },
-  { icon: 'CloudFog' as const, text: 'Интерес постепенно угасает' },
+  { icon: 'CloudFog' as const, text: 'Без понятного продолжения исследование может остановиться после первого интереса' },
 ];
 
 export default function SlideCSI03AfterVisitGap() {
   return (
     <CsiSlideFrame
       id="csi-3"
-      eyebrow="Разрыв, который можно закрыть"
+      eyebrow="Гипотеза, которую хотим проверить вместе"
       title="Что происходит после выставки или мастер-класса?"
     >
       <div className="space-y-3">
@@ -33,8 +33,9 @@ export default function SlideCSI03AfterVisitGap() {
       </div>
 
       <div className="mt-6 bg-stone-900 text-amber-50 rounded-xl px-5 py-4 text-sm sm:text-base leading-relaxed">
-        Между музейным вдохновением и регулярной домашней работой сегодня не
-        хватает простого цифрового маршрута.
+        Мы предполагаем, что между посещением Центра и дальнейшей домашней
+        работой может не хватать простого цифрового маршрута. Хотим проверить
+        эту гипотезу вместе с вами.
       </div>
     </CsiSlideFrame>
   );

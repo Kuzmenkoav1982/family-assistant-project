@@ -26,6 +26,18 @@
         "month": {}
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET decks list",
+      "method": "GET",
+      "path": "/?action=decks",
+      "expectedStatus": 200
+    },
+    {
+      "name": "GET deck detail CSI",
+      "method": "GET",
+      "path": "/?action=decks&path=/strategy/csi",
+      "expectedStatus": 200
     }
   ]
 }
