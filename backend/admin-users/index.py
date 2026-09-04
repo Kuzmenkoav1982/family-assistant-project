@@ -611,192 +611,214 @@ def flags_set(data):
     return result
 
 
-# ===== NETWORK FUNCTIONS (каталог сетевых функций семьи) =====
-NETWORK_FUNCTIONS_CATALOG = [
-    {
-        'key': 'family_tracker_enabled',
-        'name': 'Геолокация семьи',
-        'category': 'Безопасность и семья',
-        'purpose': 'Показывает на карте местоположение членов семьи в реальном времени, шлёт алерты при входе/выходе из заданных геозон (дом, школа).',
-        'criticality': 'high',
-        'affects': 'Виджет карты на главной, вкладка "Трекер", геозоны и уведомления о прибытии/уходе.',
-        'capabilities': ['Семейный трекер', 'Геозоны', 'Push о прибытии домой'],
-        'usage_query': ('family_location_tracking', 'записей координат за всё время'),
-    },
-    {
-        'key': 'family_chat_enabled',
-        'name': 'Семейный чат',
-        'category': 'Коммуникация',
-        'purpose': 'Внутренний чат семьи с сообщениями и реакциями — основной канал общения внутри приложения.',
-        'criticality': 'high',
-        'affects': 'Раздел "Чат", уведомления о новых сообщениях, счётчик непрочитанных.',
-        'capabilities': ['Семейный чат', 'Реакции на сообщения'],
-        'usage_query': ('family_chat_messages', 'сообщений отправлено'),
-    },
-    {
-        'key': 'push_notifications_enabled',
-        'name': 'Push-уведомления',
-        'category': 'Коммуникация',
-        'purpose': 'Доставка push-уведомлений в браузер/на телефон: напоминания о задачах, событиях, геозонах, сообщениях.',
-        'criticality': 'high',
-        'affects': 'Все сценарии напоминаний и алертов по всему приложению.',
-        'capabilities': ['Напоминания о задачах', 'Уведомления о событиях', 'Алерты геозон'],
-        'usage_query': ('push_subscriptions', 'активных подписок на устройствах'),
-    },
-    {
-        'key': 'ai_assistant_enabled',
-        'name': 'ИИ-помощник «Домовой»',
-        'category': 'ИИ и автоматизация',
-        'purpose': 'Диалоговый ассистент семьи: советы по быту, ответы на вопросы, рекомендации по расписанию и питанию.',
-        'criticality': 'medium',
-        'affects': 'Кнопка "Домовой" в шапке, чат с ассистентом, ИИ-рекомендации в разных разделах.',
-        'capabilities': ['Чат с Домовым', 'ИИ-рекомендации', 'Голосовые команды'],
-        'usage_query': ('ai_assistant_messages', 'сообщений в диалогах с ИИ'),
-    },
-    {
-        'key': 'alice_skill_enabled',
-        'name': 'Навык Яндекс.Алисы',
-        'category': 'Интеграции',
-        'purpose': 'Голосовое управление через колонку/приложение Алиса — добавление задач, чтение календаря голосом.',
-        'criticality': 'low',
-        'affects': 'Внешний навык Алисы, привязка аккаунта через /admin/alice.',
-        'capabilities': ['Голосовые команды через Алису'],
-        'usage_query': ('alice_commands_log', 'голосовых команд выполнено'),
-    },
-    {
-        'key': 'max_bot_enabled',
-        'name': 'Бот в MAX',
-        'category': 'Интеграции',
-        'purpose': 'Бот в мессенджере MAX для получения уведомлений и быстрых действий без захода в приложение.',
-        'criticality': 'low',
-        'affects': 'Обработка вебхуков MAX, отправка уведомлений в мессенджер.',
-        'capabilities': ['Уведомления в MAX', 'Быстрые команды боту'],
-        'usage_query': ('max_webhook_log', 'вебхуков обработано'),
-    },
-    {
-        'key': 'payments_enabled',
-        'name': 'Приём платежей',
-        'category': 'Монетизация',
-        'purpose': 'Приём оплаты подписок через ЮKassa/СБП/Т-Банк — основа платной модели.',
-        'criticality': 'critical',
-        'affects': 'Оформление и продление подписок, кнопки оплаты во всём приложении.',
-        'capabilities': ['Оплата подписки', 'Автопродление', 'История платежей'],
-        'usage_query': ('payments', 'платежей проведено'),
-    },
-    {
-        'key': 'referral_program_enabled',
-        'name': 'Реферальная программа',
-        'category': 'Монетизация',
-        'purpose': 'Приглашение друзей по реферальному коду с начислением бонусов пригласившему и другу.',
-        'criticality': 'low',
-        'affects': 'Раздел "Пригласить друзей", начисление бонусов на кошелёк.',
-        'capabilities': ['Реферальные коды', 'Бонусы за приглашения'],
-        'usage_query': ('referral_invites', 'приглашений отправлено'),
-    },
-    {
-        'key': 'rating_campaigns_enabled',
-        'name': 'Рейтинги и акции',
-        'category': 'Вовлечение',
-        'purpose': 'Соревнования между семьями, лидерборды, сезонные акции с призами за активность.',
-        'criticality': 'medium',
-        'affects': 'Раздел "Топ семей", баннеры акций, начисление призов.',
-        'capabilities': ['Топ семей', 'Сезонные акции', 'Призы за активность'],
-        'usage_query': ('rating_campaigns', 'активных кампаний'),
-    },
-    {
-        'key': 'telemedicine_enabled',
-        'name': 'Телемедицина',
-        'category': 'Здоровье',
-        'purpose': 'Онлайн-консультации с врачами прямо из раздела "Здоровье".',
-        'criticality': 'low',
-        'affects': 'Кнопка "Врач онлайн" в разделе здоровья.',
-        'capabilities': ['Онлайн-консультация с врачом'],
-        'usage_query': ('telemedicine_sessions', 'сессий проведено'),
-    },
-    {
-        'key': 'data_export_enabled',
-        'name': 'Экспорт персональных данных',
-        'category': 'Безопасность и соответствие',
-        'purpose': 'Выгрузка всех данных пользователя по требованию (152-ФЗ/GDPR) — юридически обязательная функция.',
-        'criticality': 'critical',
-        'affects': 'Кнопка "Скачать мои данные" в настройках профиля.',
-        'capabilities': ['Экспорт данных пользователя'],
-        'usage_query': ('security_audit_log', 'запросов на экспорт (лог аудита)'),
-    },
-    {
-        'key': 'oauth_login_enabled',
-        'name': 'Вход через OAuth',
-        'category': 'Безопасность и соответствие',
-        'purpose': 'Быстрый вход/регистрация через внешние провайдеры (Яндекс и др.) без пароля.',
-        'criticality': 'medium',
-        'affects': 'Кнопки "Войти через..." на странице входа и регистрации.',
-        'capabilities': ['Вход через Яндекс ID'],
-        'usage_query': ('users', 'пользователей всего (учёт по базе)'),
-    },
-    {
-        'key': 'analytics_tracking_enabled',
-        'name': 'Сбор аналитики',
-        'category': 'Аналитика',
-        'purpose': 'Фиксирует просмотры страниц и продуктовые события — основа отчётов в /admin/traffic и воронки.',
-        'criticality': 'medium',
-        'affects': 'Дашборды "Посещаемость", "Воронка", "Топ семей".',
-        'capabilities': ['Отчёты по трафику', 'Воронка регистрации'],
-        'usage_query': ('page_views', 'просмотров страниц зафиксировано'),
-    },
-    {
-        'key': 'registration_enabled',
-        'name': 'Регистрация новых пользователей',
-        'category': 'Доступ',
-        'purpose': 'Разрешает создание новых аккаунтов. Аварийный рубильник для остановки притока новых пользователей.',
-        'criticality': 'critical',
-        'affects': 'Страница /register и вход по телефону/почте для новых пользователей.',
-        'capabilities': ['Регистрация аккаунта'],
-        'usage_query': ('users', 'пользователей зарегистрировано всего'),
-    },
-    {
-        'key': 'broadcast_banner',
-        'name': 'Баннер-объявление на главной',
-        'category': 'Коммуникация',
-        'purpose': 'Показ информационного баннера всем семьям на главном экране (акции, технические работы).',
-        'criticality': 'low',
-        'affects': 'Верх главной страницы приложения.',
-        'capabilities': ['Баннер на главной'],
-        'usage_query': ('status_banners', 'баннеров создано'),
-    },
-    {
-        'key': 'portfolio_compare_enabled',
-        'name': 'Сравнение профилей в портфолио',
-        'category': 'Развитие детей',
-        'purpose': 'Позволяет взрослым сравнивать профили развития разных детей семьи в одном окне.',
-        'criticality': 'low',
-        'affects': 'Кнопка "Семейный обзор" на странице портфолио.',
-        'capabilities': ['Семейное портфолио: сравнение'],
-        'usage_query': ('analytics_events', "событий portfolio_* зафиксировано"),
-    },
-    {
-        'key': 'portfolio_ai_insights',
-        'name': 'AI-инсайты в портфолио',
-        'category': 'ИИ и автоматизация',
-        'purpose': 'YandexGPT анализирует достижения ребёнка и даёт персональные рекомендации по развитию.',
-        'criticality': 'medium',
-        'affects': 'Кнопка "Спросить ИИ" в портфолио ребёнка.',
-        'capabilities': ['ИИ-инсайты портфолио'],
-        'usage_query': ('analytics_events', 'событий portfolio_* зафиксировано'),
-    },
-    {
-        'key': 'portfolio_pdf_export',
-        'name': 'Экспорт портфолио в PDF',
-        'category': 'Развитие детей',
-        'purpose': 'Формирует PDF-версию портфолио ребёнка для печати/отправки в школу.',
-        'criticality': 'low',
-        'affects': 'Кнопка "Скачать PDF" в портфолио ребёнка.',
-        'capabilities': ['Экспорт портфолио в PDF'],
-        'usage_query': ('analytics_events', 'событий portfolio_* зафиксировано'),
-    },
+
+# ===== NETWORK FUNCTIONS (полный реестр backend-функций платформы) =====
+# key, category, description, lang, deployed(bool)
+NETWORK_FUNCTIONS_REGISTRY = [
+    ('admin-auth', 'Аутентификация и безопасность', 'Единая точка входа админа: логин по email/паролю, выдача сессионного токена', 'python', True),
+    ('admin-status-banners', 'Администрирование платформы', 'Управление системными баннерами-объявлениями (создание, вкл/выкл, публикация)', 'python', True),
+    ('admin-subscriptions', 'Финансы и платежи', 'Admin API для управления подписками, промокодами и аналитикой', 'python', True),
+    ('admin-user-reward', 'Аутентификация и безопасность', 'Ручное поощрение пользователя админом — email + персональное уведомление в приложении.', 'python', True),
+    ('admin-users', 'Администрирование платформы', 'Универсальный админский API — роутер по ?resource= параметру.', 'python', True),
+    ('ai-assistant', 'ИИ и ассистенты', 'Чат с ИИ-помощником: обработка сообщений, хранение истории диалога', 'python', True),
+    ('alice', 'ИИ и ассистенты', 'Яндекс Алиса навык "Наша Семья"', 'python', True),
+    ('analytics', 'Администрирование платформы', 'Сбор и агрегация продуктовой аналитики по хабам и разделам приложения', 'python', True),
+    ('analytics-events', 'Задачи и календарь', 'Приём продуктовых аналитических событий с фронта.', 'python', True),
+    ('analyze-development', 'Развитие детей', 'ИИ-анализ развития ребёнка на основе накопленных данных', 'python', True),
+    ('audit-logger', 'Аутентификация и безопасность', 'Универсальная функция журналирования критичных действий (аудит безопасности)', 'python', True),
+    ('auth', 'Аутентификация и безопасность', 'Регистрация и авторизация пользователей через телефон + OAuth (Yandex ID)', 'python', True),
+    ('blog-api', 'Контент и блог', 'Blog API — публичный SEO-блог "Наша Семья".', 'python', True),
+    ('blog-cover-generator', 'ИИ и ассистенты', 'Генератор обложек для блога через модель Alice AI ART (Yandex AI Studio, новый Images API).', 'python', True),
+    ('blog-prerender', 'Контент и блог', 'Pre-render для блога — отдаёт SEO-готовый HTML страниц для краулеров.', 'python', True),
+    ('calendar-events', 'Задачи и календарь', 'API для управления событиями календаря с синхронизацией между устройствами', 'python', True),
+    ('calendar-export', 'Задачи и календарь', 'Экспорт событий календаря в форматы iCal/Google Calendar', 'python', True),
+    ('check-limits', 'Аутентификация и безопасность', 'Проверка лимитов тарифного плана перед выполнением действия', 'python', True),
+    ('child-assessment', 'Развитие детей', 'Диагностика навыков и развития ребёнка (тесты, оценки)', 'python', True),
+    ('child-calendar', 'Семья и профили', 'Управление персональными календарями детей', 'python', True),
+    ('child-invite', 'Семья и профили', 'Backend функция для создания инвайт-ссылок для активации детских профилей.', 'python', True),
+    ('children-data', 'Развитие детей', 'Хранение данных о детях: дневник, достижения, покупки', 'python', True),
+    ('clan-tree', 'Семья и профили', 'Управление общим родом — создание рода, приглашение родственников, принятие/отклонение приглашений', 'python', True),
+    ('conflict-ai', 'ИИ и ассистенты', 'ИИ-помощник для разрешения семейных конфликтов и разногласий', 'python', True),
+    ('consent', 'Аутентификация и безопасность', 'Фиксация и проверка согласия пользователя на обработку ПДн (152-ФЗ).', 'python', True),
+    ('dashboard', 'Администрирование платформы', 'Дашборд семейной экосистемы — 11 хабов, разделы, прогресс пользователя (авто/ручной режим).', 'python', True),
+    ('data-cleanup', 'Аутентификация и безопасность', 'Автоматическая очистка устаревших данных согласно политике хранения', 'python', True),
+    ('data-export', 'Аутентификация и безопасность', 'Экспорт данных семьи в PDF или Excel для резервных копий', 'python', True),
+    ('dev-agent-admin', 'Администрирование платформы', 'Dev Agent Studio — backend. Stage 1, read-only.', 'python', True),
+    ('dev-agent-indexer', 'Администрирование платформы', 'Dev Agent Indexer — V1.6.', 'python', True),
+    ('development-plan', 'Развитие детей', 'Индивидуальный план развития ребёнка: цели, шаги, прогресс', 'python', True),
+    ('diet-progress', 'Здоровье', 'Трекинг прогресса диеты: вес, самочувствие, мотивация, SOS, сохранение/получение планов.', 'python', True),
+    ('diet-sync', 'Здоровье', 'Синхронизация диеты с другими разделами: Рецепты, Покупки, Счётчик БЖУ.', 'python', True),
+    ('domovoy-context', 'ИИ и ассистенты', 'Агрегатор живого контекста семьи для ИИ-помощника Домового.', 'python', True),
+    ('domovoy-donations', 'ИИ и ассистенты', 'Backend функция для обработки донатов Домового.', 'python', True),
+    ('domovoy-studio', 'ИИ и ассистенты', 'Domovoy AI Studio backend (Stage 1).', 'python', True),
+    ('encryption-helper', 'Аутентификация и безопасность', 'Вспомогательный модуль для шифрования чувствительных данных', 'python', True),
+    ('event-ai-ideas', 'Задачи и календарь', 'ИИ-подбор идей для семейных событий и праздников', 'python', True),
+    ('event-expenses', 'Задачи и календарь', 'Учёт расходов на организацию семейного события', 'python', True),
+    ('event-guests', 'Задачи и календарь', 'Список гостей события: приглашения, RSVP', 'python', True),
+    ('event-ideas', 'Задачи и календарь', 'Банк идей для планирования события', 'python', True),
+    ('event-share', 'Задачи и календарь', 'Публичный доступ к событию по ссылке для внешних гостей', 'python', True),
+    ('event-tasks', 'Задачи и календарь', 'Чек-лист задач по подготовке к событию', 'python', True),
+    ('event-wishlist', 'Задачи и календарь', 'Вишлист подарков к событию', 'python', True),
+    ('events', 'Задачи и календарь', 'CRUD семейных событий/праздников (отдельно от обычного календаря)', 'python', True),
+    ('faith-api', 'Быт и хозяйство', 'Модуль веры: посты, молитвы, именины, чтение', 'python', True),
+    ('family-chat', 'Семья и профили', 'API семейного чата: общий чат + тет-а-тет, опрос новых сообщений, реакции, уведомления в колокольчик и MAX-бот', 'python', True),
+    ('family-data', 'Семья и профили', 'Синхронизация всех данных семьи (задачи, события, профили детей, тесты, блог, альбом, древо, чат)', 'python', True),
+    ('family-invites', 'Семья и профили', 'Управление приглашениями в семью (создание, использование кодов)', 'python', True),
+    ('family-members', 'Семья и профили', 'Управление членами семьи (получение, добавление, обновление)', 'python', True),
+    ('family-rating', 'Семья и профили', 'Рейтинг семей по заполненности дашборда. Возвращает место конкретной семьи и топ.', 'python', True),
+    ('family-settings', 'Семья и профили', 'API для управления настройками семьи (название, логотип, баннер)', 'python', True),
+    ('family-tracker', 'Семья и профили', 'Приём координат участников семьи и проверка геозон', 'python', True),
+    ('family-tracker-members', 'Семья и профили', 'Список участников, доступных для отслеживания на карте', 'python', True),
+    ('family-traditions', 'Семья и профили', 'CRUD семейных традиций. GET — список традиций семьи, PUT /sync — полная замена списка.', 'python', True),
+    ('family-tree', 'Семья и профили', 'Управление семейным древом — получение, добавление, редактирование, удаление членов рода и их фотографий', 'python', True),
+    ('family-wallet', 'Семья и профили', 'Семейный кошелёк: баланс, пополнение, списание, история транзакций.', 'python', True),
+    ('feedback', 'Администрирование платформы', 'Получение, отправка и модерация отзывов и идей пользователей', 'python', True),
+    ('finance-api', 'Финансы и платежи', 'Финансовый API: транзакции, бюджеты, долги, счета, цели, категории, имущество', 'python', True),
+    ('funnel-stats', 'Администрирование платформы', 'Статистика воронки продукта из таблицы product_events.', 'python', True),
+    ('garage', 'Быт и хозяйство', 'Управление гаражом семьи: автомобили, ТО, расходы, напоминания, заметки', 'python', True),
+    ('generate-diet-plan', 'Здоровье', 'Генерация персонального плана питания через YandexGPT (асинхронный режим).', 'python', True),
+    ('generate-docs-pdf', 'Файлы и документы', 'Генерация PDF эксплуатационной документации ПО «Наша Семья».', 'python', True),
+    ('generate-image', 'ИИ и ассистенты', 'Генерация изображений через AI (обложки, аватары)', 'python', True),
+    ('generate-itinerary', 'ИИ и ассистенты', 'API для генерации туристических маршрутов с помощью YandexGPT.', 'python', True),
+    ('generate-pricing-pdf', 'Файлы и документы', 'Генерация PDF тарифной политики ПО «Наша Семья».', 'python', False),
+    ('geofence-notifications', 'Задачи и календарь', 'Отправка уведомлений при входе/выходе из геозоны', 'python', True),
+    ('geofences', 'Задачи и календарь', 'CRUD географических зон (дом, школа, работа) для трекера', 'python', True),
+    ('global-search', 'Администрирование платформы', 'Global Search v2 — PostgreSQL FTS + pg_trgm + ранжирование.', 'python', True),
+    ('guest-gifts', 'Быт и хозяйство', 'Список подарков от гостей на семейное событие', 'python', True),
+    ('health-ai-analysis', 'Здоровье', 'ИИ-анализ показателей здоровья и рекомендации', 'python', True),
+    ('health-doctors', 'Здоровье', 'Картотека врачей семьи: контакты, специализация', 'python', True),
+    ('health-insurance', 'Здоровье', 'Полисы страхования членов семьи', 'python', True),
+    ('health-medication-reminders', 'Здоровье', 'Система автоматических напоминаний о приёме лекарств из раздела Здоровье.', 'python', True),
+    ('health-medications', 'Здоровье', 'Список лекарств и курсов приёма', 'python', True),
+    ('health-profiles', 'Здоровье', 'Медицинские профили членов семьи (группа крови, аллергии и т.д.)', 'python', True),
+    ('health-records', 'Здоровье', 'Медицинские записи и результаты анализов', 'python', True),
+    ('health-telemedicine', 'Здоровье', 'Запись на онлайн-консультацию с врачом', 'python', True),
+    ('health-vaccinations', 'Здоровье', 'История прививок членов семьи', 'python', True),
+    ('health-vitals', 'Здоровье', 'Показатели здоровья: давление, пульс, вес и т.д.', 'python', True),
+    ('home-module', 'Быт и хозяйство', 'Модуль «Дом» Семейной ОС: квартира, коммуналка, показания счётчиков, ремонты.', 'python', True),
+    ('image-optimizer', 'Файлы и документы', 'Оптимизация и сжатие изображений для быстрой загрузки страниц', 'python', True),
+    ('leisure-ai', 'ИИ и ассистенты', 'ИИ-подбор досуга и активностей для семьи', 'python', True),
+    ('life-road', 'Прочее', 'Жизненный путь: важные вехи и события биографии членов семьи', 'python', True),
+    ('location-history', 'Задачи и календарь', 'История перемещений участника трекера за период', 'python', True),
+    ('max-bot', 'Контент и блог', 'MAX Bot API — приём вебхуков и отправка уведомлений через platform-api.max.ru', 'python', True),
+    ('max-poll-cron', 'Контент и блог', 'Cron-задача — раз в 5 минут опрашивает MAX-канал и зеркалит новые посты в публичный блог.', 'python', True),
+    ('meal-plans', 'Быт и хозяйство', 'Управление семейным меню на неделю', 'python', True),
+    ('medication-intakes', 'Здоровье', 'Отметки о фактическом приёме лекарств', 'python', True),
+    ('member-profile', 'Семья и профили', 'Управление расширенными профилями членов семьи (анкеты с детальной информацией)', 'python', True),
+    ('memory', 'Прочее', 'Семейный альбом воспоминаний и фотоленты', 'python', True),
+    ('notifications-api', 'Задачи и календарь', 'API центра уведомлений — список, прочитать, счётчик непрочитанных', 'python', True),
+    ('nutrition', 'Здоровье', 'Backend функция для работы с питанием и подсчётом калорий.', 'python', True),
+    ('page-views', 'Администрирование платформы', 'Логирование просмотров страниц сайта', 'python', True),
+    ('password-reset', 'Аутентификация и безопасность', 'Password reset via verification code (SMS/Email via Yandex Cloud)', 'python', True),
+    ('payment-sbp', 'Финансы и платежи', 'Приём оплаты через Систему быстрых платежей (СБП)', 'python', True),
+    ('payments', 'Финансы и платежи', 'Управление подписками и платежами через ЮKassa', 'python', True),
+    ('payments-sber', 'Финансы и платежи', 'Обработка донатов через Сбер для поддержки платформы', 'python', True),
+    ('payments-tbank', 'Финансы и платежи', 'Управление подписками через Т-Банк (рекуррентные платежи)', 'python', True),
+    ('pets', 'Быт и хозяйство', 'Управление питомцами семьи: профили, прививки, ветеринар, лекарства, питание, груминг, активность, расходы, здоровье, вещи, ответственные, фото', 'python', True),
+    ('portfolio', 'Развитие детей', 'Модуль Портфолио — агрегатор развития, snapshot, инсайты, достижения.', 'python', True),
+    ('portfolio-collect', 'Развитие детей', 'Pull-коллектор метрик портфолио.', 'python', True),
+    ('portfolio-health', 'Развитие детей', 'Внутренний health-dashboard для модуля Портфолио.', 'python', True),
+    ('portfolio-worker', 'Развитие детей', 'Portfolio Rebuild Worker — фоновая обработка portfolio_rebuild_queue.', 'python', True),
+    ('purchases', 'Быт и хозяйство', 'API для работы с семейными покупками по сезонам', 'python', True),
+    ('push-notifications', 'Уведомления', 'Отправка push-уведомлений на устройства пользователей', 'python', True),
+    ('rate-limiter', 'Аутентификация и безопасность', 'Rate Limiter - защита от брутфорса и DDoS атак', 'python', True),
+    ('rating-campaigns', 'Финансы и платежи', 'Управление рейтинговыми акциями (Семья месяца): создание/редактирование акций, лидерборд, призы, выплаты в кошелёк семьи-победителя.', 'python', True),
+    ('rating-cron', 'Финансы и платежи', 'Cron-задача для системы рейтингов и реферальной программы. Раз в час пересчитывает лидерборд всех активных кампаний и проверяет активацию приглашён...', 'python', True),
+    ('recipes', 'Быт и хозяйство', 'Библиотека семейных рецептов', 'python', True),
+    ('referrals', 'Финансы и платежи', 'Реферальная программа — выдача реф-кодов семьям, отслеживание регистраций по коду, начисление бонусов в кошелёк (за регистрацию, за активацию пригл...', 'python', True),
+    ('scheduled-reminders', 'Задачи и календарь', 'Единый крон уведомлений — проверяет ВСЕ источники, сохраняет в notifications, отправляет push/MAX/Telegram', 'python', True),
+    ('search-indexer', 'Администрирование платформы', 'Search v2 — индексер.', 'python', True),
+    ('shopping', 'Быт и хозяйство', 'CRUD операции для списка покупок семьи с реальным сохранением в БД', 'python', True),
+    ('sitemap-blog', 'Контент и блог', 'Sitemap — динамически отдаёт XML.', 'python', True),
+    ('status-banners-public', 'Администрирование платформы', 'Public read API для системного StatusBanner.', 'python', True),
+    ('storage-stats', 'Файлы и документы', 'Статистика использования файлового хранилища S3', 'python', True),
+    ('subscription-notifications', 'Финансы и платежи', 'Автоматические уведомления об истечении подписок (Email + Push)', 'python', True),
+    ('support-navigator', 'Администрирование платформы', 'Навигатор мер поддержки семьи — подбирает положенные семье меры по её профилю (регион, дети, статус, доход) и ведёт чек-лист оформления с дедлайнами.', 'python', True),
+    ('tasks', 'Задачи и календарь', 'CRUD операции для задач семьи (tasks_v2 без FK constraints)', 'python', True),
+    ('track-event', 'Задачи и календарь', 'Endpoint для frontend-событий воронки (signup_started, signup_failed, login_failed и др.).', 'python', True),
+    ('tree-link-requests', 'Семья и профили', 'Управление заявками на привязку участника семьи к узлу в семейном древе.', 'python', True),
+    ('trips', 'Быт и хозяйство', 'Backend функция для работы с путешествиями.', 'python', True),
+    ('trips-ai-recommend', 'ИИ и ассистенты', 'AI-помощник для рекомендаций мест в поездках', 'python', True),
+    ('upload-file', 'Файлы и документы', 'Универсальная загрузка файлов в S3', 'python', True),
+    ('upload-leisure-photo', 'Файлы и документы', 'Загрузка фото для раздела "Досуг"', 'python', True),
+    ('upload-medical-file', 'Файлы и документы', 'Загрузка медицинских документов и снимков', 'python', True),
+    ('user-management', 'Аутентификация и безопасность', 'Управление профилем, подтверждение email/SMS, восстановление пароля', 'python', True),
+    ('votings', 'Задачи и календарь', 'Управление системой голосований (создание, голосование, получение результатов)', 'python', True),
+    ('welcome-analytics', 'Контент и блог', 'Аналитика прохождения приветственного онбординга', 'python', True),
+    ('yandex-maps-key', 'Уведомления', 'Выдача ключа Яндекс.Карт для фронтенда', 'python', True),
 ]
+
+# Соответствие backend-функции и её пользовательского фич-флага (там, где флаг существует)
+NETWORK_FUNCTION_FLAG_MAP = {
+    'family-tracker': 'family_tracker_enabled',
+    'family-tracker-members': 'family_tracker_enabled',
+    'geofences': 'family_tracker_enabled',
+    'geofence-notifications': 'family_tracker_enabled',
+    'location-history': 'family_tracker_enabled',
+    'family-chat': 'family_chat_enabled',
+    'push-notifications': 'push_notifications_enabled',
+    'ai-assistant': 'ai_assistant_enabled',
+    'domovoy-context': 'ai_assistant_enabled',
+    'domovoy-studio': 'ai_assistant_enabled',
+    'domovoy-donations': 'ai_assistant_enabled',
+    'alice': 'alice_skill_enabled',
+    'max-bot': 'max_bot_enabled',
+    'max-poll-cron': 'max_bot_enabled',
+    'payments': 'payments_enabled',
+    'payments-sber': 'payments_enabled',
+    'payments-tbank': 'payments_enabled',
+    'payment-sbp': 'payments_enabled',
+    'referrals': 'referral_program_enabled',
+    'rating-campaigns': 'rating_campaigns_enabled',
+    'rating-cron': 'rating_campaigns_enabled',
+    'health-telemedicine': 'telemedicine_enabled',
+    'data-export': 'data_export_enabled',
+    'auth': 'oauth_login_enabled',
+    'analytics': 'analytics_tracking_enabled',
+    'analytics-events': 'analytics_tracking_enabled',
+    'page-views': 'analytics_tracking_enabled',
+    'track-event': 'analytics_tracking_enabled',
+    'portfolio': 'portfolio_ai_insights',
+}
+
+# Примерная оценка использования конкретной функции: таблица БД, ближе всего описывающая её нагрузку
+NETWORK_FUNCTION_USAGE_TABLE = {
+    'family-tracker': ('family_location_tracking', 'записей координат'),
+    'family-tracker-members': ('family_location_tracking', 'записей координат'),
+    'geofences': ('geofence_events', 'событий геозон'),
+    'geofence-notifications': ('geofence_events', 'событий геозон'),
+    'location-history': ('family_location_tracking', 'записей координат'),
+    'family-chat': ('family_chat_messages', 'сообщений отправлено'),
+    'push-notifications': ('push_subscriptions', 'активных подписок'),
+    'ai-assistant': ('ai_assistant_messages', 'сообщений в диалогах'),
+    'alice': ('alice_commands_log', 'голосовых команд'),
+    'max-bot': ('max_webhook_log', 'вебхуков обработано'),
+    'max-poll-cron': ('max_webhook_log', 'вебхуков обработано'),
+    'payments': ('payments', 'платежей проведено'),
+    'payments-sber': ('payments', 'платежей проведено'),
+    'payments-tbank': ('payments', 'платежей проведено'),
+    'payment-sbp': ('payments', 'платежей проведено'),
+    'referrals': ('referral_invites', 'приглашений отправлено'),
+    'rating-campaigns': ('rating_campaigns', 'активных кампаний'),
+    'health-telemedicine': ('telemedicine_sessions', 'сессий проведено'),
+    'family-wallet': ('wallet_transactions', 'операций с кошельком'),
+    'family-tree': ('family_tree', 'узлов древа создано'),
+    'calendar-events': ('calendar_events', 'событий в календарях'),
+    'events': ('calendar_events', 'событий в календарях'),
+    'tasks': ('tasks_v2', 'задач создано'),
+    'blog-api': ('blog_posts', 'постов в блоге'),
+    'analytics': ('analytics_metrics', 'метрик записано'),
+    'analytics-events': ('analytics_events', 'событий зафиксировано'),
+    'page-views': ('page_views', 'просмотров страниц'),
+    'family-members': ('family_members', 'участников семей'),
+    'auth': ('users', 'пользователей зарегистрировано'),
+    'user-management': ('users', 'пользователей зарегистрировано'),
+}
 
 
 def network_functions_list():
+    """Полный реестр backend-функций платформы: 131 функция, сгруппированные по категориям,
+    с привязкой к фич-флагам (где применимо) и статистикой использования из БД."""
     conn = _conn(); cur = conn.cursor()
     try:
         cur.execute(f"SELECT flag_key, is_enabled, updated_at FROM {SCHEMA}.feature_flags")
@@ -807,9 +829,8 @@ def network_functions_list():
         flag_rows = {}
 
     usage_cache: Dict[str, int] = {}
-    out = []
-    for item in NETWORK_FUNCTIONS_CATALOG:
-        table, label = item['usage_query']
+
+    def get_usage(table: str) -> int:
         if table not in usage_cache:
             try:
                 cur.execute(f"SELECT COUNT(*) FROM {SCHEMA}.{table}")
@@ -817,22 +838,56 @@ def network_functions_list():
             except Exception:
                 conn.rollback()
                 usage_cache[table] = 0
-        flag = flag_rows.get(item['key'], {'enabled': True, 'updated_at': None})
+        return usage_cache[table]
+
+    out = []
+    for key, category, description, lang, deployed in NETWORK_FUNCTIONS_REGISTRY:
+        flag_key = NETWORK_FUNCTION_FLAG_MAP.get(key)
+        if flag_key and flag_key in flag_rows:
+            enabled = flag_rows[flag_key]['enabled']
+            updated_at = flag_rows[flag_key]['updated_at']
+            toggleable = True
+        else:
+            enabled = True
+            updated_at = None
+            toggleable = False
+
+        usage_info = NETWORK_FUNCTION_USAGE_TABLE.get(key)
+        if usage_info:
+            table, label = usage_info
+            usage_count = get_usage(table)
+            usage_label = label
+        else:
+            usage_count = None
+            usage_label = None
+
         out.append({
-            'key': item['key'],
-            'name': item['name'],
-            'category': item['category'],
-            'purpose': item['purpose'],
-            'criticality': item['criticality'],
-            'affects': item['affects'],
-            'capabilities': item['capabilities'],
-            'enabled': flag['enabled'],
-            'updated_at': flag['updated_at'],
-            'usage_count': usage_cache[table],
-            'usage_label': label,
+            'key': key,
+            'category': category,
+            'description': description,
+            'lang': lang,
+            'deployed': deployed,
+            'flag_key': flag_key,
+            'toggleable': toggleable,
+            'enabled': enabled,
+            'updated_at': updated_at,
+            'usage_count': usage_count,
+            'usage_label': usage_label,
         })
+
     cur.close(); conn.close()
-    return {'functions': out}
+
+    categories: Dict[str, int] = {}
+    for item in out:
+        categories[item['category']] = categories.get(item['category'], 0) + 1
+
+    return {
+        'functions': out,
+        'total': len(out),
+        'deployed_count': sum(1 for f in out if f['deployed']),
+        'toggleable_count': sum(1 for f in out if f['toggleable']),
+        'categories': categories,
+    }
 
 
 # ===== HANDLER =====
