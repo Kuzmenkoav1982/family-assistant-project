@@ -5,7 +5,7 @@ const CSI_LOGO_URL =
 const NS_LOGO_URL =
   'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/c0fcb6ce-d833-4fce-b2d4-26dda0c44c4b.png';
 const RESEARCH_DOC_URL =
-  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5550d906-0aea-4cd5-83e1-fbeac8979ad1.docx';
+  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5d9d889b-e737-4ff9-8ffa-b9bfb96a2494.pdf';
 
 export default function SlideCSI01Cover() {
   return (
