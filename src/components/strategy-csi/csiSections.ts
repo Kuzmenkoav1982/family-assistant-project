@@ -23,4 +23,6 @@ export const CSI_SECTIONS: CsiSection[] = [
   { id: 'csi-11', label: 'Чего не предлагаем на первом этапе', short: 'Рамки' },
   { id: 'csi-12', label: 'Контакты и следующий шаг', short: 'Контакты' },
   { id: 'csi-9', label: 'Если гипотеза подтвердится', short: 'Приложение', appendix: true },
+  { id: 'csi-13', label: 'Как работает возможный совместный маршрут', short: 'Схема маршрута', appendix: true },
+  { id: 'csi-14', label: 'Что уже работает в «Нашей Семье»', short: 'Схема продукта', appendix: true },
 ];
