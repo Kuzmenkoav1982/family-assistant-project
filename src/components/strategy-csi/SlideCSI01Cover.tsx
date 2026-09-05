@@ -56,26 +56,26 @@ export default function SlideCSI01Cover() {
           Рабочая концепция для обсуждения. Партнёрство не согласовано.
         </div>
 
-        <div className="no-print flex flex-wrap items-center justify-center gap-2 mt-4">
+        <div className="no-print flex flex-wrap items-center justify-center gap-3 mt-5">
           <a
             href={RESEARCH_DOC_URL}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-700 bg-white/80 hover:bg-white border border-stone-300 rounded-full px-3.5 py-1.5 transition"
+            className="inline-flex items-center gap-2 text-sm sm:text-base font-medium text-white bg-amber-800 hover:bg-amber-900 shadow-md rounded-full px-5 py-2.5 transition"
           >
-            <Icon name="FileText" size={13} className="text-amber-700 shrink-0" />
+            <Icon name="FileText" size={16} className="shrink-0" />
             Исследовательская работа
-            <Icon name="ExternalLink" size={11} className="text-stone-400 shrink-0" />
+            <Icon name="ExternalLink" size={13} className="text-amber-200 shrink-0" />
           </a>
           <a
             href="/strategy-legacy?ops=1"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-700 bg-white/80 hover:bg-white border border-stone-300 rounded-full px-3.5 py-1.5 transition"
+            className="inline-flex items-center gap-2 text-sm sm:text-base font-medium text-white bg-amber-800 hover:bg-amber-900 shadow-md rounded-full px-5 py-2.5 transition"
           >
-            <Icon name="Landmark" size={13} className="text-amber-700 shrink-0" />
+            <Icon name="Landmark" size={16} className="shrink-0" />
             Презентация о гос. рамке
-            <Icon name="ExternalLink" size={11} className="text-stone-400 shrink-0" />
+            <Icon name="ExternalLink" size={13} className="text-amber-200 shrink-0" />
           </a>
         </div>
       </div>

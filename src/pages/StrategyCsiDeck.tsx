@@ -6,7 +6,6 @@ import { PresentationHeader } from '@/components/presentation/PresentationHeader
 import CsiAnchorNav from '@/components/strategy-csi/CsiAnchorNav';
 import CsiMeetingIndicator from '@/components/strategy-csi/CsiMeetingIndicator';
 import { useCsiMeetingMode } from '@/components/strategy-csi/useCsiMeetingMode';
-import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 import SlideCSI01Cover from '@/components/strategy-csi/SlideCSI01Cover';
 import SlideCSI02SharedMission from '@/components/strategy-csi/SlideCSI02SharedMission';
 import SlideCSI03AfterVisitGap from '@/components/strategy-csi/SlideCSI03AfterVisitGap';
@@ -252,8 +251,6 @@ export default function StrategyCsiDeck() {
           onExit={exitMeeting}
         />
       )}
-
-      {!isMeetingMode && <HubReturnLink variant="corner" topOffset="4rem" />}
 
       <style>{`
         html { scroll-behavior: smooth; }

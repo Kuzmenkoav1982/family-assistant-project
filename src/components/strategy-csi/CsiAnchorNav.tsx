@@ -4,6 +4,18 @@ interface CsiAnchorNavProps {
   activeId?: string;
 }
 
+// Клик по табу скроллит вручную (а не полагается на нативный переход по #hash):
+// на этой странице сверху есть fixed-шапка со скачиванием PDF/PPTX, и её высота
+// не всегда совпадает с scroll-margin-top секций — из-за этого нативный якорь
+// иногда промахивался мимо нужного места. Ручной scrollIntoView с отступом
+// работает предсказуемо в любом случае.
+function goToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.pageYOffset - 84;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
 export default function CsiAnchorNav({ activeId }: CsiAnchorNavProps) {
   return (
     <div
@@ -20,6 +32,10 @@ export default function CsiAnchorNav({ activeId }: CsiAnchorNavProps) {
             <a
               key={it.id}
               href={`#${it.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                goToSection(it.id);
+              }}
               className={`shrink-0 whitespace-nowrap text-[11px] sm:text-sm font-medium px-2.5 sm:px-3 py-1.5 rounded-full transition ${
                 isActive
                   ? 'bg-amber-800 text-white shadow-sm'

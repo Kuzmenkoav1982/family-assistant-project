@@ -1,5 +1,4 @@
 import Icon from '@/components/ui/icon';
-import HubReturnLink from '@/components/strategy-shared/HubReturnLink';
 
 interface CsiMeetingIndicatorProps {
   activeIndex: number;
@@ -49,8 +48,6 @@ export default function CsiMeetingIndicator({
       >
         <Icon name="ChevronRight" size={16} />
       </button>
-
-      <HubReturnLink variant="inline" />
 
       <button
         type="button"

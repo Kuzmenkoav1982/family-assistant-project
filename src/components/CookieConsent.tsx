@@ -23,8 +23,8 @@ const CookieConsent = () => {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] animate-in slide-in-from-bottom duration-500">
-      <div className="mx-auto max-w-4xl p-4">
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] animate-in slide-in-from-bottom duration-500 pointer-events-none">
+      <div className="mx-auto max-w-4xl p-4 pointer-events-auto">
         <div className="rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200 shadow-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
