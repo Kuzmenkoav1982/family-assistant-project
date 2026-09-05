@@ -11,6 +11,7 @@ import SlideCSI01Cover from '@/components/strategy-csi/SlideCSI01Cover';
 import SlideCSI02SharedMission from '@/components/strategy-csi/SlideCSI02SharedMission';
 import SlideCSI03AfterVisitGap from '@/components/strategy-csi/SlideCSI03AfterVisitGap';
 import SlideCSI04Journey from '@/components/strategy-csi/SlideCSI04Journey';
+import SlideCSI04bCulture from '@/components/strategy-csi/SlideCSI04bCulture';
 import SlideCSI05PilotSevenSteps from '@/components/strategy-csi/SlideCSI05PilotSevenSteps';
 import SlideCSI06CurrentAndRoadmap from '@/components/strategy-csi/SlideCSI06CurrentAndRoadmap';
 import SlideCSI07Value from '@/components/strategy-csi/SlideCSI07Value';
@@ -327,6 +328,7 @@ export default function StrategyCsiDeck() {
         <SlideCSI02SharedMission />
         <SlideCSI03AfterVisitGap />
         <SlideCSI04Journey />
+        <SlideCSI04bCulture />
         <SlideCSI05PilotSevenSteps />
         <SlideCSI06CurrentAndRoadmap />
         <SlideCSI07Value />
