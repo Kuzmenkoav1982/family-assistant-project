@@ -32,6 +32,17 @@ export default function SlideCSI04bCulture() {
       title="Почему эта идея органична именно для Тульского края"
       footnote="Источники: музей-заповедник В. Д. Поленова; Центр семейной истории; Государственный архив Тульской области; Тульское музейное объединение; Тульский государственный музей оружия."
     >
+      <div className="mb-6 flex items-start gap-3 bg-white/70 border border-amber-900/10 rounded-xl px-5 py-4">
+        <Icon name="Sparkles" size={18} className="text-amber-700 shrink-0 mt-0.5" />
+        <p className="text-sm sm:text-base text-stone-800 leading-relaxed">
+          Сам Центр семейной истории говорит об этом же тренде: музеи и
+          выставочные проекты во всём мире смещаются от общих, глобальных
+          нарративов к истории конкретного человека — она понятнее и ближе
+          зрителю. Отсюда и подход «одна вещь — одна история» в наших
+          материалах: он методологически совпадает с практикой самого ЦСИ.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {codes.map((c, i) => (
           <div

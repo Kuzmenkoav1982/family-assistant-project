@@ -10,6 +10,12 @@ const metrics = [
   'сколько захотели продолжить работу с Центром',
 ];
 
+const qualitative = [
+  'короткое интервью с несколькими семьями после пилота — что было ценно, что осталось непонятным',
+  'простая анкета обратной связи по итогам маршрута',
+  'наблюдение за тем, помог ли маршрут «очеловечить» историю — сделать её личной, а не абстрактной',
+];
+
 const decisions = [
   'Кто со стороны ЦСИ отвечает за направление?',
   'Какую программу или аудиторию берём для пилота?',
@@ -34,6 +40,21 @@ export default function SlideCSI08MetricsAndNextStep() {
           >
             <Icon name="BarChart3" size={14} className="text-amber-700 shrink-0 mt-0.5" />
             <span className="text-xs sm:text-sm text-stone-800">{text}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="text-sm font-semibold text-stone-700 mb-3 uppercase tracking-wider">
+        Качественная оценка — не только цифры
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
+        {qualitative.map((text, i) => (
+          <div
+            key={i}
+            className="flex items-start gap-2.5 bg-stone-100/70 border border-dashed border-stone-300 rounded-lg px-3 py-2.5"
+          >
+            <Icon name="MessageCircleHeart" fallback="MessageCircle" size={14} className="text-amber-700 shrink-0 mt-0.5" />
+            <span className="text-xs sm:text-sm text-stone-700 leading-relaxed">{text}</span>
           </div>
         ))}
       </div>

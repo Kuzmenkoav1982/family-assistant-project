@@ -28,7 +28,7 @@ export default function SlideCSI02SharedMission() {
       id="csi-2"
       eyebrow="Общее смысловое поле"
       title="Одна миссия — разные пространства"
-      footnote="Источники: официальный сайт Центра семейной истории; официальный сайт музея-заповедника В. Д. Поленова."
+      footnote="Источники: официальный сайт Центра семейной истории; официальный сайт музея-заповедника В. Д. Поленова; видеоинтервью представителей ЦСИ о работе центра."
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white/70 border border-amber-900/10 rounded-xl p-5">
@@ -66,6 +66,17 @@ export default function SlideCSI02SharedMission() {
       <div className="mt-6 bg-amber-50 border border-amber-800/15 rounded-xl px-5 py-4 text-sm sm:text-base text-stone-800 leading-relaxed">
         ЦСИ создаёт интерес и методологию. Приложение может превратить разовое
         посещение в продолжающееся семейное исследование.
+      </div>
+
+      <div className="mt-4 flex items-start gap-3 bg-white/70 border border-amber-900/10 rounded-xl px-5 py-4">
+        <Icon name="Users" size={18} className="text-amber-700 shrink-0 mt-0.5" />
+        <p className="text-sm text-stone-700 leading-relaxed">
+          У Центра уже есть подтверждённый опыт такой работы: модель диалога
+          и обмена опытом апробирована на выставочном проекте с участием
+          21 семьи из Тульской области, построенном на глубинных интервью с
+          жителями. Наше предложение продолжает именно эту практику в
+          цифровом формате.
+        </p>
       </div>
     </CsiSlideFrame>
   );
