@@ -4,6 +4,8 @@ const CSI_LOGO_URL =
   'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5a2d382f-2406-4676-abfb-6e92d1fbc421.png';
 const NS_LOGO_URL =
   'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/c0fcb6ce-d833-4fce-b2d4-26dda0c44c4b.png';
+const RESEARCH_DOC_URL =
+  'https://cdn.poehali.dev/projects/bf14db2d-0cf1-4b4d-9257-4d617ffc1cc6/bucket/5550d906-0aea-4cd5-83e1-fbeac8979ad1.docx';
 
 export default function SlideCSI01Cover() {
   return (
@@ -52,6 +54,29 @@ export default function SlideCSI01Cover() {
         <div className="flex items-center gap-2 text-xs sm:text-sm text-amber-900 bg-amber-100/80 border border-amber-800/20 rounded-full px-4 py-2 w-fit mx-auto">
           <Icon name="AlertCircle" size={14} className="shrink-0" />
           Рабочая концепция для обсуждения. Партнёрство не согласовано.
+        </div>
+
+        <div className="no-print flex flex-wrap items-center justify-center gap-2 mt-4">
+          <a
+            href={RESEARCH_DOC_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-700 bg-white/80 hover:bg-white border border-stone-300 rounded-full px-3.5 py-1.5 transition"
+          >
+            <Icon name="FileText" size={13} className="text-amber-700 shrink-0" />
+            Исследовательская работа
+            <Icon name="ExternalLink" size={11} className="text-stone-400 shrink-0" />
+          </a>
+          <a
+            href="/strategy-legacy?ops=1"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-700 bg-white/80 hover:bg-white border border-stone-300 rounded-full px-3.5 py-1.5 transition"
+          >
+            <Icon name="Landmark" size={13} className="text-amber-700 shrink-0" />
+            Презентация о гос. рамке
+            <Icon name="ExternalLink" size={11} className="text-stone-400 shrink-0" />
+          </a>
         </div>
       </div>
     </section>
