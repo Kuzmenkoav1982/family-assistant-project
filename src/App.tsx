@@ -549,7 +549,7 @@ const App = () => {
                       <Route path="/strategy" element={<StrategyDeckV21 />} />
                       <Route path="/strategy/proof" element={<ProofDeck />} />
                       <Route path="/strategy/appendix" element={<AppendixDeck />} />
-                      <Route path="/strategy/hub" element={<StrategyHub />} />
+                      <Route path="/strategy/hub" element={<AdminRoute><StrategyHub /></AdminRoute>} />
                       <Route path="/strategy/reestr" element={<ReestrDeck />} />
                       <Route path="/strategy/csi" element={<StrategyCsiDeck />} />
                       <Route path="/strategy-legacy" element={<StrategyDeck />} />

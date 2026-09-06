@@ -68,7 +68,7 @@ export default function SlideCSI01Cover() {
             <Icon name="ExternalLink" size={13} className="text-amber-200 shrink-0" />
           </a>
           <a
-            href="/strategy-legacy?ops=1"
+            href="/strategy-legacy"
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 text-sm sm:text-base font-medium text-white bg-amber-800 hover:bg-amber-900 shadow-md rounded-full px-5 py-2.5 transition"
