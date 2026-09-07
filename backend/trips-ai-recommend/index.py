@@ -183,110 +183,56 @@ def fetch_place_image_unsplash(place_name: str, destination: str) -> Optional[st
         return None
 
 def fetch_place_image(place_name: str, destination: str) -> Optional[str]:
-    """Получает изображение места через Wikipedia/Wikimedia Commons"""
-    
-    wiki_search_url = "https://ru.wikipedia.org/w/api.php"
-    
-    # Пробуем несколько вариантов поиска
-    search_queries = [
-        place_name,  # Только название места
-        f"{place_name} {destination}",  # Место + город
-    ]
-    
-    for search_query in search_queries:
-        try:
-            print(f'[DEBUG] Поиск изображения для: {search_query}')
-            
-            # Ищем статью в Wikipedia
-            search_params = {
-                "action": "query",
-                "format": "json",
-                "list": "search",
-                "srsearch": search_query,
-                "srlimit": 3
-            }
-            
-            search_response = requests.get(wiki_search_url, params=search_params, timeout=10)
-            
-            if search_response.status_code != 200:
-                continue
-            
-            search_data = search_response.json()
-            search_results = search_data.get('query', {}).get('search', [])
-            
-            if not search_results:
-                continue
-            
-            # Проверяем несколько результатов поиска
-            for result in search_results[:2]:
-                page_title = result['title']
-                print(f'[DEBUG] Проверка страницы: {page_title}')
-                
-                # Получаем список всех изображений на странице
-                image_params = {
-                    "action": "query",
-                    "format": "json",
-                    "prop": "images",
-                    "titles": page_title,
-                    "imlimit": 10
-                }
-                
-                image_response = requests.get(wiki_search_url, params=image_params, timeout=10)
-                
-                if image_response.status_code != 200:
-                    continue
-                
-                image_data = image_response.json()
-                pages = image_data.get('query', {}).get('pages', {})
-                
-                if not pages:
-                    continue
-                
-                page = list(pages.values())[0]
-                images_list = page.get('images', [])
-                
-                if not images_list:
-                    continue
-                
-                # Ищем первое изображение формата jpg, png (не иконки)
-                for img in images_list:
-                    img_title = img.get('title', '')
-                    
-                    # Пропускаем иконки и служебные изображения
-                    if any(skip in img_title.lower() for skip in ['icon', 'logo', 'commons-logo', 'wikidata', 'edit']):
-                        continue
-                    
-                    # Получаем URL изображения
-                    url_params = {
-                        "action": "query",
-                        "format": "json",
-                        "prop": "imageinfo",
-                        "titles": img_title,
-                        "iiprop": "url",
-                        "iiurlwidth": 800
-                    }
-                    
-                    url_response = requests.get(wiki_search_url, params=url_params, timeout=10)
-                    
-                    if url_response.status_code == 200:
-                        url_data = url_response.json()
-                        url_pages = url_data.get('query', {}).get('pages', {})
-                        
-                        if url_pages:
-                            url_page = list(url_pages.values())[0]
-                            image_info = url_page.get('imageinfo', [])
-                            
-                            if image_info and 'url' in image_info[0]:
-                                image_url = image_info[0]['url']
-                                print(f'[DEBUG] Найдено изображение: {image_url[:100]}')
-                                return image_url
-        
-        except Exception as e:
-            print(f'[ERROR] Wikipedia API error for {search_query}: {str(e)}')
-            continue
-    
-    print(f'[DEBUG] Wikipedia изображение не найдено. Пробуем Unsplash...')
+    """Быстро получает изображение места: сначала Wikipedia REST summary (1 запрос),
+    затем Unsplash. Каждый шаг с коротким таймаутом, чтобы не блокировать функцию надолго."""
+
+    try:
+        summary_url = f"https://ru.wikipedia.org/api/rest_v1/page/summary/{requests.utils.quote(place_name)}"
+        response = requests.get(summary_url, timeout=4)
+
+        if response.status_code == 200:
+            data = response.json()
+            thumbnail = data.get('thumbnail', {}) or data.get('originalimage', {})
+            image_url = thumbnail.get('source')
+            if image_url:
+                print(f'[DEBUG] Wikipedia REST image: {image_url[:100]}')
+                return image_url
+    except Exception as e:
+        print(f'[ERROR] Wikipedia REST API error for {place_name}: {str(e)}')
+
     return fetch_place_image_unsplash(place_name, destination)
+
+
+def fetch_images_for_recommendations(recommendations: List[Dict[str, Any]], destination: str, time_budget_sec: float = 12.0) -> None:
+    """Параллельно и с общим лимитом времени получает картинки для рекомендаций.
+    Модифицирует recommendations на месте, добавляя image_url. Если не успели за
+    отведённое время — оставшиеся места остаются без картинки (не блокируем ответ)."""
+    import concurrent.futures
+
+    if not recommendations:
+        return
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(10, len(recommendations))) as executor:
+        future_to_rec = {
+            executor.submit(fetch_place_image, rec['place_name'], destination): rec
+            for rec in recommendations
+        }
+
+        done, not_done = concurrent.futures.wait(future_to_rec.keys(), timeout=time_budget_sec)
+
+        for future in done:
+            rec = future_to_rec[future]
+            try:
+                rec['image_url'] = future.result()
+            except Exception as e:
+                print(f'[ERROR] Image fetch failed for {rec.get("place_name")}: {str(e)}')
+                rec['image_url'] = None
+
+        for future in not_done:
+            rec = future_to_rec[future]
+            rec['image_url'] = None
+            future.cancel()
+            print(f'[DEBUG] Image fetch timed out (budget exceeded) for {rec.get("place_name")}')
 
 def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Парсит ответ AI и формирует структурированные рекомендации"""
@@ -315,12 +261,12 @@ def parse_ai_recommendations(ai_response: str, trip_info: Dict[str, Any]) -> Lis
             if 'priority' not in rec:
                 rec['priority'] = 'medium'
         
-        # Получаем изображения для каждого места
+        # Получаем изображения для мест параллельно, с ограничением по времени
         destination = trip_info.get('destination', '')
-        for rec in recommendations[:10]:
-            rec['image_url'] = fetch_place_image(rec['place_name'], destination)
+        recommendations = recommendations[:10]
+        fetch_images_for_recommendations(recommendations, destination, time_budget_sec=12.0)
         
-        return recommendations[:10]
+        return recommendations
     
     except json.JSONDecodeError as e:
         print(f'[ERROR] Не удалось распарсить JSON: {str(e)}')
