@@ -217,6 +217,7 @@ export default function AppendixDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="appendix-content"
       />
 
       <AppendixIndicator />

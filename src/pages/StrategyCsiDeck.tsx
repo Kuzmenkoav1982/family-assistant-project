@@ -243,6 +243,7 @@ export default function StrategyCsiDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="strategy-csi-content"
       />
 
       {isMeetingMode && (

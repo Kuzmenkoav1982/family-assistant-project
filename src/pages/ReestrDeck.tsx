@@ -195,6 +195,7 @@ export default function ReestrDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="reestr-deck-content"
       />
 
       <HubReturnLink variant="corner" topOffset="4rem" />

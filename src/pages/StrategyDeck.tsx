@@ -284,6 +284,7 @@ export default function StrategyDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="strategy-content"
       />
 
       <HubReturnLink variant="corner" topOffset="4rem" />

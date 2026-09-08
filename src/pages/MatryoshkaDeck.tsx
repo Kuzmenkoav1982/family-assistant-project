@@ -373,6 +373,7 @@ export default function MatryoshkaDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="matryoshka-content"
       />
 
       <style>{`

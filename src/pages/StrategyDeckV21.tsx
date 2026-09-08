@@ -230,6 +230,7 @@ export default function StrategyDeckV21() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="strategy-v21-content"
       />
 
       {isMeetingMode && (

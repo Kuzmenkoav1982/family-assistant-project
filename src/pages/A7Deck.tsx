@@ -362,6 +362,7 @@ export default function A7Deck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="a7-deck-content"
       />
 
       {isMeetingMode && (

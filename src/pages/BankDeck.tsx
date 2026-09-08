@@ -431,6 +431,7 @@ export default function BankDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="bank-deck-content"
       />
 
       {isMeetingMode && (

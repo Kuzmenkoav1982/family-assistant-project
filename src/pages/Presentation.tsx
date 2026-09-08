@@ -214,6 +214,7 @@ export default function Presentation() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="presentation-content"
       />
 
       <style>{`

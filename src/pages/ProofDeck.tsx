@@ -217,6 +217,7 @@ export default function ProofDeck() {
         onDownloadPPTX={downloadPPTX}
         isPptxDownloading={isPptxDownloading}
         pptxProgress={pptxProgress}
+        contentId="proof-content"
       />
 
       <HubReturnLink variant="corner" topOffset="4rem" />
