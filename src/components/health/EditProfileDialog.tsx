@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { jsonHeaders } from '@/lib/apiHeaders';
 
 interface EditProfileDialogProps {
   profile: {
@@ -52,18 +53,10 @@ export function EditProfileDialog({ profile, onSuccess, trigger }: EditProfileDi
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
-      const userId = localStorage.getItem('userData')
-        ? JSON.parse(localStorage.getItem('userData')!).member_id
-        : '1';
 
       const response = await fetch(func2url['health-profiles'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': userId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: profile.id,
           bloodType: formData.bloodType,

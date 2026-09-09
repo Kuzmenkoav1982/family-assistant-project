@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders, jsonHeaders } from '@/lib/apiHeaders';
 
 interface Reminder {
   id: string;
@@ -36,18 +37,6 @@ interface MedicationCardProps {
   onEdit?: (medication: Medication) => void;
 }
 
-function getUserId(): string | null {
-  const userDataStr = localStorage.getItem('userData');
-  if (userDataStr) {
-    try {
-      const userData = JSON.parse(userDataStr);
-      return userData.member_id || '1';
-    } catch (e) {
-      console.error('[MedicationCard] Failed to parse userData:', e);
-    }
-  }
-  return '1';
-}
 
 export function MedicationCard({ medication, onUpdate, onDelete, onEdit }: MedicationCardProps) {
   const [intakes, setIntakes] = useState<{ [key: string]: boolean }>({});
@@ -57,17 +46,12 @@ export function MedicationCard({ medication, onUpdate, onDelete, onEdit }: Medic
   useEffect(() => {
     const loadIntakes = async () => {
       try {
-        const userId = getUserId();
-        const authToken = localStorage.getItem('authToken');
         const today = new Date().toISOString().split('T')[0];
 
         const response = await fetch(
           `${func2url['medication-intakes']}?medicationId=${medication.id}`,
           {
-            headers: {
-              'X-User-Id': userId || '',
-              ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-            }
+            headers: apiHeaders()
           }
         );
 
@@ -99,15 +83,9 @@ export function MedicationCard({ medication, onUpdate, onDelete, onEdit }: Medic
     setLoading({ ...loading, [reminderId]: true });
     
     try {
-      const userId = getUserId();
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['medication-intakes'], {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': userId || '',
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           medicationId: medication.id,
           reminderId: reminderId,

@@ -1,15 +1,56 @@
 {
   "tests": [
     {
-      "name": "Get insurance policies",
+      "name": "No session token -> 401 (insurance policies)",
+      "method": "GET",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Spoofed X-User-Id without session -> 401",
       "method": "GET",
       "path": "/",
       "headers": {
         "X-User-Id": "1"
       },
-      "expectedStatus": 200,
-      "expectedBody": [],
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
+    },
+    {
+      "name": "Spoofed X-User-Id (valid-looking UUID) without session -> 401",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "00000000-0000-0000-0000-000000000001"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Invalid session token -> 401",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "invalid-token-for-negative-test"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Write without session -> 401",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-User-Id": "1"
+      },
+      "body": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 200
     }
   ]
 }

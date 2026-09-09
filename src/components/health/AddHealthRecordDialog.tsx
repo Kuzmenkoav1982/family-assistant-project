@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { jsonHeaders } from '@/lib/apiHeaders';
 
 interface AddHealthRecordDialogProps {
   profileId: string;
@@ -55,14 +56,9 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger, open: ope
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['health-records'], {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           profileId,
           ...formData

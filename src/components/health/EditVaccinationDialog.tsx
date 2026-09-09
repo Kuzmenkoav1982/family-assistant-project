@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders, jsonHeaders } from '@/lib/apiHeaders';
 
 interface EditVaccinationDialogProps {
   vaccination: {
@@ -43,14 +44,9 @@ export function EditVaccinationDialog({ vaccination, onSuccess }: EditVaccinatio
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['health-vaccinations'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': vaccination.profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: vaccination.id,
           profileId: vaccination.profileId,
@@ -85,13 +81,9 @@ export function EditVaccinationDialog({ vaccination, onSuccess }: EditVaccinatio
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(`${func2url['health-vaccinations']}?id=${vaccination.id}`, {
         method: 'DELETE',
-        headers: {
-          'X-User-Id': vaccination.profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        }
+        headers: apiHeaders()
       });
 
       if (response.ok) {

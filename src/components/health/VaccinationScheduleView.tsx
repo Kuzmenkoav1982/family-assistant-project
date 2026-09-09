@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders } from '@/lib/apiHeaders';
 
 interface ScheduleVaccination {
   id: string;
@@ -61,12 +62,8 @@ export function VaccinationScheduleView({
   useEffect(() => {
     const fetchSchedule = async () => {
       try {
-        const authToken = localStorage.getItem('authToken');
         const response = await fetch(`${func2url['health-vaccinations']}/schedule`, {
-          headers: {
-            'X-User-Id': profileId,
-            ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-          }
+          headers: apiHeaders()
         });
 
         if (response.ok) {

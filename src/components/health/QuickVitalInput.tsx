@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { jsonHeaders } from '@/lib/apiHeaders';
 
 interface QuickVitalInputProps {
   profileId: string;
@@ -90,16 +91,11 @@ export function QuickVitalInput({ profileId, onSuccess }: QuickVitalInputProps) 
     }
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const now = new Date();
       
       const response = await fetch(func2url['health-vitals'], {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           profileId,
           type,

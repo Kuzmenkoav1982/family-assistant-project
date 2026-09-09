@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { jsonHeaders } from '@/lib/apiHeaders';
 
 interface HealthRecord {
   id: string;
@@ -71,14 +72,9 @@ export function EditHealthRecordDialog({
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['health-records'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: record.id,
           profileId,

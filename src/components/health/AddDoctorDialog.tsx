@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { jsonHeaders } from '@/lib/apiHeaders';
 
 interface AddDoctorDialogProps {
   onSuccess: () => void;
@@ -33,18 +34,10 @@ export function AddDoctorDialog({ onSuccess, trigger }: AddDoctorDialogProps) {
     setLoading(true);
 
     try {
-      const userId = localStorage.getItem('userData')
-        ? JSON.parse(localStorage.getItem('userData')!).member_id
-        : '1';
-      const authToken = localStorage.getItem('authToken');
       
       const response = await fetch(func2url['health-doctors'], {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': userId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           ...formData,
           isFavorite: false

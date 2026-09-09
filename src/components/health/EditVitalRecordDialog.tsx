@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders, jsonHeaders } from '@/lib/apiHeaders';
 
 interface EditVitalRecordDialogProps {
   vital: {
@@ -63,14 +64,9 @@ export function EditVitalRecordDialog({ vital, onSuccess }: EditVitalRecordDialo
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['health-vitals'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': vital.profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: vital.id,
           profileId: vital.profileId,
@@ -104,13 +100,9 @@ export function EditVitalRecordDialog({ vital, onSuccess }: EditVitalRecordDialo
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(`${func2url['health-vitals']}?id=${vital.id}`, {
         method: 'DELETE',
-        headers: {
-          'X-User-Id': vital.profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        }
+        headers: apiHeaders()
       });
 
       if (response.ok) {

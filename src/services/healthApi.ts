@@ -1,24 +1,28 @@
 /**
- * Stage 4 — Health API thin wrapper.
+ * Health API thin wrapper.
  *
- * KNOWN EXCEPTION (KE-health, подтверждено в БД на 8 строках health_profiles):
- *   health_profiles.user_id физически хранит family_members.id, не users.id.
- *   Backend (backend/health-profiles/index.py:80–85) делает
- *     WHERE user_id = %s OR %s = ANY(shared_with)
- *   против X-User-Id. То есть actor identity для health = family_members.id.
+ * ────────────────────────────────────────────────────────────────────────────
+ * СЕРВЕРНАЯ АВТОРИЗАЦИЯ (волна 1)
  *
- * Поэтому весь health surface шлёт X-User-Id = readActorMemberId(), а НЕ readActorUserId().
+ * Identity больше не передаётся клиентом. Раньше здесь отправлялся
+ * X-User-Id = readActorMemberId(), и backend доверял этому значению как
+ * ответу на вопрос «кто я» — подстановка чужого UUID открывала чужие
+ * медицинские данные. Теперь:
  *
- * Жёсткие правила (закрывают P0-аномалии A1, A2, A5, A6 из docs/stage-4-id-contracts.md):
- *   - X-User-Id берётся ТОЛЬКО через identity adapter (readActorMemberId).
- *   - Если member id нет — header не отправляется, caller получит честный 401.
- *   - Никаких fallback на '1' или на selectedProfile.id.
- *   - profileId передаётся как resource id в query/body, а не в header.
- *   - Все health-вызовы (GET/POST/PUT/DELETE) идут через эти helpers.
+ *   - клиент отправляет только X-Auth-Token (серверная сессия);
+ *   - actor, семья, роль и множество доступных субъектов определяются
+ *     на backend в auth_guard.require_session();
+ *   - profileId остаётся resource id в query/body — как и было;
+ *   - subjectMemberId передаётся лишь тогда, когда действие осознанно
+ *     выполняется за другого доступного участника.
+ *
+ * KE-health (health_profiles.user_id хранит family_members.id) сохраняется
+ * как особенность схемы данных, но больше не влияет на аутентификацию:
+ * сервер сам сопоставляет сессию с member_id.
  */
 
 import func2url from '../../backend/func2url.json';
-import { readActorMemberId, readAuthToken } from '@/lib/identity';
+import { apiHeaders } from '@/lib/apiHeaders';
 
 const API_URLS = {
   profiles: func2url['health-profiles'],
@@ -34,12 +38,7 @@ const API_URLS = {
 export type HealthResource = keyof typeof API_URLS;
 
 function buildHeaders(extra?: Record<string, string>): Record<string, string> {
-  const headers: Record<string, string> = { ...(extra || {}) };
-  const memberId = readActorMemberId();
-  if (memberId) headers['X-User-Id'] = memberId;
-  const token = readAuthToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  return headers;
+  return apiHeaders({ extra });
 }
 
 function buildUrl(resource: HealthResource, query?: Record<string, string | undefined>): string {

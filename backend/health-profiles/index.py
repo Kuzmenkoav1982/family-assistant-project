@@ -1,299 +1,303 @@
+"""
+Business: медицинские профили членов семьи — чтение, создание, обновление
+Args: event с httpMethod, body, headers X-Auth-Token (обязательно), X-User-Id (переходный, опционально)
+Returns: JSON со списком профилей или результатом операции
+
+────────────────────────────────────────────────────────────────────────────
+МОДЕЛЬ ДОСТУПА (волна 1, серверная авторизация)
+
+Actor определяется ТОЛЬКО из sessions.token. X-User-Id больше не является
+identity: он допустим лишь как requested member ("от имени какого доступного
+мне участника действую") и проверяется через resolve_requested_member().
+
+Проверки на каждую операцию:
+  1) require_session            — кто выполняет запрос
+  2) require_permission         — может ли роль работать с модулем health
+  3) require_same_family        — профиль относится к моей семье (IDOR/BOLA)
+  4) require_subject_access     — доступ к данным именно этого человека
+
+Роль admin НЕ даёт автоматического доступа к здоровью всех участников:
+нужна явная связь member_guardianships или родительство над ребёнком.
+
+KE-health: health_profiles.user_id физически хранит family_members.id,
+поэтому субъект профиля — это member_id.
+"""
+
 import json
 import os
+from typing import Any, Dict, List, Optional
+
 import psycopg2
-from datetime import datetime
+from psycopg2.extras import RealDictCursor
+
+from auth_guard import (
+    AuthContext,
+    AuthError,
+    accessible_subject_ids,
+    audit_allowed,
+    error_response,
+    json_response,
+    preflight,
+    require_permission,
+    require_same_family,
+    require_session,
+    require_subject_access,
+    resolve_requested_member,
+)
 from encryption_utils import encrypt_list, decrypt_list
-import urllib.request
-import urllib.error
 
-FAMILY_MEMBERS_URL = 'https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5'
+SCHEMA = 't_p5815085_family_assistant_pro'
+MODULE = 'health'
 
-def get_member_info(member_id: str, auth_token: str = None) -> dict:
-    '''Получить имя, возраст и фото члена семьи через family-members функцию'''
-    try:
-        headers = {}
-        if auth_token:
-            # family-members API использует X-Auth-Token заголовок
-            headers['X-Auth-Token'] = auth_token
-        
-        req = urllib.request.Request(FAMILY_MEMBERS_URL, headers=headers)
-        with urllib.request.urlopen(req, timeout=5) as response:
-            data = json.loads(response.read().decode())
-            if data.get('success') and data.get('members'):
-                for member in data['members']:
-                    if member.get('id') == member_id:
-                        return {
-                            'name': member.get('name', 'Член семьи'),
-                            'age': member.get('age', 0),
-                            'photo_url': member.get('photo_url') or member.get('photoUrl')
-                        }
-        return {'name': 'Член семьи', 'age': 0, 'photo_url': None}
-    except Exception as e:
-        print(f'[ERROR] Failed to fetch member info for {member_id}: {e}')
-        return {'name': 'Член семьи', 'age': 0, 'photo_url': None}
 
-def handler(event: dict, context) -> dict:
-    '''
-    Управление медицинскими профилями: получение, создание и обновление профилей здоровья членов семьи
-    '''
+def _connect():
+    return psycopg2.connect(os.environ.get('DATABASE_URL'))
+
+
+def _member_directory(cursor, member_ids: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Имена/фото участников одним запросом к БД — без внутреннего HTTP-вызова."""
+    if not member_ids:
+        return {}
+    cursor.execute(
+        f"""SELECT id::text, name, age, photo_url
+            FROM {SCHEMA}.family_members WHERE id::text = ANY(%s)""",
+        (list(member_ids),),
+    )
+    return {
+        r[0]: {'name': r[1] or 'Член семьи', 'age': r[2] or 0, 'photo_url': r[3]}
+        for r in cursor.fetchall()
+    }
+
+
+def _load_member(cursor, member_id: str) -> Optional[Dict[str, Any]]:
+    """Участник и его семья — для проверки субъекта, указанного в теле запроса."""
+    cursor.execute(
+        f"""SELECT id::text, family_id::text, access_role, account_type
+            FROM {SCHEMA}.family_members WHERE id::text = %s""",
+        (str(member_id),),
+    )
+    row = cursor.fetchone()
+    if not row:
+        return None
+    return {'id': row[0], 'family_id': row[1], 'access_role': row[2], 'account_type': row[3]}
+
+
+def _load_profile(cursor, profile_id: str) -> Optional[Dict[str, Any]]:
+    """Профиль + family_id субъекта. Нужен ДО любой отдачи данных клиенту."""
+    cursor.execute(
+        f"""
+        SELECT hp.id, hp.user_id AS subject_member_id, fm.family_id::text AS family_id
+        FROM health_profiles hp
+        LEFT JOIN {SCHEMA}.family_members fm ON fm.id::text = hp.user_id
+        WHERE hp.id = %s
+        """,
+        (profile_id,),
+    )
+    row = cursor.fetchone()
+    if not row:
+        return None
+    return {'id': row[0], 'subject_member_id': row[1], 'family_id': row[2]}
+
+
+def _serialize(cursor, rows, directory) -> List[Dict[str, Any]]:
+    profiles = []
+    for row in rows:
+        profile_id = row[0]
+        cursor.execute(
+            'SELECT id, name, relation, phone, is_primary FROM emergency_contacts WHERE profile_id = %s',
+            (profile_id,),
+        )
+        contacts = [
+            {'id': c[0], 'name': c[1], 'relation': c[2], 'phone': c[3], 'isPrimary': c[4]}
+            for c in cursor.fetchall()
+        ]
+        info = directory.get(str(row[1]), {'name': 'Член семьи', 'age': 0, 'photo_url': None})
+        profiles.append({
+            'id': row[0],
+            'userId': row[1],
+            'userName': info['name'],
+            'userAge': info['age'],
+            'photoUrl': info.get('photo_url'),
+            'bloodType': row[2],
+            'rhFactor': row[3],
+            'allergies': decrypt_list(row[4]) if row[4] else [],
+            'chronicDiseases': decrypt_list(row[5]) if row[5] else [],
+            'emergencyContacts': contacts,
+            'privacy': row[6],
+            'sharedWith': row[7] or [],
+            'createdAt': row[8].isoformat() if row[8] else None,
+            'updatedAt': row[9].isoformat() if row[9] else None,
+        })
+    return profiles
+
+
+def _handle_get(event, ctx: AuthContext, cursor) -> Dict[str, Any]:
+    """
+    Массовый список НИКОГДА не возвращает чужие записи: выборка ограничена
+    множеством субъектов, к которым у актора есть подтверждённый доступ.
+    """
+    # read_own достаточно для своего профиля; сама выборка ограничена
+    # accessible_subject_ids, поэтому расширения прав здесь не происходит.
+    require_permission(ctx, MODULE, 'read_own')
+    subjects = accessible_subject_ids(ctx, MODULE)
+    if not subjects:
+        return json_response([], 200, event)
+
+    cursor.execute(
+        """
+        SELECT id, user_id, blood_type, rh_factor, allergies, chronic_diseases,
+               privacy, shared_with, created_at, updated_at
+        FROM health_profiles
+        WHERE user_id = ANY(%s)
+        """,
+        (subjects,),
+    )
+    rows = cursor.fetchall()
+    directory = _member_directory(cursor, [str(r[1]) for r in rows])
+    profiles = _serialize(cursor, rows, directory)
+    audit_allowed(ctx, MODULE, 'read', 'ACCESSIBLE_SUBJECTS', resource_type='health_profile')
+    return json_response(profiles, 200, event)
+
+
+def _handle_post(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
+    require_permission(ctx, MODULE, 'create')
+    body = json.loads(event.get('body') or '{}')
+
+    # Субъект профиля никогда не принимается на веру из body: значение
+    # проходит проверку принадлежности семье и права на этого человека.
+    # Без этого можно было бы завести медицинский профиль на чужого члена
+    # чужой семьи, просто указав его UUID в userId.
+    requested = body.get('userId') or resolve_requested_member(event, ctx, MODULE)
+    subject_member_id = str(requested)
+
+    subject = _load_member(cursor, subject_member_id)
+    if not subject:
+        raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+    require_same_family(ctx, subject['family_id'], 'family_member', subject_member_id)
+    require_subject_access(ctx, subject_member_id, MODULE, resource_type='health_profile')
+
+    cursor.execute(
+        """
+        INSERT INTO health_profiles
+        (id, user_id, blood_type, rh_factor, allergies, chronic_diseases, privacy, shared_with, created_at, updated_at)
+        VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+        RETURNING id
+        """,
+        (
+            subject_member_id,
+            body.get('bloodType'),
+            body.get('rhFactor'),
+            encrypt_list(body.get('allergies', [])),
+            encrypt_list(body.get('chronicDiseases', [])),
+            body.get('privacy', 'private'),
+            body.get('sharedWith', []),
+        ),
+    )
+    profile_id = cursor.fetchone()[0]
+
+    for contact in body.get('emergencyContacts', []):
+        if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
+            continue
+        cursor.execute(
+            """INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
+               VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)""",
+            (profile_id, contact['name'], contact['relation'], contact['phone'],
+             contact.get('isPrimary', False)),
+        )
+
+    conn.commit()
+    audit_allowed(ctx, MODULE, 'create', 'POLICY_ALLOW',
+                  resource_type='health_profile', resource_id=profile_id,
+                  subject_member_id=subject_member_id)
+    return json_response({'id': profile_id, 'message': 'Profile created'}, 201, event)
+
+
+def _handle_put(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
+    require_permission(ctx, MODULE, 'update')
+    body = json.loads(event.get('body') or '{}')
+    profile_id = body.get('id')
+    if not profile_id:
+        return json_response({'error': 'Profile ID required'}, 400, event)
+
+    # Загружаем объект и проверяем принадлежность ДО изменения.
+    profile = _load_profile(cursor, profile_id)
+    if not profile:
+        raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+    require_same_family(ctx, profile['family_id'], 'health_profile', profile_id)
+    require_subject_access(ctx, profile['subject_member_id'], MODULE,
+                           resource_type='health_profile', resource_id=profile_id)
+
+    cursor.execute(
+        """
+        UPDATE health_profiles
+        SET blood_type = %s, rh_factor = %s, allergies = %s,
+            chronic_diseases = %s, privacy = %s, shared_with = %s, updated_at = NOW()
+        WHERE id = %s
+        """,
+        (
+            body.get('bloodType'),
+            body.get('rhFactor'),
+            encrypt_list(body.get('allergies', [])),
+            encrypt_list(body.get('chronicDiseases', [])),
+            body.get('privacy', 'private'),
+            body.get('sharedWith', []),
+            profile_id,
+        ),
+    )
+
+    if 'emergencyContacts' in body:
+        cursor.execute('DELETE FROM emergency_contacts WHERE profile_id = %s', (profile_id,))
+        for contact in body['emergencyContacts']:
+            if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
+                continue
+            cursor.execute(
+                """INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
+                   VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)""",
+                (profile_id, contact['name'], contact['relation'], contact['phone'],
+                 contact.get('isPrimary', False)),
+            )
+
+    conn.commit()
+    audit_allowed(ctx, MODULE, 'update', 'POLICY_ALLOW',
+                  resource_type='health_profile', resource_id=profile_id,
+                  subject_member_id=profile['subject_member_id'])
+    return json_response({'message': 'Profile updated'}, 200, event)
+
+
+def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
-    
-    origin = event.get('headers', {}).get('origin') or event.get('headers', {}).get('Origin') or 'https://nasha-semiya.ru'
-    
+
     if method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': origin,
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization',
-                'Access-Control-Allow-Credentials': 'true'
-            },
-            'body': '',
-            'isBase64Encoded': False
-        }
-    
-    user_id = event.get('headers', {}).get('X-User-Id') or event.get('headers', {}).get('x-user-id')
-    auth_token = event.get('headers', {}).get('X-Authorization') or event.get('headers', {}).get('x-authorization')
-    if auth_token and auth_token.startswith('Bearer '):
-        auth_token = auth_token[7:]
-    
-    if not user_id:
-        return {
-            'statusCode': 401,
-            'headers': {
-                'Content-Type': 'application/json', 
-                'Access-Control-Allow-Origin': origin,
-                'Access-Control-Allow-Credentials': 'true'
-            },
-            'body': json.dumps({'error': 'User ID required'}),
-            'isBase64Encoded': False
-        }
-    
-    dsn = os.environ.get('DATABASE_URL')
-    conn = psycopg2.connect(dsn)
-    cursor = conn.cursor()
-    
+        return preflight(event)
+
     try:
+        ctx = require_session(event)
+    except AuthError as exc:
+        return error_response(exc, event)
+
+    conn = None
+    try:
+        conn = _connect()
+        cursor = conn.cursor()
+
         if method == 'GET':
-            print(f'[DEBUG] Fetching profiles for user_id: {user_id}')
-            cursor.execute('''
-                SELECT id, user_id, blood_type, rh_factor, allergies, chronic_diseases, 
-                       privacy, shared_with, created_at, updated_at
-                FROM health_profiles
-                WHERE user_id = %s OR %s = ANY(shared_with)
-            ''', (user_id, user_id))
-            
-            rows = cursor.fetchall()
-            print(f'[DEBUG] Found {len(rows)} profiles')
-            profiles = []
-            
-            for row in rows:
-                profile_id = row[0]
-                
-                cursor.execute('''
-                    SELECT id, name, relation, phone, is_primary
-                    FROM emergency_contacts
-                    WHERE profile_id = %s
-                ''', (profile_id,))
-                
-                contacts = []
-                for c in cursor.fetchall():
-                    contacts.append({
-                        'id': c[0],
-                        'name': c[1],
-                        'relation': c[2],
-                        'phone': c[3],
-                        'isPrimary': c[4]
-                    })
-                
-                member_info = get_member_info(row[1], auth_token)
-                
-                profiles.append({
-                    'id': row[0],
-                    'userId': row[1],
-                    'userName': member_info['name'],
-                    'userAge': member_info['age'],
-                    'photoUrl': member_info.get('photo_url'),
-                    'bloodType': row[2],
-                    'rhFactor': row[3],
-                    'allergies': decrypt_list(row[4]) if row[4] else [],
-                    'chronicDiseases': decrypt_list(row[5]) if row[5] else [],
-                    'emergencyContacts': contacts,
-                    'privacy': row[6],
-                    'sharedWith': row[7] or [],
-                    'createdAt': row[8].isoformat() if row[8] else None,
-                    'updatedAt': row[9].isoformat() if row[9] else None
-                })
-            
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json', 
-                    'Access-Control-Allow-Origin': origin,
-                    'Access-Control-Allow-Credentials': 'true'
-                },
-                'body': json.dumps(profiles, ensure_ascii=False),
-                'isBase64Encoded': False
-            }
-        
-        elif method == 'POST':
-            body = json.loads(event.get('body', '{}'))
-            profile_user_id = body.get('userId', user_id)
-            
-            cursor.execute('''
-                INSERT INTO health_profiles 
-                (id, user_id, blood_type, rh_factor, allergies, chronic_diseases, privacy, shared_with, created_at, updated_at)
-                VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-                RETURNING id
-            ''', (
-                profile_user_id,
-                body.get('bloodType'),
-                body.get('rhFactor'),
-                encrypt_list(body.get('allergies', [])),
-                encrypt_list(body.get('chronicDiseases', [])),
-                body.get('privacy', 'private'),
-                body.get('sharedWith', [])
-            ))
-            
-            profile_id = cursor.fetchone()[0]
-            
-            for contact in body.get('emergencyContacts', []):
-                # Пропускаем контакты с пустыми обязательными полями
-                if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
-                    continue
-                cursor.execute('''
-                    INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
-                    VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)
-                ''', (
-                    profile_id,
-                    contact['name'],
-                    contact['relation'],
-                    contact['phone'],
-                    contact.get('isPrimary', False)
-                ))
-            
-            conn.commit()
-            
-            return {
-                'statusCode': 201,
-                'headers': {
-                    'Content-Type': 'application/json', 
-                    'Access-Control-Allow-Origin': origin,
-                    'Access-Control-Allow-Credentials': 'true'
-                },
-                'body': json.dumps({'id': profile_id, 'message': 'Profile created'}),
-                'isBase64Encoded': False
-            }
-        
-        elif method == 'PUT':
-            body = json.loads(event.get('body', '{}'))
-            profile_id = body.get('id')
-            
-            print(f'[DEBUG] PUT request body: {json.dumps(body, ensure_ascii=False)}')
-            
-            if not profile_id:
-                return {
-                    'statusCode': 400,
-                    'headers': {
-                        'Content-Type': 'application/json', 
-                        'Access-Control-Allow-Origin': origin,
-                        'Access-Control-Allow-Credentials': 'true'
-                    },
-                    'body': json.dumps({'error': 'Profile ID required'}),
-                    'isBase64Encoded': False
-                }
-            
-            try:
-                cursor.execute('''
-                    UPDATE health_profiles
-                    SET blood_type = %s, rh_factor = %s, allergies = %s, 
-                        chronic_diseases = %s, privacy = %s, shared_with = %s, updated_at = NOW()
-                    WHERE id = %s AND (user_id = %s OR %s = ANY(shared_with))
-                ''', (
-                    body.get('bloodType'),
-                    body.get('rhFactor'),
-                    encrypt_list(body.get('allergies', [])),
-                    encrypt_list(body.get('chronicDiseases', [])),
-                    body.get('privacy', 'private'),
-                    body.get('sharedWith', []),
-                    profile_id,
-                    user_id,
-                    user_id
-                ))
-                
-                if 'emergencyContacts' in body:
-                    cursor.execute('DELETE FROM emergency_contacts WHERE profile_id = %s', (profile_id,))
-                    
-                    for contact in body['emergencyContacts']:
-                        # Пропускаем контакты с пустыми обязательными полями
-                        if not contact.get('name') or not contact.get('relation') or not contact.get('phone'):
-                            print(f'[DEBUG] Skipping empty contact: {contact}')
-                            continue
-                        print(f'[DEBUG] Inserting contact: {contact}')
-                        cursor.execute('''
-                            INSERT INTO emergency_contacts (id, profile_id, name, relation, phone, is_primary)
-                            VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s)
-                        ''', (
-                            profile_id,
-                            contact['name'],
-                            contact['relation'],
-                            contact['phone'],
-                            contact.get('isPrimary', False)
-                        ))
-            except Exception as e:
-                print(f'[ERROR] PUT request failed: {e}')
-                conn.rollback()
-                return {
-                    'statusCode': 500,
-                    'headers': {
-                        'Content-Type': 'application/json', 
-                        'Access-Control-Allow-Origin': origin,
-                        'Access-Control-Allow-Credentials': 'true'
-                    },
-                    'body': json.dumps({'error': str(e)}),
-                    'isBase64Encoded': False
-                }
-            
-            conn.commit()
-            
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json', 
-                    'Access-Control-Allow-Origin': origin,
-                    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, Authorization',
-                    'Access-Control-Allow-Credentials': 'true'
-                },
-                'body': json.dumps({'message': 'Profile updated'}),
-                'isBase64Encoded': False
-            }
-        
-        return {
-            'statusCode': 405,
-            'headers': {
-                'Content-Type': 'application/json', 
-                'Access-Control-Allow-Origin': origin,
-                'Access-Control-Allow-Credentials': 'true'
-            },
-            'body': json.dumps({'error': 'Method not allowed'}),
-            'isBase64Encoded': False
-        }
-        
-    except Exception as e:
-        conn.rollback()
-        print(f'[ERROR] {str(e)}')
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json', 
-                'Access-Control-Allow-Origin': origin,
-                'Access-Control-Allow-Credentials': 'true'
-            },
-            'body': json.dumps({'error': str(e)}),
-            'isBase64Encoded': False
-        }
+            return _handle_get(event, ctx, cursor)
+        if method == 'POST':
+            return _handle_post(event, ctx, cursor, conn)
+        if method == 'PUT':
+            return _handle_put(event, ctx, cursor, conn)
+
+        return json_response({'error': 'Method not allowed'}, 405, event)
+
+    except AuthError as exc:
+        if conn:
+            conn.rollback()
+        return error_response(exc, event)
+    except Exception as exc:
+        if conn:
+            conn.rollback()
+        print(f'[ERROR] health-profiles: {exc}')
+        return json_response({'error': 'Internal error'}, 500, event)
     finally:
-        cursor.close()
-        conn.close()
+        if conn:
+            conn.close()

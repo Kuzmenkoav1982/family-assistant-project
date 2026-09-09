@@ -8,6 +8,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import func2url from '../../../backend/func2url.json';
+import { jsonHeaders } from '@/lib/apiHeaders';
 
 interface Medication {
   id: string;
@@ -122,14 +123,9 @@ export function EditMedicationDialog({
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['health-medications'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: medication.id,
           profileId,

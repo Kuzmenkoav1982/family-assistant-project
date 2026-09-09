@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders, jsonHeaders } from '@/lib/apiHeaders';
 
 interface EditInsuranceDialogProps {
   insurance: {
@@ -44,14 +45,9 @@ export function EditInsuranceDialog({ insurance, onSuccess }: EditInsuranceDialo
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(func2url['health-insurance'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': insurance.profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: insurance.id,
           profileId: insurance.profileId,
@@ -86,13 +82,9 @@ export function EditInsuranceDialog({ insurance, onSuccess }: EditInsuranceDialo
     setLoading(true);
 
     try {
-      const authToken = localStorage.getItem('authToken');
       const response = await fetch(`${func2url['health-insurance']}?id=${insurance.id}`, {
         method: 'DELETE',
-        headers: {
-          'X-User-Id': insurance.profileId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        }
+        headers: apiHeaders()
       });
 
       if (response.ok) {

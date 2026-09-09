@@ -1,0 +1,36 @@
+{
+  "tests": [
+    {
+      "name": "No session token -> 401",
+      "method": "GET",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Invalid session token -> 401",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "definitely-not-a-valid-token-00000000"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "X-User-Id alone is not identity -> 401",
+      "method": "GET",
+      "path": "/",
+      "headers": {
+        "X-User-Id": "00000000-0000-0000-0000-000000000001"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 200
+    }
+  ]
+}

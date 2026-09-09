@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useMedicationNotifications } from '@/hooks/useMedicationNotifications';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders, hasSessionToken, jsonHeaders } from '@/lib/apiHeaders';
 
 interface MedicationReminder {
   id: string;
@@ -18,18 +19,6 @@ interface MedicationReminder {
   taken: boolean;
 }
 
-function getUserId(): string | null {
-  const userDataStr = localStorage.getItem('userData');
-  if (userDataStr) {
-    try {
-      const userData = JSON.parse(userDataStr);
-      return userData.member_id || '1';
-    } catch (e) {
-      console.error('[MedicationsWidget] Failed to parse userData:', e);
-    }
-  }
-  return '1';
-}
 
 export function MedicationsWidget() {
   const [todayMedications, setTodayMedications] = useState<MedicationReminder[]>([]);
@@ -42,19 +31,16 @@ export function MedicationsWidget() {
 
   const fetchTodayMedications = async () => {
     try {
-      const authToken = localStorage.getItem('authToken');
-      const userId = getUserId();
-      
-      if (!userId) {
+      // Identity больше не берётся из localStorage: наличие доступа
+      // определяет сервер по сессии. Здесь только избегаем заведомо
+      // бессмысленного запроса, когда пользователь не авторизован.
+      if (!hasSessionToken()) {
         setLoading(false);
         return;
       }
 
       const medsResponse = await fetch(func2url['health-medications'], {
-        headers: {
-          'X-User-Id': userId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        }
+        headers: apiHeaders()
       });
 
       if (!medsResponse.ok) {
@@ -75,10 +61,7 @@ export function MedicationsWidget() {
             const intakesResponse = await fetch(
               `${func2url['medication-intakes']}?medicationId=${med.id}`,
               {
-                headers: {
-                  'X-User-Id': userId,
-                  ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-                }
+                headers: apiHeaders()
               }
             );
 
@@ -128,16 +111,10 @@ export function MedicationsWidget() {
     setUpdating({ ...updating, [reminder.id]: true });
 
     try {
-      const authToken = localStorage.getItem('authToken');
-      const userId = getUserId();
 
       const response = await fetch(func2url['medication-intakes'], {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': userId || '',
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           medicationId: reminder.medicationId,
           reminderId: reminder.id,

@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 import func2url from '../../../backend/func2url.json';
+import { apiHeaders, jsonHeaders } from '@/lib/apiHeaders';
 
 interface EditDoctorDialogProps {
   doctor: {
@@ -42,18 +43,10 @@ export function EditDoctorDialog({ doctor, onSuccess }: EditDoctorDialogProps) {
     setLoading(true);
 
     try {
-      const userId = localStorage.getItem('userData')
-        ? JSON.parse(localStorage.getItem('userData')!).member_id
-        : '1';
-      const authToken = localStorage.getItem('authToken');
       
       const response = await fetch(func2url['health-doctors'], {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': userId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
           id: doctor.id,
           ...formData
@@ -86,17 +79,10 @@ export function EditDoctorDialog({ doctor, onSuccess }: EditDoctorDialogProps) {
     setLoading(true);
 
     try {
-      const userId = localStorage.getItem('userData')
-        ? JSON.parse(localStorage.getItem('userData')!).member_id
-        : '1';
-      const authToken = localStorage.getItem('authToken');
       
       const response = await fetch(`${func2url['health-doctors']}?id=${doctor.id}`, {
         method: 'DELETE',
-        headers: {
-          'X-User-Id': userId,
-          ...(authToken && { 'Authorization': `Bearer ${authToken}` })
-        }
+        headers: apiHeaders()
       });
 
       if (response.ok) {
