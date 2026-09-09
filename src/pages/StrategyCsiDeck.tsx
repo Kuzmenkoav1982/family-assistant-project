@@ -22,6 +22,8 @@ import SlideCSI12Contacts from '@/components/strategy-csi/SlideCSI12Contacts';
 import SlideCSI13Roadmap from '@/components/strategy-csi/SlideCSI13Roadmap';
 import SlideCSI14ProductMap from '@/components/strategy-csi/SlideCSI14ProductMap';
 import SlideCSI15CaseStudy from '@/components/strategy-csi/SlideCSI15CaseStudy';
+import SlideCSI16GlobalBenchmarks from '@/components/strategy-csi/SlideCSI16GlobalBenchmarks';
+import SlideCSI17RussianBenchmarks from '@/components/strategy-csi/SlideCSI17RussianBenchmarks';
 
 async function captureSlides(
   onProgress: (msg: string) => void
@@ -341,6 +343,8 @@ export default function StrategyCsiDeck() {
         <SlideCSI13Roadmap />
         <SlideCSI14ProductMap />
         <SlideCSI15CaseStudy />
+        <SlideCSI16GlobalBenchmarks />
+        <SlideCSI17RussianBenchmarks />
 
         <footer className="text-center text-xs sm:text-sm text-stone-400 py-8">
           Центр семейной истории × «Наша Семья» — рабочая концепция для
