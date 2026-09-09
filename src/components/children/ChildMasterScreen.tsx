@@ -671,7 +671,7 @@ export default function ChildMasterScreen({
 
               {/* Антимошенник */}
               <a
-                href="/anti-scam?mode=kids"
+                href="/finance/antiscam?mode=kids"
                 onClick={() => track('kids_safety_antiscam_click', { page: '/children' })}
                 className="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-orange-100 hover:border-orange-300 hover:shadow-sm transition group"
               >
