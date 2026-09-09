@@ -31,7 +31,7 @@ const stages = [
   },
   {
     num: '03',
-    title: 'Пилот в Ярославской обл.',
+    title: 'Пилот в Тульской обл.',
     duration: 'окт–ноябрь 2026',
     color: 'border-emerald-300 bg-emerald-50',
     numColor: 'bg-emerald-600 text-white',

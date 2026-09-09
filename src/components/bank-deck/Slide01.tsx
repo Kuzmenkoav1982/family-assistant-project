@@ -23,7 +23,7 @@ export default function Slide01() {
             Детская карта +<br />цифровая среда<br />развития
           </h1>
           <p className="text-base sm:text-xl text-indigo-100 leading-relaxed mb-8 max-w-xl">
-            Совместный продукт банка и платформы «Наша семья» для Ярославской области
+            Совместный продукт банка и платформы «Наша семья» для Тульской области
           </p>
           <div className="text-sm text-indigo-300 border-t border-white/10 pt-5 mt-5">
             Предложение к рассмотрению · 2026

@@ -31,7 +31,7 @@ const SCREENS = [
     children: [
       '112 — единый экстренный',
       '101 / 102 / 103',
-      'МЧС (внешняя ссылка)',
+      'МЧС «Спас-Экстрим» (внешняя ссылка)',
       'Вход в Anti-Scam (kids)',
       'Блок тестов',
     ],
@@ -70,8 +70,8 @@ const SCREENS = [
   },
   {
     id: 'region',
-    emoji: '🐻',
-    title: 'Мой край — Ярославль',
+    emoji: '🥮',
+    title: 'Мой край — Тула',
     color: 'bg-amber-50 border-amber-200',
     badge: 'bg-amber-100 text-amber-700',
     status: 'Demo-ready',

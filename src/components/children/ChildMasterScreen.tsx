@@ -3,7 +3,7 @@ import { ChevronRight, Plus, BookOpen, Dumbbell, Palette, Users, Music, Shield, 
 import Icon from "@/components/ui/icon";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import SafetyTests from "@/components/children/SafetyTests";
-import MyRegionYaroslavl from "@/components/children/MyRegionYaroslavl";
+import MyRegionTula from "@/components/children/MyRegionTula";
 import ChildProgressBlock from "@/components/children/ChildProgressBlock";
 import DreamGoalScreen from "@/components/children/DreamGoalScreen";
 import { track } from "@/lib/analytics";
@@ -221,7 +221,7 @@ export default function ChildMasterScreen({
     return (
       <ScreenPage>
         <ScreenBody>
-          <MyRegionYaroslavl
+          <MyRegionTula
             onBack={closeRegion}
             childId={child.id}
             initialProgress={child.regionProgress}
@@ -617,10 +617,10 @@ export default function ChildMasterScreen({
             className="w-full text-left rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition group"
           >
             <div className="bg-gradient-to-r from-amber-500 to-yellow-400 px-4 py-3 flex items-center gap-3">
-              <span className="text-2xl shrink-0">🐻</span>
+              <span className="text-2xl shrink-0">🥮</span>
               <div className="flex-1 min-w-0">
                 <p className="text-white font-bold text-sm leading-none">Мой край</p>
-                <p className="text-amber-100 text-[11px] mt-0.5">Ярославская область — факты, квиз и прогулки</p>
+                <p className="text-amber-100 text-[11px] mt-0.5">Тульская область — факты, квиз и прогулки</p>
               </div>
               <ArrowRight size={16} className="text-white/70 shrink-0 group-hover:translate-x-0.5 transition-transform" />
             </div>
@@ -655,7 +655,7 @@ export default function ChildMasterScreen({
 
               {/* МЧС */}
               <a
-                href="https://www.mchs.gov.ru/deyatelnost/rabota-s-det-mi"
+                href="https://spas-extreme.mchs.gov.ru/"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => track('kids_safety_mchs_click', { page: '/children' })}
@@ -664,7 +664,7 @@ export default function ChildMasterScreen({
                 <span className="text-xl shrink-0">🚒</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-slate-800 leading-snug">Пожар и ЧС</p>
-                  <p className="text-[11px] text-slate-500">Детский раздел МЧС России</p>
+                  <p className="text-[11px] text-slate-500">«Спас-Экстрим» — детский портал МЧС России</p>
                 </div>
                 <ArrowRight size={14} className="text-rose-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
               </a>

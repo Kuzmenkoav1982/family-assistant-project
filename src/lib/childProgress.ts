@@ -2,7 +2,7 @@
 // Источник правды — сервер (member.safetyProgress / member.regionProgress),
 // localStorage используется только как быстрый локальный кэш до подгрузки данных.
 
-import { YAROSLAVL_REGION_STORAGE_KEY, type YaroslavlRegionProgress } from "@/data/yaroslavlRegionData";
+import { TULA_REGION_STORAGE_KEY, type TulaRegionProgress } from "@/data/tulaRegionData";
 
 // ─── Safety Tests ──────────────────────────────────────────────────────────────
 
@@ -89,11 +89,11 @@ export interface RegionProgress {
  * Читает прогресс квиза "Мой край".
  * @param serverProgress — прогресс с сервера (member.regionProgress), приоритетнее localStorage
  */
-export function readRegionProgress(serverProgress?: YaroslavlRegionProgress | null): RegionProgress {
+export function readRegionProgress(serverProgress?: TulaRegionProgress | null): RegionProgress {
   try {
-    let p: YaroslavlRegionProgress | null = serverProgress ?? null;
+    let p: TulaRegionProgress | null = serverProgress ?? null;
     if (!p) {
-      const raw = localStorage.getItem(YAROSLAVL_REGION_STORAGE_KEY);
+      const raw = localStorage.getItem(TULA_REGION_STORAGE_KEY);
       p = raw ? JSON.parse(raw) : null;
     }
     if (!p) return { bestScore: null, levelTitle: null, completed: false };
@@ -109,7 +109,7 @@ export function readRegionProgress(serverProgress?: YaroslavlRegionProgress | nu
 
 // ─── Общий статус «есть ли вообще прогресс» ───────────────────────────────────
 
-export function hasAnyProgress(serverSafety?: SavedSafetyResults | null, serverRegion?: YaroslavlRegionProgress | null): boolean {
+export function hasAnyProgress(serverSafety?: SavedSafetyResults | null, serverRegion?: TulaRegionProgress | null): boolean {
   const s = readSafetyProgress(serverSafety);
   const r = readRegionProgress(serverRegion);
   return s.doneCount > 0 || r.bestScore !== null;

@@ -3,36 +3,36 @@ import { ArrowLeft, ArrowRight, RotateCcw, MapPin } from "lucide-react";
 import { track } from "@/lib/analytics";
 import { useFamilyMembersContext } from "@/contexts/FamilyMembersContext";
 import {
-  yaroslavlRegionFacts,
-  yaroslavlRegionQuiz,
-  yaroslavlFamilyIdeas,
-  yaroslavlQuizLevels,
-  yaroslavlRegionMeta,
-  YAROSLAVL_REGION_STORAGE_KEY,
-  type YaroslavlRegionProgress,
-} from "@/data/yaroslavlRegionData";
+  tulaRegionFacts,
+  tulaRegionQuiz,
+  tulaFamilyIdeas,
+  tulaQuizLevels,
+  tulaRegionMeta,
+  TULA_REGION_STORAGE_KEY,
+  type TulaRegionProgress,
+} from "@/data/tulaRegionData";
 
 // ─── Хелперы ──────────────────────────────────────────────────────────────────
 
 function getLevel(score: number) {
   return (
-    yaroslavlQuizLevels.find(l => score >= l.min && score <= l.max) ??
-    yaroslavlQuizLevels[0]
+    tulaQuizLevels.find(l => score >= l.min && score <= l.max) ??
+    tulaQuizLevels[0]
   );
 }
 
-function loadCachedProgress(): YaroslavlRegionProgress | null {
+function loadCachedProgress(): TulaRegionProgress | null {
   try {
-    const raw = localStorage.getItem(YAROSLAVL_REGION_STORAGE_KEY);
+    const raw = localStorage.getItem(TULA_REGION_STORAGE_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-function cacheProgress(p: YaroslavlRegionProgress) {
+function cacheProgress(p: TulaRegionProgress) {
   try {
-    localStorage.setItem(YAROSLAVL_REGION_STORAGE_KEY, JSON.stringify(p));
+    localStorage.setItem(TULA_REGION_STORAGE_KEY, JSON.stringify(p));
   } catch {
     // ignore
   }
@@ -44,10 +44,10 @@ function FactsBlock() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[11px] font-bold uppercase tracking-widest text-amber-600">
-        {yaroslavlRegionMeta.factsTitle}
+        {tulaRegionMeta.factsTitle}
       </p>
       <div className="grid grid-cols-1 gap-2">
-        {yaroslavlRegionFacts.map(fact => (
+        {tulaRegionFacts.map(fact => (
           <div
             key={fact.id}
             className="bg-white rounded-2xl border border-amber-100 px-4 py-3 flex items-start gap-3 shadow-sm"
@@ -70,10 +70,10 @@ function FamilyIdeasBlock() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-[11px] font-bold uppercase tracking-widest text-teal-600">
-        {yaroslavlRegionMeta.familyTitle}
+        {tulaRegionMeta.familyTitle}
       </p>
       <div className="flex flex-col gap-2">
-        {yaroslavlFamilyIdeas.map(idea => (
+        {tulaFamilyIdeas.map(idea => (
           <div
             key={idea.id}
             className="bg-white rounded-2xl border border-teal-100 px-4 py-3 flex items-start gap-3 shadow-sm"
@@ -112,7 +112,7 @@ function QuizScreen({ onBack, onComplete }: QuizScreenProps) {
   const [showExpl, setShowExpl] = useState(false);
   const [done, setDone] = useState(false);
 
-  const questions = yaroslavlRegionQuiz;
+  const questions = tulaRegionQuiz;
   const q = questions[current];
   const selected = answers[current];
   const isAnswered = selected !== undefined;
@@ -219,7 +219,7 @@ function QuizScreen({ onBack, onComplete }: QuizScreenProps) {
         <div className="flex items-center gap-2 mb-2">
           <span className="text-lg">🗺️</span>
           <span className="text-[11px] font-bold uppercase tracking-wider text-amber-600">
-            {yaroslavlRegionMeta.quizTitle}
+            {tulaRegionMeta.quizTitle}
           </span>
         </div>
         <p className="font-semibold text-slate-800 text-sm leading-snug">{q.question}</p>
@@ -276,18 +276,18 @@ function QuizScreen({ onBack, onComplete }: QuizScreenProps) {
 
 type View = "home" | "facts" | "quiz" | "family";
 
-interface MyRegionYaroslavlProps {
+interface MyRegionTulaProps {
   onBack?: () => void;
   /** ID ребёнка — обязателен для сохранения прогресса на сервере */
   childId?: string;
   /** Прогресс, уже загруженный с сервера (member.regionProgress) */
-  initialProgress?: YaroslavlRegionProgress | null;
+  initialProgress?: TulaRegionProgress | null;
 }
 
-export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: MyRegionYaroslavlProps) {
+export default function MyRegionTula({ onBack, childId, initialProgress }: MyRegionTulaProps) {
   const { updateMember } = useFamilyMembersContext();
   const [view, setView] = useState<View>("home");
-  const [progress, setProgress] = useState<YaroslavlRegionProgress | null>(
+  const [progress, setProgress] = useState<TulaRegionProgress | null>(
     () => initialProgress ?? loadCachedProgress()
   );
 
@@ -318,7 +318,7 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
           <button onClick={() => setView("home")} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
             <ArrowLeft size={16} className="text-slate-500" />
           </button>
-          <p className="font-bold text-slate-800 text-sm">{yaroslavlRegionMeta.factsTitle}</p>
+          <p className="font-bold text-slate-800 text-sm">{tulaRegionMeta.factsTitle}</p>
         </div>
         <FactsBlock />
       </div>
@@ -341,7 +341,7 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
           <button onClick={() => setView("home")} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
             <ArrowLeft size={16} className="text-slate-500" />
           </button>
-          <p className="font-bold text-slate-800 text-sm">{yaroslavlRegionMeta.familyTitle}</p>
+          <p className="font-bold text-slate-800 text-sm">{tulaRegionMeta.familyTitle}</p>
         </div>
         <FamilyIdeasBlock />
       </div>
@@ -362,8 +362,8 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
           </button>
         )}
         <div>
-          <p className="font-bold text-slate-800 text-base leading-none">{yaroslavlRegionMeta.title}</p>
-          <p className="text-[11px] text-amber-600 font-semibold mt-0.5">{yaroslavlRegionMeta.subtitle}</p>
+          <p className="font-bold text-slate-800 text-base leading-none">{tulaRegionMeta.title}</p>
+          <p className="text-[11px] text-amber-600 font-semibold mt-0.5">{tulaRegionMeta.subtitle}</p>
         </div>
       </div>
 
@@ -371,10 +371,10 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
       <div className="rounded-2xl overflow-hidden border border-amber-200 shadow-sm">
         <div className="bg-gradient-to-r from-amber-500 to-yellow-500 px-4 py-4">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">🐻</span>
+            <span className="text-3xl">☕</span>
             <div>
-              <p className="text-white font-bold text-sm leading-none">{yaroslavlRegionMeta.subtitle}</p>
-              <p className="text-amber-100 text-[11px] mt-0.5">{yaroslavlRegionMeta.description}</p>
+              <p className="text-white font-bold text-sm leading-none">{tulaRegionMeta.subtitle}</p>
+              <p className="text-amber-100 text-[11px] mt-0.5">{tulaRegionMeta.description}</p>
             </div>
           </div>
         </div>
@@ -401,8 +401,8 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
         >
           <span className="text-2xl shrink-0">🏛️</span>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm text-amber-800">{yaroslavlRegionMeta.factsTitle}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">{yaroslavlRegionFacts.length} коротких карточек о крае</p>
+            <p className="font-bold text-sm text-amber-800">{tulaRegionMeta.factsTitle}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">{tulaRegionFacts.length} коротких карточек о крае</p>
           </div>
           <ArrowRight size={16} className="text-amber-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
         </button>
@@ -414,9 +414,9 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
         >
           <span className="text-2xl shrink-0">🗺️</span>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm text-yellow-800">{yaroslavlRegionMeta.quizTitle}</p>
+            <p className="font-bold text-sm text-yellow-800">{tulaRegionMeta.quizTitle}</p>
             <p className="text-[11px] text-slate-500 mt-0.5">
-              {yaroslavlRegionQuiz.length} вопросов · 2–4 минуты
+              {tulaRegionQuiz.length} вопросов · 2–4 минуты
             </p>
             {progress && (
               <span className="inline-block mt-1 text-[10px] bg-yellow-200 text-yellow-800 rounded-full px-2 py-0.5 font-semibold">
@@ -434,8 +434,8 @@ export default function MyRegionYaroslavl({ onBack, childId, initialProgress }: 
         >
           <span className="text-2xl shrink-0">🚶</span>
           <div className="flex-1 min-w-0">
-            <p className="font-bold text-sm text-teal-800">{yaroslavlRegionMeta.familyTitle}</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">{yaroslavlFamilyIdeas.length} идей для выходного дня</p>
+            <p className="font-bold text-sm text-teal-800">{tulaRegionMeta.familyTitle}</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">{tulaFamilyIdeas.length} идей для выходного дня</p>
           </div>
           <ArrowRight size={16} className="text-teal-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
         </button>

@@ -73,7 +73,7 @@ export default function Slide15() {
           <div>
             <div className="text-indigo-300 text-xs uppercase tracking-wider mb-1">Контакт</div>
             <div className="text-white font-semibold text-base sm:text-lg">Платформа «Наша семья»</div>
-            <div className="text-indigo-200 text-sm mt-0.5">Ярославская область · 2026</div>
+            <div className="text-indigo-200 text-sm mt-0.5">Тульская область · 2026</div>
           </div>
           <div className="inline-flex items-center gap-3 bg-white/10 border border-white/20 rounded-2xl px-6 py-3 text-white font-semibold text-sm sm:text-base hover:bg-white/15 transition cursor-pointer">
             <span>Готовы начать</span>

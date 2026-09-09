@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { readSafetyProgress, readRegionProgress, hasAnyProgress, type SavedSafetyResults } from "@/lib/childProgress";
-import type { YaroslavlRegionProgress } from "@/data/yaroslavlRegionData";
+import type { TulaRegionProgress } from "@/data/tulaRegionData";
 
 interface ChildProgressBlockProps {
   onOpenTests: () => void;
@@ -10,7 +10,7 @@ interface ChildProgressBlockProps {
   /** Прогресс тестов безопасности с сервера (member.safetyProgress) */
   safetyProgress?: SavedSafetyResults | null;
   /** Прогресс квиза "Мой край" с сервера (member.regionProgress) */
-  regionProgress?: YaroslavlRegionProgress | null;
+  regionProgress?: TulaRegionProgress | null;
 }
 
 // ─── Первый вход — онбординг «С чего начать» ─────────────────────────────────
@@ -38,9 +38,9 @@ function OnboardingBlock({ onOpenTests, onOpenRegion, childAge }: ChildProgressB
     {
       id: "region",
       done: false,
-      emoji: "🐻",
+      emoji: "🥮",
       label: "Открой «Мой край»",
-      sub: "Факты о Ярославской области и квиз",
+      sub: "Факты о Тульской области и квиз",
       action: onOpenRegion,
     },
   ];
@@ -148,7 +148,7 @@ function ProgressBlock({ onOpenTests, onOpenRegion, safetyProgress, regionProgre
             onClick={onOpenRegion}
             className="w-full bg-white border border-amber-100 rounded-xl px-3 py-2.5 flex items-center gap-3 hover:border-amber-300 hover:shadow-sm transition text-left active:scale-[0.99]"
           >
-            <span className="text-xl shrink-0">🐻</span>
+            <span className="text-xl shrink-0">🥮</span>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
                 <p className="text-sm font-semibold text-slate-800 leading-none">Мой край</p>

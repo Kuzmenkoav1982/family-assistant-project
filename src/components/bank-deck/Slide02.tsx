@@ -56,7 +56,7 @@ export default function Slide02() {
 
       <div className="grid grid-cols-3 gap-3 mb-4">
         {[
-          { stat: '~260 тыс.', label: 'детей в Ярославской области', color: 'text-indigo-600' },
+          { stat: '~220 тыс.', label: 'детей в Тульской области', color: 'text-indigo-600' },
           { stat: '65%', label: 'семей используют онлайн-банкинг', color: 'text-emerald-600' },
           { stat: '1 из 3', label: 'родителей хочет контролировать расходы ребёнка', color: 'text-amber-600' },
         ].map((item) => (
@@ -74,7 +74,7 @@ export default function Slide02() {
       <div className="bg-slate-900 text-white rounded-2xl px-6 py-5 flex items-start gap-4">
         <span className="text-2xl mt-0.5">💡</span>
         <p className="text-sm sm:text-base leading-relaxed">
-          Ярославская область — сильный пилотный регион:{' '}
+          Тульская область — сильный пилотный регион:{' '}
           <span className="font-semibold text-indigo-300">высокая цифровая активность</span>,{' '}
           <span className="font-semibold text-emerald-300">семейная аудитория</span> и потенциал для
           тиражирования в другие регионы

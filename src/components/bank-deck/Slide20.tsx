@@ -4,7 +4,7 @@ const models = [
   {
     id: 'pilot',
     title: 'Модель 1. Пилот',
-    subtitle: 'Ярославская область',
+    subtitle: 'Тульская область',
     icon: '🚀',
     volume: 'до 499 семей',
     period: '3–6 месяцев',
@@ -20,7 +20,7 @@ const models = [
   {
     id: 'base',
     title: 'Модель 2. Базовое партнёрство',
-    subtitle: 'Ярославская область',
+    subtitle: 'Тульская область',
     icon: '🤝',
     volume: '1 000–4 999 семей',
     period: '12 месяцев',
@@ -31,7 +31,7 @@ const models = [
     color: 'border-indigo-300 bg-indigo-50',
     headerColor: 'bg-indigo-600 text-white',
     priceColor: 'text-indigo-700',
-    tag: 'Рекомендовано для Ярославля',
+    tag: 'Рекомендовано для Тулы',
   },
   {
     id: 'scale',
@@ -130,7 +130,7 @@ export default function Slide20() {
       </div>
 
       <div className="bg-slate-900 text-white rounded-2xl px-6 py-4 text-sm">
-        <span className="font-semibold text-indigo-300">Рекомендуемая точка входа для Ярославской области:</span>{' '}
+        <span className="font-semibold text-indigo-300">Рекомендуемая точка входа для Тульской области:</span>{' '}
         Базовое партнёрство, 1 000–4 999 семей, <strong>149 ₽/мес</strong> за активированное подключение,
         годовой контракт. При достижении 5 000+ семей — переход на расширенный тариф по допсоглашению.
       </div>

@@ -566,7 +566,7 @@ export default function BankDeck() {
         <SlideAppF />
 
         <footer className="text-center text-xs sm:text-sm text-slate-400 py-8">
-          «Наша Семья» · Детская карта × Банк · Ярославская область · 2026 · частный доступ
+          «Наша Семья» · Детская карта × Банк · Тульская область · 2026 · частный доступ
         </footer>
       </div>
     </div>
