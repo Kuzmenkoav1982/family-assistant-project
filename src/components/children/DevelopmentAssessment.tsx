@@ -167,7 +167,7 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
     setError('');
 
     try {
-      const familyId = localStorage.getItem('familyId') || '';
+      const familyId = localStorage.getItem('familyId') || (child as unknown as { family_id?: string }).family_id || '';
       
       console.log('[DevelopmentAssessment] skills Map size:', skills.size);
       console.log('[DevelopmentAssessment] skills Map entries:', Array.from(skills.entries()));
@@ -208,9 +208,16 @@ export function DevelopmentAssessment({ child, open, onClose, onComplete }: Deve
       console.log('[DevelopmentAssessment] Response status:', response.status);
 
       if (!response.ok) {
-        const errorData = await response.text();
-        console.error('[DevelopmentAssessment] Error response:', errorData);
-        throw new Error(`Ошибка анализа: ${response.status} - ${errorData}`);
+        const errorText = await response.text();
+        console.error('[DevelopmentAssessment] Error response:', errorText);
+        let message = `Ошибка сервера (${response.status})`;
+        try {
+          const errorData = JSON.parse(errorText);
+          message = errorData.message || errorData.error || message;
+        } catch {
+          // оставляем сообщение по умолчанию
+        }
+        throw new Error(message);
       }
 
       const data = await response.json();

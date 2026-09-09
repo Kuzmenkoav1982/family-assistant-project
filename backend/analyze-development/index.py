@@ -74,12 +74,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Max-Age': '86400'
-            },
+            'headers': {**CORS},
             'body': '',
             'isBase64Encoded': False
         }
@@ -99,14 +94,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     age_range: str = body_data.get('age_range', '1-2')
     skills: list = body_data.get('skills', [])
     
+    auth_user_id, auth_family_id = get_user_and_family(event)
+    if not auth_user_id:
+        return respond(401, {'error': 'Не авторизован'})
+
+    if not family_id:
+        family_id = auth_family_id
+
     if not child_id or not family_id or not skills:
-        return {
-            'statusCode': 400,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Missing required fields'}),
-            'isBase64Encoded': False
-        }
+        return respond(400, {'error': 'Missing required fields', 'message': 'Не хватает данных для анализа (ребёнок или семья не определены)'})
     
+    PRICE = 4
+    spend_result = wallet_spend(auth_user_id, auth_family_id, PRICE, 'ai_child_development', 'Анализ развития ребёнка ИИ')
+    if 'error' in spend_result:
+        if spend_result['error'] == 'insufficient_funds':
+            return respond(402, {'error': 'insufficient_funds', 'message': f'Недостаточно средств. Нужно {PRICE} руб, на балансе {spend_result.get("balance", 0):.0f} руб', 'balance': spend_result.get('balance', 0), 'required': PRICE})
+        return respond(400, {'error': spend_result['error'], 'message': 'Не удалось списать оплату за анализ'})
+    print(f"[wallet] Charged {PRICE} rub for ai_child_development")
+
     conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
     cur = conn.cursor()
     
@@ -115,7 +120,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         (child_id, family_id, age_range, status) 
         VALUES (%s, %s, %s, 'completed') 
         RETURNING id
-    ''', (child_id, family_id, age_range))
+    ''', (str(child_id), str(family_id), age_range))
     
     assessment_id = cur.fetchone()[0]
     
@@ -124,24 +129,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             INSERT INTO t_p5815085_family_assistant_pro.child_skills 
             (assessment_id, category, skill_name, skill_level) 
             VALUES (%s, %s, %s, %s)
-        ''', (assessment_id, skill['category'], skill['skill_name'], skill['skill_level']))
+        ''', (assessment_id, skill.get('category', 'Общее'), skill.get('skill_name', ''), skill.get('skill_level', 'partial')))
     
     conn.commit()
-    
-    PRICE = 4
-    auth_user_id, auth_family_id = get_user_and_family(event)
-    if not auth_user_id:
-        cur.close()
-        conn.close()
-        return respond(401, {'error': 'Не авторизован'})
-    spend_result = wallet_spend(auth_user_id, auth_family_id, PRICE, 'ai_child_development', 'Анализ развития ребёнка ИИ')
-    if 'error' in spend_result:
-        cur.close()
-        conn.close()
-        if spend_result['error'] == 'insufficient_funds':
-            return respond(402, {'error': 'insufficient_funds', 'message': f'Недостаточно средств. Нужно {PRICE} руб, на балансе {spend_result.get("balance", 0):.0f} руб', 'balance': spend_result.get('balance', 0), 'required': PRICE})
-        return respond(400, {'error': spend_result['error']})
-    print(f"[wallet] Charged {PRICE} rub for ai_child_development")
     
     api_key = os.environ.get('YANDEX_GPT_API_KEY')
     # Используем проверенный folder_id из старого каталога
@@ -261,14 +251,31 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if content.endswith('```'):
         content = content[:-3]
     
-    analysis = json.loads(content.strip())
+    content = content.strip()
+    try:
+        analysis = json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find('{')
+        end = content.rfind('}')
+        if start == -1 or end == -1 or end <= start:
+            print(f'[ERROR] Cannot parse AI answer: {content[:300]}')
+            cur.close()
+            conn.close()
+            return respond(502, {'error': 'ai_parse_error', 'message': 'ИИ вернул некорректный ответ. Попробуйте ещё раз.'})
+        try:
+            analysis = json.loads(content[start:end + 1])
+        except json.JSONDecodeError:
+            print(f'[ERROR] Cannot parse AI answer (2): {content[:300]}')
+            cur.close()
+            conn.close()
+            return respond(502, {'error': 'ai_parse_error', 'message': 'ИИ вернул некорректный ответ. Попробуйте ещё раз.'})
     
     cur.execute('''
         INSERT INTO t_p5815085_family_assistant_pro.development_plans 
         (assessment_id, child_id, family_id, plan_data, status, progress) 
         VALUES (%s, %s, %s, %s, 'active', 0) 
         RETURNING id
-    ''', (assessment_id, child_id, family_id, json.dumps(analysis, ensure_ascii=False)))
+    ''', (assessment_id, str(child_id), str(family_id), json.dumps(analysis, ensure_ascii=False)))
     
     plan_id = cur.fetchone()[0]
     
@@ -278,7 +285,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 INSERT INTO t_p5815085_family_assistant_pro.plan_tasks 
                 (plan_id, category, task_description, completed) 
                 VALUES (%s, %s, %s, false)
-            ''', (plan_id, rec['category'], task))
+            ''', (plan_id, rec.get('category', 'Общее'), task))
     
     conn.commit()
     cur.close()

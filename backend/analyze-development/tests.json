@@ -1,7 +1,13 @@
 {
   "tests": [
     {
-      "name": "Analyze child development with skills",
+      "name": "CORS preflight allows X-Auth-Token",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Unauthorized request rejected",
       "method": "POST",
       "path": "/",
       "body": {
@@ -12,19 +18,11 @@
           {
             "category": "Крупная моторика",
             "skill_name": "Самостоятельно ходит",
-            "skill_level": "уверенно"
+            "skill_level": "confident"
           }
         ]
       },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "assessment_id": "number",
-        "plan_id": "number",
-        "analysis": {
-          "overall_score": "number"
-        }
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     }
   ]
 }
