@@ -1,256 +1,315 @@
 """
-Управление персональными календарями детей
+Business: персональный календарь ребёнка — чтение, создание, изменение, удаление событий
+Args: event с httpMethod, body (action, childId, eventId, event), headers X-Auth-Token (обязательно)
+Returns: JSON со списком событий или результатом операции
 
-Обеспечивает CRUD операции для событий календаря, привязанных к конкретному ребёнку.
-Поддерживает фильтрацию, категоризацию и напоминания.
+────────────────────────────────────────────────────────────────────────────
+МОДЕЛЬ ДОСТУПА (волна 2, P0)
+
+До этой правки функция не требовала сессии вообще: familyId и childId
+приходили из тела запроса и подставлялись в SQL как есть. Любой человек
+в интернете мог прочитать расписание чужого ребёнка (школа, кружки, врачи —
+это фактически его маршрут по городу) и писать туда события.
+
+Теперь каждая операция проходит четыре проверки:
+
+  require_session → require_permission → require_same_family → require_subject_access
+
+familyId из тела запроса БОЛЬШЕ НЕ ЧИТАЕТСЯ. Семья берётся из сессии.
+Если клиент всё же прислал familyId и он не совпадает с сессией — это
+фиксируется как попытка межсемейного доступа и запрос отклоняется.
+
+Отдельно: доступа «ко всем детям своей семьи» не существует. Календарь
+конкретного ребёнка открывается только тому, у кого есть адресная связь
+в member_guardianships (см. auth_guard.can_access_subject).
 """
 
 import json
 import os
-from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict, Optional
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+from auth_guard import (
+    AuthContext,
+    AuthError,
+    accessible_subject_ids,
+    audit_allowed,
+    error_response,
+    json_response,
+    preflight,
+    require_permission,
+    require_same_family,
+    require_session,
+    require_subject_access,
+)
+
+SCHEMA = 't_p5815085_family_assistant_pro'
+MODULE = 'children'
+
+
+def _connect():
+    return psycopg2.connect(os.environ.get('DATABASE_URL'))
+
+
+def _reject_client_family(ctx: AuthContext, body: Dict[str, Any]) -> None:
+    """
+    familyId от клиента не является источником истины. Молча игнорировать
+    его тоже нельзя: несовпадение — это сигнал о попытке доступа в чужую
+    семью, и он должен попасть в аудит, а не потеряться.
+    """
+    claimed = body.get('familyId')
+    if claimed and str(claimed) != str(ctx.family_id):
+        require_same_family(ctx, str(claimed), resource_type='child_calendar')
+
+
+def _load_event_scope(cursor, event_id: Any) -> Optional[Dict[str, Any]]:
+    """
+    Событие → его семья и ребёнок. Без этого PUT/DELETE проверить нечем.
+
+    calendar_events.id — INTEGER. Нечисловой идентификатор от клиента должен
+    давать честный 404, а не ошибку приведения типа: 500 на подобранном id
+    подтверждал бы атакующему, что запрос дошёл до базы.
+    """
+    try:
+        numeric_id = int(str(event_id))
+    except (TypeError, ValueError):
+        return None
+
+    cursor.execute(
+        f"""
+        SELECT id::text, family_id::text AS family_id, child_id::text AS child_id
+        FROM {SCHEMA}.calendar_events
+        WHERE id = %s
+        """,
+        (numeric_id,),
+    )
+    row = cursor.fetchone()
+    return dict(row) if row else None
+
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
-    """
-    Обработчик запросов для персонального календаря ребёнка
-    
-    Args:
-        event: HTTP запрос с action, familyId, childId, eventId, event
-        context: Контекст выполнения
-        
-    Returns:
-        HTTP ответ с результатом операции
-    """
     method = event.get('httpMethod', 'POST')
-    
+
     if method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
-                'Access-Control-Max-Age': '86400'
-            },
-            'body': '',
-            'isBase64Encoded': False
-        }
-    
+        return preflight(event)
+
     if method != 'POST':
-        return error_response('Method not allowed', 405)
-    
+        return json_response({'error': 'Method not allowed'}, 405, event)
+
     try:
-        body = json.loads(event.get('body', '{}'))
+        ctx = require_session(event)
+
+        try:
+            body = json.loads(event.get('body') or '{}')
+        except json.JSONDecodeError:
+            return json_response({'error': 'Invalid JSON'}, 400, event)
+
         action = body.get('action')
-        family_id = body.get('familyId')
-        child_id = body.get('childId')
-        
         if not action:
-            return error_response('Action is required', 400)
-        
-        db_url = os.environ.get('DATABASE_URL')
-        if not db_url:
-            return error_response('Database configuration error', 500)
-        
-        conn = psycopg2.connect(db_url)
-        
-        if action == 'get_child_events':
-            result = get_child_events(conn, family_id, child_id)
-        elif action == 'add_child_event':
-            result = add_child_event(conn, family_id, child_id, body.get('event', {}))
-        elif action == 'update_child_event':
-            result = update_child_event(conn, family_id, body.get('eventId'), body.get('event', {}))
-        elif action == 'delete_child_event':
-            result = delete_child_event(conn, family_id, body.get('eventId'))
-        else:
+            return json_response({'error': 'Action is required'}, 400, event)
+
+        _reject_client_family(ctx, body)
+
+        conn = _connect()
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            if action == 'get_child_events':
+                result = _get_events(ctx, cursor, body.get('childId'))
+            elif action == 'add_child_event':
+                result = _add_event(ctx, conn, cursor, body.get('childId'),
+                                    body.get('event') or {})
+            elif action == 'update_child_event':
+                result = _update_event(ctx, conn, cursor, body.get('eventId'),
+                                       body.get('event') or {})
+            elif action == 'delete_child_event':
+                result = _delete_event(ctx, conn, cursor, body.get('eventId'))
+            else:
+                return json_response({'error': f'Unknown action: {action}'}, 400, event)
+
+            cursor.close()
+            return json_response(result, 200, event)
+        finally:
             conn.close()
-            return error_response(f'Unknown action: {action}', 400)
-        
-        conn.close()
-        return success_response(result)
-        
-    except json.JSONDecodeError:
-        return error_response('Invalid JSON', 400)
-    except Exception as e:
-        return error_response(f'Server error: {str(e)}', 500)
+
+    except AuthError as exc:
+        return error_response(exc, event)
+    except ValueError as exc:
+        return json_response({'error': str(exc)}, 400, event)
+    except Exception:
+        # Текст исключения может содержать фрагменты SQL и данные — наружу не отдаём.
+        return json_response({'error': 'Internal error'}, 500, event)
 
 
-def get_child_events(conn, family_id: str, child_id: str) -> Dict:
-    """Получить все события ребёнка"""
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    
-    cursor.execute("""
-        SELECT 
-            id::text,
-            child_id::text,
-            title,
-            description,
-            date::text,
-            time,
-            category,
-            color,
-            reminder_time,
-            completed,
-            created_at::text,
-            updated_at::text
-        FROM t_p5815085_family_assistant_pro.calendar_events
-        WHERE family_id = %s AND child_id = %s
+def _get_events(ctx: AuthContext, cursor, child_id: Optional[str]) -> Dict[str, Any]:
+    require_permission(ctx, MODULE, 'read')
+
+    if child_id:
+        # Конкретный ребёнок — нужна адресная связь именно с ним.
+        require_subject_access(ctx, str(child_id), MODULE,
+                               resource_type='child_calendar')
+        subjects = [str(child_id)]
+    else:
+        # Список без указания ребёнка возвращает только доступных субъектов,
+        # а не весь календарь семьи.
+        subjects = accessible_subject_ids(ctx, MODULE)
+        if not subjects:
+            return {'events': []}
+
+    cursor.execute(
+        f"""
+        SELECT id::text, child_id::text, title, description, date::text, time,
+               category, color, reminder_time, completed,
+               created_at::text, updated_at::text
+        FROM {SCHEMA}.calendar_events
+        WHERE family_id = %s AND child_id::text = ANY(%s)
         ORDER BY date ASC, time ASC NULLS LAST
-    """, (family_id, child_id))
-    
-    events = cursor.fetchall()
-    cursor.close()
-    
+        """,
+        (ctx.family_id, subjects),
+    )
+    rows = cursor.fetchall()
+
+    audit_allowed(ctx, MODULE, 'read', resource_type='child_calendar')
+
     return {
         'events': [
             {
-                'id': e['id'],
-                'child_id': e['child_id'],
-                'title': e['title'],
-                'description': e['description'],
-                'date': e['date'],
-                'time': e['time'],
-                'category': e['category'] or 'other',
-                'color': e['color'],
-                'reminder_enabled': e['reminder_time'] is not None,
-                'completed': e.get('completed', False),
-                'created_at': e['created_at'],
-                'updated_at': e['updated_at']
+                'id': r['id'],
+                'child_id': r['child_id'],
+                'title': r['title'],
+                'description': r['description'],
+                'date': r['date'],
+                'time': r['time'],
+                'category': r['category'] or 'other',
+                'color': r['color'],
+                'reminder_enabled': r['reminder_time'] is not None,
+                'completed': r['completed'] or False,
+                'created_at': r['created_at'],
+                'updated_at': r['updated_at'],
             }
-            for e in events
+            for r in rows
         ]
     }
 
 
-def add_child_event(conn, family_id: str, child_id: str, event_data: Dict) -> Dict:
-    """Добавить событие в календарь ребёнка"""
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    
-    title = event_data.get('title')
-    description = event_data.get('description')
-    date = event_data.get('date')
-    time = event_data.get('time')
-    category = event_data.get('category', 'other')
-    color = event_data.get('color')
-    reminder_enabled = event_data.get('reminder_enabled', False)
-    
+def _add_event(ctx: AuthContext, conn, cursor, child_id: Optional[str],
+               data: Dict[str, Any]) -> Dict[str, Any]:
+    require_permission(ctx, MODULE, 'create')
+
+    if not child_id:
+        raise ValueError('childId is required')
+    require_subject_access(ctx, str(child_id), MODULE, resource_type='child_calendar')
+
+    title = data.get('title')
+    date = data.get('date')
     if not title or not date:
-        cursor.close()
         raise ValueError('Title and date are required')
-    
-    reminder_time = '09:00' if reminder_enabled else None
-    
-    cursor.execute("""
-        INSERT INTO t_p5815085_family_assistant_pro.calendar_events
-        (family_id, child_id, title, description, date, time, category, color, 
-         reminder_time, visibility, completed, created_at, updated_at)
+
+    reminder_time = '09:00' if data.get('reminder_enabled') else None
+
+    cursor.execute(
+        f"""
+        INSERT INTO {SCHEMA}.calendar_events
+            (family_id, child_id, title, description, date, time, category, color,
+             reminder_time, visibility, completed, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'family', false, NOW(), NOW())
         RETURNING id::text
-    """, (family_id, child_id, title, description, date, time, category, color, reminder_time))
-    
-    result = cursor.fetchone()
+        """,
+        (ctx.family_id, child_id, title, data.get('description'), date,
+         data.get('time'), data.get('category', 'other'), data.get('color'),
+         reminder_time),
+    )
+    new_id = cursor.fetchone()['id']
     conn.commit()
-    cursor.close()
-    
-    return {'success': True, 'eventId': result['id'], 'message': 'Event added successfully'}
+
+    audit_allowed(ctx, MODULE, 'create', resource_type='child_calendar',
+                  resource_id=new_id, subject_member_id=str(child_id))
+
+    return {'success': True, 'eventId': new_id, 'message': 'Event added successfully'}
 
 
-def update_child_event(conn, family_id: str, event_id: str, event_data: Dict) -> Dict:
-    """Обновить событие в календаре (только внутри своей семьи)"""
-    cursor = conn.cursor()
-    
-    fields = []
-    values = []
-    
-    if 'title' in event_data:
-        fields.append('title = %s')
-        values.append(event_data['title'])
-    
-    if 'description' in event_data:
-        fields.append('description = %s')
-        values.append(event_data['description'])
-    
-    if 'date' in event_data:
-        fields.append('date = %s')
-        values.append(event_data['date'])
-    
-    if 'time' in event_data:
-        fields.append('time = %s')
-        values.append(event_data['time'])
-    
-    if 'category' in event_data:
-        fields.append('category = %s')
-        values.append(event_data['category'])
-    
-    if 'color' in event_data:
-        fields.append('color = %s')
-        values.append(event_data['color'])
-    
-    if 'reminder_enabled' in event_data:
-        reminder_time = '09:00' if event_data['reminder_enabled'] else None
+ALLOWED_FIELDS = {
+    'title': 'title',
+    'description': 'description',
+    'date': 'date',
+    'time': 'time',
+    'category': 'category',
+    'color': 'color',
+    'completed': 'completed',
+}
+
+
+def _update_event(ctx: AuthContext, conn, cursor, event_id: Optional[str],
+                  data: Dict[str, Any]) -> Dict[str, Any]:
+    require_permission(ctx, MODULE, 'update')
+
+    if not event_id:
+        raise ValueError('eventId is required')
+
+    scope = _load_event_scope(cursor, event_id)
+    if not scope:
+        # 404, а не 403: не подтверждаем существование чужого объекта.
+        raise AuthError(404, 'RESOURCE_NOT_FOUND')
+    require_same_family(ctx, scope['family_id'], resource_type='child_calendar',
+                        resource_id=event_id)
+    require_subject_access(ctx, scope['child_id'], MODULE,
+                           resource_type='child_calendar', resource_id=event_id)
+
+    fields, values = [], []
+    for key, column in ALLOWED_FIELDS.items():
+        if key in data:
+            fields.append(f'{column} = %s')
+            values.append(data[key])
+
+    if 'reminder_enabled' in data:
         fields.append('reminder_time = %s')
-        values.append(reminder_time)
-    
-    if 'completed' in event_data:
-        fields.append('completed = %s')
-        values.append(event_data['completed'])
-    
+        values.append('09:00' if data['reminder_enabled'] else None)
+
+    if not fields:
+        raise ValueError('Nothing to update')
+
     fields.append('updated_at = NOW()')
-    values.append(event_id)
-    values.append(family_id)
-    
-    query = f"""
-        UPDATE t_p5815085_family_assistant_pro.calendar_events
+    values.extend([int(scope['id']), ctx.family_id])
+
+    cursor.execute(
+        f"""
+        UPDATE {SCHEMA}.calendar_events
         SET {', '.join(fields)}
         WHERE id = %s AND family_id = %s
-    """
-    
-    cursor.execute(query, values)
+        """,
+        values,
+    )
     conn.commit()
-    cursor.close()
-    
+
+    audit_allowed(ctx, MODULE, 'update', resource_type='child_calendar',
+                  resource_id=event_id, subject_member_id=scope['child_id'])
+
     return {'success': True, 'message': 'Event updated successfully'}
 
 
-def delete_child_event(conn, family_id: str, event_id: str) -> Dict:
-    """Удалить событие из календаря (только внутри своей семьи)"""
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        DELETE FROM t_p5815085_family_assistant_pro.calendar_events
-        WHERE id = %s AND family_id = %s
-    """, (event_id, family_id))
-    
+def _delete_event(ctx: AuthContext, conn, cursor, event_id: Optional[str]) -> Dict[str, Any]:
+    require_permission(ctx, MODULE, 'delete')
+
+    if not event_id:
+        raise ValueError('eventId is required')
+
+    scope = _load_event_scope(cursor, event_id)
+    if not scope:
+        raise AuthError(404, 'RESOURCE_NOT_FOUND')
+    require_same_family(ctx, scope['family_id'], resource_type='child_calendar',
+                        resource_id=event_id)
+    require_subject_access(ctx, scope['child_id'], MODULE,
+                           resource_type='child_calendar', resource_id=event_id)
+
+    cursor.execute(
+        f"DELETE FROM {SCHEMA}.calendar_events WHERE id = %s AND family_id = %s",
+        (int(scope['id']), ctx.family_id),
+    )
     conn.commit()
-    cursor.close()
-    
+
+    audit_allowed(ctx, MODULE, 'delete', resource_type='child_calendar',
+                  resource_id=event_id, subject_member_id=scope['child_id'])
+
     return {'success': True, 'message': 'Event deleted successfully'}
-
-
-def success_response(data: Dict, status_code: int = 200) -> Dict:
-    """Успешный HTTP ответ"""
-    return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        'body': json.dumps(data, ensure_ascii=False),
-        'isBase64Encoded': False
-    }
-
-
-def error_response(message: str, status_code: int = 500) -> Dict:
-    """HTTP ответ с ошибкой"""
-    return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        },
-        'body': json.dumps({'error': message}, ensure_ascii=False),
-        'isBase64Encoded': False
-    }

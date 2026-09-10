@@ -1,72 +1,64 @@
 {
   "tests": [
     {
-      "name": "Get child events - empty list",
+      "name": "Read without session -> 401",
       "method": "POST",
       "path": "/",
-      "body": {
-        "action": "get_child_events",
-        "familyId": "test-family-id",
-        "childId": "test-child-id"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "events": []
-      },
-      "bodyMatcher": "partial"
+      "headers": {"Content-Type": "application/json"},
+      "body": {"action": "get_child_events", "childId": "00000000-0000-0000-0000-000000000013"},
+      "expectedStatus": 401
     },
     {
-      "name": "Add child event - success",
+      "name": "Spoofed X-User-Id without session -> 401",
       "method": "POST",
       "path": "/",
+      "headers": {"Content-Type": "application/json", "X-User-Id": "00000000-0000-0000-0000-000000000011"},
+      "body": {"action": "get_child_events", "childId": "00000000-0000-0000-0000-000000000013"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Invalid session token -> 401",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json", "X-Auth-Token": "invalid-token-for-negative-test"},
+      "body": {"action": "get_child_events", "childId": "00000000-0000-0000-0000-000000000013"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Client-supplied familyId without session -> 401 (no cross-family write)",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
       "body": {
         "action": "add_child_event",
-        "familyId": "test-family-id",
-        "childId": "test-child-id",
-        "event": {
-          "title": "Визит к врачу",
-          "description": "Плановый осмотр",
-          "date": "2025-01-15",
-          "time": "14:00",
-          "category": "health",
-          "reminder_enabled": true
-        }
+        "familyId": "ca92a40b-8e92-4709-9dca-54f52f86d364",
+        "childId": "f0b4b417-9228-4d98-a0e1-65ba92a4ea2f",
+        "event": {"title": "Injected", "date": "2026-01-15"}
       },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "Add event - missing title",
+      "name": "Delete without session -> 401",
       "method": "POST",
       "path": "/",
-      "body": {
-        "action": "add_child_event",
-        "familyId": "test-family-id",
-        "childId": "test-child-id",
-        "event": {
-          "date": "2025-01-15"
-        }
-      },
-      "expectedStatus": 500,
-      "expectedBody": {
-        "error": "string"
-      },
-      "bodyMatcher": "partial"
+      "headers": {"Content-Type": "application/json"},
+      "body": {"action": "delete_child_event", "eventId": "00000000-0000-0000-0000-000000000099"},
+      "expectedStatus": 401
     },
     {
-      "name": "Invalid action",
+      "name": "Unknown action still requires session first -> 401",
       "method": "POST",
       "path": "/",
-      "body": {
-        "action": "invalid_action"
-      },
-      "expectedStatus": 400,
-      "expectedBody": {
-        "error": "Unknown action: invalid_action"
-      }
+      "headers": {"Content-Type": "application/json"},
+      "body": {"action": "invalid_action"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 200
     }
   ]
 }

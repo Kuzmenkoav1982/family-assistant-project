@@ -1,28 +1,49 @@
 {
   "tests": [
     {
-      "name": "Create SBP payment",
+      "name": "Create payment without session -> 401",
       "method": "POST",
       "path": "/",
-      "body": {
-        "amount": 100,
-        "description": "Test payment",
-        "return_url": "https://example.com/success"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "payment_id": "string",
-        "confirmation_url": "string",
-        "status": "string"
-      },
-      "bodyMatcher": "partial"
+      "headers": {"Content-Type": "application/json"},
+      "body": {"plan": "premium_month", "return_url": "https://nasha-semiya.ru/payment-success"},
+      "expectedStatus": 401
     },
     {
-      "name": "Get payment status",
+      "name": "Client-supplied amount without session -> 401 (price is server-side)",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"plan": "premium_year", "amount": 1},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Spoofed X-User-Id without session -> 401",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json", "X-User-Id": "00000000-0000-0000-0000-000000000001"},
+      "body": {"plan": "premium_month"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Payment status enumeration without session -> 401",
       "method": "GET",
       "path": "/?payment_id=test-payment-id",
-      "expectedStatus": 200,
-      "bodyMatcher": "partial"
+      "headers": {},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Invalid session token -> 401",
+      "method": "GET",
+      "path": "/?payment_id=test-payment-id",
+      "headers": {"X-Auth-Token": "invalid-token-for-negative-test"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 200
     }
   ]
 }

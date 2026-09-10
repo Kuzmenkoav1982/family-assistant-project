@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { FamilyMemberPermissions, ROLES } from './types';
+import { FamilyMemberPermissions, ROLE_DISPLAY } from './types';
 import PermissionsDialog from './PermissionsDialog';
 
 interface MemberCardProps {
@@ -50,10 +50,10 @@ export default function MemberCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h4 className="font-semibold text-gray-900 truncate">{member.name}</h4>
-              {member.role && ROLES[member.role] && (
-                <Badge variant="outline" className={`${ROLES[member.role].color} shrink-0`}>
-                  <Icon name={ROLES[member.role].icon as any} size={12} className="mr-1" />
-                  {ROLES[member.role].label}
+              {member.role && ROLE_DISPLAY[member.role] && (
+                <Badge variant="outline" className={`${ROLE_DISPLAY[member.role].color} shrink-0`}>
+                  <Icon name={ROLE_DISPLAY[member.role].icon as any} size={12} className="mr-1" />
+                  {ROLE_DISPLAY[member.role].label}
                 </Badge>
               )}
             </div>

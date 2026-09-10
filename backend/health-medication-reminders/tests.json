@@ -1,30 +1,57 @@
 {
   "tests": [
     {
-      "name": "Check upcoming medication reminders",
+      "name": "Cron sweep without CRON_SECRET -> 403",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {
-        "message": "string",
-        "notificationsSent": "number",
-        "reminders": "array"
-      },
-      "bodyMatcher": "partial"
+      "headers": {},
+      "expectedStatus": 403
     },
     {
-      "name": "Mark medication as taken",
+      "name": "Cron sweep with wrong secret -> 403",
+      "method": "GET",
+      "path": "/",
+      "headers": {"X-Cron-Secret": "wrong-secret-for-negative-test"},
+      "expectedStatus": 403
+    },
+    {
+      "name": "mark_taken without session -> 401",
       "method": "POST",
       "path": "/",
-      "body": {
-        "action": "mark_taken",
-        "intakeId": "test-intake-id"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "message": "Intake marked as taken"
-      },
-      "bodyMatcher": "partial"
+      "headers": {"Content-Type": "application/json"},
+      "body": {"action": "mark_taken", "intakeId": "00000000-0000-0000-0000-000000000042"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "snooze without session -> 401",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json"},
+      "body": {"action": "snooze", "intakeId": "00000000-0000-0000-0000-000000000042", "minutes": 15},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Spoofed X-User-Id without session -> 401",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json", "X-User-Id": "00000000-0000-0000-0000-000000000011"},
+      "body": {"action": "mark_taken", "intakeId": "00000000-0000-0000-0000-000000000042"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Invalid session token -> 401",
+      "method": "POST",
+      "path": "/",
+      "headers": {"Content-Type": "application/json", "X-Auth-Token": "invalid-token-for-negative-test"},
+      "body": {"action": "mark_taken", "intakeId": "00000000-0000-0000-0000-000000000042"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "headers": {},
+      "expectedStatus": 200
     }
   ]
 }

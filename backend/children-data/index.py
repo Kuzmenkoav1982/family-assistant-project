@@ -7,6 +7,17 @@ from datetime import datetime, timedelta
 from encryption_helper import encrypt_medical_fields, decrypt_medical_fields
 from _portfolio_enqueue import enqueue_portfolio_rebuild, trigger_fast_path
 
+from auth_guard import (
+    AuthContext,
+    AuthError,
+    audit_allowed,
+    error_response,
+    require_permission,
+    require_same_family,
+    require_session,
+    require_subject_access,
+)
+
 # Version: 2025-01-17-03 - Transactional outbox via portfolio_rebuild_queue
 VERSION = "2025-01-17-03"
 
@@ -117,6 +128,41 @@ def escape_sql_string(value: Any) -> str:
         return "'" + value.isoformat() + "'"
     return "'" + str(value).replace("'", "''") + "'"
 
+def _authorize_child(ctx: AuthContext, child_id: str, action: str) -> str:
+    """
+    Единая проверка доступа к профилю конкретного ребёнка.
+
+    Порядок обязателен: сначала убеждаемся, что ребёнок вообще из семьи
+    актора (иначе 404 — не подтверждаем существование чужой записи),
+    затем — что у актора есть адресное право на ЭТОГО ребёнка.
+    Возвращает family_id ребёнка, чтобы вызывающий код не брал его
+    из тела запроса.
+    """
+    conn = psycopg2.connect(os.environ.get('DATABASE_URL'))
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute(
+            f"SELECT family_id::text AS family_id FROM {SCHEMA}.family_members WHERE id = %s",
+            (child_id,),
+        )
+        row = cur.fetchone()
+        cur.close()
+    finally:
+        conn.close()
+
+    if not row:
+        raise AuthError(404, 'RESOURCE_NOT_FOUND')
+
+    family_id = str(row['family_id'])
+    require_same_family(ctx, family_id, resource_type='child_profile',
+                        resource_id=child_id)
+    require_subject_access(ctx, child_id, 'children',
+                           resource_type='child_profile', resource_id=child_id)
+    audit_allowed(ctx, 'children', action, resource_type='child_profile',
+                  resource_id=child_id, subject_member_id=child_id)
+    return family_id
+
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Управление данными детских профилей (здоровье, развитие, школа, подарки)
@@ -144,18 +190,33 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         'Access-Control-Allow-Origin': '*'
     }
     
-    token = event.get('headers', {}).get('X-Auth-Token', '')
-    if not token:
-        return {
-            'statusCode': 401,
-            'headers': headers,
-            'body': json.dumps({'success': False, 'error': 'Требуется авторизация'})
-        }
-    
+    # ────────────────────────────────────────────────────────────────────────
+    # ГРАНИЦА АВТОРИЗАЦИИ (волна 2, P0)
+    #
+    # Раньше здесь проверялось лишь НАЛИЧИЕ строки X-Auth-Token — не её
+    # валидность. Дальше child_id из запроса шёл прямо в SQL, поэтому по
+    # чужому UUID отдавались прививки, назначения, анализы, визиты к врачу
+    # и медицинские документы любого ребёнка в системе.
+    #
+    # Теперь: сессия → право на модуль → адресный доступ именно к этому
+    # ребёнку (member_guardianships). Роль сама по себе доступа не даёт.
+    # ────────────────────────────────────────────────────────────────────────
+    try:
+        ctx = require_session(event)
+    except AuthError as exc:
+        return error_response(exc, event)
+
     if method == 'GET':
-        child_id = event.get('queryStringParameters', {}).get('child_id')
-        data_type = event.get('queryStringParameters', {}).get('type', 'all')
-        
+        child_id = (event.get('queryStringParameters') or {}).get('child_id')
+        data_type = (event.get('queryStringParameters') or {}).get('type', 'all')
+
+        try:
+            require_permission(ctx, 'children', 'read')
+            if child_id:
+                _authorize_child(ctx, child_id, 'read')
+        except AuthError as exc:
+            return error_response(exc, event)
+
         if not child_id:
             return {
                 'statusCode': 400,
@@ -337,7 +398,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'headers': headers,
                 'body': json.dumps({'success': False, 'error': 'Неполные данные'})
             }
-        
+
+        # Запись в профиль ребёнка требует тех же проверок, что и чтение.
+        # Без этого по чужому child_id можно было подделать назначения
+        # лекарств и записи о прививках.
+        try:
+            _write_action = 'delete' if action == 'delete' else (
+                'update' if action == 'update' else 'create')
+            require_permission(ctx, 'children', _write_action)
+            child_family_id = _authorize_child(ctx, child_id, _write_action)
+        except AuthError as exc:
+            return error_response(exc, event)
+
+        # family_id, присланный клиентом, не является источником истины:
+        # его значение всюду ниже заменяется на семью самого ребёнка.
+        if isinstance(data, dict):
+            data['family_id'] = child_family_id
+
         try:
             db_url = os.environ.get('DATABASE_URL')
             conn = psycopg2.connect(db_url)

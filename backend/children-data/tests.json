@@ -7,44 +7,34 @@
       "expectedStatus": 200
     },
     {
-      "name": "Unauthorized request = 401",
+      "name": "No token -> 401",
       "method": "GET",
-      "path": "/?child_id=test123",
-      "expectedStatus": 401,
-      "expectedBody": {"success": false},
-      "bodyMatcher": "partial"
+      "path": "/?child_id=3f1aa585-176f-4ec0-85d0-7973d36de053&type=health",
+      "expectedStatus": 401
     },
     {
-      "name": "Get child data returns success with auth",
+      "name": "Fake token is no longer accepted -> 401 (was 200: presence-only check)",
       "method": "GET",
       "path": "/?child_id=3f1aa585-176f-4ec0-85d0-7973d36de053&type=all",
       "headers": {"X-Auth-Token": "test-token"},
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "Add dream: save + portfolio refresh best-effort",
-      "method": "POST",
-      "path": "/",
-      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
-      "body": {
-        "action": "add",
-        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
-        "type": "dream",
-        "data": {
-          "title": "Тест portfolio refresh",
-          "description": "Автотест",
-          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9",
-          "achieved": false
-        }
-      },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
+      "name": "Health record enumeration by child_id -> 401",
+      "method": "GET",
+      "path": "/?child_id=f0b4b417-9228-4d98-a0e1-65ba92a4ea2f&type=health",
+      "headers": {"X-Auth-Token": "invalid-token-for-negative-test"},
+      "expectedStatus": 401
     },
     {
-      "name": "Add vaccination: save + portfolio refresh best-effort",
+      "name": "Spoofed X-User-Id without session -> 401",
+      "method": "GET",
+      "path": "/?child_id=3f1aa585-176f-4ec0-85d0-7973d36de053&type=health",
+      "headers": {"X-User-Id": "00000000-0000-0000-0000-000000000011"},
+      "expectedStatus": 401
+    },
+    {
+      "name": "Write vaccination with fake token -> 401",
       "method": "POST",
       "path": "/",
       "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
@@ -52,94 +42,35 @@
         "action": "add",
         "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
         "type": "vaccination",
-        "data": {
-          "date": "2026-05-16",
-          "vaccine": "Тест Ревакцинация",
-          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9",
-          "notes": "auto-test"
-        }
+        "data": {"date": "2026-05-16", "vaccine": "Тест", "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9"}
       },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "Add grade: school lookup + portfolio refresh best-effort",
+      "name": "Cross-family family_id in body without session -> 401",
       "method": "POST",
       "path": "/",
-      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
+      "headers": {"Content-Type": "application/json"},
       "body": {
         "action": "add",
-        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
-        "type": "grade",
-        "data": {
-          "subject": "Биология",
-          "grade": 5,
-          "date": "2026-05-16",
-          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9"
-        }
-      },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Add mood: save + portfolio refresh best-effort",
-      "method": "POST",
-      "path": "/",
-      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
-      "body": {
-        "action": "add",
-        "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
-        "type": "mood",
-        "data": {"mood": "happy", "note": "auto-test", "entry_date": "2026-05-16"}
-      },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Save does not fail when child_id unknown (portfolio refresh gracefully skipped)",
-      "method": "POST",
-      "path": "/",
-      "headers": {"X-Auth-Token": "test-token", "Content-Type": "application/json"},
-      "body": {
-        "action": "add",
-        "child_id": "00000000-0000-0000-0000-000000000099",
+        "child_id": "f0b4b417-9228-4d98-a0e1-65ba92a4ea2f",
         "type": "vaccination",
-        "data": {
-          "date": "2026-01-01",
-          "vaccine": "Тест незнакомый",
-          "family_id": "00000000-0000-0000-0000-000000000001"
-        }
+        "data": {"date": "2026-01-01", "vaccine": "Injected", "family_id": "00000000-0000-0000-0000-000000000001"}
       },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "Failpoint: save succeeds even when aggregate HTTP is forced to fail",
+      "name": "Write without session -> 401",
       "method": "POST",
       "path": "/",
-      "headers": {
-        "X-Auth-Token": "test-token",
-        "Content-Type": "application/json",
-        "X-Debug-Force-Refresh-Fail": "1"
-      },
+      "headers": {"Content-Type": "application/json"},
       "body": {
         "action": "add",
         "child_id": "3f1aa585-176f-4ec0-85d0-7973d36de053",
         "type": "dream",
-        "data": {
-          "title": "Failpoint тест — aggregate упал",
-          "description": "Dirty flag должен быть выставлен",
-          "family_id": "d551699f-ccdc-431c-8ff0-6910bba3f6d9",
-          "achieved": false
-        }
+        "data": {"title": "no session", "achieved": false}
       },
-      "expectedStatus": 200,
-      "expectedBody": {"success": true},
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     }
   ]
 }

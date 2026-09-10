@@ -506,9 +506,20 @@ def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
     Правила по чувствительным модулям:
       - свои данные — всегда;
       - явная связь опекунства с нужным scope — да;
-      - parent → ребёнок в своей семье — да;
       - admin БЕЗ явной связи — нет (администрирование ≠ доступ к содержимому);
+      - parent БЕЗ явной связи — нет (см. ниже);
       - viewer / child к чужим данным — нет.
+
+    ПОЧЕМУ РОЛЬ 'parent' БОЛЬШЕ НЕ ОТКРЫВАЕТ ДЕТЕЙ СЕМЬИ АВТОМАТИЧЕСКИ.
+    access_role в этой БД исторически смешивает семейное ОТНОШЕНИЕ и
+    ПОЛНОМОЧИЕ. Миграция editor -> parent (V0376) выдала роль 'parent'
+    в том числе 12-летнему участнику с role='Сын' — он получил бы доступ
+    к медданным младшего брата. Родство нельзя выводить из строки роли.
+
+    Теперь субъект определяется только адресной записью в
+    member_guardianships (V0377 проставила их для реальных родителей).
+    Когда появится family_relationships со status='confirmed',
+    подтверждённое родство добавится сюда как второй явный источник.
     """
     if not subject_member_id:
         return False, 'SUBJECT_ACCESS_DENIED'
@@ -518,19 +529,18 @@ def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
         return True, 'SELF'
 
     if module not in SENSITIVE_MODULES:
+        # Не-чувствительный модуль всё равно требует общей семьи:
+        # can_access_subject не заменяет require_same_family, но и не должен
+        # разрешать субъекта из чужого пространства.
+        subject = _load_member(subject_member_id)
+        if not subject or str(subject.get('family_id')) != ctx.family_id:
+            return False, 'CROSS_FAMILY_SUBJECT'
         return True, 'NON_SENSITIVE_MODULE'
 
     guardianships = _load_guardian_scopes(ctx)
     scopes = guardianships.get(subject_member_id)
     if scopes is not None and (module in scopes or 'all' in scopes):
         return True, 'ASSIGNED_GUARDIAN'
-
-    if ctx.role == 'parent':
-        subject = _load_member(subject_member_id)
-        if subject and str(subject.get('family_id')) == ctx.family_id:
-            if subject.get('access_role') == 'child' or subject.get('account_type') == 'child_profile':
-                return True, 'PARENT_OF_CHILD'
-        return False, 'SUBJECT_ACCESS_DENIED'
 
     return False, 'SUBJECT_ACCESS_DENIED'
 
@@ -560,22 +570,9 @@ def accessible_subject_ids(ctx: AuthContext, module: str = 'health') -> List[str
     for dep, scopes in _load_guardian_scopes(ctx).items():
         if module in (scopes or []) or 'all' in (scopes or []):
             result.add(dep)
-    if ctx.role == 'parent' and ctx.family_id:
-        conn = _connect()
-        try:
-            cur = conn.cursor(cursor_factory=RealDictCursor)
-            cur.execute(
-                f"""
-                SELECT id FROM {SCHEMA}.family_members
-                WHERE family_id = %s
-                  AND (access_role = 'child' OR account_type = 'child_profile')
-                """,
-                (ctx.family_id,),
-            )
-            result.update(str(r['id']) for r in cur.fetchall())
-            cur.close()
-        finally:
-            conn.close()
+    # Роль 'parent' НЕ расширяет набор субъектов: см. can_access_subject.
+    # Список строится только из себя + адресных опекунств, поэтому
+    # list-эндпоинты физически не могут вернуть чужого ребёнка.
     return sorted(result)
 
 

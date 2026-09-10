@@ -3,29 +3,41 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { jsonHeaders, hasSessionToken } from '@/lib/apiHeaders';
+import func2url from '@/config/func2url.json';
+
+/**
+ * Цену определяет сервер по коду тарифа. Клиент присылает `plan`, а не сумму:
+ * иначе годовую подписку можно оформить за рубль, подменив тело запроса.
+ * `amount` здесь нужен только для отображения.
+ */
+export type SBPPlan = 'premium_month' | 'premium_year' | 'family_month' | 'family_year';
 
 interface SBPPaymentProps {
+  plan: SBPPlan;
   amount: number;
   description?: string;
   onSuccess?: (paymentId: string) => void;
   onError?: (error: string) => void;
 }
 
-export function SBPPayment({ amount, description = 'Оплата подписки', onSuccess, onError }: SBPPaymentProps) {
+export function SBPPayment({ plan, amount, description = 'Оплата подписки', onSuccess, onError }: SBPPaymentProps) {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handlePayment = async () => {
+    if (!hasSessionToken()) {
+      onError?.('Войдите в аккаунт, чтобы оплатить подписку');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/c6530a3b-947b-4cca-976d-430c9b91ee4a', {
+      const response = await fetch(func2url['payment-sbp'], {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: jsonHeaders(),
         body: JSON.stringify({
-          amount,
-          description,
+          plan,
           return_url: window.location.origin + '/payment-success'
         })
       });

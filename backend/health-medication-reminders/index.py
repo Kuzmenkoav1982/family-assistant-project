@@ -1,14 +1,86 @@
 """
-Система автоматических напоминаний о приёме лекарств из раздела Здоровье.
-Генерирует расписание и отправляет push-уведомления в нужное время.
+Business: напоминания о приёме лекарств — генерация расписания (cron) и отметки пользователя
+Args: event с httpMethod; GET — только cron по X-Cron-Secret; POST — X-Auth-Token (обязательно)
+Returns: JSON с обработанными напоминаниями или результатом отметки
+
+────────────────────────────────────────────────────────────────────────────
+МОДЕЛЬ ДОСТУПА (волна 2, P0)
+
+Функция обслуживает два принципиально разных вызывающих:
+
+  GET  — планировщик. Обходит ВСЕ семьи и рассылает push, поэтому
+         пользовательской сессии тут быть не может. Защищается общим
+         для проекта CRON_SECRET, как scheduled-reminders. Раньше этот
+         обход мог запустить кто угодно (спам push-уведомлениями).
+
+  POST — действие человека (mark_taken / snooze). Раньше принимался
+         любой intakeId без проверки: по чужому UUID можно было отметить
+         приём лекарства как выполненный, то есть подделать медицинскую
+         историю другого человека. Теперь приём сначала загружается,
+         затем проверяется семья и адресный доступ к субъекту.
 """
 
 import json
 import os
 import psycopg2
 from datetime import datetime, timedelta, time as dt_time
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pywebpush import webpush, WebPushException
+
+from auth_guard import (
+    AuthContext,
+    AuthError,
+    audit_allowed,
+    error_response,
+    preflight,
+    require_permission,
+    require_same_family,
+    require_session,
+    require_subject_access,
+)
+
+SCHEMA = 't_p5815085_family_assistant_pro'
+MODULE = 'medications'
+
+
+def _load_intake_scope(cursor, intake_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Приём → лекарство → профиль → участник и его семья.
+    Без этой цепочки intakeId невозможно связать с чьей-либо семьёй,
+    а значит и проверить право на изменение.
+    """
+    cursor.execute(
+        f"""
+        SELECT mi.id,
+               hp.user_id            AS subject_member_id,
+               fm.family_id::text    AS family_id
+        FROM medication_intakes mi
+        JOIN health_medications m ON m.id = mi.medication_id
+        JOIN health_profiles hp   ON hp.id = m.profile_id
+        LEFT JOIN {SCHEMA}.family_members fm ON fm.id::text = hp.user_id
+        WHERE mi.id = %s
+        """,
+        (intake_id,),
+    )
+    row = cursor.fetchone()
+    if not row:
+        return None
+    return {'intake_id': row[0], 'subject_member_id': row[1], 'family_id': row[2]}
+
+
+def _authorize_intake(ctx: AuthContext, cursor, intake_id: str, action: str) -> Dict[str, Any]:
+    scope = _load_intake_scope(cursor, intake_id)
+    if not scope:
+        raise AuthError(404, 'RESOURCE_NOT_FOUND')
+    require_permission(ctx, MODULE, 'update')
+    require_same_family(ctx, scope['family_id'], resource_type='medication_intake',
+                        resource_id=intake_id)
+    require_subject_access(ctx, scope['subject_member_id'], MODULE,
+                           resource_type='medication_intake', resource_id=intake_id)
+    audit_allowed(ctx, MODULE, action, resource_type='medication_intake',
+                  resource_id=intake_id,
+                  subject_member_id=scope['subject_member_id'])
+    return scope
 
 
 def handler(event: dict, context) -> dict:
@@ -16,19 +88,34 @@ def handler(event: dict, context) -> dict:
     Проверяет расписание лекарств и отправляет напоминания пользователям
     """
     method = event.get('httpMethod', 'GET')
-    
+
     if method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id'
-            },
-            'body': '',
-            'isBase64Encoded': False
-        }
-    
+        return preflight(event)
+
+    ctx: Optional[AuthContext] = None
+    if method == 'GET':
+        # Планировщик: пользовательской сессии нет, но и анонимным
+        # запуск рассылки быть не должен.
+        headers_in = event.get('headers', {}) or {}
+        params_in = event.get('queryStringParameters', {}) or {}
+        cron_secret = os.environ.get('CRON_SECRET', '')
+        provided = (headers_in.get('X-Cron-Secret')
+                    or headers_in.get('x-cron-secret')
+                    or params_in.get('secret') or '')
+        if not cron_secret or provided != cron_secret:
+            return {
+                'statusCode': 403,
+                'headers': {'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'},
+                'body': json.dumps({'error': 'Forbidden'}),
+                'isBase64Encoded': False
+            }
+    else:
+        try:
+            ctx = require_session(event)
+        except AuthError as exc:
+            return error_response(exc, event)
+
     dsn = os.environ.get('DATABASE_URL')
     vapid_private_key = os.environ.get('VAPID_PRIVATE_KEY')
     
@@ -166,6 +253,11 @@ def handler(event: dict, context) -> dict:
                         'isBase64Encoded': False
                     }
                 
+                try:
+                    _authorize_intake(ctx, cursor, intake_id, 'mark_taken')
+                except AuthError as exc:
+                    return error_response(exc, event)
+
                 cursor.execute('''
                     UPDATE medication_intakes
                     SET status = 'taken', actual_time = NOW()
@@ -193,6 +285,11 @@ def handler(event: dict, context) -> dict:
                         'isBase64Encoded': False
                     }
                 
+                try:
+                    _authorize_intake(ctx, cursor, intake_id, 'snooze')
+                except AuthError as exc:
+                    return error_response(exc, event)
+
                 new_time = (datetime.now() + timedelta(minutes=minutes)).time()
                 
                 cursor.execute('''

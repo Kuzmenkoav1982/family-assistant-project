@@ -13,8 +13,27 @@ interface PermissionsDialogProps {
   onClose: () => void;
 }
 
+/**
+ * Индивидуальные права (permissions JSONB) сейчас НЕ применяются сервером.
+ *
+ * Авторизация считается по фиксированной матрице ролей в auth_guard.ROLE_POLICY,
+ * а JSONB остался вторым, неработающим источником истины. Показывать
+ * переключатели, которые сохраняются в базу, но ни на что не влияют, —
+ * хуже, чем не показывать их вовсе: администратор уверен, что ограничил
+ * человека, а доступ остался прежним.
+ *
+ * Поэтому блок детальных прав переведён в режим «только чтение» до тех пор,
+ * пока индивидуальные разрешения не будут реализованы как СУЖАЮЩИЕ базовую
+ * роль (расширять роль они не должны). Текущие значения JSONB сохранены
+ * миграцией V0377 в permissions_jsonb_snapshot и не потеряются.
+ *
+ * Роль менять по-прежнему можно: её сервер действительно учитывает.
+ */
+const GRANULAR_PERMISSIONS_ENFORCED = false;
+
 export default function PermissionsDialog({ member, savingMemberId, canManageRoles = false, onRoleChange, onPermissionChange, onClose }: PermissionsDialogProps) {
   const locked = !canManageRoles;
+  const permissionsLocked = locked || !GRANULAR_PERMISSIONS_ENFORCED;
   return (
     <>
       <DialogHeader>
@@ -65,13 +84,25 @@ export default function PermissionsDialog({ member, savingMemberId, canManageRol
           </div>
         </div>
 
-        <fieldset disabled={locked} className="border-t pt-6">
+        <fieldset disabled={permissionsLocked} className="border-t pt-6">
           <h4 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Icon name="Lock" size={18} />
             Детальные права доступа
           </h4>
           
-          <div className={`space-y-4 ${locked ? 'opacity-60' : ''}`}>
+          {!GRANULAR_PERMISSIONS_ENFORCED && (
+            <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 flex items-start gap-2">
+              <Icon name="Info" size={16} className="flex-shrink-0 mt-0.5" />
+              <span>
+                Детальные права временно недоступны для изменения. Сейчас доступ
+                определяется ролью участника — переключатели ниже показаны только
+                для справки и ни на что не влияют. Ранее сохранённые настройки не
+                потеряны и будут учтены, когда индивидуальные права заработают.
+              </span>
+            </div>
+          )}
+
+          <div className={`space-y-4 ${permissionsLocked ? 'opacity-60' : ''}`}>
             <div className="bg-blue-50 rounded-lg p-4">
               <h5 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
                 <Icon name="CheckSquare" size={16} className="text-blue-600" />
@@ -82,7 +113,7 @@ export default function PermissionsDialog({ member, savingMemberId, canManageRol
                   <span className="text-sm text-gray-700">Редактировать задачи</span>
                   <Switch
                     checked={member.permissions.canEditTasks}
-                    disabled={locked}
+                    disabled={permissionsLocked}
                     onCheckedChange={(checked) => 
                       onPermissionChange(member.id, 'canEditTasks', checked)
                     }
@@ -92,7 +123,7 @@ export default function PermissionsDialog({ member, savingMemberId, canManageRol
                   <span className="text-sm text-gray-700">Удалять задачи</span>
                   <Switch
                     checked={member.permissions.canDeleteTasks}
-                    disabled={locked}
+                    disabled={permissionsLocked}
                     onCheckedChange={(checked) => 
                       onPermissionChange(member.id, 'canDeleteTasks', checked)
                     }

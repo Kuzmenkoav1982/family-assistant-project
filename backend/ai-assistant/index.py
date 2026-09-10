@@ -11,7 +11,12 @@ from datetime import datetime
 from ai_credits_utils import check_and_spend_ai_credits
 from track_event_helper import track_event
 
+from auth_guard import AuthError, error_response, require_session
+
 SCHEMA = '"t_p5815085_family_assistant_pro"'
+
+# Волна 2, P0: плательщик определяется сессией, а не телом запроса.
+AUTHZ_REVISION = '2026-09-11.wave2'
 
 
 def get_db_connection():
@@ -221,12 +226,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'Method not allowed'})
         }
 
+    # ────────────────────────────────────────────────────────────────────────
+    # ГРАНИЦА АВТОРИЗАЦИИ (волна 2, P0)
+    #
+    # Раньше familyId и userId брались из тела запроса, а сразу после этого
+    # wallet_spend списывал 3 ₽. То есть анонимный запрос с чужим familyId
+    # опустошал чужой кошелёк — платить должен был не тот, кто пользуется.
+    # Теперь плательщик определяется исключительно сессией.
+    # ────────────────────────────────────────────────────────────────────────
+    try:
+        ctx = require_session(event)
+    except AuthError as exc:
+        return error_response(exc, event)
+
     try:
         body_data = json.loads(event.get('body', '{}'))
         messages = body_data.get('messages', [])
         system_prompt = body_data.get('systemPrompt')
-        family_id = body_data.get('familyId')
-        user_id = body_data.get('userId')
+        family_id = ctx.family_id
+        user_id = ctx.user_id
 
         if not messages:
             return {

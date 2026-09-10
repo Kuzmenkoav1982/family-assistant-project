@@ -15,17 +15,14 @@ export default function AccessControlManager() {
   useEffect(() => {
     if (familyMembers.length > 0) {
       const enriched = familyMembers.map((member: any) => {
-        let accessRole = member.access_role;
-        
-        if (accessRole === 'parent' || accessRole === 'guardian') {
-          accessRole = 'editor';
-        } else if (accessRole === 'child') {
-          accessRole = 'viewer';
-        }
-        
-        if (!accessRole || !['admin', 'editor', 'viewer'].includes(accessRole)) {
-          accessRole = 'viewer';
-        }
+        // Серверные роли parent/guardian/child не сводятся к триаде
+        // admin/editor/viewer: guardian означает адресное опекунство,
+        // parent — семейное отношение. Показывать их как «Редактор»
+        // значит скрывать от администратора реальный уровень доступа,
+        // поэтому всё, что не admin, отображается как наблюдатель —
+        // это не занижает права, а честно говорит: «здесь особая роль,
+        // управляемая не этим экраном».
+        let accessRole = member.access_role === 'admin' ? 'admin' : 'viewer';
         
         return {
           id: member.id,
@@ -66,7 +63,13 @@ export default function AccessControlManager() {
     });
     setMembersWithPermissions(updatedMembers);
     
-    const dbRole = newRole === 'editor' ? 'parent' : newRole;
+    // Раньше здесь было: newRole === 'editor' ? 'parent' : newRole.
+    // Именно эта подмена превращала право редактирования в семейное
+    // отношение «родитель» и вместе с ним — в доступ к данным детей.
+    // Роль отправляется как есть; 'editor' больше не предлагается в UI,
+    // а если пришёл из старых данных — понижаем до наблюдателя, а не
+    // повышаем до родителя.
+    const dbRole = newRole === 'editor' ? 'viewer' : newRole;
     
     try {
       const response = await fetch('https://functions.poehali.dev/39a1ae0b-c445-4408-80a0-ce02f5a25ce5', {
@@ -96,18 +99,10 @@ export default function AccessControlManager() {
       console.error('❌ Ошибка сохранения роли:', error);
       alert(`⚠️ Не удалось сохранить роль: ${error.message || 'Неизвестная ошибка'}`);
       
+      // Откат к серверному состоянию — то же правило отображения,
+      // что и при первичной загрузке (см. useEffect выше).
       const originalMembers = familyMembers.map((member: any) => {
-        let accessRole = member.access_role;
-        
-        if (accessRole === 'parent' || accessRole === 'guardian') {
-          accessRole = 'editor';
-        } else if (accessRole === 'child') {
-          accessRole = 'viewer';
-        }
-        
-        if (!accessRole || !['admin', 'editor', 'viewer'].includes(accessRole)) {
-          accessRole = 'viewer';
-        }
+        const accessRole = member.access_role === 'admin' ? 'admin' : 'viewer';
         
         return {
           id: member.id,

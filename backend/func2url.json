@@ -1,5 +1,4 @@
 {
-  "auth-me": "https://functions.poehali.dev/bdc86e2c-6f88-4a61-ae86-1bf9990fa254",
   "admin-user-reward": "https://functions.poehali.dev/8e4d0b58-22aa-4da1-b6b7-cefe4c39be1b",
   "consent": "https://functions.poehali.dev/311122d9-506d-4857-acb5-4e357a10c7e4",
   "funnel-stats": "https://functions.poehali.dev/e28ce6a3-b51c-40cb-9d39-c8dce23f5de5",
@@ -56,7 +55,7 @@
   "check-limits": "https://functions.poehali.dev/fde40f52-0eca-440b-915c-173b39e5b55a",
   "family-settings": "https://functions.poehali.dev/444bfdad-3354-44c6-95cb-c58ad7c8e4ea",
   "data-export": "https://functions.poehali.dev/bc534308-e636-472a-9104-78e3268c1157",
-  "child-calendar": "https://functions.poehali.dev/260f9790-e5f9-44ce-bcad-05e33cf98c21",
+  "child-calendar": "https://functions.poehali.dev/bc0c3710-e24a-4171-aa84-0311d97d14d9",
   "calendar-export": "https://functions.poehali.dev/04b2f702-d5f7-492c-9293-9c2858d1927e",
   "upload-medical-file": "https://functions.poehali.dev/2db47477-9dfd-49f9-8f51-7ff388753d82",
   "password-reset": "https://functions.poehali.dev/987c3159-5bd3-42fe-9bd1-0c31937d977e",
@@ -75,9 +74,7 @@
   "event-ideas": "https://functions.poehali.dev/08e42be0-af42-4333-a69f-32c1d20f2610",
   "event-wishlist": "https://functions.poehali.dev/64c0d9a2-7e24-49ea-b786-52e900feb79b",
   "event-tasks": "https://functions.poehali.dev/7f0367a6-eaeb-4862-9246-a546f996b581",
-  "health-records": "https://functions.poehali.dev/a5ea76d6-8fb7-4cfa-89c7-837877a2f996",
   "health-vaccinations": "https://functions.poehali.dev/6aa2ed01-163f-4d6e-9259-8779f2a0d936",
-  "health-profiles": "https://functions.poehali.dev/5af15989-a44d-409e-ad5d-4bac1c3571a1",
   "health-insurance": "https://functions.poehali.dev/933f7f2e-4542-437f-95ad-fdaee4f6dddc",
   "health-medications": "https://functions.poehali.dev/520001f0-b1a0-4150-b221-a38041928a67",
   "health-telemedicine": "https://functions.poehali.dev/51560445-6c6d-40f0-904a-37058c9ccf9d",
@@ -129,5 +126,8 @@
   "payments": "https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d",
   "family-invites": "https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d",
   "tasks": "https://functions.poehali.dev/638290a3-bc43-46ef-9ca1-1e80b72544bf",
-  "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0"
+  "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0",
+  "health-profiles": "https://functions.poehali.dev/5af15989-a44d-409e-ad5d-4bac1c3571a1",
+  "health-records": "https://functions.poehali.dev/a5ea76d6-8fb7-4cfa-89c7-837877a2f996",
+  "auth-me": "https://functions.poehali.dev/bdc86e2c-6f88-4a61-ae86-1bf9990fa254"
 }
