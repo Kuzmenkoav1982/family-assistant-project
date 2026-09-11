@@ -1,158 +1,181 @@
+"""
+Business: семейный маячок — приём своих координат и отдача координат семьи
+Args: event с httpMethod GET/POST, body {lat, lng, accuracy}
+Returns: JSON со списком последних позиций доступных участников
+
+Авторизация: backend/_shared/auth_guard.py.
+
+Было (инцидент SEC-2026-001):
+  - сессия разбиралась вручную, семья определялась по `WHERE user_id = %s
+    LIMIT 1` без учёта member_status: изолированный дубликат или отозванный
+    участник продолжал работать;
+  - GET отдавал последние координаты ВСЕХ участников семьи без адресной
+    проверки — роль в списке не участвовала вообще;
+  - check_geofence_violations читала `SELECT ... FROM geofences` без
+    family_id, то есть сверяла координаты участника с геозонами всех семей
+    платформы и писала события по чужим зонам;
+  - текст ошибки psycopg2 отдавался клиенту.
+
+Стало: require_session, набор видимых субъектов строится через
+accessible_subject_ids('geolocation'), геозоны — только своей семьи.
+"""
+
 import json
-import os
-import psycopg2
-from psycopg2.extras import RealDictCursor
 import math
+import os
+
+import psycopg2
 import requests
+from psycopg2.extras import RealDictCursor
 from pywebpush import webpush, WebPushException
 
-SCHEMA = 't_p5815085_family_assistant_pro'
+import auth_guard as ag
+from auth_guard import AuthError, SCHEMA
+
 APP_URL = 'https://nasha-semiya.ru'
 
+
 def handler(event: dict, context) -> dict:
-    """API семейного маячка — приём и отдача координат членов семьи"""
     method = event.get('httpMethod', 'GET')
 
-    cors_headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
-        'Access-Control-Max-Age': '86400',
-        'Content-Type': 'application/json'
-    }
-
     if method == 'OPTIONS':
-        return {'statusCode': 200, 'headers': cors_headers, 'body': ''}
+        return ag.preflight(event)
 
-    headers = event.get('headers', {})
-    auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
-
-    if not auth_token:
-        return {
-            'statusCode': 401,
-            'headers': cors_headers,
-            'body': json.dumps({'error': 'Требуется авторизация'})
-        }
-
-    conn = psycopg2.connect(os.environ['DATABASE_URL'])
-    cur = conn.cursor()
+    if method not in ('GET', 'POST'):
+        return ag.json_response({'error': 'Метод не поддерживается'},
+                                status=405, event=event)
 
     try:
-        cur.execute(
-            f"SELECT user_id FROM {SCHEMA}.sessions WHERE token = %s AND expires_at > NOW()",
-            (auth_token,)
-        )
-        result = cur.fetchone()
+        ctx = ag.require_session(event)
+        ag.require_family_member(ctx)
 
-        if not result:
-            return {
-                'statusCode': 401,
-                'headers': cors_headers,
-                'body': json.dumps({'error': 'Недействительный токен'})
-            }
+        conn = psycopg2.connect(ag.DATABASE_URL)
+        cur = conn.cursor()
+        try:
+            if method == 'POST':
+                return _post_location(conn, cur, ctx, event)
+            return _get_locations(cur, ctx, event)
+        finally:
+            cur.close()
+            conn.close()
 
-        user_id = result[0]
+    except AuthError as exc:
+        return ag.error_response(exc, event)
+    except Exception as exc:  # noqa: BLE001
+        # Текст ошибки наружу не отдаём: он раскрывает структуру БД.
+        print(f'[family-tracker] failed: {type(exc).__name__}: {exc}')
+        return ag.json_response({'error': 'Внутренняя ошибка'},
+                                status=500, event=event)
 
-        cur.execute(
-            f"SELECT id, family_id, name FROM {SCHEMA}.family_members WHERE user_id = %s LIMIT 1",
-            (str(user_id),)
-        )
-        family_result = cur.fetchone()
 
-        if not family_result:
-            return {
-                'statusCode': 404,
-                'headers': cors_headers,
-                'body': json.dumps({'error': 'Семья не найдена'})
-            }
+def _post_location(conn, cur, ctx: ag.AuthContext, event: dict) -> dict:
+    """Отправить можно ТОЛЬКО свои координаты: субъект — сам актор,
+    member_id из тела запроса не принимается принципиально."""
+    ag.require_permission(ctx, 'geolocation', 'update')
 
-        member_id = family_result[0]
-        family_id = family_result[1]
-        member_name = family_result[2] or 'Член семьи'
+    try:
+        body = json.loads(event.get('body') or '{}')
+    except (ValueError, TypeError):
+        body = {}
 
-        if method == 'POST':
-            body = json.loads(event.get('body', '{}'))
-            lat = body.get('lat')
-            lng = body.get('lng')
-            accuracy = body.get('accuracy', 0)
+    lat, lng = _coord(body.get('lat'), 90), _coord(body.get('lng'), 180)
+    if lat is None or lng is None:
+        return ag.json_response({'error': 'Отсутствуют или неверны координаты'},
+                                status=400, event=event)
+    accuracy = _coord(body.get('accuracy', 0), 1_000_000) or 0
 
-            if not lat or not lng:
-                return {
-                    'statusCode': 400,
-                    'headers': cors_headers,
-                    'body': json.dumps({'error': 'Отсутствуют координаты'})
-                }
-
-            cur.execute(
-                f"""INSERT INTO {SCHEMA}.family_location_tracking 
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.family_location_tracking
                 (user_id, family_id, latitude, longitude, accuracy, created_at)
-                VALUES (%s, %s, %s, %s, %s, NOW())""",
-                (str(user_id), str(family_id), lat, lng, accuracy)
-            )
+            VALUES (%s, %s, %s, %s, %s, NOW())""",
+        (ctx.user_id, ctx.family_id, lat, lng, accuracy),
+    )
 
-            exit_events = check_geofence_violations(cur, str(member_id), lat, lng)
-            conn.commit()
+    exit_events = check_geofence_violations(cur, ctx.family_id, ctx.member_id, lat, lng)
+    conn.commit()
 
-            if exit_events:
-                send_instant_alerts(cur, conn, str(family_id), str(member_id), str(user_id), member_name, exit_events)
+    if exit_events:
+        cur.execute(
+            f'SELECT name FROM {SCHEMA}.family_members WHERE id = %s',
+            (ctx.member_id,),
+        )
+        row = cur.fetchone()
+        send_instant_alerts(cur, conn, ctx.family_id, ctx.member_id, ctx.user_id,
+                            (row[0] if row else None) or 'Член семьи', exit_events)
 
-            return {
-                'statusCode': 200,
-                'headers': cors_headers,
-                'body': json.dumps({'success': True, 'message': 'Координаты сохранены'})
-            }
-
-        elif method == 'GET':
-            cur.execute(f"""
-                SELECT DISTINCT ON (lt.user_id)
-                    fm.id as member_id,
-                    lt.latitude,
-                    lt.longitude,
-                    lt.accuracy,
-                    lt.created_at
-                FROM {SCHEMA}.family_location_tracking lt
-                JOIN {SCHEMA}.family_members fm ON fm.user_id = lt.user_id
-                WHERE lt.family_id = %s
-                ORDER BY lt.user_id, lt.created_at DESC
-            """, (str(family_id),))
-
-            locations = []
-            for row in cur.fetchall():
-                locations.append({
-                    'memberId': str(row[0]),
-                    'lat': float(row[1]),
-                    'lng': float(row[2]),
-                    'accuracy': float(row[3]) if row[3] else 0,
-                    'timestamp': (row[4].isoformat() + 'Z') if row[4] else None
-                })
-
-            return {
-                'statusCode': 200,
-                'headers': cors_headers,
-                'body': json.dumps({'success': True, 'locations': locations})
-            }
-
-        else:
-            return {
-                'statusCode': 405,
-                'headers': cors_headers,
-                'body': json.dumps({'error': 'Метод не поддерживается'})
-            }
-
-    except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': cors_headers,
-            'body': json.dumps({'error': f'Ошибка сервера: {str(e)}'})
-        }
-    finally:
-        cur.close()
-        conn.close()
+    return ag.json_response({'success': True, 'message': 'Координаты сохранены'},
+                            event=event)
 
 
-def check_geofence_violations(cur, member_id: str, lat: float, lng: float) -> list:
-    """Проверка геозон, возвращает список exit-событий для мгновенной отправки"""
-    cur.execute(f'SELECT id, name, center_lat, center_lng, radius FROM {SCHEMA}.geofences')
+def _get_locations(cur, ctx: ag.AuthContext, event: dict) -> dict:
+    """
+    Видны координаты только тех, на кого есть право: сам актор плюс
+    подопечные с подтверждённым scope 'geolocation'. Пустой список —
+    штатный ответ, а не ошибка: до подтверждения опекунств родитель
+    видит на карте только себя.
+    """
+    ag.require_permission(ctx, 'geolocation', 'read_own')
+
+    subjects = ag.accessible_subject_ids(ctx, 'geolocation', action='read')
+    if not subjects:
+        return ag.json_response({'success': True, 'locations': []}, event=event)
+
+    cur.execute(
+        f"""
+        SELECT DISTINCT ON (lt.user_id)
+               fm.id, lt.latitude, lt.longitude, lt.accuracy, lt.created_at
+        FROM {SCHEMA}.family_location_tracking lt
+        JOIN {SCHEMA}.family_members fm ON fm.user_id = lt.user_id
+        WHERE lt.family_id = %s
+          AND fm.family_id = %s
+          AND fm.id = ANY(%s::uuid[])
+          AND COALESCE(fm.member_status, 'active') = 'active'
+        ORDER BY lt.user_id, lt.created_at DESC
+        """,
+        (ctx.family_id, ctx.family_id, subjects),
+    )
+
+    locations = []
+    for row in cur.fetchall():
+        member_id = str(row[0])
+        if member_id != ctx.member_id:
+            ag.audit_allowed(ctx, 'geolocation', 'read', 'ASSIGNED_GUARDIAN',
+                             resource_type='live_location',
+                             resource_id=member_id, subject_member_id=member_id)
+        locations.append({
+            'memberId': member_id,
+            'lat': float(row[1]),
+            'lng': float(row[2]),
+            'accuracy': float(row[3]) if row[3] else 0,
+            'timestamp': (row[4].isoformat() + 'Z') if row[4] else None,
+        })
+
+    return ag.json_response({'success': True, 'locations': locations}, event=event)
+
+
+def _coord(value, limit: float):
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    return v if -limit <= v <= limit else None
+
+
+def check_geofence_violations(cur, family_id: str, member_id: str,
+                              lat: float, lng: float) -> list:
+    """
+    Проверка геозон СВОЕЙ семьи.
+
+    Раньше выборка шла без family_id: координаты участника сверялись
+    с геозонами всех семей платформы, и в geofence_events писались
+    события по чужим зонам — то есть чужая семья могла узнать, что
+    некий участник находится рядом с их домом или школой.
+    """
+    cur.execute(
+        f"""SELECT id, name, center_lat, center_lng, radius
+            FROM {SCHEMA}.geofences WHERE family_id = %s""",
+        (family_id,),
+    )
     geofences = cur.fetchall()
     exit_events = []
 

@@ -18,6 +18,22 @@ export default function MembersPanel({ familyMembers, locations }: MembersPanelP
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {familyMembers.length === 0 && (
+          /* Пустой список — не сбой загрузки. После закрытия инцидента
+             SEC-2026-001 сервер отдаёт только тех, на кого есть явное
+             право видеть перемещения: себя и подопечных с подтверждённым
+             согласием на геолокацию. Молчать об этом нельзя — иначе
+             раздел выглядит неработающим. */
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-semibold">Пока показывать некого</p>
+            <p className="mt-1 text-amber-800">
+              Местоположение участника видно только при подтверждённом
+              доступе к его перемещениям. Роль в семье сама по себе такого
+              доступа не даёт — согласие запрашивается отдельно, у самого
+              участника или его законного представителя.
+            </p>
+          </div>
+        )}
         {familyMembers.map((member) => {
           const memberLocation = locations.find(loc => loc.memberId === member.id);
           const isOnline = memberLocation && (new Date().getTime() - new Date(memberLocation.timestamp).getTime()) < 1800000;

@@ -29,6 +29,13 @@ from auth_guard import AuthError, SCHEMA
 # несоразмерно цели. Более старые данные через этот API не выдаются.
 MAX_HISTORY_DAYS = 90
 
+# Свежая история нужна точной («где ребёнок сейчас был»), старая — нет.
+# После этого срока координаты округляются: цель «посмотреть маршрут
+# прошлого месяца» не требует метровой точности, а утечка такого архива
+# требует. 3 знака ≈ 110 м.
+PRECISE_WINDOW_DAYS = 14
+COARSE_DECIMALS = 3
+
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
@@ -90,11 +97,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 if (subject.get('member_status') or 'active') != 'active':
                     raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
 
-                # Адресная проверка: перемещения человека — чувствительные
-                # данные, роль сама по себе их не открывает.
-                ag.require_subject_access(ctx, member_id, module='geolocation',
-                                          resource_type='location_history',
-                                          resource_id=member_id, action='read')
+                # Адресная проверка: сессия + своя семья + активный субъект
+                # + явный scope 'geolocation' по подтверждённой связи.
+                # Роль сама по себе чужие перемещения не открывает.
+                # Просмотр журналируется внутри guard-а.
+                ag.require_location_access(ctx, member_id,
+                                           resource_type='location_history',
+                                           resource_id=member_id, action='read')
 
                 cur.execute(
                     f"""
@@ -114,18 +123,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         finally:
             conn.close()
 
-        ag.audit_allowed(ctx, 'geolocation', 'read',
-                         resource_type='location_history',
-                         resource_id=member_id, subject_member_id=member_id)
+        coarse = (date.today() - requested_day).days > PRECISE_WINDOW_DAYS
+
+        def coord(value: Any) -> float:
+            v = float(value)
+            return round(v, COARSE_DECIMALS) if coarse else v
 
         return ag.json_response({
             'success': True,
             'member_id': member_id,
             'date': date_str,
+            'precision': 'coarse' if coarse else 'exact',
             'locations': [
                 {
-                    'lat': float(loc['lat']),
-                    'lng': float(loc['lng']),
+                    'lat': coord(loc['lat']),
+                    'lng': coord(loc['lng']),
                     'accuracy': float(loc['accuracy']) if loc['accuracy'] else 0,
                     'timestamp': loc['timestamp'].isoformat() if loc['timestamp'] else None,
                 }

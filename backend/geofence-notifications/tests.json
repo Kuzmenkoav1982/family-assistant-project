@@ -1,10 +1,42 @@
 {
   "tests": [
     {
-      "name": "Check and send notifications",
-      "method": "POST",
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
+    },
+    {
+      "name": "Запуск рассылки без cron-секрета → 403 (раньше отдавал 200 всем)",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 403
+    },
+    {
+      "name": "Неверный cron-секрет → 403",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-Cron-Secret": "wrong-secret-value" },
+      "expectedStatus": 403
+    },
+    {
+      "name": "Секрет в query-параметре тоже проверяется → 403",
+      "method": "POST",
+      "path": "/?secret=wrong-secret-value",
+      "expectedStatus": 403
+    },
+    {
+      "name": "Сессионный токен не заменяет cron-секрет → 403",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-Auth-Token": "some-session-token" },
+      "expectedStatus": 403
+    },
+    {
+      "name": "GET не поддерживается → 405",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 405
     }
   ]
 }

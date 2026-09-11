@@ -26,3 +26,7 @@ builds
 
 # warmup/handoff артефакты
 tmp/
+
+# Python bytecode: попадал в деплой функций и в diff
+__pycache__/
+*.pyc

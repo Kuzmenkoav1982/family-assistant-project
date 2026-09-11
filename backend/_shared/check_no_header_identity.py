@@ -28,9 +28,15 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 
-# Функции, переведённые на серверную авторизацию (волна 1).
+# Функции, переведённые на серверную авторизацию.
 # Пополняется по мере миграции. Убирать отсюда нельзя.
 MIGRATED = {
+    # Волна 4: блок геолокации после инцидента SEC-2026-001.
+    'location-history',
+    'family-tracker',
+    'family-tracker-members',
+    'geofences',
+    # Волна 1: здоровье.
     'auth-me',
     'health-profiles',
     'health-medications',

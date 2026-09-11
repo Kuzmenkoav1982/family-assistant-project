@@ -1,35 +1,54 @@
 {
   "tests": [
     {
-      "name": "OPTIONS request for CORS",
+      "name": "OPTIONS CORS",
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200
     },
     {
-      "name": "POST location without auth",
+      "name": "Отправка координат без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "lat": 55.751244, "lng": 37.618423, "accuracy": 10 },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Чтение координат семьи без сессии → 401",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Мусорный токен → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "X-User-Id без сессии не даёт координат → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-User-Id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Попытка записать координаты за другого участника без сессии → 401",
       "method": "POST",
       "path": "/",
       "body": {
         "lat": 55.751244,
         "lng": 37.618423,
-        "accuracy": 10
+        "member_id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2"
       },
-      "expectedStatus": 401,
-      "expectedBody": {
-        "error": "Требуется авторизация"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "GET locations without auth",
-      "method": "GET",
+      "name": "PUT не поддерживается → 405",
+      "method": "PUT",
       "path": "/",
-      "expectedStatus": 401,
-      "expectedBody": {
-        "error": "Требуется авторизация"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 405
     }
   ]
 }

@@ -1,14 +1,36 @@
 {
   "tests": [
     {
-      "name": "Get family members without auth",
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Список отслеживаемых участников без сессии → 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 401,
-      "expectedBody": {
-        "error": "Требуется авторизация"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
+    },
+    {
+      "name": "Мусорный токен → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "X-User-Id не заменяет сессию → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-User-Id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST не поддерживается → 405",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 405
     }
   ]
 }

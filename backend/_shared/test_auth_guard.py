@@ -344,37 +344,97 @@ def main():
 
     # ---------- НЕПОДТВЕРЖДЁННОЕ ОПЕКУНСТВО (backfill V0377) ----------
     # Связь создана миграцией по признакам «взрослый + admin/parent + та же
-    # семья». Это гипотеза: до подтверждения — только чтение и только
-    # по узкому кругу модулей.
+    # семья». Это гипотеза о родстве, а не право: до подтверждения она
+    # не даёт НИЧЕГО — ни чтения, ни записи, ни по одному модулю.
+    # Раньше здесь было послабление (read по health/medications/children);
+    # тесты закрепляют его снятие.
     GUARDIANSHIPS[MEMBER_SELF] = [
-        (MEMBER_CHILD, ['health', 'medications', 'children'], 'pending_confirmation')
+        (MEMBER_CHILD, ['health', 'medications', 'children', 'geolocation'],
+         'pending_confirmation')
     ]
 
-    pend_ctx, _ = ctx_for('tok-guardian-assigned')
-    check('backfill-опекун читает здоровье подопечного → allow',
-          lambda: ag.require_subject_access(pend_ctx, MEMBER_CHILD, 'health',
-                                            action='read'), None)
+    for module, action in (('health', 'read'), ('medications', 'read'),
+                           ('children', 'read'), ('geolocation', 'read'),
+                           ('documents', 'read'), ('portfolio', 'read'),
+                           ('export', 'export'), ('health', 'update')):
+        pc, _ = ctx_for('tok-guardian-assigned')
+        check(f'НЕподтверждённый опекун: {module}/{action} → 403',
+              lambda p=pc, m=module, a=action:
+                  ag.require_subject_access(p, MEMBER_CHILD, m, action=a), 403)
 
-    pend_ctx2, _ = ctx_for('tok-guardian-assigned')
-    check('backfill-опекун ИЗМЕНЯЕТ здоровье подопечного → 403',
-          lambda: ag.require_subject_access(pend_ctx2, MEMBER_CHILD, 'health',
+    pend_loc, _ = ctx_for('tok-guardian-assigned')
+    check('НЕподтверждённый опекун через require_location_access → 403',
+          lambda: ag.require_location_access(pend_loc, MEMBER_CHILD), 403)
+
+    for action in ('read', 'update'):
+        pl, _ = ctx_for('tok-guardian-assigned')
+        subs = ag.accessible_subject_ids(pl, 'health', action=action)
+        ok = MEMBER_CHILD not in subs
+        results.append((ok, f'массовый список ({action}) без pending-подопечных',
+                        'ok' if ok else f'утечка: {subs}'))
+
+    pl_geo, _ = ctx_for('tok-guardian-assigned')
+    geo_subs = ag.accessible_subject_ids(pl_geo, 'geolocation', action='read')
+    ok = geo_subs == [MEMBER_SELF]
+    results.append((ok, 'карта маячка при pending-связи показывает только себя',
+                    'ok' if ok else f'утечка: {geo_subs}'))
+
+    # ---------- ГЕОЛОКАЦИЯ: ОТДЕЛЬНЫЙ ЯВНЫЙ SCOPE ----------
+    # Подтверждая опекунство над здоровьем ребёнка, человек не соглашается
+    # на слежение за его перемещениями. 'all' геолокацию не покрывает.
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['all'], 'confirmed')]
+    all_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('scope "all" открывает здоровье подопечного → allow',
+          lambda: ag.require_subject_access(all_ctx, MEMBER_CHILD, 'health'), None)
+    all_ctx2, _ = ctx_for('tok-guardian-assigned')
+    check('scope "all" НЕ открывает геолокацию подопечного → 403',
+          lambda: ag.require_location_access(all_ctx2, MEMBER_CHILD), 403)
+
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['health:read'], 'confirmed')]
+    ro_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('scope health:read → чтение здоровья allow',
+          lambda: ag.require_subject_access(ro_ctx, MEMBER_CHILD, 'health',
+                                            action='read'), None)
+    ro_ctx2, _ = ctx_for('tok-guardian-assigned')
+    check('scope health:read → запись здоровья 403',
+          lambda: ag.require_subject_access(ro_ctx2, MEMBER_CHILD, 'health',
                                             action='update'), 403)
 
-    pend_ctx3, _ = ctx_for('tok-guardian-assigned')
-    check('backfill-опекун к документам подопечного → 403',
-          lambda: ag.require_subject_access(pend_ctx3, MEMBER_CHILD, 'documents',
-                                            action='read'), 403)
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['health:write'], 'confirmed')]
+    rw_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('scope health:write → запись здоровья allow',
+          lambda: ag.require_subject_access(rw_ctx, MEMBER_CHILD, 'health',
+                                            action='update'), None)
+    rw_ctx2, _ = ctx_for('tok-guardian-assigned')
+    check('scope health:write НЕ даёт лекарства подопечного → 403',
+          lambda: ag.require_subject_access(rw_ctx2, MEMBER_CHILD, 'medications'), 403)
 
-    pend_ctx4, _ = ctx_for('tok-guardian-assigned')
-    check('backfill-опекун экспортирует данные подопечного → 403',
-          lambda: ag.require_subject_access(pend_ctx4, MEMBER_CHILD, 'export',
-                                            action='export'), 403)
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['geolocation:read'], 'confirmed')]
+    geo_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('явный scope geolocation:read → координаты подопечного allow',
+          lambda: ag.require_location_access(geo_ctx, MEMBER_CHILD), None)
+    geo_ctx2, _ = ctx_for('tok-guardian-assigned')
+    check('scope geolocation:read НЕ даёт здоровье подопечного → 403',
+          lambda: ag.require_subject_access(geo_ctx2, MEMBER_CHILD, 'health'), 403)
 
-    pend_ctx5, _ = ctx_for('tok-guardian-assigned')
-    write_subjects = ag.accessible_subject_ids(pend_ctx5, 'health', action='update')
-    ok = MEMBER_CHILD not in write_subjects
-    results.append((ok, 'массовый список на запись не содержит pending-подопечных',
-                    'ok' if ok else f'утечка: {write_subjects}'))
+    # Роль сама по себе чужие координаты не открывает — ни у admin,
+    # ни у parent, ни у владельца пространства.
+    GUARDIANSHIPS[MEMBER_SELF] = []
+    for token, label in (('tok-admin', 'admin'), ('tok-parent', 'parent'),
+                         ('tok-owner', 'owner')):
+        lc, _ = ctx_for(token)
+        check(f'{label} БЕЗ связи к координатам ребёнка → 403',
+              lambda p=lc: ag.require_location_access(p, MEMBER_CHILD), 403)
+
+    own_ctx, _ = ctx_for('tok-parent')
+    check('свои координаты → allow',
+          lambda: ag.require_location_access(own_ctx, MEMBER_SELF), None)
+
+    # ROLE_POLICY больше не содержит безадресного geolocation:'read'.
+    role_leak = [r for r, mods in ag.ROLE_POLICY.items()
+                 if 'read' in mods.get('geolocation', [])]
+    results.append((not role_leak, 'ни одна роль не имеет безадресного geolocation:read',
+                    'ok' if not role_leak else f'роли: {role_leak}'))
 
     # ---------- ИЗОЛИРОВАННЫЙ ДУБЛИКАТ ----------
     dup_admin_ctx, _ = ctx_for('tok-admin')

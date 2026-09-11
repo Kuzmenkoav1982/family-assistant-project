@@ -7,22 +7,50 @@
       "expectedStatus": 200
     },
     {
-      "name": "Get geofences list",
+      "name": "Список геозон без сессии → 401 (раньше отдавал зоны ВСЕХ семей)",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 200,
-      "expectedBody": {
-        "geofences": []
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "PUT settings without auth",
+      "name": "Мусорный токен → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Создание зоны без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "name": "Тест", "center_lat": 55.75, "center_lng": 37.61, "radius": 500 },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Удаление зоны перебором id без сессии → 401 (раньше удаляло любую)",
+      "method": "DELETE",
+      "path": "/?id=1",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Удаление с мусорным токеном → 401",
+      "method": "DELETE",
+      "path": "/?id=1",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Настройки оповещения без сессии → 401",
       "method": "PUT",
       "path": "/",
-      "body": {
-        "settings": []
-      },
+      "body": { "settings": [] },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Неподдерживаемый метод с мусорным токеном → 401 до разбора метода",
+      "method": "PATCH",
+      "path": "/",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
       "expectedStatus": 401
     }
   ]

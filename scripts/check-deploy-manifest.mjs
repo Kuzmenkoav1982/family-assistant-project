@@ -115,7 +115,19 @@ const NO_AUTH_MUST_DENY = [
   'health-medications',
   'children-data',
   'data-export',
+  // Геолокация — после инцидента SEC-2026-001 весь блок под наблюдением.
+  // Три из пяти функций этого раздела не имели аутентификации вообще,
+  // и заметить это можно было только таким запросом.
   'location-history',
+  'family-tracker',
+  'family-tracker-members',
+  'geofences',
+];
+
+// Служебные обработчики: сессии у них нет, вход закрыт CRON_SECRET.
+// Проверяем, что без секрета они не выполняют работу.
+const CRON_MUST_DENY = [
+  { name: 'geofence-notifications', method: 'POST' },
 ];
 
 const failures = [];
@@ -149,6 +161,30 @@ for (const name of NO_AUTH_MUST_DENY) {
     }
   } catch (e) {
     failures.push(`${name}: OPTIONS не выполнен (${e.message})`);
+  }
+}
+
+// Служебные cron-обработчики: без секрета — 401/403, но не 200.
+// geofence-notifications отдавал 200 любому: он запускал рассылку
+// уведомлений о выходе ребёнка из геозоны без всякой проверки.
+for (const { name, method } of CRON_MUST_DENY) {
+  const url = map[name];
+  if (!url) continue;
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: method === 'POST' ? '{}' : undefined,
+    });
+    if (res.status !== 401 && res.status !== 403) {
+      failures.push(
+        `${name}: ${method} без cron-секрета вернул ${res.status}, ожидался 403`,
+      );
+    } else {
+      console.log(`  OK  ${name} → ${res.status} без cron-секрета`);
+    }
+  } catch (e) {
+    failures.push(`${name}: запрос не выполнен (${e.message})`);
   }
 }
 

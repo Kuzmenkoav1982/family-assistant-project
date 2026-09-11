@@ -76,7 +76,7 @@ IP_HASH_SALT = os.environ.get('AUDIT_IP_SALT', 'authz-audit-v1')
 # permissions / granular_permissions JSONB как параллельный источник истины
 # НЕ используются: только как сужающие индивидуальные ограничения (позже).
 
-POLICY_VERSION = '2026-09-09.1'
+POLICY_VERSION = '2026-09-11.2'
 
 # Действия: read | read_assigned | read_own | create | update | delete | export | manage
 ROLE_POLICY: Dict[str, Dict[str, List[str]]] = {
@@ -93,7 +93,10 @@ ROLE_POLICY: Dict[str, Dict[str, List[str]]] = {
         'medications':     ['read_own', 'read_assigned', 'create', 'update'],
         'children':        ['read', 'create', 'update', 'delete'],
         'finance':         ['read_own', 'read_assigned'],
-        'geolocation':     ['read', 'update'],
+        # Геолокация НЕ даётся по названию роли: только свои координаты
+        # и координаты тех, на кого есть подтверждённая связь со scope
+        # 'geolocation'. См. can_access_subject / LOCATION_MODULES.
+        'geolocation':     ['read_own', 'read_assigned', 'update'],
         'documents':       ['read', 'create', 'update', 'delete'],
         'portfolio':       ['read', 'create', 'update'],
         'export':          ['export'],
@@ -113,7 +116,10 @@ ROLE_POLICY: Dict[str, Dict[str, List[str]]] = {
         'medications':     ['read_own', 'read_assigned', 'create', 'update'],
         'children':        ['read', 'create', 'update'],
         'finance':         ['read_own', 'read_assigned', 'create', 'update'],
-        'geolocation':     ['read', 'update'],
+        # Роль 'parent' в этой БД смешивает отношение и полномочие (V0376
+        # выдала её 12-летнему участнику). Автодоступ к чужим координатам
+        # по роли закрыт — нужна адресная подтверждённая связь.
+        'geolocation':     ['read_own', 'read_assigned', 'update'],
         'documents':       ['read', 'create', 'update'],
         'portfolio':       ['read', 'create', 'update'],
         'export':          ['export'],
@@ -133,7 +139,7 @@ ROLE_POLICY: Dict[str, Dict[str, List[str]]] = {
         'medications':     ['read_own', 'read_assigned', 'create', 'update'],
         'children':        ['read'],
         'finance':         [],
-        'geolocation':     ['read'],
+        'geolocation':     ['read_own', 'read_assigned'],
         'documents':       ['read'],
         'portfolio':       ['read'],
         'export':          [],
@@ -223,10 +229,37 @@ NON_OPERATIONAL_SPACE_STATUSES = frozenset({
 })
 
 # Что даёт связь опекунства, созданная миграцией и ещё не подтверждённая
-# человеком. Родство, выведенное из роли и возраста, — гипотеза, поэтому
-# до подтверждения доступно только чтение и только по узкому кругу модулей.
-PENDING_GUARDIANSHIP_SCOPES = frozenset({'health', 'medications', 'children'})
-PENDING_GUARDIANSHIP_ACTIONS = frozenset({'read', 'read_own', 'read_assigned'})
+# человеком: НИЧЕГО, кроме факта «требуется подтверждение».
+#
+# Раньше здесь было исключение — pending-связь давала read по
+# health/medications/children. Это неверно: родство, выведенное из роли
+# и возраста, — гипотеза, а не право. Гипотеза не открывает медданные
+# несовершеннолетнего даже на чтение. Пустой набор оставлен явным
+# (а не удалён), чтобы попытка вернуть исключение была видна в diff.
+PENDING_GUARDIANSHIP_SCOPES: frozenset = frozenset()
+PENDING_GUARDIANSHIP_ACTIONS: frozenset = frozenset()
+
+# Единственное, что доступно до подтверждения: узнать, что подтверждение
+# требуется, и запросить его. Никаких данных субъекта.
+PENDING_ALLOWED_ACTIONS = frozenset({
+    'guardianship.show_pending',
+    'guardianship.request_confirmation',
+})
+
+# Модули с раздельными правами чтения и записи. Подтверждённая связь
+# несёт scopes вида 'health:read' / 'health:write'; для совместимости
+# с выданными ранее связями принимается и голое имя модуля.
+SCOPED_MODULES = frozenset({
+    'health', 'medications', 'calendar', 'children',
+    'documents', 'portfolio', 'geolocation', 'export', 'finance',
+})
+
+WRITE_ACTIONS = frozenset({'create', 'update', 'delete', 'manage', 'export'})
+
+# Геолокация — отдельный scope, который НИКОГДА не подразумевается другими.
+# 'all' его не покрывает: согласие на здоровье ребёнка не есть согласие
+# на слежение за его перемещениями.
+LOCATION_MODULES = frozenset({'geolocation'})
 
 
 # ============================================================
@@ -260,6 +293,8 @@ _DEFAULT_MESSAGES = {
     'SUBJECT_SCOPE_DENIED': 'No access to this data category',
     'GUARDIANSHIP_PENDING_SCOPE': 'Guardianship is not confirmed for this module',
     'GUARDIANSHIP_PENDING_READONLY': 'Unconfirmed guardianship allows read only',
+    'GUARDIANSHIP_NOT_CONFIRMED': 'Guardianship must be confirmed before any access',
+    'LOCATION_SCOPE_REQUIRED': 'Explicit location scope is required',
     'DUPLICATE_UNDER_REVIEW': 'Record is under duplicate review',
 }
 
@@ -608,8 +643,8 @@ def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
     Правила по чувствительным модулям:
       - свои данные — всегда;
       - подтверждённая связь опекунства с нужным scope — да;
-      - НЕподтверждённая связь (созданная миграцией) — только чтение
-        и только по узкому кругу модулей;
+      - НЕподтверждённая связь (созданная миграцией) — НЕТ, ничего,
+        даже чтения: это гипотеза о родстве, а не право;
       - admin БЕЗ явной связи — нет (администрирование ≠ доступ к содержимому);
       - parent БЕЗ явной связи — нет (см. ниже);
       - viewer / child к чужим данным — нет;
@@ -625,9 +660,10 @@ def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
     V0377 создала 29 связей по признакам «взрослый + admin/parent + та же
     семья». Это операционная догадка: она покрывает сводные семьи, бывших
     участников и неверно классифицированных взрослых. Такая связь
-    (status='pending_confirmation') даёт read по health/medications/children
-    и НЕ даёт запись, финансы, экспорт и изменение согласий — до явного
-    подтверждения владельцем или администратором.
+    (status='pending_confirmation') не даёт НИЧЕГО до подтверждения —
+    ни чтения, ни записи. Раньше здесь было послабление (read по
+    health/medications/children); оно снято: гипотеза о родстве не должна
+    открывать медданные ребёнка ни на каком уровне.
     """
     if not subject_member_id:
         return False, 'SUBJECT_ACCESS_DENIED'
@@ -651,19 +687,49 @@ def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
     if not link:
         return False, 'SUBJECT_ACCESS_DENIED'
 
-    scopes = link.get('scopes') or []
-    if module not in scopes and 'all' not in scopes:
+    # Неподтверждённая связь не даёт данных вообще — проверяем до scopes,
+    # чтобы никакой набор scopes_requested не мог её «оживить».
+    if link.get('status') != 'confirmed':
+        return False, 'GUARDIANSHIP_NOT_CONFIRMED'
+
+    if not _scope_grants(link.get('scopes') or [], module, action):
         return False, 'SUBJECT_SCOPE_DENIED'
 
-    if link.get('status') == 'confirmed':
-        return True, 'ASSIGNED_GUARDIAN'
+    return True, 'ASSIGNED_GUARDIAN'
 
-    # Неподтверждённая связь: узкий круг модулей и только чтение.
-    if module not in PENDING_GUARDIANSHIP_SCOPES:
-        return False, 'GUARDIANSHIP_PENDING_SCOPE'
-    if action not in PENDING_GUARDIANSHIP_ACTIONS:
-        return False, 'GUARDIANSHIP_PENDING_READONLY'
-    return True, 'PENDING_GUARDIAN_READONLY'
+
+def _scope_grants(scopes: List[str], module: str, action: str) -> bool:
+    """
+    Проверяет, покрывает ли набор scopes связи модуль и действие.
+
+    Формы scope:
+        'health:read'   — чтение конкретного модуля
+        'health:write'  — чтение + запись
+        'health'        — legacy-форма, равна 'health:write'
+        'all'           — всё, КРОМЕ геолокации
+
+    Почему 'all' не включает геолокацию: подтверждая опекунство над
+    ребёнком, человек соглашается вести его здоровье и календарь. Точные
+    перемещения — отдельное решение с отдельным согласием, и оно должно
+    быть видно в наборе scopes явно, иначе аудит не отличит «разрешили
+    слежение» от «разрешили всё остальное».
+    """
+    scopes = [str(s) for s in scopes]
+    is_write = action in WRITE_ACTIONS
+
+    if module in LOCATION_MODULES:
+        candidates = [s for s in scopes if s == module or s.startswith(module + ':')]
+    else:
+        if 'all' in scopes:
+            return True
+        candidates = [s for s in scopes if s == module or s.startswith(module + ':')]
+
+    if not candidates:
+        return False
+    if not is_write:
+        return True
+    # Запись: нужен ':write' либо legacy-форма без уточнения.
+    return any(s == module or s.endswith(':write') for s in candidates)
 
 
 def require_subject_access(ctx: AuthContext, subject_member_id: Optional[str],
@@ -681,6 +747,47 @@ def require_subject_access(ctx: AuthContext, subject_member_id: Optional[str],
     return reason
 
 
+def require_location_access(ctx: AuthContext, subject_member_id: Optional[str],
+                            resource_type: str = 'location',
+                            resource_id: Optional[str] = None,
+                            action: str = 'read') -> str:
+    """
+    Единственный законный вход к точным координатам человека.
+
+    Полный набор условий (все обязательны):
+        1. действующая серверная сессия        — require_session выше;
+        2. субъект в той же семье              — require_same_family;
+        3. субъект активен                     — member_status='active';
+        4. это я сам ИЛИ подтверждённая связь
+           с явным scope 'geolocation'         — can_access_subject;
+        5. просмотр записан в аудит.
+
+    Роль (owner/admin/parent) сама по себе НЕ проходит: в этой БД роль
+    смешивает отношение и полномочие, а координаты ребёнка — та цена
+    ошибки, которую нельзя платить за историческую неточность модели.
+
+    Каждый успешный просмотр чужой геолокации журналируется всегда,
+    а не по усмотрению вызывающей функции: без этого нельзя ответить
+    на вопрос «кто смотрел, где был мой ребёнок».
+    """
+    allowed, reason = can_access_subject(ctx, subject_member_id,
+                                         module='geolocation', action=action)
+    if not allowed:
+        code = ('LOCATION_SCOPE_REQUIRED'
+                if reason == 'SUBJECT_SCOPE_DENIED' else reason)
+        _audit(ctx, 'geolocation', action, 'denied', code,
+               resource_type=resource_type, resource_id=resource_id,
+               subject_member_id=subject_member_id if _is_uuid(subject_member_id) else None,
+               http_status=403)
+        raise AuthError(403, 'SUBJECT_ACCESS_DENIED')
+
+    if reason != 'SELF':
+        _audit(ctx, 'geolocation', action, 'allowed', reason,
+               resource_type=resource_type, resource_id=resource_id,
+               subject_member_id=subject_member_id, http_status=200)
+    return reason
+
+
 def accessible_subject_ids(ctx: AuthContext, module: str = 'health',
                            action: str = 'read') -> List[str]:
     """
@@ -695,14 +802,10 @@ def accessible_subject_ids(ctx: AuthContext, module: str = 'health',
     if ctx.member_id:
         result.add(ctx.member_id)
     for dep, link in _load_guardian_scopes(ctx).items():
-        scopes = link.get('scopes') or []
-        if module not in scopes and 'all' not in scopes:
-            continue
         if link.get('status') != 'confirmed':
-            if module not in PENDING_GUARDIANSHIP_SCOPES:
-                continue
-            if action not in PENDING_GUARDIANSHIP_ACTIONS:
-                continue
+            continue
+        if not _scope_grants(link.get('scopes') or [], module, action):
+            continue
         result.add(dep)
     # Роль 'parent' НЕ расширяет набор субъектов: см. can_access_subject.
     # Список строится только из себя + адресных опекунств, поэтому

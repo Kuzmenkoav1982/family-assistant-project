@@ -1,131 +1,96 @@
+"""
+Business: список участников семьи для карты маячка
+Args: event с httpMethod GET
+Returns: JSON со списком участников, чьи координаты актор вправе видеть
+
+Авторизация: backend/_shared/auth_guard.py.
+
+Было: сессия разбиралась вручную, семья определялась `WHERE user_id = %s
+LIMIT 1` без учёта member_status, и список отдавал ВСЕХ участников семьи.
+На карте маячка это значит «вот все, кого можно отслеживать» — обещание,
+которого backend после закрытия SEC-2026-001 не выполняет.
+
+Дубликаты отфильтровывались по `name NOT LIKE '%ДУБЛИКАТ%'` — фильтрация
+персональных данных по содержимому строки имени. Теперь состояние записи
+хранится в member_status, и фильтр опирается на него.
+
+Стало: список = accessible_subject_ids('geolocation'), то есть ровно те,
+для кого location-history и family-tracker реально отдадут координаты.
+"""
+
 import json
-import os
+from typing import Any, Dict
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-def handler(event: dict, context) -> dict:
-    '''API для получения списка членов семьи для трекера'''
+import auth_guard as ag
+from auth_guard import AuthError, SCHEMA
+
+COLORS = ['#3B82F6', '#EC4899', '#10B981', '#F59E0B',
+          '#8B5CF6', '#EF4444', '#06B6D4', '#84CC16']
+
+
+def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
-    
+
     if method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token'
-            },
-            'body': ''
-        }
-    
+        return ag.preflight(event)
+
     if method != 'GET':
-        return {
-            'statusCode': 405,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Method not allowed'})
-        }
-    
-    # Получение токена авторизации
-    headers = event.get('headers', {})
-    auth_token = headers.get('X-Auth-Token') or headers.get('x-auth-token')
-    
-    # Проверка авторизации
-    if not auth_token:
-        return {
-            'statusCode': 401,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Требуется авторизация'})
-        }
-    
-    dsn = os.environ.get('DATABASE_URL')
-    if not dsn:
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'DATABASE_URL not configured'})
-        }
-    
-    conn = psycopg2.connect(dsn)
-    conn.autocommit = True
-    
+        return ag.json_response({'error': 'Method not allowed'},
+                                status=405, event=event)
+
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            # Получаем user_id по токену из таблицы sessions
-            cur.execute('''
-                SELECT user_id FROM t_p5815085_family_assistant_pro.sessions 
-                WHERE token = %s AND expires_at > NOW()
-            ''', (auth_token,))
-            
-            auth_result = cur.fetchone()
-            if not auth_result:
-                return {
-                    'statusCode': 401,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Недействительный токен'})
-                }
-            
-            user_id = auth_result['user_id']
-            
-            # Получаем family_id
-            cur.execute('''
-                SELECT family_id FROM t_p5815085_family_assistant_pro.family_members 
-                WHERE user_id = %s LIMIT 1
-            ''', (user_id,))
-            
-            family_result = cur.fetchone()
-            if not family_result:
-                return {
-                    'statusCode': 404,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Семья не найдена'})
-                }
-            
-            family_id = family_result['family_id']
-            
-            # Получаем всех членов семьи с подтвержденными аккаунтами
-            cur.execute('''
-                SELECT 
-                    fm.id,
-                    COALESCE(fm.name, u.name) as name,
-                    COALESCE(fm.photo_url, u.avatar_url) as avatar_url,
-                    fm.role
-                FROM t_p5815085_family_assistant_pro.family_members fm
-                LEFT JOIN t_p5815085_family_assistant_pro.users u ON fm.user_id = u.id
-                WHERE fm.family_id = %s
-                  AND fm.member_status = 'active'
-                  AND fm.name NOT LIKE '%%ДУБЛИКАТ%%'
-                ORDER BY fm.created_at
-            ''', (family_id,))
-            
-            members = cur.fetchall()
-            
-            # Генерируем стабильные цвета для каждого пользователя
-            colors = ['#3B82F6', '#EC4899', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4', '#84CC16']
-            
-            result = []
-            for idx, member in enumerate(members):
-                result.append({
-                    'id': str(member['id']),
-                    'name': member['name'] or 'Без имени',
-                    'avatar_url': member['avatar_url'],
-                    'role': member['role'] or 'Член семьи',
-                    'color': colors[idx % len(colors)]
-                })
-            
-            return {
-                'statusCode': 200,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'success': True,
-                    'members': result
-                })
+        ctx = ag.require_session(event)
+        ag.require_family_member(ctx)
+        ag.require_permission(ctx, 'geolocation', 'read_own')
+
+        trackable = ag.accessible_subject_ids(ctx, 'geolocation', action='read')
+
+        conn = psycopg2.connect(ag.DATABASE_URL)
+        conn.autocommit = True
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                # Карточка участника семьи сама по себе не секрет (имя
+                # и аватар видны в разделе «Семья»), но для маячка нужно
+                # различать: кого показываем на карте, а кого нет.
+                cur.execute(
+                    f"""
+                    SELECT fm.id,
+                           COALESCE(fm.name, u.name)             AS name,
+                           COALESCE(fm.photo_url, u.avatar_url)  AS avatar_url,
+                           fm.role
+                    FROM {SCHEMA}.family_members fm
+                    LEFT JOIN {SCHEMA}.users u ON fm.user_id = u.id
+                    WHERE fm.family_id = %s
+                      AND COALESCE(fm.member_status, 'active') = 'active'
+                      AND fm.id = ANY(%s::uuid[])
+                    ORDER BY fm.created_at
+                    """,
+                    (ctx.family_id, trackable or [ctx.member_id]),
+                )
+                members = cur.fetchall()
+        finally:
+            conn.close()
+
+        result = [
+            {
+                'id': str(m['id']),
+                'name': m['name'] or 'Без имени',
+                'avatar_url': m['avatar_url'],
+                'role': m['role'] or 'Член семьи',
+                'color': COLORS[idx % len(COLORS)],
+                'is_self': str(m['id']) == ctx.member_id,
             }
-    
-    except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': str(e)})
-        }
-    finally:
-        conn.close()
+            for idx, m in enumerate(members)
+        ]
+
+        return ag.json_response({'success': True, 'members': result}, event=event)
+
+    except AuthError as exc:
+        return ag.error_response(exc, event)
+    except Exception as exc:  # noqa: BLE001
+        print(f'[family-tracker-members] failed: {type(exc).__name__}')
+        return ag.json_response({'error': 'Внутренняя ошибка'},
+                                status=500, event=event)
