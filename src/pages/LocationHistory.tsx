@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
+import { GEOLOCATION_DISABLED, GEOLOCATION_DISABLED_REASON } from '@/hooks/useFamilyTracker';
 
 interface LocationPoint {
   lat: number;
@@ -32,6 +33,10 @@ export default function LocationHistory() {
 
   // Загрузка членов семьи
   useEffect(() => {
+    // SEC-2026-001: раздел приостановлен — не запрашиваем ни список
+    // участников, ни треки. Именно эта страница была уязвимой, поэтому
+    // отключение здесь явное, а не «само получится из-за 503».
+    if (GEOLOCATION_DISABLED) return;
     const loadMembers = async () => {
       try {
         const token = localStorage.getItem('authToken') || localStorage.getItem('auth_token');
@@ -59,6 +64,7 @@ export default function LocationHistory() {
 
   // Инициализация карты
   useEffect(() => {
+    if (GEOLOCATION_DISABLED) return;
     const initMap = async () => {
       try {
         const resp = await fetch('https://functions.poehali.dev/343f0236-3163-4243-89e9-fc7d1bd7dde7');
@@ -178,6 +184,7 @@ export default function LocationHistory() {
   };
 
   useEffect(() => {
+    if (GEOLOCATION_DISABLED) return;
     if (map) {
       loadHistory();
     }
@@ -206,6 +213,39 @@ export default function LocationHistory() {
     }
     return (total / 1000).toFixed(2); // В километрах
   };
+
+  // SEC-2026-001: страница истории перемещений — та самая, что отдавала
+  // треки детей без авторизации. Пока согласия и управления доступом нет,
+  // она не показывает данные вообще, а не «пустой маршрут».
+  if (GEOLOCATION_DISABLED) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/family-tracker')} className="rounded-full shrink-0">
+              <Icon name="ArrowLeft" size={24} />
+            </Button>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800">История перемещений</h1>
+          </div>
+          <Card className="shadow-md bg-amber-50 border-amber-300">
+            <CardContent className="p-6 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white flex-shrink-0">
+                <Icon name="PauseCircle" size={22} />
+              </div>
+              <div className="space-y-2">
+                <h2 className="font-bold text-amber-900">Раздел временно недоступен</h2>
+                <p className="text-sm text-amber-900">{GEOLOCATION_DISABLED_REASON}</p>
+                <p className="text-sm text-amber-800">
+                  История перемещений не отображается, а ранее собранные
+                  координаты больше не используются приложением.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-4">

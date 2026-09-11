@@ -7,6 +7,8 @@ import type { Geofence } from '@/hooks/useFamilyTracker';
 
 interface MapSectionProps {
   mapContainer: RefObject<HTMLDivElement>;
+  /** SEC-2026-001: раздел приостановлен — действия сбора недоступны. */
+  geolocationDisabled?: boolean;
   isDemoMode: boolean;
   isTracking: boolean;
   isAddingZone: boolean;
@@ -24,7 +26,8 @@ interface MapSectionProps {
 }
 
 export default function MapSection({
-  mapContainer, isDemoMode, isTracking, isAddingZone, setIsAddingZone,
+  mapContainer, geolocationDisabled = false,
+  isDemoMode, isTracking, isAddingZone, setIsAddingZone,
   newZoneName, setNewZoneName, newZoneRadius, setNewZoneRadius,
   geofences, startTracking, stopTracking, refreshMap, deleteGeofence, navigate,
 }: MapSectionProps) {
@@ -39,7 +42,14 @@ export default function MapSection({
       <CardContent>
         <div ref={mapContainer} className="w-full h-[500px] rounded-lg bg-gray-100" />
         <div className="mt-4 flex flex-wrap gap-2">
-          {isDemoMode ? (
+          {geolocationDisabled ? (
+            /* Кнопок сбора нет вовсе: неактивная кнопка «Включить
+               отслеживание» всё равно обещала бы функцию, которой нет. */
+            <Badge className="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 text-sm">
+              <Icon name="PauseCircle" size={14} className="mr-1" />
+              Отслеживание приостановлено — координаты не собираются
+            </Badge>
+          ) : isDemoMode ? (
             <Badge className="bg-blue-100 text-blue-700 border border-blue-300 px-3 py-1 text-sm">
               <Icon name="Eye" size={14} className="mr-1" />
               Демо-режим — реальное отслеживание доступно после входа
@@ -55,21 +65,25 @@ export default function MapSection({
               Остановить отслеживание
             </Button>
           )}
-          <Button onClick={refreshMap} variant="outline">
-            <Icon name="RefreshCw" size={18} className="mr-2" />
-            Обновить
-          </Button>
-          <Button onClick={() => setIsAddingZone(!isAddingZone)} variant="outline" className="bg-purple-50 hover:bg-purple-100 border-purple-300">
-            <Icon name="MapPinned" size={18} className="mr-2" />
-            {isAddingZone ? 'Отменить' : 'Добавить зону'}
-          </Button>
-          <Button onClick={() => navigate('/location-history')} variant="outline" className="bg-indigo-50 hover:bg-indigo-100 border-indigo-300">
-            <Icon name="History" size={18} className="mr-2" />
-            История перемещений
-          </Button>
+          {!geolocationDisabled && (
+            <>
+              <Button onClick={refreshMap} variant="outline">
+                <Icon name="RefreshCw" size={18} className="mr-2" />
+                Обновить
+              </Button>
+              <Button onClick={() => setIsAddingZone(!isAddingZone)} variant="outline" className="bg-purple-50 hover:bg-purple-100 border-purple-300">
+                <Icon name="MapPinned" size={18} className="mr-2" />
+                {isAddingZone ? 'Отменить' : 'Добавить зону'}
+              </Button>
+              <Button onClick={() => navigate('/location-history')} variant="outline" className="bg-indigo-50 hover:bg-indigo-100 border-indigo-300">
+                <Icon name="History" size={18} className="mr-2" />
+                История перемещений
+              </Button>
+            </>
+          )}
         </div>
 
-        {isAddingZone && (
+        {isAddingZone && !geolocationDisabled && (
           <div className="mt-4 p-4 bg-purple-50 rounded-lg border border-purple-200 space-y-3">
             <p className="text-sm font-medium text-purple-900">Кликните на карту, чтобы добавить безопасную зону</p>
             <div className="space-y-2">

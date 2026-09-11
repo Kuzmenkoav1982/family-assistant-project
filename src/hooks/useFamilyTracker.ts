@@ -34,6 +34,25 @@ interface AlertSetting {
 
 export type { FamilyMember, LocationData, Geofence, AlertSetting };
 
+/**
+ * SEC-2026-001: геолокация приостановлена.
+ *
+ * Раздел «Семейный маячок» остаётся в интерфейсе, но не собирает координаты
+ * и не показывает перемещения. Причина не в том, что уязвимость не закрыта —
+ * она закрыта, — а в том, что у человека до сих пор нет способа увидеть,
+ * кто имеет доступ к его перемещениям, и отозвать этот доступ. Пока такого
+ * экрана нет, собирать координаты мы не вправе.
+ *
+ * Выключатель продублирован на сервере (feature_flags) и в service worker.
+ * Здесь он нужен, чтобы не запрашивать у пользователя разрешение на GPS
+ * ради запроса, который backend всё равно отклонит.
+ */
+export const GEOLOCATION_DISABLED = true;
+export const GEOLOCATION_DISABLED_REASON =
+  'Раздел временно отключён: мы дорабатываем согласие на доступ ' +
+  'к перемещениям и управление этим доступом. Новые данные о ' +
+  'местоположении не собираются.';
+
 const TRACKER_URL = 'https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533';
 const MEMBERS_URL = 'https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d';
 const GEOFENCES_URL = 'https://functions.poehali.dev/430446f6-ba86-44eb-af18-36af99419459';
@@ -47,7 +66,13 @@ export default function useFamilyTracker() {
   const { isDemoMode, demoLocations, demoGeofences, demoTrackerMembers } = useDemoMode();
   const [map, setMap] = useState<any>(null);
   const [locations, setLocations] = useState<LocationData[]>([]);
-  const [isTracking, setIsTracking] = useState(() => localStorage.getItem('isTracking') === 'true');
+  // SEC-2026-001: у части пользователей в localStorage лежит isTracking=true,
+  // и раньше это само возобновляло сбор при загрузке страницы. Пока функция
+  // приостановлена, состояние трактуется как выключенное и стирается.
+  const [isTracking, setIsTracking] = useState(() => {
+    if (GEOLOCATION_DISABLED) { localStorage.removeItem('isTracking'); return false; }
+    return localStorage.getItem('isTracking') === 'true';
+  });
   const [error, setError] = useState<string>('');
   const [geofences, setGeofences] = useState<Geofence[]>([]);
   const [isAddingZone, setIsAddingZone] = useState(false);
@@ -70,7 +95,19 @@ export default function useFamilyTracker() {
   useEffect(() => { newZoneNameRef.current = newZoneName; }, [newZoneName]);
   useEffect(() => { newZoneRadiusRef.current = newZoneRadius; }, [newZoneRadius]);
 
+  // SEC-2026-001: активно гасим фоновый сбор, который мог остаться
+  // запущенным с прошлой сессии. Молчаливого отказа сервера недостаточно:
+  // без этого браузер продолжал бы запрашивать GPS каждые 10 минут.
   useEffect(() => {
+    if (!GEOLOCATION_DISABLED) return;
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'STOP_GEOLOCATION' });
+    }
+    localStorage.removeItem('isTracking');
+  }, []);
+
+  useEffect(() => {
+    if (GEOLOCATION_DISABLED && !isDemoMode) { setFamilyMembers([]); return; }
     if (isDemoMode) { setFamilyMembers(demoTrackerMembers); return; }
     const loadMembers = async () => {
       try {
@@ -122,6 +159,10 @@ export default function useFamilyTracker() {
   };
 
   const startTracking = () => {
+    // SEC-2026-001: не запрашиваем GPS у пользователя ради запроса,
+    // который сервер отклонит. Отказ показываем честной причиной,
+    // а не видимостью работающей функции.
+    if (GEOLOCATION_DISABLED) { setError(GEOLOCATION_DISABLED_REASON); return; }
     if (!navigator.geolocation) { setError('Ваш браузер не поддерживает геолокацию'); return; }
     setError(''); setIsTracking(true); localStorage.setItem('isTracking', 'true');
     const sendCurrentLocation = () => {
@@ -200,6 +241,9 @@ export default function useFamilyTracker() {
 
   const loadGeofences = useCallback(async () => {
     if (isDemoMode) { setGeofences(demoGeofences); if (mapRef.current) demoGeofences.forEach((zone) => drawZoneOnMap(zone)); return; }
+    // Геозона — это домашний адрес, школа или садик. Пока раздел
+    // приостановлен, реальные адреса не запрашиваем и не рисуем.
+    if (GEOLOCATION_DISABLED) { setGeofences([]); return; }
     try {
       const response = await fetch(GEOFENCES_URL, { method: 'GET', headers: { 'X-Auth-Token': getToken() } });
       if (response.ok) {
@@ -232,6 +276,9 @@ export default function useFamilyTracker() {
 
   const loadFamilyLocations = useCallback(async () => {
     if (isDemoMode) { setLocations(demoLocations); renderMembersOnMap(demoLocations, membersRef.current); return; }
+    // Перемещения не показываем: и новые не собираются, и 187
+    // исторических точек заблокированы на стороне сервера.
+    if (GEOLOCATION_DISABLED) { setLocations([]); return; }
     try {
       const response = await fetch(TRACKER_URL, { method: 'GET', headers: { 'X-Auth-Token': getToken() } });
       if (response.ok) {
@@ -256,6 +303,7 @@ export default function useFamilyTracker() {
   }, [map, familyMembers]);
 
   useEffect(() => {
+    if (GEOLOCATION_DISABLED) return;
     if (isTracking && map && !watchId.current) startTracking();
   }, [map]);
 
@@ -271,6 +319,11 @@ export default function useFamilyTracker() {
   };
 
   return {
+    // SEC-2026-001: UI обязан показывать ровно то, что система реально
+    // делает. Кнопка «начать отслеживание», которая ничего не отслеживает,
+    // хуже отсутствующей кнопки.
+    geolocationDisabled: GEOLOCATION_DISABLED && !isDemoMode,
+    geolocationDisabledReason: GEOLOCATION_DISABLED_REASON,
     isDemoMode, locations, isTracking, error, geofences,
     isAddingZone, setIsAddingZone, newZoneName, setNewZoneName,
     newZoneRadius, setNewZoneRadius, familyMembers,

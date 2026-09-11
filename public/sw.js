@@ -1,5 +1,15 @@
-const CACHE_NAME = 'family-assistant-v14';
+const CACHE_NAME = 'family-assistant-v15';
 let geolocationIntervalId = null;
+
+// SEC-2026-001: фоновый сбор координат приостановлен.
+//
+// Версия бампнута намеренно: у части пользователей трекинг уже был запущен,
+// и старый service worker продолжал бы будить вкладки и запрашивать GPS
+// каждые 10 минут даже после того, как backend перестал принимать точки.
+// Отказ сервера не отменяет того, что у человека на устройстве всё это
+// время запрашивают местоположение. Поэтому выключаем здесь, а не только
+// на сервере: сбор должен прекратиться на устройстве.
+const GEOLOCATION_DISABLED = true;
 
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing new service worker...');
@@ -27,6 +37,14 @@ self.addEventListener('activate', (event) => {
         );
       })
       .then(() => {
+        // SEC-2026-001: гасим фоновый сбор, если он был запущен предыдущей
+        // версией воркера. Без этого обновление кода ничего не изменило бы
+        // для тех, у кого трекинг уже работает.
+        if (geolocationIntervalId) {
+          clearInterval(geolocationIntervalId);
+          geolocationIntervalId = null;
+          console.log('[SW] Background geolocation stopped (SEC-2026-001)');
+        }
         console.log('[SW] Claiming clients...');
         return self.clients.claim();
       })
@@ -64,6 +82,14 @@ self.addEventListener('message', (event) => {
   
   // Управление фоновой геолокацией
   if (event.data && event.data.type === 'START_GEOLOCATION') {
+    if (GEOLOCATION_DISABLED) {
+      console.log('[SW] Geolocation disabled (SEC-2026-001), ignoring start');
+      if (geolocationIntervalId) {
+        clearInterval(geolocationIntervalId);
+        geolocationIntervalId = null;
+      }
+      return;
+    }
     console.log('[SW] Starting background geolocation tracking');
     const interval = event.data.interval || 600000; // 10 минут по умолчанию
     const apiUrl = event.data.apiUrl;

@@ -86,12 +86,38 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(dsn)
     conn.autocommit = True
     try:
+        # SEC-2026-001: пока геолокация приостановлена, рассылка молчит.
+        # Проверка после подключения и внутри try: недоступность флага
+        # трактуется как «выключено» (см. _geo_enabled).
+        if not _geo_enabled(conn):
+            return _resp(200, {'success': True, 'processed': 0,
+                               'skipped_reason': 'geolocation_disabled'})
         return _process(conn)
     except Exception as exc:  # noqa: BLE001
         print(f'[geofence-notifications] failed: {type(exc).__name__}')
         return _resp(500, {'error': 'Внутренняя ошибка'})
     finally:
         conn.close()
+
+
+def _geo_enabled(conn) -> bool:
+    """
+    Функция служебная и не тянет auth_guard, поэтому флаг читается здесь.
+    Любая неопределённость — «выключено»: сбой чтения флага не должен
+    оказаться способом возобновить рассылку координат.
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT is_enabled FROM {SCHEMA}.feature_flags "
+                f"WHERE flag_key = 'geolocation_history_enabled'"
+            )
+            row = cur.fetchone()
+            return bool(row[0]) if row else False
+    except Exception as exc:  # noqa: BLE001
+        print(f'[geofence-notifications] flag unreadable, '
+              f'treating as disabled: {type(exc).__name__}')
+        return False
 
 
 def _process(conn) -> Dict[str, Any]:

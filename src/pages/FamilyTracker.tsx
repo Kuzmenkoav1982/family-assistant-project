@@ -25,6 +25,29 @@ export default function FamilyTracker() {
       backgroundClass="bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white dark:from-gray-950 dark:to-gray-900"
     >
 
+        {/* SEC-2026-001: раздел приостановлен. Показываем это первым
+            экраном и прямым текстом — пользователь должен узнать, что
+            сбор координат остановлен, от нас, а не по неработающей кнопке. */}
+        {t.geolocationDisabled && (
+          <Card className="shadow-md bg-amber-50 border-amber-300">
+            <CardContent className="p-5 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-white flex-shrink-0">
+                <Icon name="PauseCircle" size={22} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-bold text-amber-900">Отслеживание приостановлено</h3>
+                <p className="text-amber-900 text-sm">{t.geolocationDisabledReason}</p>
+                <p className="text-amber-800 text-sm">
+                  Данные о местоположении сейчас не собираются и не отображаются.
+                  Ранее собранные координаты в приложении больше не используются.
+                  Мы включим раздел после того, как вы сможете видеть и отзывать
+                  доступ к своим перемещениям.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="shadow-md bg-blue-50 border-blue-200">
           <div className="p-4 cursor-pointer flex items-center justify-between hover:bg-blue-100 transition-colors" onClick={() => t.setIsInstructionOpen(!t.isInstructionOpen)}>
             <div className="flex items-center gap-3">
@@ -35,6 +58,12 @@ export default function FamilyTracker() {
           </div>
           {t.isInstructionOpen && (
             <div className="px-4 pb-4 text-blue-800 space-y-3">
+              {t.geolocationDisabled && (
+                <p className="font-semibold text-amber-900">
+                  Ниже описано, как раздел работает в обычном режиме.
+                  Сейчас он приостановлен, и эти шаги временно недоступны.
+                </p>
+              )}
               <p><strong>Каждый член семьи</strong> должен открыть приложение на своём телефоне (nasha-semiya.ru), зайти в "Семейный маячок" и нажать кнопку "Включить отслеживание". Браузер запросит доступ к геолокации — нужно разрешить. После этого координаты будут отправляться автоматически каждые 10 минут — даже если свернуть браузер.</p>
               <p><strong>Статусы на карте:</strong> Если координаты обновлялись менее 30 минут назад — статус "Онлайн" (зелёный). Если давно нет данных — "Оффлайн" (серый). Время показывается по Москве.</p>
               <p><strong>Безопасные зоны:</strong> Создайте зоны (школа, дом, секции) — нажмите "Добавить зону", введите название и радиус, кликните на карту. При выходе из зоны придёт push-уведомление.</p>
@@ -52,6 +81,7 @@ export default function FamilyTracker() {
           <div className="lg:col-span-2">
             <MapSection
               mapContainer={t.mapContainer}
+              geolocationDisabled={t.geolocationDisabled}
               isDemoMode={t.isDemoMode}
               isTracking={t.isTracking}
               isAddingZone={t.isAddingZone}
@@ -90,8 +120,9 @@ export default function FamilyTracker() {
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Установите приложение на телефон</h3>
                 <p className="text-gray-700 mb-4">
-                  Для работы семейного маячка установите наше PWA-приложение на телефон каждого члена семьи.
-                  Приложение работает в фоне и автоматически отправляет координаты.
+                  {t.geolocationDisabled
+                    ? 'PWA-приложение можно установить на телефон уже сейчас — оно нужно для всех разделов. Фоновая отправка координат отключена и не возобновится без вашего отдельного согласия.'
+                    : 'Для работы семейного маячка установите наше PWA-приложение на телефон каждого члена семьи. Приложение работает в фоне и автоматически отправляет координаты.'}
                 </p>
                 <Button className="bg-purple-600 hover:bg-purple-700">
                   <Icon name="Download" size={18} className="mr-2" />

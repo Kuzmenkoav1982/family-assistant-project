@@ -70,7 +70,14 @@ def handler(event: dict, context) -> dict:
 
 def _post_location(conn, cur, ctx: ag.AuthContext, event: dict) -> dict:
     """Отправить можно ТОЛЬКО свои координаты: субъект — сам актор,
-    member_id из тела запроса не принимается принципиально."""
+    member_id из тела запроса не принимается принципиально.
+
+    SEC-2026-001: сбор новых координат приостановлен до отдельного
+    согласия на перемещения и интерфейса управления доступом. Это самый
+    важный отказ во всей волне: пока человек не может увидеть и отозвать
+    доступ к своим перемещениям, новых точек мы не накапливаем.
+    """
+    ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG)
     ag.require_permission(ctx, 'geolocation', 'update')
 
     try:
@@ -113,7 +120,13 @@ def _get_locations(cur, ctx: ag.AuthContext, event: dict) -> dict:
     подопечные с подтверждённым scope 'geolocation'. Пустой список —
     штатный ответ, а не ошибка: до подтверждения опекунств родитель
     видит на карте только себя.
+
+    SEC-2026-001: показ перемещений приостановлен, а 187 исторических
+    точек помечены usage_status='blocked_incident' и из выдачи исключены.
+    Точки не удалены — они доказательство по инциденту, — но приложение
+    ими больше не пользуется.
     """
+    ag.require_geo_enabled(ag.GEO_HISTORY_FLAG)
     ag.require_permission(ctx, 'geolocation', 'read_own')
 
     subjects = ag.accessible_subject_ids(ctx, 'geolocation', action='read')
@@ -130,6 +143,7 @@ def _get_locations(cur, ctx: ag.AuthContext, event: dict) -> dict:
           AND fm.family_id = %s
           AND fm.id = ANY(%s::uuid[])
           AND COALESCE(fm.member_status, 'active') = 'active'
+          AND lt.usage_status = 'active'
         ORDER BY lt.user_id, lt.created_at DESC
         """,
         (ctx.family_id, ctx.family_id, subjects),

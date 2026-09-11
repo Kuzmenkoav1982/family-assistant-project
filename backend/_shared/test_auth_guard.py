@@ -126,6 +126,21 @@ class FakeConn:
 ag._connect = lambda: FakeConn()
 
 
+def set_geo_flags(enabled: bool):
+    """
+    Выключатель геолокации (SEC-2026-001) и модель прав — разные вещи,
+    и проверяются отдельно. Секция прав идёт при ВКЛЮЧЁННОМ выключателе:
+    иначе «доступ запрещён» нельзя отличить от «функция приостановлена»,
+    и тесты перестали бы доказывать, что права работают. Сам выключатель
+    проверяется отдельным блоком ниже.
+    """
+    ag._geo_flag_cache[ag.GEO_COLLECTION_FLAG] = enabled
+    ag._geo_flag_cache[ag.GEO_HISTORY_FLAG] = enabled
+
+
+set_geo_flags(True)
+
+
 def make_session(token, role, family_id=FAMILY_A, member_id=MEMBER_SELF,
                  is_owner=False, status='active', ownership_confirmed=True,
                  space_status='active'):
@@ -435,6 +450,35 @@ def main():
                  if 'read' in mods.get('geolocation', [])]
     results.append((not role_leak, 'ни одна роль не имеет безадресного geolocation:read',
                     'ok' if not role_leak else f'роли: {role_leak}'))
+
+    # ---------- ВЫКЛЮЧАТЕЛЬ ГЕОЛОКАЦИИ (SEC-2026-001) ----------
+    # Права проверены выше при включённой функции. Здесь проверяется,
+    # что выключенная функция не отдаёт координаты ДАЖЕ тем, у кого
+    # все права есть: выключатель должен стоять раньше модели прав.
+    set_geo_flags(False)
+
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['geolocation:read'], 'confirmed')]
+    off_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('геолокация выключена: даже явный scope → 503',
+          lambda: ag.require_location_access(off_ctx, MEMBER_CHILD), 503)
+
+    off_self, _ = ctx_for('tok-parent')
+    check('геолокация выключена: свои координаты тоже → 503',
+          lambda: ag.require_location_access(off_self, MEMBER_SELF), 503)
+
+    check('геолокация выключена: сбор новых координат → 503',
+          lambda: ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG), 503)
+
+    # Fail-closed: неизвестный флаг трактуется как выключенный.
+    # Это защита от «переименовали флаг — сбор молча включился».
+    ag._geo_flag_cache.pop('flag_which_does_not_exist', None)
+    ag._geo_flag_cache['flag_which_does_not_exist'] = False
+    unknown_off = not ag.geo_flag_enabled('flag_which_does_not_exist')
+    results.append((unknown_off, 'неизвестный geo-флаг трактуется как выключенный',
+                    'ok' if unknown_off else 'флаг открыт по умолчанию'))
+
+    set_geo_flags(True)
+    GUARDIANSHIPS[MEMBER_SELF] = []
 
     # ---------- ИЗОЛИРОВАННЫЙ ДУБЛИКАТ ----------
     dup_admin_ctx, _ = ctx_for('tok-admin')

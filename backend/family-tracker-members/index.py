@@ -44,6 +44,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     try:
         ctx = ag.require_session(event)
         ag.require_family_member(ctx)
+        # SEC-2026-001: список «кого можно отслеживать» — тоже часть
+        # функции слежения, и пока она приостановлена, такого списка нет.
+        ag.require_geo_enabled(ag.GEO_HISTORY_FLAG)
         ag.require_permission(ctx, 'geolocation', 'read_own')
 
         trackable = ag.accessible_subject_ids(ctx, 'geolocation', action='read')

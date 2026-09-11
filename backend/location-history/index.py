@@ -12,6 +12,12 @@ Returns: JSON со списком координат
 Стало: требуется сессия, участник должен быть из своей семьи, и доступ
 к геоданным конкретного человека проверяется адресно (require_subject_access),
 то есть роль сама по себе чужие перемещения не открывает.
+
+Сверх того (решение по SEC-2026-001): функция приостановлена до появления
+отдельного согласия на перемещения и интерфейса управления доступом —
+require_location_access отдаёт 503 при выключенном флаге. Исторические
+точки помечены usage_status='blocked_incident' и не выдаются: они
+сохранены как доказательство, но приложением не используются.
 """
 
 import json
@@ -114,6 +120,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     WHERE fm.id = %s
                       AND fm.family_id = %s
                       AND lt.family_id = %s
+                      AND lt.usage_status = 'active'
                       AND DATE(lt.created_at) = %s
                     ORDER BY lt.created_at ASC
                     """,

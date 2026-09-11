@@ -45,13 +45,21 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = psycopg2.connect(ag.DATABASE_URL)
         conn.autocommit = True
         try:
+            # SEC-2026-001: геозона — это домашний адрес, школа или садик.
+            # Пока раздел приостановлен, новые адреса не принимаем и
+            # существующие не показываем. DELETE намеренно оставлен
+            # работающим: право убрать свой адрес из системы не должно
+            # зависеть от того, включена ли у нас функция.
             if method == 'GET':
+                ag.require_geo_enabled(ag.GEO_HISTORY_FLAG)
                 ag.require_permission(ctx, 'geolocation', 'read_own')
                 return _list_geofences(conn, ctx, event)
             if method == 'POST':
+                ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG)
                 ag.require_admin(ctx, 'geofence.create')
                 return _create_geofence(conn, ctx, event)
             if method == 'PUT':
+                ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG)
                 ag.require_admin(ctx, 'geofence.alert_settings')
                 return _update_alert_settings(conn, ctx, event)
             if method == 'DELETE':

@@ -263,6 +263,62 @@ LOCATION_MODULES = frozenset({'geolocation'})
 
 
 # ============================================================
+# ВЫКЛЮЧАТЕЛЬ ГЕОЛОКАЦИИ (SEC-2026-001)
+# ============================================================
+# Уязвимости закрыты, но геолокация остаётся выключенной до появления
+# отдельного согласия на перемещения и интерфейса управления доступом.
+# Модель данных согласия готова (member_guardianships.location_consent_*),
+# UI — нет. Пока человек не может увидеть и отозвать доступ к своим
+# перемещениям, собирать их мы не вправе.
+#
+# Выключатель живёт в БД (feature_flags), а не в коде фронта: тот, кто
+# соберёт фронт заново, не должен случайно включить сбор координат.
+# Проверка стоит внутри guard-а, то есть на единственном законном входе
+# к геоданным — обойти её, забыв про флаг в новой функции, нельзя.
+
+GEO_COLLECTION_FLAG = 'geolocation_collection_enabled'
+GEO_HISTORY_FLAG = 'geolocation_history_enabled'
+
+# Кеш на процесс: флаг меняется решением человека, а не в ходе запроса.
+_geo_flag_cache: Dict[str, bool] = {}
+
+
+def geo_flag_enabled(flag_key: str) -> bool:
+    """
+    Отсутствие флага, ошибка БД или пустой ответ трактуются как ВЫКЛЮЧЕНО.
+    Fail-closed здесь обязателен: недоступность базы не должна быть
+    способом снова включить сбор координат.
+    """
+    if flag_key in _geo_flag_cache:
+        return _geo_flag_cache[flag_key]
+    enabled = False
+    try:
+        conn = _connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f'SELECT is_enabled FROM {SCHEMA}.feature_flags WHERE flag_key = %s',
+                (flag_key,),
+            )
+            row = cur.fetchone()
+            enabled = bool(row[0]) if row else False
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        print(f'[auth_guard] geo flag {flag_key} unreadable, '
+              f'treating as disabled: {type(exc).__name__}')
+        enabled = False
+    _geo_flag_cache[flag_key] = enabled
+    return enabled
+
+
+def require_geo_enabled(flag_key: str = GEO_COLLECTION_FLAG) -> None:
+    """Отказ 503, а не 403: это не «вам нельзя», а «функция приостановлена»."""
+    if not geo_flag_enabled(flag_key):
+        raise AuthError(503, 'GEOLOCATION_DISABLED')
+
+
+# ============================================================
 # ОШИБКИ
 # ============================================================
 
@@ -295,6 +351,7 @@ _DEFAULT_MESSAGES = {
     'GUARDIANSHIP_PENDING_READONLY': 'Unconfirmed guardianship allows read only',
     'GUARDIANSHIP_NOT_CONFIRMED': 'Guardianship must be confirmed before any access',
     'LOCATION_SCOPE_REQUIRED': 'Explicit location scope is required',
+    'GEOLOCATION_DISABLED': 'Geolocation is temporarily disabled',
     'DUPLICATE_UNDER_REVIEW': 'Record is under duplicate review',
 }
 
@@ -769,7 +826,14 @@ def require_location_access(ctx: AuthContext, subject_member_id: Optional[str],
     Каждый успешный просмотр чужой геолокации журналируется всегда,
     а не по усмотрению вызывающей функции: без этого нельзя ответить
     на вопрос «кто смотрел, где был мой ребёнок».
+
+    SEC-2026-001: до условия 1 добавлено условие 0 — функция геолокации
+    вообще включена. Проверка стоит здесь, а не в каждой geo-функции,
+    чтобы новая функция не могла получить доступ к координатам, просто
+    забыв спросить про флаг.
     """
+    require_geo_enabled(GEO_HISTORY_FLAG)
+
     allowed, reason = can_access_subject(ctx, subject_member_id,
                                          module='geolocation', action=action)
     if not allowed:
