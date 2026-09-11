@@ -49,13 +49,16 @@ MEMBER_SELF = 'aaaaaaaa-0000-0000-0000-000000000001'
 MEMBER_CHILD = 'aaaaaaaa-0000-0000-0000-000000000002'
 MEMBER_OTHER_ADULT = 'aaaaaaaa-0000-0000-0000-000000000003'
 MEMBER_FOREIGN = 'bbbbbbbb-0000-0000-0000-000000000009'
+MEMBER_DUPLICATE = 'aaaaaaaa-0000-0000-0000-000000000004'
 USER_SELF = 'cccccccc-0000-0000-0000-000000000001'
 
 # Сессии: token -> строка результата require_session-запроса
 SESSIONS = {}
 # Участники: member_id -> запись family_members
 MEMBERS = {}
-# Опекунства: (guardian_member_id) -> [(dependent, scopes)]
+# Опекунства: guardian_member_id -> [(dependent, scopes, status)]
+# status: 'confirmed' — подтверждено человеком,
+#         'pending_confirmation' — создано миграцией по косвенным признакам.
 GUARDIANSHIPS = {}
 
 AUDIT = []
@@ -72,9 +75,23 @@ class FakeCursor:
 
         if 'FROM t_p5815085_family_assistant_pro.sessions' in q:
             self._rows = [SESSIONS[params[0]]] if params[0] in SESSIONS else []
-        elif 'FROM t_p5815085_family_assistant_pro.member_guardianships' in q:
-            pairs = GUARDIANSHIPS.get(params[0], [])
-            self._rows = [{'dependent_member_id': d, 'scopes': s} for d, s in pairs]
+        elif 'member_guardianships' in q:
+            rows = GUARDIANSHIPS.get(params[0], [])
+            self._rows = []
+            for entry in rows:
+                dep, scopes = entry[0], entry[1]
+                status = entry[2] if len(entry) > 2 else 'confirmed'
+                # Запрос джойнит family_members и берёт только active:
+                # подопечный на разборе дубликатов не должен попадать в выдачу.
+                dep_rec = MEMBERS.get(dep)
+                if dep_rec and (dep_rec.get('member_status') or 'active') != 'active':
+                    continue
+                self._rows.append({
+                    'dependent_member_id': dep,
+                    'scopes': scopes,
+                    'status': status,
+                    'source': 'explicit' if status == 'confirmed' else 'migration_backfill',
+                })
         elif 'FROM t_p5815085_family_assistant_pro.family_members WHERE id =' in q:
             rec = MEMBERS.get(params[0])
             self._rows = [rec] if rec else []
@@ -110,7 +127,8 @@ ag._connect = lambda: FakeConn()
 
 
 def make_session(token, role, family_id=FAMILY_A, member_id=MEMBER_SELF,
-                 is_owner=False, status='active'):
+                 is_owner=False, status='active', ownership_confirmed=True,
+                 space_status='active'):
     SESSIONS[token] = {
         'session_id': 'sess-' + token,
         'user_id': USER_SELF,
@@ -119,6 +137,8 @@ def make_session(token, role, family_id=FAMILY_A, member_id=MEMBER_SELF,
         'role': role,
         'member_status': status,
         'is_owner': is_owner,
+        'ownership_confirmed': ownership_confirmed,
+        'space_status': space_status,
     }
 
 
@@ -130,6 +150,14 @@ def setup():
     make_session('tok-viewer', 'viewer')
     make_session('tok-child', 'child')
     make_session('tok-guardian-assigned', 'guardian')
+    # Владелец, назначенный миграцией по правилу «самый ранний admin».
+    make_session('tok-owner-unconfirmed', 'admin', is_owner=True,
+                 ownership_confirmed=False)
+    # Участник, изолированный как дубликат.
+    make_session('tok-duplicate', 'child', member_id=MEMBER_DUPLICATE,
+                 status='duplicate_review')
+    # Сессия в заброшенном пространстве.
+    make_session('tok-abandoned', 'admin', space_status='abandoned_empty')
 
     MEMBERS[MEMBER_SELF] = {'id': MEMBER_SELF, 'family_id': FAMILY_A, 'user_id': USER_SELF,
                             'access_role': 'admin', 'account_type': 'full',
@@ -143,6 +171,10 @@ def setup():
     MEMBERS[MEMBER_FOREIGN] = {'id': MEMBER_FOREIGN, 'family_id': FAMILY_B,
                                'user_id': 'foreign-user', 'access_role': 'admin',
                                'account_type': 'full', 'member_status': 'active'}
+    MEMBERS[MEMBER_DUPLICATE] = {'id': MEMBER_DUPLICATE, 'family_id': FAMILY_A,
+                                 'user_id': 'dup-user', 'access_role': 'child',
+                                 'account_type': 'full',
+                                 'member_status': 'duplicate_review'}
 
     GUARDIANSHIPS[MEMBER_SELF] = []
 
@@ -282,8 +314,10 @@ def main():
           lambda: ag.require_subject_access(guardian_ctx, MEMBER_CHILD, 'health'), 403)
 
     parent_ctx, _ = ctx_for('tok-parent')
-    check('parent к здоровью ребёнка своей семьи → allow',
-          lambda: ag.require_subject_access(parent_ctx, MEMBER_CHILD, 'health'), None)
+    # Роль 'parent' — полномочие, а не доказанное родство. Ожидание
+    # изменено после V0377: доступ к ребёнку даёт только адресная связь.
+    check('parent БЕЗ опекунства к здоровью ребёнка семьи → 403',
+          lambda: ag.require_subject_access(parent_ctx, MEMBER_CHILD, 'health'), 403)
     check('parent к здоровью другого взрослого → 403',
           lambda: ag.require_subject_access(parent_ctx, MEMBER_OTHER_ADULT, 'health'), 403)
     check('parent к участнику чужой семьи → 403',
@@ -308,8 +342,84 @@ def main():
     check('guardian к не-подопечному взрослому → 403',
           lambda: ag.require_subject_access(assigned_ctx3, MEMBER_OTHER_ADULT, 'health'), 403)
 
+    # ---------- НЕПОДТВЕРЖДЁННОЕ ОПЕКУНСТВО (backfill V0377) ----------
+    # Связь создана миграцией по признакам «взрослый + admin/parent + та же
+    # семья». Это гипотеза: до подтверждения — только чтение и только
+    # по узкому кругу модулей.
+    GUARDIANSHIPS[MEMBER_SELF] = [
+        (MEMBER_CHILD, ['health', 'medications', 'children'], 'pending_confirmation')
+    ]
+
+    pend_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('backfill-опекун читает здоровье подопечного → allow',
+          lambda: ag.require_subject_access(pend_ctx, MEMBER_CHILD, 'health',
+                                            action='read'), None)
+
+    pend_ctx2, _ = ctx_for('tok-guardian-assigned')
+    check('backfill-опекун ИЗМЕНЯЕТ здоровье подопечного → 403',
+          lambda: ag.require_subject_access(pend_ctx2, MEMBER_CHILD, 'health',
+                                            action='update'), 403)
+
+    pend_ctx3, _ = ctx_for('tok-guardian-assigned')
+    check('backfill-опекун к документам подопечного → 403',
+          lambda: ag.require_subject_access(pend_ctx3, MEMBER_CHILD, 'documents',
+                                            action='read'), 403)
+
+    pend_ctx4, _ = ctx_for('tok-guardian-assigned')
+    check('backfill-опекун экспортирует данные подопечного → 403',
+          lambda: ag.require_subject_access(pend_ctx4, MEMBER_CHILD, 'export',
+                                            action='export'), 403)
+
+    pend_ctx5, _ = ctx_for('tok-guardian-assigned')
+    write_subjects = ag.accessible_subject_ids(pend_ctx5, 'health', action='update')
+    ok = MEMBER_CHILD not in write_subjects
+    results.append((ok, 'массовый список на запись не содержит pending-подопечных',
+                    'ok' if ok else f'утечка: {write_subjects}'))
+
+    # ---------- ИЗОЛИРОВАННЫЙ ДУБЛИКАТ ----------
+    dup_admin_ctx, _ = ctx_for('tok-admin')
+    check('дубликат как requested member через X-User-Id → 403',
+          lambda: ag.resolve_requested_member(
+              {'headers': {'X-Auth-Token': 'tok-admin', 'X-User-Id': MEMBER_DUPLICATE}},
+              dup_admin_ctx, 'health'), 403)
+
+    check('дубликат как субъект не-чувствительного модуля → 403',
+          lambda: ag.require_subject_access(dup_admin_ctx, MEMBER_DUPLICATE, 'tasks'), 403)
+
+    # Даже если связь на дубликат формально осталась, он не субъект.
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_DUPLICATE, ['health'], 'confirmed')]
+    dup_guard_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('опекунство на изолированный дубликат не действует → 403',
+          lambda: ag.require_subject_access(dup_guard_ctx, MEMBER_DUPLICATE, 'health'), 403)
+
+    dup_list_ctx, _ = ctx_for('tok-guardian-assigned')
+    dup_subjects = ag.accessible_subject_ids(dup_list_ctx, 'health')
+    ok = MEMBER_DUPLICATE not in dup_subjects
+    results.append((ok, 'дубликат отсутствует в accessible_subject_ids',
+                    'ok' if ok else f'утечка: {dup_subjects}'))
+
+    # ---------- НЕПОДТВЕРЖДЁННОЕ ВЛАДЕНИЕ ----------
+    unconf_ctx, _ = ctx_for('tok-owner-unconfirmed')
+    check('fallback-владелец удаляет семью → 403',
+          lambda: ag.require_owner(unconf_ctx, 'family.delete'), 403)
+    check('fallback-владелец передаёт владение → 403',
+          lambda: ag.require_owner(unconf_ctx, 'family.transfer_ownership'), 403)
+    check('fallback-владелец делает полный экспорт → 403',
+          lambda: ag.require_owner(unconf_ctx, 'family.full_export'), 403)
+    check('fallback-владелец меняет обычные настройки → allow',
+          lambda: ag.require_owner(unconf_ctx, 'family.manage'), None)
+
+    caps_unconf = unconf_ctx.capabilities()
+    ok = 'family.delete' not in caps_unconf.get('family_owner', [])
+    results.append((ok, 'UI не обещает удаление семьи неподтверждённому владельцу',
+                    'ok' if ok else str(caps_unconf.get('family_owner'))))
+
+    # ---------- НЕРАБОЧЕЕ ПРОСТРАНСТВО ----------
+    check('сессия в заброшенной пустой семье → 403',
+          lambda: ag.require_session({'headers': {'X-Auth-Token': 'tok-abandoned'}}), 403)
+
     # ---------- МАССОВЫЕ СПИСКИ ----------
-    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['health'])]
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['health'], 'confirmed')]
     subj_ctx, _ = ctx_for('tok-guardian-assigned')
     subjects = ag.accessible_subject_ids(subj_ctx, 'health')
     ok = MEMBER_OTHER_ADULT not in subjects and MEMBER_FOREIGN not in subjects \

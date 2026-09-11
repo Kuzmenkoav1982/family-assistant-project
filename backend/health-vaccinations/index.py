@@ -57,3 +57,5 @@ def _schedule(event, ctx, cursor) -> Optional[Dict[str, Any]]:
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return run_crud(event, SPEC, extra_get=_schedule)
+
+# redeploy marker: wave-3 authz

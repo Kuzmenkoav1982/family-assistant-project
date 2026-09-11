@@ -196,6 +196,38 @@ SENSITIVE_MODULES = frozenset({
     'geolocation', 'documents', 'portfolio', 'export', 'family_members',
 })
 
+# Необратимые операции над пространством. Требуют не просто владельца,
+# а ПОДТВЕРЖДЁННОГО владельца: 1 семья получила owner_user_id правилом
+# «самый ранний admin» (V0376) — это технический fallback, а не
+# доказательство владения.
+IRREVERSIBLE_OWNER_ACTIONS = frozenset({
+    'family.delete',
+    'family.transfer_ownership',
+    'family.full_export',
+    'family.purge_members',
+    'family.change_consents',
+})
+
+# Состояния участника, при которых он не является актором и не может
+# быть субъектом чувствительных данных.
+NON_PARTICIPATING_MEMBER_STATUSES = frozenset({
+    'revoked',
+    'pending',
+    'duplicate_review',
+})
+
+# Состояния пространства, в которых работа через API запрещена.
+NON_OPERATIONAL_SPACE_STATUSES = frozenset({
+    'abandoned_empty',
+    'archived',
+})
+
+# Что даёт связь опекунства, созданная миграцией и ещё не подтверждённая
+# человеком. Родство, выведенное из роли и возраста, — гипотеза, поэтому
+# до подтверждения доступно только чтение и только по узкому кругу модулей.
+PENDING_GUARDIANSHIP_SCOPES = frozenset({'health', 'medications', 'children'})
+PENDING_GUARDIANSHIP_ACTIONS = frozenset({'read', 'read_own', 'read_assigned'})
+
 
 # ============================================================
 # ОШИБКИ
@@ -222,6 +254,13 @@ _DEFAULT_MESSAGES = {
     'IMPERSONATION_DENIED': 'Requested member is not accessible',
     'OWNER_REQUIRED': 'Only family owner can perform this action',
     'ADMIN_REQUIRED': 'Administrator rights required',
+    'OWNERSHIP_UNCONFIRMED': 'Ownership must be confirmed before this action',
+    'SPACE_NOT_OPERATIONAL': 'This family space is not operational',
+    'SUBJECT_NOT_ACTIVE': 'Member record is not active',
+    'SUBJECT_SCOPE_DENIED': 'No access to this data category',
+    'GUARDIANSHIP_PENDING_SCOPE': 'Guardianship is not confirmed for this module',
+    'GUARDIANSHIP_PENDING_READONLY': 'Unconfirmed guardianship allows read only',
+    'DUPLICATE_UNDER_REVIEW': 'Record is under duplicate review',
 }
 
 
@@ -236,17 +275,21 @@ class AuthContext:
     """
 
     __slots__ = ('session_id', 'user_id', 'family_id', 'member_id', 'role',
-                 'is_owner', 'member_status', 'request_id', 'ip_hash',
+                 'is_owner', 'ownership_confirmed', 'space_status',
+                 'member_status', 'request_id', 'ip_hash',
                  'user_agent_family', '_guardian_scopes')
 
     def __init__(self, session_id, user_id, family_id, member_id, role,
-                 is_owner, member_status, request_id, ip_hash, user_agent_family):
+                 is_owner, member_status, request_id, ip_hash, user_agent_family,
+                 ownership_confirmed=False, space_status='active'):
         object.__setattr__(self, 'session_id', session_id)
         object.__setattr__(self, 'user_id', user_id)
         object.__setattr__(self, 'family_id', family_id)
         object.__setattr__(self, 'member_id', member_id)
         object.__setattr__(self, 'role', role)
         object.__setattr__(self, 'is_owner', is_owner)
+        object.__setattr__(self, 'ownership_confirmed', ownership_confirmed)
+        object.__setattr__(self, 'space_status', space_status)
         object.__setattr__(self, 'member_status', member_status)
         object.__setattr__(self, 'request_id', request_id)
         object.__setattr__(self, 'ip_hash', ip_hash)
@@ -260,10 +303,17 @@ class AuthContext:
         raise AttributeError('AuthContext is immutable')
 
     def capabilities(self) -> Dict[str, List[str]]:
-        """Права для UI. Фронт использует только для отображения."""
+        """
+        Права для UI. Фронт использует только для отображения и обязан
+        показывать ровно то, что backend реально применит: неподтверждённый
+        владелец не получает необратимые действия в списке возможностей.
+        """
         caps = {m: list(a) for m, a in ROLE_POLICY.get(self.role, {}).items()}
         if self.is_owner:
-            caps['family_owner'] = sorted(OWNER_ONLY_ACTIONS)
+            owner_caps = set(OWNER_ONLY_ACTIONS)
+            if not self.ownership_confirmed:
+                owner_caps -= IRREVERSIBLE_OWNER_ACTIONS
+            caps['family_owner'] = sorted(owner_caps)
         return caps
 
     def to_dict(self) -> Dict[str, Any]:
@@ -273,6 +323,8 @@ class AuthContext:
             'member_id': self.member_id,
             'role': self.role,
             'is_owner': self.is_owner,
+            'ownership_confirmed': self.ownership_confirmed,
+            'space_status': self.space_status,
             'policy_version': POLICY_VERSION,
             'capabilities': self.capabilities(),
         }
@@ -369,9 +421,13 @@ def require_session(event: Dict[str, Any]) -> AuthContext:
                    fm.family_id    AS family_id,
                    fm.access_role  AS role,
                    fm.member_status AS member_status,
-                   (f.owner_user_id = s.user_id) AS is_owner
+                   (f.owner_user_id = s.user_id) AS is_owner,
+                   COALESCE(f.ownership_confirmed, FALSE) AS ownership_confirmed,
+                   COALESCE(f.space_status, 'active')     AS space_status
             FROM {SCHEMA}.sessions s
-            LEFT JOIN {SCHEMA}.family_members fm ON fm.user_id = s.user_id
+            LEFT JOIN {SCHEMA}.family_members fm
+                   ON fm.user_id = s.user_id
+                  AND COALESCE(fm.member_status, 'active') = 'active'
             LEFT JOIN {SCHEMA}.families f        ON f.id = fm.family_id
             WHERE s.token = %s
               AND s.expires_at > CURRENT_TIMESTAMP
@@ -391,10 +447,20 @@ def require_session(event: Dict[str, Any]) -> AuthContext:
         raise AuthError(401, 'SESSION_INVALID')
 
     status = row.get('member_status') or 'active'
-    if row.get('member_id') and status not in ('active', None):
+    if row.get('member_id') and status in NON_PARTICIPATING_MEMBER_STATUSES:
+        # Сюда попасть штатно нельзя — JOIN отбирает только active,
+        # но проверка оставлена как второй барьер: изменится запрос —
+        # отказ всё равно сработает (default deny).
         _audit_denial(str(row['user_id']), None, None, None, 'auth', 'authenticate',
                       'MEMBER_INACTIVE', 403, request_id, ip_hash, ua_family)
         raise AuthError(403, 'MEMBER_INACTIVE')
+
+    space_status = row.get('space_status') or 'active'
+    if row.get('family_id') and space_status in NON_OPERATIONAL_SPACE_STATUSES:
+        _audit_denial(str(row['user_id']), None, str(row['family_id']), None,
+                      'auth', 'authenticate', 'SPACE_NOT_OPERATIONAL', 403,
+                      request_id, ip_hash, ua_family)
+        raise AuthError(403, 'SPACE_NOT_OPERATIONAL')
 
     return AuthContext(
         session_id=str(row['session_id']),
@@ -407,6 +473,8 @@ def require_session(event: Dict[str, Any]) -> AuthContext:
         request_id=request_id,
         ip_hash=ip_hash,
         user_agent_family=ua_family,
+        ownership_confirmed=bool(row.get('ownership_confirmed')),
+        space_status=space_status,
     )
 
 
@@ -438,10 +506,22 @@ def require_permission(ctx: AuthContext, module: str, action: str) -> None:
 
 
 def require_owner(ctx: AuthContext, action: str = 'family.manage') -> None:
-    """Владелец пространства — свойство семьи, а не роль участника."""
+    """
+    Владелец пространства — свойство семьи, а не роль участника.
+
+    Дополнительно: владелец, назначенный миграцией по правилу «самый ранний
+    admin», технически управляет семьёй, но не доказал владение. Пока
+    families.ownership_confirmed = FALSE, ему закрыты необратимые операции:
+    удаление семьи, передача владения, полный экспорт, массовое удаление
+    участников, изменение ключевых согласий.
+    """
     if not ctx.is_owner:
         _audit(ctx, 'family', action, 'denied', 'OWNER_REQUIRED', http_status=403)
         raise AuthError(403, 'OWNER_REQUIRED')
+
+    if action in IRREVERSIBLE_OWNER_ACTIONS and not ctx.ownership_confirmed:
+        _audit(ctx, 'family', action, 'denied', 'OWNERSHIP_UNCONFIRMED', http_status=403)
+        raise AuthError(403, 'OWNERSHIP_UNCONFIRMED')
 
 
 def require_admin(ctx: AuthContext, action: str = 'family.administer') -> None:
@@ -474,28 +554,44 @@ def require_same_family(ctx: AuthContext, resource_family_id: Optional[str],
 # 4. RELATIONSHIP / ABAC — доступ к данным конкретного человека
 # ============================================================
 
-def _load_guardian_scopes(ctx: AuthContext) -> Dict[str, List[str]]:
-    """dependent_member_id -> scopes. Кешируется на время запроса."""
+def _load_guardian_scopes(ctx: AuthContext) -> Dict[str, Dict[str, Any]]:
+    """
+    dependent_member_id -> {'scopes': [...], 'status': ..., 'source': ...}.
+    Кешируется на время запроса.
+
+    Отбираются только связи, где подопечный — действующий участник:
+    запись в duplicate_review / revoked субъектом быть не может, даже
+    если связь на неё формально осталась.
+    """
     cached = object.__getattribute__(ctx, '_guardian_scopes')
     if cached is not None:
         return cached
-    scopes: Dict[str, List[str]] = {}
+    scopes: Dict[str, Dict[str, Any]] = {}
     if ctx.member_id:
         conn = _connect()
         try:
             cur = conn.cursor(cursor_factory=RealDictCursor)
             cur.execute(
                 f"""
-                SELECT dependent_member_id, scopes
-                FROM {SCHEMA}.member_guardianships
-                WHERE guardian_member_id = %s
-                  AND family_id = %s
-                  AND revoked_at IS NULL
+                SELECT g.dependent_member_id,
+                       g.scopes,
+                       COALESCE(g.status, 'confirmed') AS status,
+                       COALESCE(g.source, 'explicit')  AS source
+                FROM {SCHEMA}.member_guardianships g
+                JOIN {SCHEMA}.family_members dm ON dm.id = g.dependent_member_id
+                WHERE g.guardian_member_id = %s
+                  AND g.family_id = %s
+                  AND g.revoked_at IS NULL
+                  AND COALESCE(dm.member_status, 'active') = 'active'
                 """,
                 (ctx.member_id, ctx.family_id),
             )
             for r in cur.fetchall():
-                scopes[str(r['dependent_member_id'])] = list(r['scopes'] or [])
+                scopes[str(r['dependent_member_id'])] = {
+                    'scopes': list(r['scopes'] or []),
+                    'status': r['status'],
+                    'source': r['source'],
+                }
             cur.close()
         finally:
             conn.close()
@@ -504,27 +600,34 @@ def _load_guardian_scopes(ctx: AuthContext) -> Dict[str, List[str]]:
 
 
 def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
-                       module: str = 'health') -> Tuple[bool, str]:
+                       module: str = 'health',
+                       action: str = 'read') -> Tuple[bool, str]:
     """
     Возвращает (разрешено, reason_code).
 
     Правила по чувствительным модулям:
       - свои данные — всегда;
-      - явная связь опекунства с нужным scope — да;
+      - подтверждённая связь опекунства с нужным scope — да;
+      - НЕподтверждённая связь (созданная миграцией) — только чтение
+        и только по узкому кругу модулей;
       - admin БЕЗ явной связи — нет (администрирование ≠ доступ к содержимому);
       - parent БЕЗ явной связи — нет (см. ниже);
-      - viewer / child к чужим данным — нет.
+      - viewer / child к чужим данным — нет;
+      - субъект не в состоянии 'active' — нет.
 
-    ПОЧЕМУ РОЛЬ 'parent' БОЛЬШЕ НЕ ОТКРЫВАЕТ ДЕТЕЙ СЕМЬИ АВТОМАТИЧЕСКИ.
+    ПОЧЕМУ РОЛЬ 'parent' НЕ ОТКРЫВАЕТ ДЕТЕЙ СЕМЬИ АВТОМАТИЧЕСКИ.
     access_role в этой БД исторически смешивает семейное ОТНОШЕНИЕ и
     ПОЛНОМОЧИЕ. Миграция editor -> parent (V0376) выдала роль 'parent'
     в том числе 12-летнему участнику с role='Сын' — он получил бы доступ
     к медданным младшего брата. Родство нельзя выводить из строки роли.
 
-    Теперь субъект определяется только адресной записью в
-    member_guardianships (V0377 проставила их для реальных родителей).
-    Когда появится family_relationships со status='confirmed',
-    подтверждённое родство добавится сюда как второй явный источник.
+    ПОЧЕМУ BACKFILL-СВЯЗЬ НЕ РАВНА ПОДТВЕРЖДЁННОЙ.
+    V0377 создала 29 связей по признакам «взрослый + admin/parent + та же
+    семья». Это операционная догадка: она покрывает сводные семьи, бывших
+    участников и неверно классифицированных взрослых. Такая связь
+    (status='pending_confirmation') даёт read по health/medications/children
+    и НЕ даёт запись, финансы, экспорт и изменение согласий — до явного
+    подтверждения владельцем или администратором.
     """
     if not subject_member_id:
         return False, 'SUBJECT_ACCESS_DENIED'
@@ -540,23 +643,37 @@ def can_access_subject(ctx: AuthContext, subject_member_id: Optional[str],
         subject = _load_member(subject_member_id)
         if not subject or str(subject.get('family_id')) != ctx.family_id:
             return False, 'CROSS_FAMILY_SUBJECT'
+        if (subject.get('member_status') or 'active') != 'active':
+            return False, 'SUBJECT_NOT_ACTIVE'
         return True, 'NON_SENSITIVE_MODULE'
 
-    guardianships = _load_guardian_scopes(ctx)
-    scopes = guardianships.get(subject_member_id)
-    if scopes is not None and (module in scopes or 'all' in scopes):
+    link = _load_guardian_scopes(ctx).get(subject_member_id)
+    if not link:
+        return False, 'SUBJECT_ACCESS_DENIED'
+
+    scopes = link.get('scopes') or []
+    if module not in scopes and 'all' not in scopes:
+        return False, 'SUBJECT_SCOPE_DENIED'
+
+    if link.get('status') == 'confirmed':
         return True, 'ASSIGNED_GUARDIAN'
 
-    return False, 'SUBJECT_ACCESS_DENIED'
+    # Неподтверждённая связь: узкий круг модулей и только чтение.
+    if module not in PENDING_GUARDIANSHIP_SCOPES:
+        return False, 'GUARDIANSHIP_PENDING_SCOPE'
+    if action not in PENDING_GUARDIANSHIP_ACTIONS:
+        return False, 'GUARDIANSHIP_PENDING_READONLY'
+    return True, 'PENDING_GUARDIAN_READONLY'
 
 
 def require_subject_access(ctx: AuthContext, subject_member_id: Optional[str],
                            module: str = 'health',
                            resource_type: Optional[str] = None,
-                           resource_id: Optional[str] = None) -> str:
-    allowed, reason = can_access_subject(ctx, subject_member_id, module)
+                           resource_id: Optional[str] = None,
+                           action: str = 'read') -> str:
+    allowed, reason = can_access_subject(ctx, subject_member_id, module, action)
     if not allowed:
-        _audit(ctx, module, 'read', 'denied', reason,
+        _audit(ctx, module, action, 'denied', reason,
                resource_type=resource_type, resource_id=resource_id,
                subject_member_id=subject_member_id if _is_uuid(subject_member_id) else None,
                http_status=403)
@@ -564,17 +681,29 @@ def require_subject_access(ctx: AuthContext, subject_member_id: Optional[str],
     return reason
 
 
-def accessible_subject_ids(ctx: AuthContext, module: str = 'health') -> List[str]:
+def accessible_subject_ids(ctx: AuthContext, module: str = 'health',
+                           action: str = 'read') -> List[str]:
     """
     Для массовых списков: набор member_id, чьи данные актор вправе видеть.
     Так list-эндпоинты не возвращают чужие записи.
+
+    Набор зависит от действия: для записи неподтверждённые связи
+    в список не попадают, иначе «прочитать нельзя, а изменить можно»
+    разошлись бы между одиночным и массовым путём.
     """
     result = set()
     if ctx.member_id:
         result.add(ctx.member_id)
-    for dep, scopes in _load_guardian_scopes(ctx).items():
-        if module in (scopes or []) or 'all' in (scopes or []):
-            result.add(dep)
+    for dep, link in _load_guardian_scopes(ctx).items():
+        scopes = link.get('scopes') or []
+        if module not in scopes and 'all' not in scopes:
+            continue
+        if link.get('status') != 'confirmed':
+            if module not in PENDING_GUARDIANSHIP_SCOPES:
+                continue
+            if action not in PENDING_GUARDIANSHIP_ACTIONS:
+                continue
+        result.add(dep)
     # Роль 'parent' НЕ расширяет набор субъектов: см. can_access_subject.
     # Список строится только из себя + адресных опекунств, поэтому
     # list-эндпоинты физически не могут вернуть чужого ребёнка.
@@ -632,6 +761,12 @@ def resolve_requested_member(event: Dict[str, Any], ctx: AuthContext,
     subject = _load_member(requested)
     if not subject or str(subject.get('family_id')) != ctx.family_id:
         _audit(ctx, module, 'impersonate', 'denied', 'CROSS_FAMILY_ACCESS', http_status=403)
+        raise AuthError(403, 'IMPERSONATION_DENIED')
+
+    # Запись на разборе дубликатов или отозванный участник не может быть
+    # ни актором, ни адресатом действия.
+    if (subject.get('member_status') or 'active') != 'active':
+        _audit(ctx, module, 'impersonate', 'denied', 'SUBJECT_NOT_ACTIVE', http_status=403)
         raise AuthError(403, 'IMPERSONATION_DENIED')
 
     require_subject_access(ctx, requested, module=module)
@@ -727,6 +862,20 @@ def audit_allowed(ctx: AuthContext, module: str, action: str, reason_code: str =
         _audit(ctx, module, action, 'allowed', reason_code,
                resource_type=resource_type, resource_id=resource_id,
                subject_member_id=subject_member_id, http_status=200)
+
+
+def audit_denied(ctx: AuthContext, module: str, action: str, reason_code: str,
+                 resource_type: Optional[str] = None, resource_id: Optional[str] = None,
+                 subject_member_id: Optional[str] = None,
+                 http_status: int = 403) -> None:
+    """
+    Журналирование отказа, принятого прикладной логикой функции,
+    а не самим guard-ом (попытка задать серверное поле, самоповышение,
+    отзыв владельца). Пишутся только коды и идентификаторы — без данных.
+    """
+    _audit(ctx, module, action, 'denied', reason_code,
+           resource_type=resource_type, resource_id=resource_id,
+           subject_member_id=subject_member_id, http_status=http_status)
 
 
 # ============================================================

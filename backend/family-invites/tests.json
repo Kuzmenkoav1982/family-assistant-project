@@ -1,17 +1,76 @@
 {
   "tests": [
     {
-      "name": "Get invites without auth",
+      "name": "Список приглашений без сессии → 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 401,
-      "expectedBody": {
-        "error": "string"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
     },
     {
-      "name": "Handle OPTIONS for CORS",
+      "name": "Создание приглашения без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "action": "create", "max_uses": 1, "days_valid": 7 },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Создание приглашения сразу как admin без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "action": "create", "role": "admin" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Присоединение по коду без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "join",
+        "invite_code": "AAAAAAAA",
+        "member_name": "Злоумышленник"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Отзыв чужого приглашения без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "delete",
+        "invite_id": "00000000-0000-0000-0000-000000000001"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Подмена family_id в теле без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "create",
+        "family_id": "00000000-0000-0000-0000-000000000001"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "SQL-инъекция в коде приглашения → 401 без сессии",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "join",
+        "invite_code": "' OR 1=1 --",
+        "member_name": "x"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "SQL-инъекция в токене → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "x'; DROP TABLE family_invites; --" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "OPTIONS для CORS",
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200

@@ -61,9 +61,30 @@ def verify_password(password: str, hashed: str) -> bool:
 def generate_token() -> str:
     return secrets.token_urlsafe(32)
 
+def normalize_phone(phone: str) -> str:
+    """
+    Приводит телефон к единому виду: только цифры, российские номера —
+    к формату 7XXXXXXXXXX.
+
+    Это не косметика. Без нормализации '+79629547830' и '79629547830'
+    считались разными людьми: один и тот же человек регистрировался
+    дважды и получал два аккаунта и два профиля в одной семье — именно
+    так появились записи, помеченные как дубликаты. Уникальность
+    пользователя должна определяться номером, а не его написанием.
+    """
+    if not phone:
+        return ''
+    digits = re.sub(r'[^\d]', '', str(phone))
+    if len(digits) == 11 and digits.startswith('8'):
+        digits = '7' + digits[1:]
+    elif len(digits) == 10:
+        digits = '7' + digits
+    return digits
+
+
 def validate_phone(phone: str) -> bool:
-    cleaned = re.sub(r'[^\d+]', '', phone)
-    return len(cleaned) >= 10 and len(cleaned) <= 15
+    digits = normalize_phone(phone)
+    return 10 <= len(digits) <= 15
 
 def escape_string(value: Any) -> str:
     if value is None:
@@ -96,6 +117,80 @@ def get_db_connection():
     conn.autocommit = True
     return conn
 
+def create_family_with_owner(cur, user_id: str, family_name: str,
+                             member_name: str) -> Dict[str, Any]:
+    """
+    Создаёт семью, первого участника и владельца ОДНОЙ операцией.
+
+    Раньше это были три независимых запроса: families -> family_members,
+    а owner_user_id не проставлялся вообще. Сбой между шагами оставлял
+    пространство без участников и без владельца — так и появились
+    38 пустых семей. Теперь порядок гарантирован:
+
+        INSERT families -> INSERT family_members -> UPDATE owner_user_id
+
+    внутри одной транзакции вызывающей стороны. Если любой шаг упадёт,
+    вызывающий делает rollback и неконсистентного пространства не остаётся.
+    Инвариант families_active_requires_owner (V0379) дополнительно
+    не даст активной семье существовать без владельца.
+
+    Соединения в этом модуле работают с autocommit=True, то есть каждая
+    команда фиксируется отдельно и «транзакции» как таковой нет. Поэтому
+    здесь autocommit снимается на время трёх шагов и возвращается обратно:
+    иначе атомарность была бы декларацией, а не фактом.
+    """
+    conn = cur.connection
+    previous_autocommit = conn.autocommit
+    conn.autocommit = False
+    try:
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.families (name, space_status)
+                VALUES (%s, 'active')
+                RETURNING id, name, logo_url""",
+            (family_name,),
+        )
+        family = cur.fetchone()
+
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.family_members
+                    (family_id, user_id, name, role, access_role, account_type,
+                     member_status, points, level, workload, avatar, avatar_type,
+                     joined_at)
+                VALUES (%s, %s, %s, 'Владелец', 'admin', 'full', 'active',
+                        0, 1, 0, '👤', 'emoji', CURRENT_TIMESTAMP)
+                RETURNING id""",
+            (family['id'], user_id, member_name),
+        )
+        member = cur.fetchone()
+
+        # Владелец — тот, кто создал пространство. Это единственный случай,
+        # когда владение устанавливается без отдельного подтверждения:
+        # происхождение достоверно, поэтому ownership_confirmed = TRUE.
+        cur.execute(
+            f"""UPDATE {SCHEMA}.families
+                SET owner_user_id = %s,
+                    ownership_source = 'registration',
+                    ownership_confirmed = TRUE,
+                    ownership_confirmed_at = (NOW() AT TIME ZONE 'UTC')
+                WHERE id = %s""",
+            (user_id, family['id']),
+        )
+        conn.commit()
+    except Exception:
+        # Полусозданное пространство хуже отсутствующего: откатываем целиком.
+        conn.rollback()
+        raise
+    finally:
+        conn.autocommit = previous_autocommit
+
+    return {
+        'family_id': str(family['id']),
+        'family_name': family['name'],
+        'logo_url': family.get('logo_url'),
+        'member_id': str(member['id']),
+    }
+
+
 def log_consent(cur, user_id, policy_version: str, ip: str = '', user_agent: str = '') -> None:
     """Фиксирует факт согласия на обработку ПДн в том же серверном потоке регистрации.
     Использует переданный курсор — запись попадает в ту же транзакцию, что и создание юзера."""
@@ -127,7 +222,10 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
     try:
         password_hash = hash_password(password)
         
-        check_query = f"SELECT id FROM {SCHEMA}.users WHERE phone = {escape_string(phone)}"
+        # Сравнение по цифрам: '+7XXX' и '7XXX' — один и тот же человек.
+        check_query = (f"SELECT id FROM {SCHEMA}.users "
+                       f"WHERE regexp_replace(phone, '[^0-9]', '', 'g') = "
+                       f"{escape_string(normalize_phone(phone))}")
         cur.execute(check_query)
         existing_user = cur.fetchone()
         
@@ -174,7 +272,7 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
         if not existing_user:
             insert_user = f"""
                 INSERT INTO {SCHEMA}.users (email, phone, password_hash, is_verified) 
-                VALUES (NULL, {escape_string(phone)}, {escape_string(password_hash)}, TRUE) 
+                VALUES (NULL, {escape_string(normalize_phone(phone))}, {escape_string(password_hash)}, TRUE) 
                 RETURNING id, email, phone, created_at
             """
             cur.execute(insert_user)
@@ -268,38 +366,12 @@ def register_user(phone: str, password: str, family_name: Optional[str] = None, 
             user_data['logo_url'] = family.get('logo_url')
             user_data['member_id'] = str(member['id'])
         elif not skip_family_creation:
-            default_family_name = family_name or f"Семья {phone}"
-            insert_family = f"""
-                INSERT INTO {SCHEMA}.families (name) 
-                VALUES ({escape_string(default_family_name)}) 
-                RETURNING id, name
-            """
-            cur.execute(insert_family)
-            family = cur.fetchone()
-            
-            final_member_name = member_name or phone[-4:]
-            insert_member = f"""
-                INSERT INTO {SCHEMA}.family_members 
-                (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type) 
-                VALUES (
-                    {escape_string(family['id'])}, 
-                    {escape_string(user['id'])}, 
-                    {escape_string(final_member_name)}, 
-                    {escape_string('Владелец')}, 
-                    'admin',
-                    0, 1, 0, 
-                    {escape_string('👤')}, 
-                    {escape_string('emoji')}
-                )
-                RETURNING id
-            """
-            cur.execute(insert_member)
-            member = cur.fetchone()
-            
-            user_data['family_id'] = str(family['id'])
-            user_data['family_name'] = family['name']
-            user_data['logo_url'] = family.get('logo_url')
-            user_data['member_id'] = str(member['id'])
+            created = create_family_with_owner(
+                cur, user['id'],
+                family_name or f"Семья {phone}",
+                member_name or phone[-4:],
+            )
+            user_data.update(created)
         
         cur.close()
         conn.close()
@@ -338,7 +410,7 @@ def login_user(phone: str, password: str, ip_address: str = 'unknown') -> Dict[s
         query = f"""
             SELECT id, email, phone, password_hash 
             FROM {SCHEMA}.users 
-            WHERE phone = {escape_string(phone)}
+            WHERE regexp_replace(phone, '[^0-9]', '', 'g') = {escape_string(normalize_phone(phone))}
         """
         cur.execute(query)
         user = cur.fetchone()
@@ -486,7 +558,10 @@ def request_password_reset(phone: str) -> Dict[str, Any]:
     cur = conn.cursor(cursor_factory=RealDictCursor)
     
     try:
-        check_query = f"SELECT id FROM {SCHEMA}.users WHERE phone = {escape_string(phone)}"
+        # Сравнение по цифрам: '+7XXX' и '7XXX' — один и тот же человек.
+        check_query = (f"SELECT id FROM {SCHEMA}.users "
+                       f"WHERE regexp_replace(phone, '[^0-9]', '', 'g') = "
+                       f"{escape_string(normalize_phone(phone))}")
         cur.execute(check_query)
         user = cur.fetchone()
         
@@ -546,7 +621,7 @@ def reset_password(phone: str, reset_code: str, new_password: str) -> Dict[str, 
             SELECT pr.user_id, pr.expires_at, pr.used, u.phone
             FROM {SCHEMA}.password_reset_tokens pr
             JOIN {SCHEMA}.users u ON u.id = pr.user_id
-            WHERE u.phone = {escape_string(phone)} 
+            WHERE regexp_replace(u.phone, '[^0-9]', '', 'g') = {escape_string(normalize_phone(phone))} 
             AND pr.reset_code = {escape_string(reset_code)}
         """
         cur.execute(query)
@@ -721,31 +796,8 @@ def oauth_callback_yandex(code: str, redirect_uri: str) -> Dict[str, Any]:
                 conn.close()
                 return {'error': f'Ошибка создания пользователя: {str(insert_error)}. SQL: {insert_user}'}
             
-            default_family_name = "Моя семья"
-            insert_family = f"""
-                INSERT INTO {SCHEMA}.families (name)
-                VALUES ({escape_string(default_family_name)})
-                RETURNING id
-            """
-            cur.execute(insert_family)
-            family = cur.fetchone()
-            family_id = family['id']
-            
-            insert_member = f"""
-                INSERT INTO {SCHEMA}.family_members
-                (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type)
-                VALUES (
-                    {escape_string(family_id)},
-                    {escape_string(user_id)},
-                    {escape_string(name)},
-                    'Владелец',
-                    'admin',
-                    0, 1, 0,
-                    '👤',
-                    'emoji'
-                )
-            """
-            cur.execute(insert_member)
+            created = create_family_with_owner(cur, user_id, 'Моя семья', name)
+            family_id = created['family_id']
         
         token = generate_token()
         expires_at = datetime.now() + timedelta(days=30)
@@ -998,31 +1050,8 @@ def oauth_callback_vk(code: str, state: str = '', device_id: str = '') -> Dict[s
                 conn.close()
                 return {'error': f'Ошибка создания пользователя VK: {str(insert_error)}'}
             
-            default_family_name = "Моя семья"
-            insert_family = f"""
-                INSERT INTO {SCHEMA}.families (name)
-                VALUES ({escape_string(default_family_name)})
-                RETURNING id
-            """
-            cur.execute(insert_family)
-            family = cur.fetchone()
-            family_id = family['id']
-            
-            insert_member = f"""
-                INSERT INTO {SCHEMA}.family_members
-                (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type)
-                VALUES (
-                    {escape_string(family_id)},
-                    {escape_string(user_id)},
-                    {escape_string(name)},
-                    'Владелец',
-                    'admin',
-                    0, 1, 0,
-                    '👤',
-                    'emoji'
-                )
-            """
-            cur.execute(insert_member)
+            created = create_family_with_owner(cur, user_id, 'Моя семья', name)
+            family_id = created['family_id']
         
         token = generate_token()
         expires_at = datetime.now() + timedelta(days=30)
@@ -1197,30 +1226,10 @@ def register_user_email(email: str, password: str, name: str = '',
             }
         
         # Без инвайта — создаём новую семью
-        family_name = "Моя семья"
-        insert_family = f"""
-            INSERT INTO {SCHEMA}.families (name) 
-            VALUES ({escape_string(family_name)}) 
-            RETURNING id
-        """
-        cur.execute(insert_family)
-        family = cur.fetchone()
-        
-        insert_member = f"""
-            INSERT INTO {SCHEMA}.family_members
-            (family_id, user_id, name, role, access_role, points, level, workload, avatar, avatar_type)
-            VALUES (
-                {escape_string(family['id'])},
-                {escape_string(user['id'])},
-                {escape_string(name or email.split('@')[0])},
-                'Владелец',
-                'admin',
-                0, 1, 0, '👤', 'emoji'
-            )
-            RETURNING id
-        """
-        cur.execute(insert_member)
-        member = cur.fetchone()
+        created = create_family_with_owner(
+            cur, user['id'], 'Моя семья', name or email.split('@')[0])
+        family = {'id': created['family_id'], 'name': created['family_name']}
+        member = {'id': created['member_id']}
         
         token = generate_token()
         expires_at = datetime.now() + timedelta(days=30)
@@ -1927,3 +1936,4 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         },
         'body': json.dumps({'error': 'Метод не поддерживается'})
     }
+# redeploy marker: wave-3 authz

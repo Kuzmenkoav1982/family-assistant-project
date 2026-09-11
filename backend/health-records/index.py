@@ -235,3 +235,5 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     finally:
         if conn:
             conn.close()
+
+# redeploy marker: wave-3 authz

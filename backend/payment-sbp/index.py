@@ -185,3 +185,5 @@ def _payment_status(ctx: AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         'amount': payment.amount.value,
         'paid': payment.paid,
     }, 200, event)
+
+# redeploy marker: wave-3 authz

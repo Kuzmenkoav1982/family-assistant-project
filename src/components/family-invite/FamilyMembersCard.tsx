@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 
 interface FamilyMember {
@@ -15,16 +14,18 @@ interface FamilyMember {
 interface FamilyMembersCardProps {
   members: FamilyMember[];
   onDeleteMember: (memberId: string, memberName: string) => Promise<void>;
-  onDeleteAllDuplicates: () => Promise<void>;
 }
 
+/**
+ * Массовое удаление дубликатов убрано намеренно.
+ * Помеченные записи изолированы на сервере (member_status='duplicate_review'),
+ * не выдаются в списке участников и разбираются вручную: пометка в имени
+ * не доказывает, что на запись не ссылаются пользовательские данные.
+ */
 export function FamilyMembersCard({ 
   members, 
-  onDeleteMember,
-  onDeleteAllDuplicates 
+  onDeleteMember
 }: FamilyMembersCardProps) {
-  const hasDuplicates = members.some(m => m.name.includes('[ДУБЛИКАТ'));
-
   return (
     <Card>
       <CardHeader>
@@ -33,16 +34,6 @@ export function FamilyMembersCard({
             <Icon name="Users" size={24} />
             Члены семьи ({members.length})
           </CardTitle>
-          {hasDuplicates && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={onDeleteAllDuplicates}
-            >
-              <Icon name="Trash2" size={16} />
-              Удалить все дубликаты
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -66,11 +57,6 @@ export function FamilyMembersCard({
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold">{member.name}</p>
-                        {member.name.includes('[ДУБЛИКАТ') && (
-                          <Badge variant="destructive" className="text-xs">
-                            ДУБЛИКАТ
-                          </Badge>
-                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">
                         {member.relationship || member.role}

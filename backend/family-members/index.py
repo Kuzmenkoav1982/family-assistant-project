@@ -1,654 +1,557 @@
 """
-Business: Управление членами семьи (получение, добавление, обновление)
+Business: Управление участниками семьи (список, добавление, изменение, отзыв)
 Args: event с httpMethod, body, headers с X-Auth-Token
-Returns: JSON со списком членов семьи или результатом операции
+Returns: JSON со списком участников или результатом операции
+
+Авторизация: backend/_shared/auth_guard.py. Клиент не определяет ни свою
+личность, ни семью, ни роль, ни владельца ресурса.
+
+Ключевые решения этой функции:
+  - ВСЕ запросы параметризованы. Ручное экранирование удалено: оно
+    приводит к инъекции при первой же ошибке в одном месте.
+  - Роли меняет только admin/owner, и только в пределах разрешённого набора.
+    Повышение себя, назначение admin и смена владельца через body запрещены.
+  - Участник не удаляется физически: ставится member_status='revoked'.
+    DELETE оставлял бы осиротевшие задачи, события и медицинские записи.
+  - Записи на разборе дубликатов не выдаются и не изменяются через API.
 """
 
 import json
-import os
-from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-SCHEMA = 't_p5815085_family_assistant_pro'
+import auth_guard as ag
+from auth_guard import AuthError, SCHEMA
 
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    conn.autocommit = True
+# Роли, которые администратор вправе назначить через этот API.
+# 'admin' отсутствует намеренно: расширение круга администраторов —
+# отдельная операция владельца, а не рядовое редактирование участника.
+ASSIGNABLE_ACCESS_ROLES = frozenset({'parent', 'guardian', 'viewer', 'child'})
+
+# Поля, которые клиент может изменить у участника.
+EDITABLE_FIELDS = (
+    'name', 'role', 'relationship', 'avatar', 'avatar_type',
+    'photo_url', 'points', 'level', 'workload', 'age', 'member_color',
+)
+
+# Поля, которые клиент не может задать НИКОГДА: они определяют личность,
+# принадлежность и полномочия.
+FORBIDDEN_INPUT_FIELDS = (
+    'id', 'member_id', 'family_id', 'familyId', 'user_id', 'userId',
+    'owner_user_id', 'member_status', 'is_admin', 'isAdmin',
+)
+
+PROFILE_FIELDS = (
+    'achievements', 'responsibilities', 'foodPreferences', 'dreams',
+    'piggyBank', 'moodStatus', 'dreamGoal', 'safetyProgress', 'regionProgress',
+)
+
+
+def _connect():
+    conn = psycopg2.connect(ag.DATABASE_URL)
+    conn.autocommit = False
     return conn
 
-def escape_string(value: Any) -> str:
-    if value is None:
-        return 'NULL'
-    if isinstance(value, (int, float)):
-        return str(value)
-    if isinstance(value, bool):
-        return 'TRUE' if value else 'FALSE'
-    return "'" + str(value).replace("'", "''") + "'"
 
-def verify_token(token: str) -> Optional[str]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    query = f"""
-        SELECT user_id FROM {SCHEMA}.sessions 
-        WHERE token = {escape_string(token)} AND expires_at > CURRENT_TIMESTAMP
+def _reject_forbidden_fields(data: Dict[str, Any], ctx) -> None:
     """
-    cur.execute(query)
-    session = cur.fetchone()
-    cur.close()
-    conn.close()
-    
-    result = str(session['user_id']) if session else None
-    print(f"[DEBUG] verify_token result: {result}")
-    return result
-
-def get_user_family_id(user_id: str) -> Optional[str]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    query = f"""
-        SELECT family_id FROM {SCHEMA}.family_members 
-        WHERE user_id::text = {escape_string(user_id)} LIMIT 1
+    Клиент, пытающийся задать family_id/user_id/member_status, не ошибается —
+    он проверяет границу. Это фиксируется в аудите и отклоняется.
     """
-    print(f"[DEBUG] get_user_family_id query: {query}")
-    cur.execute(query)
-    member = cur.fetchone()
-    print(f"[DEBUG] get_user_family_id result: {member}")
-    cur.close()
-    conn.close()
-    
-    result = str(member['family_id']) if member and member['family_id'] else None
-    print(f"[DEBUG] get_user_family_id returning: {result}")
-    return result
+    present = [f for f in FORBIDDEN_INPUT_FIELDS if f in data]
+    # id/member_id — легальный способ указать, КОГО правим; он не является
+    # заявлением о личности и проверяется отдельно через same_family.
+    present = [f for f in present if f not in ('id', 'member_id')]
+    if present:
+        ag.audit_denied(ctx, 'family_members', 'update', 'CLIENT_SET_PROTECTED_FIELD',
+                        http_status=403)
+        raise AuthError(403, 'PERMISSION_DENIED',
+                        'Fields are server-controlled: ' + ', '.join(present))
 
-def get_family_members(family_id: str) -> List[Dict[str, Any]]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    query = f"""
-        SELECT id, user_id, name, role, relationship, avatar, avatar_type, 
-               photo_url, points, level, workload, age, birth_date, birth_time, 
-               account_type, permissions, access_role, profile_data, member_color,
-               tree_node_id, created_at, updated_at
-        FROM {SCHEMA}.family_members
-        WHERE family_id::text = {escape_string(family_id)}
-          AND name NOT LIKE '[ДУБЛИКАТ%'
-        ORDER BY CASE WHEN role = 'Владелец' THEN 0 ELSE 1 END, created_at ASC
+
+def list_members(ctx) -> Dict[str, Any]:
     """
-    print(f"[DEBUG] get_family_members query: {query}")
-    cur.execute(query)
-    members = cur.fetchall()
-    print(f"[DEBUG] get_family_members fetched {len(members)} members")
-    cur.close()
-    conn.close()
-    
-    # Объединяем данные из profile_data с основными полями
-    result = []
-    for m in members:
-        member_dict = dict(m)
-        profile_data = member_dict.get('profile_data', {})
-        if profile_data:
-            # Добавляем поля из profile_data в основной словарь
-            for field in ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus', 'dreamGoal', 'safetyProgress', 'regionProgress']:
-                if field in profile_data:
-                    member_dict[field] = profile_data[field]
-        result.append(member_dict)
-    
-    print(f"[DEBUG] get_family_members returning: {result}")
-    return result
+    Список участников своей семьи. family_id берётся из сессии,
+    поэтому подставить чужой невозможно.
 
-def validate_tree_node_id(cur, tree_node_id: int, family_id: str, exclude_member_id: str = None) -> Optional[str]:
-    """Проверяет tree_node_id: существует, в той же семье, не занят другим member. Возвращает ошибку или None."""
-    cur.execute(f"""
-        SELECT id FROM {SCHEMA}.family_tree
-        WHERE id = {int(tree_node_id)}
-          AND family_id::text = {escape_string(family_id)}
-    """)
+    Записи в duplicate_review исключаются: они на разборе и не должны
+    выглядеть как действующие участники.
+    """
+    conn = _connect()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""
+            SELECT id, user_id, name, role, relationship, avatar, avatar_type,
+                   photo_url, points, level, workload, age, birth_date, birth_time,
+                   account_type, access_role, member_status, profile_data,
+                   member_color, tree_node_id, created_at, updated_at
+            FROM {SCHEMA}.family_members
+            WHERE family_id = %s
+              AND COALESCE(member_status, 'active') = 'active'
+            ORDER BY CASE WHEN role = 'Владелец' THEN 0 ELSE 1 END, created_at ASC
+            """,
+            (ctx.family_id,),
+        )
+        rows = cur.fetchall()
+        cur.close()
+    finally:
+        conn.close()
+
+    members: List[Dict[str, Any]] = []
+    for row in rows:
+        item = dict(row)
+        profile = item.get('profile_data') or {}
+        for field in PROFILE_FIELDS:
+            if field in profile:
+                item[field] = profile[field]
+        members.append(item)
+
+    return {
+        'success': True,
+        'family_id': ctx.family_id,
+        'current_member_id': ctx.member_id,
+        'members': members,
+    }
+
+
+def _validate_tree_node(cur, tree_node_id: int, family_id: str,
+                        exclude_member_id: Optional[str] = None) -> Optional[str]:
+    cur.execute(
+        f"SELECT id FROM {SCHEMA}.family_tree WHERE id = %s AND family_id = %s",
+        (tree_node_id, family_id),
+    )
     if not cur.fetchone():
         return 'tree_node_id не существует или принадлежит другой семье'
-    # Проверяем, не занят ли этот узел другим профилем
-    excl = f"AND id::text != {escape_string(exclude_member_id)}" if exclude_member_id else ""
-    cur.execute(f"""
-        SELECT id FROM {SCHEMA}.family_members
-        WHERE tree_node_id = {int(tree_node_id)}
-          AND family_id::text = {escape_string(family_id)}
-          {excl}
-        LIMIT 1
-    """)
+
+    if exclude_member_id:
+        cur.execute(
+            f"""SELECT id FROM {SCHEMA}.family_members
+                WHERE tree_node_id = %s AND family_id = %s AND id <> %s LIMIT 1""",
+            (tree_node_id, family_id, exclude_member_id),
+        )
+    else:
+        cur.execute(
+            f"""SELECT id FROM {SCHEMA}.family_members
+                WHERE tree_node_id = %s AND family_id = %s LIMIT 1""",
+            (tree_node_id, family_id),
+        )
     if cur.fetchone():
         return 'tree_node_id уже привязан к другому участнику'
     return None
 
 
-def add_family_member(family_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
+def add_member(ctx, data: Dict[str, Any]) -> Dict[str, Any]:
+    ag.require_permission(ctx, 'family_members', 'create')
+    _reject_forbidden_fields(data, ctx)
+
+    tree_node_id = data.get('tree_node_id')
+    tree_node_id = int(tree_node_id) if tree_node_id is not None else None
+
+    conn = _connect()
     try:
-        # Определяем тип аккаунта: если user_id непустой - full, иначе child_profile
-        user_id = data.get('user_id')
-        account_type = 'full' if (user_id and user_id != 'null') else data.get('account_type', 'child_profile')
+        cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # tree_node_id — явная связь с узлом семейного дерева
-        raw_tree_node_id = data.get('tree_node_id')
-        tree_node_id_val = int(raw_tree_node_id) if raw_tree_node_id is not None else None
-        tree_node_sql = str(tree_node_id_val) if tree_node_id_val is not None else 'NULL'
-
-        if tree_node_id_val is not None:
-            err = validate_tree_node_id(cur, tree_node_id_val, family_id)
+        if tree_node_id is not None:
+            err = _validate_tree_node(cur, tree_node_id, ctx.family_id)
             if err:
-                cur.close()
-                conn.close()
+                conn.rollback()
                 return {'error': err}
-        
-        query = f"""
+
+        # Новый участник создаётся только как профиль без аккаунта.
+        # Привязка к users возможна лишь через приглашение, поэтому
+        # здесь account_type жёстко 'child_profile', а user_id — NULL.
+        cur.execute(
+            f"""
             INSERT INTO {SCHEMA}.family_members
-            (family_id, name, role, relationship, avatar, avatar_type, 
-             photo_url, points, level, workload, age, account_type, tree_node_id, member_color)
-            VALUES (
-                {escape_string(family_id)},
-                {escape_string(data.get('name', ''))},
-                {escape_string(data.get('role', 'Член семьи'))},
-                {escape_string(data.get('relationship', ''))},
-                {escape_string(data.get('avatar', '👤'))},
-                {escape_string(data.get('avatar_type', 'emoji'))},
-                {escape_string(data.get('photo_url'))},
-                {escape_string(data.get('points', 0))},
-                {escape_string(data.get('level', 1))},
-                {escape_string(data.get('workload', 0))},
-                {escape_string(data.get('age'))},
-                {escape_string(account_type)},
-                {tree_node_sql},
-                {escape_string(data.get('member_color'))}
-            )
-            RETURNING id, name, role, relationship, avatar, points, level, workload, account_type, tree_node_id, member_color
-        """
-        cur.execute(query)
+                (family_id, name, role, relationship, avatar, avatar_type,
+                 photo_url, points, level, workload, age, account_type,
+                 access_role, member_status, tree_node_id, member_color)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                    'child_profile', 'viewer', 'active', %s, %s)
+            RETURNING id, name, role, relationship, avatar, points, level,
+                      workload, account_type, access_role, tree_node_id, member_color
+            """,
+            (
+                ctx.family_id,
+                str(data.get('name', ''))[:255],
+                str(data.get('role', 'Член семьи'))[:100],
+                str(data.get('relationship', ''))[:100],
+                data.get('avatar', '👤'),
+                data.get('avatar_type', 'emoji'),
+                data.get('photo_url'),
+                int(data.get('points', 0) or 0),
+                int(data.get('level', 1) or 1),
+                int(data.get('workload', 0) or 0),
+                data.get('age'),
+                tree_node_id,
+                data.get('member_color'),
+            ),
+        )
         member = dict(cur.fetchone())
 
-        # Авто-линковка: если tree_node_id не передан явно — ищем совпадение по имени в дереве этой семьи.
-        # Срабатывает только при ровно 1 совпадении (неоднозначность = не связываем).
+        # Авто-связь с узлом дерева по имени — только при единственном
+        # однозначном совпадении внутри своей семьи.
         if member.get('tree_node_id') is None:
-            name_val = member.get('name', '')
-            cur.execute(f"""
-                SELECT id FROM {SCHEMA}.family_tree
-                WHERE family_id::text = {escape_string(family_id)}
-                  AND lower(trim(name)) = lower(trim({escape_string(name_val)}))
-            """)
-            tree_rows = cur.fetchall()
-            if len(tree_rows) == 1:
-                found_tree_id = tree_rows[0]['id']
-                cur.execute(f"""
-                    UPDATE {SCHEMA}.family_members
-                    SET tree_node_id = {int(found_tree_id)}
-                    WHERE id::text = {escape_string(str(member['id']))}
-                """)
-                member['tree_node_id'] = found_tree_id
-                print(f"[auto-link] family={family_id} member={member['id']} name='{name_val}' linked to tree_node={found_tree_id}")
-            elif len(tree_rows) > 1:
-                print(f"[auto-link] AMBIGUOUS family={family_id} name='{name_val}' match_count={len(tree_rows)} — skipped")
+            cur.execute(
+                f"""SELECT id FROM {SCHEMA}.family_tree
+                    WHERE family_id = %s AND lower(trim(name)) = lower(trim(%s))""",
+                (ctx.family_id, member.get('name', '')),
+            )
+            matches = cur.fetchall()
+            if len(matches) == 1:
+                cur.execute(
+                    f"""UPDATE {SCHEMA}.family_members SET tree_node_id = %s
+                        WHERE id = %s AND family_id = %s""",
+                    (matches[0]['id'], member['id'], ctx.family_id),
+                )
+                member['tree_node_id'] = matches[0]['id']
 
         conn.commit()
         cur.close()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
         conn.close()
-        
-        return {
-            'success': True,
-            'member': member
-        }
-    except Exception as e:
-        cur.close()
-        conn.close()
-        return {'error': str(e)}
 
-def update_family_member(member_id: str, family_id: str, data: Dict[str, Any], requesting_user_id: str = '') -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
+    ag.audit_allowed(ctx, 'family_members', 'create',
+                     resource_type='family_member', resource_id=str(member['id']))
+    return {'success': True, 'member': member}
+
+
+def update_member(ctx, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    _reject_forbidden_fields(data, ctx)
+
+    conn = _connect()
     try:
-        check_query = f"SELECT id, profile_data FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
-        cur.execute(check_query)
-        existing = cur.fetchone()
-        if not existing:
-            cur.close()
-            conn.close()
-            return {'error': 'Член семьи не найден'}
-        
-        role_sensitive_fields = {'access_role', 'permissions', 'role'}
-        is_changing_role = any(f in data for f in role_sensitive_fields)
-        
-        if is_changing_role:
-            if not requesting_user_id:
-                cur.close()
-                conn.close()
-                return {'error': 'Требуется авторизация для изменения роли'}
-            
-            cur.execute(
-                f"SELECT access_role FROM {SCHEMA}.family_members "
-                f"WHERE user_id::text = {escape_string(requesting_user_id)} "
-                f"AND family_id = {escape_string(family_id)} LIMIT 1"
-            )
-            requester = cur.fetchone()
-            if not requester or requester.get('access_role') not in ('admin', 'owner'):
-                cur.close()
-                conn.close()
-                return {'error': 'Только администратор семьи может менять роли и права'}
-        
-        current_profile_data = dict(existing['profile_data']) if existing.get('profile_data') else {}
-        
-        fields = []
-        for field in ['name', 'role', 'relationship', 'avatar', 'avatar_type', 
-                      'photo_url', 'points', 'level', 'workload', 'age', 'account_type',
-                      'member_color']:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""SELECT id, family_id, user_id, access_role, member_status, profile_data
+                FROM {SCHEMA}.family_members WHERE id = %s""",
+            (member_id,),
+        )
+        target = cur.fetchone()
+
+        # Чужой участник и несуществующий неотличимы: 404 в обоих случаях.
+        if not target:
+            raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+        ag.require_same_family(ctx, str(target['family_id']),
+                               'family_member', member_id)
+
+        if (target.get('member_status') or 'active') != 'active':
+            ag.audit_denied(ctx, 'family_members', 'update', 'SUBJECT_NOT_ACTIVE',
+                            resource_type='family_member', resource_id=member_id,
+                            http_status=403)
+            raise AuthError(403, 'SUBJECT_NOT_ACTIVE')
+
+        is_self = bool(ctx.member_id and str(target['id']) == ctx.member_id)
+        wants_role_change = 'access_role' in data
+
+        # Обычный участник правит только свою карточку.
+        if not is_self:
+            ag.require_permission(ctx, 'family_members', 'update')
+
+        fields: List[str] = []
+        params: List[Any] = []
+
+        for field in EDITABLE_FIELDS:
             if field in data:
-                fields.append(f"{field} = {escape_string(data[field])}")
+                fields.append(f'{field} = %s')
+                params.append(data[field])
+
+        if 'birthDate' in data:
+            fields.append('birth_date = %s')
+            params.append(data['birthDate'] or None)
+        if 'birthTime' in data:
+            fields.append('birth_time = %s')
+            params.append(data['birthTime'] or None)
 
         if 'tree_node_id' in data:
-            raw_tree_id = data['tree_node_id']
-            if raw_tree_id is None:
-                fields.append("tree_node_id = NULL")
+            raw = data['tree_node_id']
+            if raw is None:
+                fields.append('tree_node_id = NULL')
             else:
-                validated_tree_id = int(raw_tree_id)
-                err = validate_tree_node_id(cur, validated_tree_id, family_id, exclude_member_id=member_id)
+                node_id = int(raw)
+                err = _validate_tree_node(cur, node_id, ctx.family_id,
+                                          exclude_member_id=member_id)
                 if err:
-                    cur.close()
-                    conn.close()
+                    conn.rollback()
                     return {'error': err}
-                fields.append(f"tree_node_id = {validated_tree_id}")
-        
-        if 'access_role' in data:
-            fields.append(f"access_role = {escape_string(data['access_role'])}")
-        
-        # Обрабатываем birthDate и birthTime
-        if 'birthDate' in data:
-            fields.append(f"birth_date = {escape_string(data['birthDate'])}")
-        if 'birthTime' in data:
-            fields.append(f"birth_time = {escape_string(data['birthTime'])}")
-        
+                fields.append('tree_node_id = %s')
+                params.append(node_id)
+
+        if wants_role_change:
+            new_role = str(data['access_role'])
+            ag.require_permission(ctx, 'family_members', 'manage_roles')
+
+            # Самоповышение — самый дешёвый способ эскалации, запрещаем явно.
+            if is_self:
+                ag.audit_denied(ctx, 'family_members', 'manage_roles',
+                                'SELF_ROLE_CHANGE_DENIED',
+                                resource_type='family_member', resource_id=member_id,
+                                http_status=403)
+                raise AuthError(403, 'PERMISSION_DENIED',
+                                'Cannot change your own access role')
+
+            if new_role not in ASSIGNABLE_ACCESS_ROLES:
+                ag.audit_denied(ctx, 'family_members', 'manage_roles',
+                                'ROLE_NOT_ASSIGNABLE',
+                                resource_type='family_member', resource_id=member_id,
+                                http_status=403)
+                raise AuthError(403, 'PERMISSION_DENIED',
+                                'This role cannot be assigned via API')
+
+            # Роль владельца и администратора меняет только владелец.
+            if target.get('access_role') == 'admin' or _is_owner_member(cur, target):
+                ag.require_owner(ctx, 'family.manage_admins')
+
+            fields.append('access_role = %s')
+            params.append(new_role)
+
+        # permissions JSONB больше не источник истины для доступа:
+        # он сохраняется как пользовательская настройка отображения.
         if 'permissions' in data:
-            permissions_json = json.dumps(data['permissions'])
-            fields.append(f"permissions = '{permissions_json}'::jsonb")
-        
-        if 'development' in data:
-            development_json = json.dumps(data['development'])
-            fields.append(f"development = '{development_json}'::jsonb")
-        
-        # Обновляем profile_data с дополнительными полями
-        profile_fields = ['achievements', 'responsibilities', 'foodPreferences', 'dreams', 'piggyBank', 'moodStatus', 'dreamGoal', 'safetyProgress', 'regionProgress']
-        profile_updated = False
-        for field in profile_fields:
+            fields.append('permissions = %s::jsonb')
+            params.append(json.dumps(data['permissions']))
+
+        profile = dict(target['profile_data']) if target.get('profile_data') else {}
+        profile_changed = False
+        for field in PROFILE_FIELDS:
             if field in data:
-                current_profile_data[field] = data[field]
-                profile_updated = True
-        
-        if profile_updated:
-            profile_json = json.dumps(current_profile_data, ensure_ascii=False)
-            profile_json_escaped = profile_json.replace("'", "''")
-            fields.append(f"profile_data = '{profile_json_escaped}'::jsonb")
-        
+                profile[field] = data[field]
+                profile_changed = True
+        if profile_changed:
+            fields.append('profile_data = %s::jsonb')
+            params.append(json.dumps(profile, ensure_ascii=False))
+
         if not fields:
-            cur.close()
-            conn.close()
+            conn.rollback()
             return {'error': 'Нет данных для обновления'}
-        
-        fields.append("updated_at = CURRENT_TIMESTAMP")
-        
-        query = f"""
-            UPDATE {SCHEMA}.family_members 
-            SET {', '.join(fields)}
-            WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}
-            RETURNING id, name, role, relationship, avatar, points, level, workload, birth_date, birth_time, account_type, access_role, permissions, profile_data, member_color
-        """
-        
-        cur.execute(query)
-        member = cur.fetchone()
-        cur.close()
-        conn.close()
-        
-        return {
-            'success': True,
-            'member': dict(member)
-        }
-    except Exception as e:
-        cur.close()
-        conn.close()
-        return {'error': str(e)}
 
-def delete_family_member(member_id: str, family_id: str, requesting_user_id: str) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
-    try:
-        # Проверяем, что запрашивающий - админ
+        fields.append('updated_at = CURRENT_TIMESTAMP')
+        params.extend([member_id, ctx.family_id])
+
         cur.execute(
-            f"SELECT access_role FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(requesting_user_id)} AND family_id = {escape_string(family_id)}"
+            f"""UPDATE {SCHEMA}.family_members SET {', '.join(fields)}
+                WHERE id = %s AND family_id = %s
+                RETURNING id, name, role, relationship, avatar, points, level,
+                          workload, birth_date, birth_time, account_type,
+                          access_role, member_status, permissions, profile_data,
+                          member_color""",
+            tuple(params),
         )
-        requester = cur.fetchone()
-        
-        if not requester or requester['access_role'] != 'admin':
-            cur.close()
-            conn.close()
-            return {'error': 'Только администратор может удалять членов семьи'}
-        
-        # Проверяем удаляемого члена
-        query = f"SELECT user_id, access_role FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
-        cur.execute(query)
         member = cur.fetchone()
-        
-        if not member:
-            cur.close()
-            conn.close()
-            return {'error': 'Член семьи не найден'}
-        
-        # Нельзя удалить администратора
-        if member['access_role'] == 'admin':
-            cur.close()
-            conn.close()
-            return {'error': 'Нельзя удалить администратора'}
-        
-        # Нельзя удалить самого себя
-        if member['user_id'] and str(member['user_id']) == requesting_user_id:
-            cur.close()
-            conn.close()
-            return {'error': 'Нельзя удалить самого себя'}
-        
-        delete_query = f"DELETE FROM {SCHEMA}.family_members WHERE id = {escape_string(member_id)} AND family_id = {escape_string(family_id)}"
-        cur.execute(delete_query)
         conn.commit()
         cur.close()
-        conn.close()
-        
-        return {'success': True}
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        cur.close()
+        raise
+    finally:
         conn.close()
-        return {'error': str(e)}
 
-def delete_all_duplicates(family_id: str, requesting_user_id: str) -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
+    ag.audit_allowed(ctx, 'family_members',
+                     'manage_roles' if wants_role_change else 'update',
+                     resource_type='family_member', resource_id=member_id,
+                     subject_member_id=member_id)
+    return {'success': True, 'member': dict(member)}
+
+
+def _is_owner_member(cur, target) -> bool:
+    """Участник, привязанный к users.id владельца семьи."""
+    if not target.get('user_id'):
+        return False
+    cur.execute(
+        f"SELECT 1 FROM {SCHEMA}.families WHERE id = %s AND owner_user_id = %s",
+        (target['family_id'], target['user_id']),
+    )
+    return cur.fetchone() is not None
+
+
+def revoke_member(ctx, member_id: str) -> Dict[str, Any]:
+    """
+    Отзыв участника. Физического удаления нет: на участника ссылаются
+    задачи, события, медицинские и финансовые записи. DELETE оставил бы
+    осиротевшие данные и уничтожил бы историю.
+    """
+    ag.require_permission(ctx, 'family_members', 'delete')
+
+    conn = _connect()
     try:
-        # Проверяем, что запрашивающий - админ
+        cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
-            f"SELECT access_role FROM {SCHEMA}.family_members WHERE user_id::text = {escape_string(requesting_user_id)} AND family_id = {escape_string(family_id)}"
+            f"""SELECT id, family_id, user_id, access_role, member_status
+                FROM {SCHEMA}.family_members WHERE id = %s""",
+            (member_id,),
         )
-        requester = cur.fetchone()
-        
-        if not requester or requester['access_role'] != 'admin':
-            cur.close()
-            conn.close()
-            return {'error': 'Только администратор может удалять дубликаты'}
-        
-        # Удаляем всех членов семьи с пометкой [ДУБЛИКАТ
-        delete_query = f"""
-            DELETE FROM {SCHEMA}.family_members 
-            WHERE family_id = {escape_string(family_id)} 
-              AND name LIKE '[ДУБЛИКАТ%'
-        """
-        cur.execute(delete_query)
-        deleted_count = cur.rowcount
+        target = cur.fetchone()
+        if not target:
+            raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+        ag.require_same_family(ctx, str(target['family_id']),
+                               'family_member', member_id)
+
+        if ctx.member_id and str(target['id']) == ctx.member_id:
+            raise AuthError(403, 'PERMISSION_DENIED', 'Cannot revoke yourself')
+
+        # Владельца нельзя отозвать: иначе активная семья останется
+        # без владельца, что запрещено инвариантом families.
+        if _is_owner_member(cur, target):
+            ag.audit_denied(ctx, 'family_members', 'delete', 'OWNER_CANNOT_BE_REVOKED',
+                            resource_type='family_member', resource_id=member_id,
+                            http_status=403)
+            raise AuthError(403, 'PERMISSION_DENIED', 'Family owner cannot be removed')
+
+        # Удаление администратора — операция владельца.
+        if target.get('access_role') == 'admin':
+            ag.require_owner(ctx, 'family.manage_admins')
+
+        # Нельзя отозвать последнего администратора семьи.
+        cur.execute(
+            f"""SELECT COUNT(*) AS c FROM {SCHEMA}.family_members
+                WHERE family_id = %s AND access_role = 'admin'
+                  AND COALESCE(member_status, 'active') = 'active' AND id <> %s""",
+            (ctx.family_id, member_id),
+        )
+        if target.get('access_role') == 'admin' and cur.fetchone()['c'] == 0:
+            raise AuthError(403, 'PERMISSION_DENIED',
+                            'Cannot revoke the last administrator')
+
+        cur.execute(
+            f"""UPDATE {SCHEMA}.family_members
+                SET member_status = 'revoked', updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s AND family_id = %s""",
+            (member_id, ctx.family_id),
+        )
+
+        # Полномочия отозванного участника прекращают действовать сразу.
+        cur.execute(
+            f"""UPDATE {SCHEMA}.member_guardianships
+                SET revoked_at = (NOW() AT TIME ZONE 'UTC'),
+                    revoke_reason = 'MEMBER_REVOKED', status = 'rejected'
+                WHERE (guardian_member_id = %s OR dependent_member_id = %s)
+                  AND revoked_at IS NULL""",
+            (member_id, member_id),
+        )
         conn.commit()
         cur.close()
-        conn.close()
-        
-        return {'success': True, 'deleted_count': deleted_count}
-    except Exception as e:
+    except Exception:
         conn.rollback()
-        cur.close()
+        raise
+    finally:
         conn.close()
-        return {'error': str(e)}
+
+    ag.audit_allowed(ctx, 'family_members', 'delete', reason_code='MEMBER_REVOKED',
+                     resource_type='family_member', resource_id=member_id,
+                     subject_member_id=member_id)
+    return {'success': True, 'member_status': 'revoked'}
+
 
 def get_global_stats() -> Dict[str, Any]:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    
+    """
+    Публичный счётчик для лендинга. Отдаёт только агрегаты и исключает
+    заброшенные пустые пространства, чтобы статистика не завышалась.
+    """
+    conn = _connect()
     try:
-        query = f"""
-            SELECT 
-                COUNT(DISTINCT id) as total_users,
-                COUNT(DISTINCT family_id) as total_families
-            FROM {SCHEMA}.family_members
-            WHERE family_id IS NOT NULL
-        """
-        cur.execute(query)
-        result = cur.fetchone()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""
+            SELECT COUNT(DISTINCT m.id)        AS total_users,
+                   COUNT(DISTINCT m.family_id) AS total_families
+            FROM {SCHEMA}.family_members m
+            JOIN {SCHEMA}.families f ON f.id = m.family_id
+            WHERE COALESCE(m.member_status, 'active') = 'active'
+              AND COALESCE(f.space_status, 'active') = 'active'
+            """
+        )
+        row = cur.fetchone()
         cur.close()
+    finally:
         conn.close()
-        
-        return {
-            'total_users': int(result['total_users']) if result else 0,
-            'total_families': int(result['total_families']) if result else 0
-        }
-    except Exception as e:
-        cur.close()
-        conn.close()
-        return {'total_users': 0, 'total_families': 0}
+    return {
+        'total_users': int(row['total_users']) if row else 0,
+        'total_families': int(row['total_families']) if row else 0,
+    }
+
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method = event.get('httpMethod', 'GET')
-    
+
     if method == 'OPTIONS':
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, X-Auth-Token',
-                'Access-Control-Max-Age': '86400'
-            },
-            'body': '',
-            'isBase64Encoded': False
-        }
-    
-    headers = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-    }
-    
-    # Публичная статистика без авторизации
-    query_params = event.get('queryStringParameters', {}) or {}
-    if query_params.get('action') == 'stats':
-        stats = get_global_stats()
-        return {
-            'statusCode': 200,
-            'headers': headers,
-            'body': json.dumps({'success': True, 'stats': stats}),
-            'isBase64Encoded': False
-        }
-    
+        return ag.preflight(event)
+
+    params = event.get('queryStringParameters') or {}
+
+    # Единственный публичный путь: агрегированная статистика.
+    if params.get('action') == 'stats':
+        return ag.json_response({'success': True, 'stats': get_global_stats()},
+                                event=event)
+
     try:
-        token = event.get('headers', {}).get('X-Auth-Token', '') or event.get('headers', {}).get('x-auth-token', '')
-        print(f"[DEBUG handler] Received token: {token[:20] if token else 'None'}...")
-        
-        user_id = verify_token(token)
-        print(f"[DEBUG handler] user_id from token: {user_id}")
-        
-        if not user_id:
-            return {
-                'statusCode': 401,
-                'headers': headers,
-                'body': json.dumps({'error': 'Требуется авторизация'}),
-                'isBase64Encoded': False
-            }
-        
-        family_id = get_user_family_id(user_id)
-        print(f"[DEBUG handler] family_id: {family_id}")
-        
+        ctx = ag.require_session(event)
+        ag.require_family_member(ctx)
+
         if method == 'GET':
-            if not family_id:
-                print("[DEBUG handler] No family_id, returning empty members")
-                return {
-                    'statusCode': 200,
-                    'headers': headers,
-                    'body': json.dumps({'success': True, 'members': []}),
-                    'isBase64Encoded': False
-                }
-            
-            print(f"[DEBUG handler] Fetching members for family_id: {family_id}")
-            members = get_family_members(family_id)
-            print(f"[DEBUG handler] Got {len(members)} members")
-            
-            current_member_id = None
-            for m in members:
-                if str(m.get('user_id', '')) == user_id:
-                    current_member_id = str(m['id'])
-                    break
-            
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps({'success': True, 'family_id': family_id, 'current_member_id': current_member_id, 'members': members}, default=str),
-                'isBase64Encoded': False
-            }
-        
-        elif method == 'POST':
-            if not family_id:
-                return {
-                    'statusCode': 403,
-                    'headers': headers,
-                    'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
-                    'isBase64Encoded': False
-                }
-            body = json.loads(event.get('body', '{}'))
-            action = body.get('action', 'add')
-            
-            if action == 'update' or action == 'update_permissions':
+            ag.require_permission(ctx, 'family_members', 'read')
+            return ag.json_response(list_members(ctx), event=event)
+
+        body = json.loads(event.get('body') or '{}')
+
+        if method in ('POST', 'PUT'):
+            action = body.get('action', 'add' if method == 'POST' else 'update')
+
+            if action in ('update', 'update_permissions'):
                 member_id = body.get('member_id') or body.get('id')
                 if not member_id:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps({'error': 'Требуется ID члена семьи'}),
-                        'isBase64Encoded': False
-                    }
-                result = update_family_member(member_id, family_id, body, user_id)
-                status_code = 200 if 'success' in result else 400
-                if not status_code == 200 and 'администратор' in result.get('error', '').lower():
-                    status_code = 403
-            elif action == 'delete' or action == 'delete_member':
+                    return ag.json_response({'error': 'Требуется ID участника'},
+                                            status=400, event=event)
+                return ag.json_response(update_member(ctx, str(member_id), body),
+                                        event=event)
+
+            if action in ('delete', 'delete_member', 'revoke'):
                 member_id = body.get('member_id') or body.get('id')
                 if not member_id:
-                    return {
-                        'statusCode': 400,
-                        'headers': headers,
-                        'body': json.dumps({'error': 'Требуется ID члена семьи'}),
-                        'isBase64Encoded': False
-                    }
-                result = delete_family_member(member_id, family_id, user_id)
-                status_code = 200 if 'success' in result else 400
-            elif action == 'delete_all_duplicates':
-                result = delete_all_duplicates(family_id, user_id)
-                status_code = 200 if 'success' in result else 400
-            else:
-                result = add_family_member(family_id, body)
-                status_code = 201 if 'success' in result else 400
-            
-            if 'error' in result:
-                return {
-                    'statusCode': 400,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            return {
-                'statusCode': status_code,
-                'headers': headers,
-                'body': json.dumps(result, default=str),
-                'isBase64Encoded': False
-            }
-        
-        elif method == 'PUT':
-            if not family_id:
-                return {
-                    'statusCode': 403,
-                    'headers': headers,
-                    'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
-                    'isBase64Encoded': False
-                }
-            body = json.loads(event.get('body', '{}'))
-            member_id = body.get('id')
-            
-            if not member_id:
-                return {
-                    'statusCode': 400,
-                    'headers': headers,
-                    'body': json.dumps({'error': 'Требуется ID члена семьи'}),
-                    'isBase64Encoded': False
-                }
-            
-            result = update_family_member(member_id, family_id, body)
-            
-            if 'error' in result:
-                return {
-                    'statusCode': 404 if 'не найден' in result['error'] else 400,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps(result, default=str),
-                'isBase64Encoded': False
-            }
-        
-        elif method == 'DELETE':
-            if not family_id:
-                return {
-                    'statusCode': 403,
-                    'headers': headers,
-                    'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
-                    'isBase64Encoded': False
-                }
-            params = event.get('queryStringParameters', {})
+                    return ag.json_response({'error': 'Требуется ID участника'},
+                                            status=400, event=event)
+                return ag.json_response(revoke_member(ctx, str(member_id)),
+                                        event=event)
+
+            if action == 'delete_all_duplicates':
+                # Массовое удаление помеченных записей отключено намеренно.
+                # Пометка [ДУБЛИКАТ] не доказывает, что запись безопасно
+                # удалить: на неё могут ссылаться пользовательские данные.
+                # Записи изолированы (member_status='duplicate_review')
+                # и разбираются в member_duplicate_review вручную.
+                ag.audit_denied(ctx, 'family_members', 'delete',
+                                'BULK_DUPLICATE_DELETE_DISABLED', http_status=409)
+                return ag.json_response(
+                    {'error': 'Массовое удаление дубликатов отключено. '
+                              'Записи изолированы и разбираются вручную.',
+                     'reason_code': 'BULK_DUPLICATE_DELETE_DISABLED'},
+                    status=409, event=event)
+
+            return ag.json_response(add_member(ctx, body), status=201, event=event)
+
+        if method == 'DELETE':
             member_id = params.get('id')
-            
             if not member_id:
-                return {
-                    'statusCode': 400,
-                    'headers': headers,
-                    'body': json.dumps({'error': 'Требуется ID члена семьи'}),
-                    'isBase64Encoded': False
-                }
-            
-            result = delete_family_member(member_id, family_id, user_id)
-            
-            if 'error' in result:
-                return {
-                    'statusCode': 400,
-                    'headers': headers,
-                    'body': json.dumps(result),
-                    'isBase64Encoded': False
-                }
-            
-            return {
-                'statusCode': 200,
-                'headers': headers,
-                'body': json.dumps(result),
-                'isBase64Encoded': False
-            }
-        
-        return {
-            'statusCode': 405,
-            'headers': headers,
-            'body': json.dumps({'error': 'Метод не поддерживается'}),
-            'isBase64Encoded': False
-        }
-    
-    except Exception as e:
-        print(f"[ERROR handler] Exception occurred: {str(e)}")
-        import traceback
-        print(f"[ERROR handler] Traceback: {traceback.format_exc()}")
-        return {
-            'statusCode': 500,
-            'headers': headers,
-            'body': json.dumps({'error': str(e), 'type': type(e).__name__}),
-            'isBase64Encoded': False
-        }
+                return ag.json_response({'error': 'Требуется ID участника'},
+                                        status=400, event=event)
+            return ag.json_response(revoke_member(ctx, str(member_id)), event=event)
+
+        return ag.json_response({'error': 'Метод не поддерживается'},
+                                status=405, event=event)
+
+    except AuthError as exc:
+        return ag.error_response(exc, event)
+    except (ValueError, TypeError) as exc:
+        return ag.json_response({'error': 'Некорректные данные запроса'},
+                                status=400, event=event)
+    except Exception:
+        # Текст исключения наружу не отдаём: он раскрывает структуру БД.
+        return ag.json_response({'error': 'Внутренняя ошибка'},
+                                status=500, event=event)
+
+# redeploy marker: wave-3 authz

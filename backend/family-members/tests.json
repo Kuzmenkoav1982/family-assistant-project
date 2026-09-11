@@ -1,17 +1,88 @@
 {
   "tests": [
     {
-      "name": "Get family members without auth",
+      "name": "GET без сессии → 401",
       "method": "GET",
       "path": "/",
-      "expectedStatus": 401,
-      "expectedBody": {
-        "error": "string"
+      "expectedStatus": 401
+    },
+    {
+      "name": "GET с мусорным токеном → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "not-a-real-token" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Только X-User-Id без сессии не даёт доступа → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-User-Id": "00000000-0000-0000-0000-000000000001" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Изменение участника без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "update",
+        "member_id": "00000000-0000-0000-0000-000000000001",
+        "name": "hacked"
       },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Самоповышение роли без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "update",
+        "member_id": "00000000-0000-0000-0000-000000000001",
+        "access_role": "admin"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Удаление участника без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "delete",
+        "member_id": "00000000-0000-0000-0000-000000000001"
+      },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Массовое удаление дубликатов без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "action": "delete_all_duplicates" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "SQL-инъекция в токене не вызывает 500 → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "' OR '1'='1" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "SQL-инъекция с закрытием запроса → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "x'; DROP TABLE family_members; --" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Публичная статистика доступна без сессии",
+      "method": "GET",
+      "path": "/?action=stats",
+      "expectedStatus": 200,
+      "expectedBody": { "success": true },
       "bodyMatcher": "partial"
     },
     {
-      "name": "Handle OPTIONS for CORS",
+      "name": "OPTIONS для CORS",
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200

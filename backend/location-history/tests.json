@@ -7,24 +7,49 @@
       "expectedStatus": 200
     },
     {
-      "name": "Missing params",
-      "method": "GET",
-      "path": "/",
-      "expectedStatus": 400,
-      "expectedBody": {
-        "error": "Missing member_id or date"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
-      "name": "Get history for member",
+      "name": "История без сессии → 401 (раньше отдавала координаты всем)",
       "method": "GET",
       "path": "/?member_id=40e4eece-5988-4133-a6bb-0aaaee4db0c2&date=2026-02-24",
-      "expectedStatus": 200,
-      "expectedBody": {
-        "success": true
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 401
+    },
+    {
+      "name": "Запрос без параметров и без сессии → 401, а не 400",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Мусорный токен → 401",
+      "method": "GET",
+      "path": "/?member_id=40e4eece-5988-4133-a6bb-0aaaee4db0c2&date=2026-02-24",
+      "headers": { "X-Auth-Token": "invalid-token" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Подмена X-User-Id без сессии → 401",
+      "method": "GET",
+      "path": "/?member_id=40e4eece-5988-4133-a6bb-0aaaee4db0c2&date=2026-02-24",
+      "headers": { "X-User-Id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Перебор member_id без сессии → 401",
+      "method": "GET",
+      "path": "/?member_id=00000000-0000-0000-0000-000000000001&date=2026-02-24",
+      "expectedStatus": 401
+    },
+    {
+      "name": "SQL-инъекция в member_id → 401 без сессии",
+      "method": "GET",
+      "path": "/?member_id=%27%20OR%201%3D1%20--&date=2026-02-24",
+      "expectedStatus": 401
+    },
+    {
+      "name": "POST не поддерживается → 405",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 405
     }
   ]
 }
