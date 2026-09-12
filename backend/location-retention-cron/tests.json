@@ -33,8 +33,16 @@
       "expectedStatus": 403
     },
     {
-      "name": "GET не поддерживается → 405",
+      "name": "GET → статус мониторинга без секрета (health-check)",
       "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": { "success": true },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "PUT не поддерживается → 405",
+      "method": "PUT",
       "path": "/",
       "expectedStatus": 405
     }

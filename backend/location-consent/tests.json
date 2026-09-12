@@ -48,9 +48,10 @@
       "expectedStatus": 401
     },
     {
-      "name": "PUT не поддерживается → 401 до разбора метода",
+      "name": "PUT (управление получателем) без сессии → 401 до разбора метода",
       "method": "PUT",
       "path": "/",
+      "body": { "action": "add_recipient", "recipient_member_id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
       "expectedStatus": 401
     },
     {
@@ -65,6 +66,20 @@
       "method": "PATCH",
       "path": "/",
       "body": { "collection_enabled": true },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Подтверждение получателя без сессии → 401 (нельзя подтвердить анонимно)",
+      "method": "PUT",
+      "path": "/",
+      "body": { "action": "confirm_recipient", "recipient_member_id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Отзыв получателя без сессии → 401",
+      "method": "PUT",
+      "path": "/",
+      "body": { "action": "revoke_recipient", "recipient_member_id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
       "expectedStatus": 401
     }
   ]

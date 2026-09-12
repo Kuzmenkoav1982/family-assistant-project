@@ -305,7 +305,7 @@ def _revoke(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         if affected:
             cur.execute(
                 f"""UPDATE {SCHEMA}.location_consent_recipients
-                       SET revoked_at = NOW()
+                       SET status = 'revoked', revoked_at = NOW()
                      WHERE consent_id = ANY(%s::uuid[]) AND revoked_at IS NULL""",
                 (affected,),
             )
@@ -328,4 +328,3 @@ def _revoke(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         'representation_id': representation_id,
         'revoked_consents': len(affected),
     }, event=event)
-

@@ -171,6 +171,14 @@ export default function FamilyTracker() {
               submitting={consent.submitting}
               onSetCollection={handleSetCollection}
               onRevoke={handleRevokeConsent}
+              onAddRecipient={consent.addRecipient}
+              onConfirmRecipient={consent.confirmRecipient}
+              onRevokeRecipient={consent.revokeRecipient}
+              recipientCandidates={recipientOptions}
+              // Здесь useLocationConsent() вызван без subjectMemberId —
+              // это всегда self-tracking, субъект согласия и есть
+              // текущий пользователь.
+              viewerIsSubject
             />
             <MembersPanel familyMembers={t.familyMembers} locations={t.locations} />
             <AlertsPanel

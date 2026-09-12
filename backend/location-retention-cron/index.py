@@ -1,7 +1,7 @@
 """
 Business: физическая очистка координат по истечении срока хранения
-Args: event с httpMethod POST и заголовком X-Cron-Secret
-Returns: JSON со счётчиком очищенных точек
+Args: event с httpMethod GET/POST; POST требует X-Cron-Secret
+Returns: POST — JSON со счётчиком очищенных точек; GET — статус мониторинга
 
 Служебный обработчик без сессии: вход закрыт CRON_SECRET, как
 в scheduled-reminders.
@@ -23,11 +23,23 @@ location_retention_policy лежали цифры, location-history огрубл
   - любые точки при legal_hold = true в location_retention_policy.
 Юридическое удержание сильнее политики хранения: иначе автоочистка
 уничтожила бы материалы расследования.
+
+ИДЕМПОТЕНТНОСТЬ. Повторный вызов безопасен: WHERE-условия отбирают
+только записи, ещё не находящиеся в целевом состоянии (usage_status <>
+'pending_deletion', затем DELETE только уже помеченных и просроченных).
+Повторный запуск в тот же момент не изменит результат второй раз.
+
+МОНИТОРИНГ. Каждый запуск (успешный, пропущенный из-за legal_hold или
+упавший с ошибкой) пишется в location_retention_runs ДО завершения
+(started) и обновляется по факту (finished_at, status). GET без секрета
+отдаёт последний запуск и признак просрочки — это то, что дёргает
+внешний монитор (health-check), не имея самого CRON_SECRET.
 """
 
 import json
 import os
-from typing import Any, Dict
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -38,6 +50,12 @@ CORS = {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
 # Верхняя граница за один запуск: очистка не должна держать транзакцию
 # на всей таблице и упираться в таймаут функции.
 BATCH_LIMIT = 5000
+
+# Ожидаемая периодичность запуска cron-триггера. Если последний УСПЕШНЫЙ
+# запуск старше этого порога — считаем расписание пропущенным. Берём с
+# запасом (сутки), чтобы не поднимать ложную тревогу на разовую задержку
+# внешнего триггера при периодичности запуска чаще раза в день.
+EXPECTED_INTERVAL = timedelta(hours=26)
 
 
 def _resp(status: int, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -54,11 +72,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, X-Cron-Secret',
             },
             'body': '', 'isBase64Encoded': False,
         }
+
+    dsn = os.environ.get('DATABASE_URL')
+    if not dsn:
+        return _resp(500, {'error': 'DATABASE_URL not configured'})
+
+    # GET — публичный статус мониторинга: без него внешний health-check
+    # не сможет спросить "давно ли был последний успешный запуск", не
+    # зная CRON_SECRET. Отдаёт только счётчики и даты, не сами данные.
+    if method == 'GET':
+        conn = psycopg2.connect(dsn)
+        conn.autocommit = True
+        try:
+            return _health(conn)
+        finally:
+            conn.close()
 
     if method != 'POST':
         return _resp(405, {'error': 'Method not allowed'})
@@ -72,19 +105,59 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     if not expected or provided != expected:
         return _resp(403, {'error': 'Forbidden'})
 
-    dsn = os.environ.get('DATABASE_URL')
-    if not dsn:
-        return _resp(500, {'error': 'DATABASE_URL not configured'})
-
     conn = psycopg2.connect(dsn)
     conn.autocommit = True
+    run_id = _start_run(conn)
     try:
-        return _purge(conn)
+        result = _purge(conn)
+        _finish_run(conn, run_id, 'skipped' if result.get('skipped_reason') else 'success', result)
+        return _resp(200, result)
     except Exception as exc:  # noqa: BLE001
-        print(f'[location-retention] failed: {type(exc).__name__}')
-        return _resp(500, {'error': 'Внутренняя ошибка'})
+        print(f'[location-retention] failed: {type(exc).__name__}: {exc}')
+        _finish_run(conn, run_id, 'failed', {}, error=str(exc))
+        return _resp(500, {'error': 'Внутренняя ошибка', 'run_id': run_id})
     finally:
         conn.close()
+
+
+def _start_run(conn) -> Optional[int]:
+    """
+    Пишем факт НАЧАЛА запуска до какой-либо очистки. Если функция упадёт
+    или будет прервана таймаутом платформы, запись 'running' без
+    finished_at сама по себе сигнал: последний запуск не завершился.
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.location_retention_runs (status)
+                    VALUES ('running') RETURNING id"""
+            )
+            return cur.fetchone()[0]
+    except Exception as exc:  # noqa: BLE001
+        print(f'[location-retention] could not log run start: {type(exc).__name__}')
+        return None
+
+
+def _finish_run(conn, run_id: Optional[int], status: str,
+                result: Dict[str, Any], error: Optional[str] = None) -> None:
+    if run_id is None:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""UPDATE {SCHEMA}.location_retention_runs
+                       SET finished_at = NOW(), status = %s,
+                           purged = %s, marked_for_deletion = %s,
+                           purge_after_backfilled = %s,
+                           active_points_remaining = %s,
+                           skipped_reason = %s, error_message = %s
+                     WHERE id = %s""",
+                (status, result.get('purged'), result.get('marked_for_deletion'),
+                 result.get('purge_after_backfilled'), result.get('active_points_remaining'),
+                 result.get('skipped_reason'), error, run_id),
+            )
+    except Exception as exc:  # noqa: BLE001
+        print(f'[location-retention] could not log run finish: {type(exc).__name__}')
 
 
 def _purge(conn) -> Dict[str, Any]:
@@ -99,10 +172,10 @@ def _purge(conn) -> Dict[str, Any]:
         if policy.get('legal_hold'):
             # Останавливаемся полностью, а не «очистим остальное»:
             # решение о судьбе данных под удержанием принимает человек.
-            return _resp(200, {
+            return {
                 'success': True, 'purged': 0, 'skipped_reason': 'legal_hold',
                 'legal_hold_reason': policy.get('legal_hold_reason'),
-            })
+            }
 
         # Страховка на случай, если purge_after не проставлен (точки,
         # записанные до введения согласий): применяем общий срок из политики.
@@ -149,10 +222,58 @@ def _purge(conn) -> Dict[str, Any]:
         )
         remaining = (cur.fetchone() or {}).get('remaining', 0)
 
-    return _resp(200, {
+    return {
         'success': True,
         'purged': purged,
         'marked_for_deletion': marked,
         'purge_after_backfilled': backfilled,
         'active_points_remaining': remaining,
+    }
+
+
+def _health(conn) -> Dict[str, Any]:
+    """
+    Публичный статус для внешнего мониторинга: не требует CRON_SECRET
+    (сам по себе не выполняет очистку и не раскрывает данные о людях),
+    но отвечает на главный вопрос — "не пропущен ли плановый запуск".
+    """
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            f"""SELECT id, started_at, finished_at, status, purged,
+                       marked_for_deletion, skipped_reason, error_message
+                  FROM {SCHEMA}.location_retention_runs
+              ORDER BY started_at DESC LIMIT 1"""
+        )
+        last_run = cur.fetchone()
+
+        cur.execute(
+            f"""SELECT id, started_at, finished_at, status
+                  FROM {SCHEMA}.location_retention_runs
+                 WHERE status IN ('success', 'skipped')
+              ORDER BY started_at DESC LIMIT 1"""
+        )
+        last_completed = cur.fetchone()
+
+        cur.execute(
+            f"""SELECT is_enabled FROM {SCHEMA}.feature_flags
+                 WHERE flag_key = 'location_retention_cron_configured'"""
+        )
+        row = cur.fetchone()
+        configured = bool(row['is_enabled']) if row else False
+
+    overdue = False
+    if configured:
+        if not last_completed:
+            overdue = True
+        else:
+            age = datetime.now(timezone.utc).replace(tzinfo=None) - last_completed['finished_at']
+            overdue = age > EXPECTED_INTERVAL
+
+    return _resp(200, {
+        'success': True,
+        'cron_configured': configured,
+        'overdue': overdue,
+        'last_run': dict(last_run) if last_run else None,
+        'last_completed_run': dict(last_completed) if last_completed else None,
+        'expected_interval_hours': EXPECTED_INTERVAL.total_seconds() / 3600,
     })

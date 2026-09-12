@@ -177,9 +177,19 @@ def set_geo_flags(enabled: bool):
     иначе «доступ запрещён» нельзя отличить от «функция приостановлена»,
     и тесты перестали бы доказывать, что права работают. Сам выключатель
     проверяется отдельным блоком ниже.
+
+    Включает разом технические тумблеры И adult/minor-флаги — тесты
+    модели прав не должны падать из-за раздельного adult/minor
+    выключателя, который проверяется отдельным блоком (см. ниже).
     """
     ag._geo_flag_cache[ag.GEO_COLLECTION_FLAG] = enabled
     ag._geo_flag_cache[ag.GEO_HISTORY_FLAG] = enabled
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = enabled
+    ag._geo_flag_cache[ag.GEO_MINOR_FLAG] = enabled
+    ag._geo_flag_cache[ag.GEO_GEOFENCES_FLAG] = enabled
+    # Kill switch инвертирован: enabled=True (флаги включены) означает
+    # kill_switch=False (блокировка не активна).
+    ag._geo_flag_cache[ag.GEO_KILL_SWITCH_FLAG] = not enabled
 
 
 set_geo_flags(True)
@@ -777,6 +787,110 @@ def main():
     clear_consents()
     give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
     give_consent(MEMBER_SELF, consent_id='consent-self')
+
+    # ---------- РАЗДЕЛЕНИЕ ADULT / MINOR (безопасный запуск только для взрослых) ----------
+    # Ключевое требование: включить self-tracking для совершеннолетних
+    # можно НЕЗАВИСИМО от детского сценария. adult=True, minor=False —
+    # рабочий режим первого production-запуска.
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = True
+    ag._geo_flag_cache[ag.GEO_MINOR_FLAG] = False
+
+    MEMBERS[MEMBER_SELF]['age'] = 40  # совершеннолетний субъект
+    adult_ok_ctx, _ = ctx_for('tok-parent')
+    check('adult-флаг включён, minor выключен: взрослый видит свои координаты → allow',
+          lambda: ag.require_location_access(adult_ok_ctx, MEMBER_SELF), None)
+
+    MEMBERS[MEMBER_CHILD]['age'] = 9  # несовершеннолетний субъект
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF], role='legal_representative')
+    minor_blocked_ctx, _ = ctx_for('tok-parent')
+    check('adult-флаг включён, minor выключен: ребёнок остаётся недоступен → 503',
+          lambda: ag.require_location_access(minor_blocked_ctx, MEMBER_CHILD), 503)
+
+    # Неизвестный возраст субъекта отсекается ещё раньше — в
+    # _consent_still_valid (SUBJECT_AGE_UNKNOWN), до проверки adult/minor
+    # флага. Это даже строже, чем разведение по флагам: неизвестный
+    # возраст не проходит вообще ни по какому сценарию.
+    MEMBERS[MEMBER_CHILD].pop('age', None)
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF], role='legal_representative')
+    unknown_blocked_ctx, _ = ctx_for('tok-parent')
+    check('adult-флаг включён: субъект неизвестного возраста отсекается раньше (SUBJECT_AGE_UNKNOWN) → 403',
+          lambda: ag.require_location_access(unknown_blocked_ctx, MEMBER_CHILD), 403)
+    MEMBERS[MEMBER_CHILD]['age'] = 9
+
+    # Включаем minor — теперь ребёнок тоже доступен (это будущий, а не
+    # текущий production-режим, но код обязан уметь его включить отдельно).
+    ag._geo_flag_cache[ag.GEO_MINOR_FLAG] = True
+    minor_ok_ctx, _ = ctx_for('tok-parent')
+    check('adult и minor оба включены: ребёнок с согласием представителя доступен → allow',
+          lambda: ag.require_location_access(minor_ok_ctx, MEMBER_CHILD), None)
+
+    # Выключаем обратно adult, оставляя minor включённым — совершеннолетний
+    # сценарий должен блокироваться независимо от детского.
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = False
+    adult_blocked_ctx, _ = ctx_for('tok-parent')
+    check('adult выключен, minor включён: взрослый субъект недоступен → 503',
+          lambda: ag.require_location_access(adult_blocked_ctx, MEMBER_SELF), 503)
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = True
+
+    # Прямой юнит-тест require_geo_scope_for_subject: неизвестный возраст
+    # обязан маршрутизироваться через MINOR-флаг (строже), а не через ADULT.
+    # Проверяем это в изоляции от require_location_access, где неизвестный
+    # возраст перехватывается раньше в _consent_still_valid.
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = True
+    ag._geo_flag_cache[ag.GEO_MINOR_FLAG] = False
+    unknown_age_member = {'id': MEMBER_CHILD, 'age': None, 'birth_date': None}
+    check('require_geo_scope_for_subject: неизвестный возраст маршрутизируется через MINOR (выключен) → 503',
+          lambda: ag.require_geo_scope_for_subject(unknown_age_member), 503)
+
+    ag._geo_flag_cache[ag.GEO_MINOR_FLAG] = True
+    check('require_geo_scope_for_subject: неизвестный возраст + MINOR включён → allow',
+          lambda: ag.require_geo_scope_for_subject(unknown_age_member), None)
+
+    adult_member = {'id': MEMBER_SELF, 'age': 40, 'birth_date': None}
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = False
+    check('require_geo_scope_for_subject: взрослый маршрутизируется через ADULT (выключен) → 503, даже если MINOR включён',
+          lambda: ag.require_geo_scope_for_subject(adult_member), 503)
+
+    # Возврат к состоянию по умолчанию для следующего блока.
+    ag._geo_flag_cache[ag.GEO_ADULT_SELF_FLAG] = True
+    ag._geo_flag_cache[ag.GEO_MINOR_FLAG] = True
+    clear_consents()
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
+    give_consent(MEMBER_SELF, consent_id='consent-self')
+
+    # ---------- EMERGENCY KILL SWITCH ----------
+    # Единственный флаг, который должен уметь остановить геолокацию
+    # ЦЕЛИКОМ одним изменением, независимо от того, что настроено во
+    # всех остальных geo-флагах.
+    ag._geo_flag_cache[ag.GEO_KILL_SWITCH_FLAG] = True
+    kill_ctx, _ = ctx_for('tok-parent')
+    check('kill switch активен: свои координаты недоступны, даже когда все остальные флаги включены → 503',
+          lambda: ag.require_location_access(kill_ctx, MEMBER_SELF), 503)
+
+    kill_collect_ctx, _ = ctx_for('tok-parent')
+    check('kill switch активен: require_geo_enabled(COLLECTION) отказывает → 503',
+          lambda: ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG), 503)
+
+    # Fail-closed по kill switch: нечитаемый флаг = блокировка АКТИВНА
+    # (в отличие от обычных geo-флагов, где нечитаемость = "выключено",
+    # здесь нечитаемость тоже должна давать "выключено" по факту доступа,
+    # но с точки зрения самого флага — считаться активной блокировкой).
+    ag._geo_flag_cache.pop(ag.GEO_KILL_SWITCH_FLAG, None)
+
+    def _boom():
+        raise RuntimeError('db down')
+
+    orig_connect = ag._connect
+    ag._connect = _boom
+    try:
+        kill_active_on_error = ag.geo_kill_switch_active()
+    finally:
+        ag._connect = orig_connect
+    results.append((kill_active_on_error,
+                    'kill switch нечитаем из БД → трактуется как АКТИВНЫЙ (fail-closed)',
+                    'ok' if kill_active_on_error else 'блокировка не сработала при сбое БД'))
+
+    ag._geo_flag_cache[ag.GEO_KILL_SWITCH_FLAG] = False
 
     # ---------- ВЫКЛЮЧАТЕЛЬ ГЕОЛОКАЦИИ (SEC-2026-001) ----------
     # Права проверены выше при включённой функции. Здесь проверяется,

@@ -1,7 +1,8 @@
 """
 Business: согласие на обработку данных о местоположении (152-ФЗ)
-Args: event с httpMethod GET/POST/PATCH/DELETE, X-Auth-Token
-Returns: GET — статус; POST — выдача; PATCH — тумблер сбора; DELETE — отзыв
+Args: event с httpMethod GET/POST/PATCH/PUT/DELETE, X-Auth-Token
+Returns: GET — статус; POST — выдача; PATCH — тумблер сбора;
+         PUT — управление получателями; DELETE — отзыв согласия
 
 ВЫКЛЮЧИТЬ СБОР ≠ ОТОЗВАТЬ СОГЛАСИЕ — это два разных действия:
     PATCH  collection_enabled=false — сбор немедленно прекращается,
@@ -12,6 +13,21 @@ Returns: GET — статус; POST — выдача; PATCH — тумблер �
 Объединять их в один тумблер нельзя: тогда ни одно из двух решений
 человек не принимает осознанно.
 
+ДОБАВЛЕНИЕ ПОЛУЧАТЕЛЯ — тоже отдельное решение, а не побочный эффект
+выдачи согласия:
+    PUT {action:'add_recipient'}     — если получателя добавляет НЕ сам
+        субъект (например, законный представитель за ребёнка), запись
+        создаётся в статусе 'pending' и НЕ даёт доступа к координатам,
+        пока субъект её не подтвердит явно. Если добавляет сам субъект —
+        подтверждение не требуется: он и так решает за себя.
+    PUT {action:'confirm_recipient'} — субъект подтверждает ожидающего
+        получателя; только после этого запись переходит в 'active' и
+        начинает давать доступ.
+    PUT {action:'revoke_recipient'}  — немедленный отзыв, без подтверждений
+        и промежуточных состояний: прекращение доступа не должно требовать
+        чьего-либо согласия.
+Каждое из трёх действий пишет отдельное событие в location_consent_events.
+
 Почему отдельная функция, а не поле в настройках:
 согласие по ч.1.1 ст.9 152-ФЗ не может быть частью другого документа
 и должно быть доказуемым спустя год. Доказательство складывается из
@@ -21,10 +37,13 @@ Returns: GET — статус; POST — выдача; PATCH — тумблер �
 РАЗДЕЛЕНИЕ, которое нельзя нарушать:
     согласие субъекта   → системе разрешено СОБИРАТЬ его местоположение
     получатели согласия → кому конкретно разрешено его СМОТРЕТЬ
-Согласие без получателя не открывает координаты никому.
+Согласие без получателя не открывает координаты никому. Согласие с
+получателем в статусе 'pending' — тоже: пока субъект не подтвердил,
+получатель координат не видит (см. load_active_location_consent —
+recipients возвращает только status='active').
 
 ВОЗРАСТНАЯ МОДЕЛЬ (требует утверждения юристом):
-    младше 14   — согласие даёт ПОДТВЕРЖДЁННЫЙ законный представитель;
+    младше 14   — согласие даёт ПОДТВЕРЖДЁННЫЙ представитель (self_declared);
     14 и старше — только сам субъект; представитель может лишь запросить;
     возраст неизвестен — включить нельзя вообще.
 
@@ -67,6 +86,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return _grant(conn, ctx, event)
             if method == 'PATCH':
                 return _set_collection(conn, ctx, event)
+            if method == 'PUT':
+                return _manage_recipient(conn, ctx, event)
             if method == 'DELETE':
                 return _revoke(conn, ctx, event)
             return ag.json_response({'error': 'Method not allowed'},
@@ -188,15 +209,19 @@ def _status(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
 
 def _recipients_detail(conn, consent_id: str) -> list:
     """
-    Кто конкретно может видеть местоположение: имя, основание, когда
-    выдано, когда смотрел в последний раз.
+    Кто конкретно может видеть местоположение: имя, основание, статус,
+    когда выдано, когда смотрел в последний раз.
 
     Показываем именно поимённый список, а не роли: «администраторы видят
-    вас» — это не ответ на вопрос «кто меня видит».
+    вас» — это не ответ на вопрос «кто меня видит». Включает и записи в
+    статусе 'pending' — субъект должен видеть, что кто-то предложил
+    получателя и ждёт его собственного подтверждения, а не узнавать
+    об этом постфактум по факту просмотра.
     """
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
-            f"""SELECT r.recipient_member_id, r.granted_at, m.name,
+            f"""SELECT r.recipient_member_id, r.granted_at, r.status,
+                       r.requested_by_member_id, m.name,
                        (SELECT MAX(l.occurred_at)
                           FROM {SCHEMA}.location_access_log l
                          WHERE l.viewer_member_id = r.recipient_member_id
@@ -216,7 +241,9 @@ def _recipients_detail(conn, consent_id: str) -> list:
                 # Основание всегда одно и то же и названо честно: доступ
                 # дан поимённо этим согласием, а не ролью в семье.
                 'basis': 'named_in_consent',
-                'capabilities': ['geolocation:read_current'],
+                'status': row.get('status'),
+                'awaiting_confirmation': row.get('status') == 'pending',
+                'capabilities': ['geolocation:read_current'] if row.get('status') == 'active' else [],
                 'granted_at': row.get('granted_at'),
                 'last_access': row.get('last_access'),
             }
@@ -263,6 +290,15 @@ def _set_collection(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[st
         valid, reason = ag._consent_still_valid(consent, subject)
         if not valid:
             raise AuthError(403, reason)
+        # Emergency kill switch — впереди adult/minor-проверки: включение
+        # сбора обратно тоже открывает обработку координат, а kill switch
+        # обязан останавливать это независимо от прочих флагов.
+        if ag.geo_kill_switch_active():
+            raise AuthError(503, 'GEOLOCATION_DISABLED')
+        # И только если adult/minor-сценарий для этого субъекта сейчас
+        # включён: согласие могло быть выдано раньше, когда флаг был
+        # включён, а затем сценарий выключили (например, экстренно).
+        ag.require_geo_scope_for_subject(subject)
     elif not is_self and not was_granter and not eligibility.get('allowed'):
         raise AuthError(403, 'SUBJECT_ACCESS_DENIED')
 
@@ -310,6 +346,20 @@ def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
     if (subject.get('member_status') or 'active') != 'active':
         raise AuthError(403, 'SUBJECT_NOT_ACTIVE')
 
+    # Emergency kill switch проверяется ПЕРВЫМ и безусловно, раньше даже
+    # права дать согласие: он должен уметь остановить геолокацию целиком
+    # одним изменением в БД, независимо от возраста, роли и заявлений о
+    # представительстве. Найдено QA (docs/legal/compliance-checklist.md,
+    # раздел 4/6): раньше этой проверки здесь не было, и при включённом
+    # kill switch новое согласие всё равно создавалось бы — хотя
+    # geolocation_emergency_kill_switch описан в БД как блокирующий ВСЕ
+    # операции с геоданными.
+    if ag.geo_kill_switch_active():
+        ag.log_consent_event(ctx, 'grant_denied', subject_member_id=subject_id,
+                             details={'reason': 'GEOLOCATION_DISABLED',
+                                      'note': 'emergency kill switch active'})
+        raise AuthError(503, 'GEOLOCATION_DISABLED')
+
     # Право дать согласие вычисляет сервер: возраст, роль, подтверждённое
     # законное представительство. Клиент на это не влияет.
     eligibility = ag.consent_eligibility(subject, ctx.member_id)
@@ -318,6 +368,20 @@ def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         ag.log_consent_event(ctx, 'grant_denied', subject_member_id=subject_id,
                              details={'reason': reason})
         raise AuthError(403, reason)
+
+    # Adult/minor-флаги: даже если право дать согласие есть (заявление о
+    # представительстве сделано корректно), сам production-сценарий для
+    # несовершеннолетних может быть выключен отдельно от взрослого.
+    # Проверяем здесь ДО записи согласия — иначе согласие создалось бы,
+    # а require_location_access всё равно отказывал бы 503 при каждом
+    # обращении, что вводит пользователя в заблуждение о причине отказа.
+    try:
+        ag.require_geo_scope_for_subject(subject)
+    except AuthError:
+        ag.log_consent_event(ctx, 'grant_denied', subject_member_id=subject_id,
+                             details={'reason': 'GEOLOCATION_DISABLED',
+                                      'note': 'adult/minor scope flag is off'})
+        raise
 
     # Согласие даётся на КОНКРЕТНУЮ версию текста: иначе через год
     # невозможно доказать, что именно человек прочитал.
@@ -405,13 +469,24 @@ def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         )
         consent_id = str(cur.fetchone()['id'])
 
+        # Если согласие выдаёт САМ субъект — получатели, названные в этом
+        # же запросе, вступают в силу сразу: субъект и так уже принимает
+        # решение за себя, отдельное подтверждение было бы формальностью
+        # поверх формальности. Если согласие выдаёт представитель за
+        # ребёнка — получатели остаются 'pending' до тех пор, пока субъект
+        # (позже, когда сможет) их не подтвердит: представитель не должен
+        # мочь одним действием и включить сбор, и назначить, кто смотрит.
+        is_self_grant = ctx.member_id == subject_id
+        recipient_status = 'active' if is_self_grant else 'pending'
         for recipient in recipients:
             cur.execute(
                 f"""INSERT INTO {SCHEMA}.location_consent_recipients
-                        (consent_id, recipient_member_id)
-                    VALUES (%s, %s)
+                        (consent_id, recipient_member_id, status,
+                         requested_by_member_id,
+                         confirmed_at)
+                    VALUES (%s, %s, %s, %s, CASE WHEN %s = 'active' THEN NOW() ELSE NULL END)
                     ON CONFLICT (consent_id, recipient_member_id) DO NOTHING""",
-                (consent_id, recipient),
+                (consent_id, recipient, recipient_status, ctx.member_id, recipient_status),
             )
 
     ag.log_consent_event(ctx, 'granted', consent_id=consent_id,
@@ -419,6 +494,7 @@ def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
                          text_version=text['version'],
                          details={'retention_days': retention,
                                   'recipients': recipients,
+                                  'recipients_status': recipient_status,
                                   'data_scope': data_scope,
                                   'consent_role': eligibility.get('required_role'),
                                   'subject_age_at_grant': age})
@@ -429,9 +505,213 @@ def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         'subject_member_id': subject_id,
         'retention_days': retention,
         'update_interval_seconds': interval,
-        'recipients': recipients,
+        'recipients': recipients if is_self_grant else [],
+        'pending_recipients': [] if is_self_grant else recipients,
         'data_scope': data_scope,
         'text_version': text['version'],
+    }, event=event)
+
+
+RECIPIENT_ACTIONS = ('add_recipient', 'confirm_recipient', 'revoke_recipient')
+
+
+def _manage_recipient(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Управление получателями ПОСЛЕ первичной выдачи согласия — отдельно
+    от _grant, потому что "кто видит мои координаты" может меняться в
+    любой момент и не должно требовать пересоздания согласия целиком.
+
+    add_recipient:
+        Если добавляет сам субъект — новый получатель сразу 'active'.
+        Если добавляет НЕ субъект (представитель ребёнка, либо тот, кому
+        видимость уже назначена) — запись создаётся 'pending' и не даёт
+        доступа: get_active_location_consent() отдаёт только status='active'.
+        Молчаливое расширение круга смотрящих без ведома субъекта запрещено.
+
+    confirm_recipient:
+        Только сам субъект может перевести 'pending' → 'active'. Это и
+        есть то самое "отдельное подтверждение субъекта", без которого
+        получатель координат не видит.
+
+    revoke_recipient:
+        Немедленно и без подтверждений: прекращение доступа не должно
+        быть сложнее, чем его выдача. Доступен субъекту и тому, кто
+        выдавал согласие (granted_by_member_id).
+    """
+    data = _body(event)
+    action = str(data.get('action') or '')
+    if action not in RECIPIENT_ACTIONS:
+        return ag.json_response(
+            {'error': f'Unknown action, expected one of {RECIPIENT_ACTIONS}'},
+            status=400, event=event)
+
+    subject_id = str(data.get('subject_member_id') or ctx.member_id or '')
+    recipient_id = str(data.get('recipient_member_id') or '')
+    if not ag._is_uuid(recipient_id):
+        return ag.json_response({'error': 'recipient_member_id is required'},
+                                status=400, event=event)
+
+    subject = ag._load_member(subject_id) if subject_id else None
+    if not subject or str(subject.get('family_id')) != ctx.family_id:
+        raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+
+    consent = ag.load_active_location_consent(subject_id)
+    if not consent:
+        raise AuthError(403, 'LOCATION_CONSENT_REQUIRED')
+    consent_id = str(consent['id'])
+    is_self = ctx.member_id == subject_id
+
+    # Emergency kill switch блокирует только РАСШИРЕНИЕ доступа
+    # (add_recipient/confirm_recipient) — те же действия, что и
+    # require_location_access использовал бы, чтобы открыть координаты
+    # новому человеку. revoke_recipient НЕ блокируется: прекращение
+    # доступа не должно зависеть от того, работает ли геолокация сейчас,
+    # иначе аварийная остановка сама стала бы поводом не отозвать доступ.
+    if action in ('add_recipient', 'confirm_recipient') and ag.geo_kill_switch_active():
+        raise AuthError(503, 'GEOLOCATION_DISABLED')
+
+    # Получатель обязан быть активным участником той же семьи и не самим
+    # субъектом: субъект и так видит себя, называть его "получателем"
+    # означало бы задвоить смысл одной и той же вещи.
+    if recipient_id == subject_id:
+        return ag.json_response({'error': 'Subject cannot be its own recipient'},
+                                status=400, event=event)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""SELECT 1 FROM {SCHEMA}.family_members
+                WHERE id = %s AND family_id = %s
+                  AND COALESCE(member_status,'active') = 'active'""",
+            (recipient_id, ctx.family_id),
+        )
+        if not cur.fetchone():
+            raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+
+    if action == 'add_recipient':
+        return _add_recipient(conn, ctx, consent_id, subject_id, recipient_id, is_self, event)
+    if action == 'confirm_recipient':
+        return _confirm_recipient(conn, ctx, consent_id, subject_id, recipient_id, is_self, event)
+    return _revoke_recipient(conn, ctx, consent_id, subject_id, recipient_id, is_self, event)
+
+
+def _add_recipient(conn, ctx: ag.AuthContext, consent_id: str, subject_id: str,
+                   recipient_id: str, is_self: bool, event: Dict[str, Any]) -> Dict[str, Any]:
+    # Право предложить получателя: сам субъект (для себя) или тот, кто
+    # выдавал согласие (представитель ребёнка). Посторонний участник
+    # семьи назначать себе или другим доступ к чужим координатам не может.
+    eligibility = ag.consent_eligibility(ag._load_member(subject_id), ctx.member_id)
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""SELECT 1 FROM {SCHEMA}.location_consents
+                WHERE id = %s AND granted_by_member_id = %s""",
+            (consent_id, ctx.member_id),
+        )
+        was_granter = cur.fetchone() is not None
+    if not is_self and not was_granter and not eligibility.get('allowed'):
+        raise AuthError(403, 'SUBJECT_ACCESS_DENIED')
+
+    status = 'active' if is_self else 'pending'
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            f"""INSERT INTO {SCHEMA}.location_consent_recipients
+                    (consent_id, recipient_member_id, status,
+                     requested_by_member_id, confirmed_at, revoked_at)
+                VALUES (%s, %s, %s, %s, CASE WHEN %s = 'active' THEN NOW() ELSE NULL END, NULL)
+                ON CONFLICT (consent_id, recipient_member_id) DO UPDATE
+                   SET status = EXCLUDED.status,
+                       requested_by_member_id = EXCLUDED.requested_by_member_id,
+                       confirmed_at = EXCLUDED.confirmed_at,
+                       revoked_at = NULL,
+                       granted_at = CASE WHEN {SCHEMA}.location_consent_recipients.revoked_at
+                                              IS NOT NULL
+                                         THEN NOW()
+                                         ELSE {SCHEMA}.location_consent_recipients.granted_at END
+                RETURNING status""",
+            (consent_id, recipient_id, status, ctx.member_id, status),
+        )
+        final_status = cur.fetchone()['status']
+
+    ag.log_consent_event(ctx, 'recipient_added', consent_id=consent_id,
+                         subject_member_id=subject_id,
+                         details={'recipient_member_id': recipient_id,
+                                  'status': final_status,
+                                  'added_by_self': is_self})
+
+    return ag.json_response({
+        'success': True,
+        'recipient_member_id': recipient_id,
+        'status': final_status,
+        'awaiting_confirmation': final_status == 'pending',
+    }, event=event)
+
+
+def _confirm_recipient(conn, ctx: ag.AuthContext, consent_id: str, subject_id: str,
+                       recipient_id: str, is_self: bool, event: Dict[str, Any]) -> Dict[str, Any]:
+    # Подтверждение — исключительно действие субъекта. Ни представитель,
+    # ни сам предлагаемый получатель не могут подтвердить доступ к чужим
+    # координатам за субъекта: это лишило бы подтверждение всякого смысла.
+    if not is_self:
+        raise AuthError(403, 'SUBJECT_ACCESS_DENIED')
+
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""UPDATE {SCHEMA}.location_consent_recipients
+                   SET status = 'active', confirmed_at = NOW()
+                 WHERE consent_id = %s AND recipient_member_id = %s
+                   AND status = 'pending' AND revoked_at IS NULL""",
+            (consent_id, recipient_id),
+        )
+        confirmed = cur.rowcount > 0
+
+    if not confirmed:
+        return ag.json_response({'error': 'No pending recipient request found'},
+                                status=404, event=event)
+
+    ag.log_consent_event(ctx, 'recipient_confirmed', consent_id=consent_id,
+                         subject_member_id=subject_id,
+                         details={'recipient_member_id': recipient_id})
+
+    return ag.json_response({
+        'success': True,
+        'recipient_member_id': recipient_id,
+        'status': 'active',
+    }, event=event)
+
+
+def _revoke_recipient(conn, ctx: ag.AuthContext, consent_id: str, subject_id: str,
+                      recipient_id: str, is_self: bool, event: Dict[str, Any]) -> Dict[str, Any]:
+    # Отозвать получателя вправе сам субъект или тот, кто выдавал согласие
+    # (например, представитель ребёнка). Отзыв никогда не требует
+    # подтверждения второй стороны: прекращение доступа не может
+    # блокироваться тем, у кого этот доступ отбирают.
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""SELECT 1 FROM {SCHEMA}.location_consents
+                WHERE id = %s AND granted_by_member_id = %s""",
+            (consent_id, ctx.member_id),
+        )
+        was_granter = cur.fetchone() is not None
+    if not is_self and not was_granter:
+        raise AuthError(403, 'SUBJECT_ACCESS_DENIED')
+
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""UPDATE {SCHEMA}.location_consent_recipients
+                   SET status = 'revoked', revoked_at = NOW()
+                 WHERE consent_id = %s AND recipient_member_id = %s
+                   AND revoked_at IS NULL""",
+            (consent_id, recipient_id),
+        )
+        revoked = cur.rowcount > 0
+
+    ag.log_consent_event(ctx, 'recipient_revoked', consent_id=consent_id,
+                         subject_member_id=subject_id,
+                         details={'recipient_member_id': recipient_id,
+                                  'already_revoked': not revoked})
+
+    return ag.json_response({
+        'success': True,
+        'recipient_member_id': recipient_id,
+        'status': 'revoked',
     }, event=event)
 
 
@@ -491,7 +771,7 @@ def _revoke(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         )
         cur.execute(
             f"""UPDATE {SCHEMA}.location_consent_recipients
-                   SET revoked_at = NOW()
+                   SET status = 'revoked', revoked_at = NOW()
                  WHERE consent_id = %s AND revoked_at IS NULL""",
             (consent_id,),
         )

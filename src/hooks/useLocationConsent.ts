@@ -40,6 +40,9 @@ export interface LocationRecipientDetail {
   member_id: string;
   name: string | null;
   basis: string;
+  /** 'active' — реально видит координаты; 'pending' — ждёт подтверждения субъекта. */
+  status: 'active' | 'pending' | 'revoked';
+  awaiting_confirmation: boolean;
   capabilities: string[];
   granted_at: string | null;
   last_access: string | null;
@@ -225,6 +228,71 @@ export default function useLocationConsent(subjectMemberId?: string) {
     }
   }, [status, subjectMemberId, reload]);
 
+  /**
+   * Общий вызов PUT-действий над получателем. Используется тремя
+   * публичными методами ниже — они различаются только именем action
+   * и сообщением об ошибке по умолчанию.
+   */
+  const manageRecipient = useCallback(async (
+    action: 'add_recipient' | 'confirm_recipient' | 'revoke_recipient',
+    recipientMemberId: string,
+    fallbackError: string,
+  ): Promise<boolean> => {
+    if (!CONSENT_URL) return false;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(CONSENT_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': getToken() },
+        body: JSON.stringify({
+          subject_member_id: subjectMemberId || status?.subject_member_id,
+          action,
+          recipient_member_id: recipientMemberId,
+        }),
+      });
+      if (res.ok) {
+        await reload();
+        return true;
+      }
+      const body = await res.json().catch(() => ({}));
+      setError(body?.error || fallbackError);
+      return false;
+    } catch {
+      setError('Нет соединения с сервером.');
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  }, [status, subjectMemberId, reload]);
+
+  /**
+   * Добавить получателя ПОСЛЕ того, как согласие уже выдано.
+   *
+   * Если это делает сам субъект — получатель сразу активен. Если это
+   * делает представитель (или кто-то ещё, кому это разрешено), получатель
+   * попадает в 'pending' и не видит координат, пока субъект не подтвердит
+   * его сам через confirmRecipient(). Различие обеспечивает backend —
+   * здесь мы просто вызываем действие и полагаемся на его ответ.
+   */
+  const addRecipient = useCallback((recipientMemberId: string): Promise<boolean> =>
+    manageRecipient('add_recipient', recipientMemberId,
+      'Не удалось добавить получателя.'), [manageRecipient]);
+
+  /**
+   * Подтвердить ожидающего получателя. Может вызвать ТОЛЬКО сам субъект —
+   * иначе представитель мог бы одним действием и включить сбор, и
+   * назначить смотрящего, обойдя смысл отдельного подтверждения.
+   */
+  const confirmRecipient = useCallback((recipientMemberId: string): Promise<boolean> =>
+    manageRecipient('confirm_recipient', recipientMemberId,
+      'Не удалось подтвердить получателя.'), [manageRecipient]);
+
+  /** Немедленный отзыв доступа получателя — без подтверждений. */
+  const revokeRecipient = useCallback((recipientMemberId: string): Promise<boolean> =>
+    manageRecipient('revoke_recipient', recipientMemberId,
+      'Не удалось отозвать доступ получателя.'), [manageRecipient]);
+
   const hasActiveConsent = Boolean(status?.consent?.valid);
   // Сбор идёт, только когда есть действующее согласие И включён тумблер.
   const isCollecting = hasActiveConsent && status?.consent?.collection_enabled !== false;
@@ -233,5 +301,6 @@ export default function useLocationConsent(subjectMemberId?: string) {
     status, loading, submitting, error,
     hasActiveConsent, isCollecting,
     reload, grant, setCollection, revoke,
+    addRecipient, confirmRecipient, revokeRecipient,
   };
 }

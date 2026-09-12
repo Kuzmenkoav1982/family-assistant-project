@@ -50,16 +50,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             # существующие не показываем. DELETE намеренно оставлен
             # работающим: право убрать свой адрес из системы не должно
             # зависеть от того, включена ли у нас функция.
+            #
+            # Геозоны проверяются через ОТДЕЛЬНЫЙ флаг (GEO_GEOFENCES_FLAG),
+            # а не через общий COLLECTION/HISTORY: адрес дома или школы —
+            # самостоятельная категория чувствительных данных, и включение
+            # обычного self-tracking (просто "где я сейчас") не должно
+            # автоматически открывать создание и показ геозон.
             if method == 'GET':
-                ag.require_geo_enabled(ag.GEO_HISTORY_FLAG)
+                ag.require_geo_enabled(ag.GEO_GEOFENCES_FLAG)
                 ag.require_permission(ctx, 'geolocation', 'read_own')
                 return _list_geofences(conn, ctx, event)
             if method == 'POST':
-                ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG)
+                ag.require_geo_enabled(ag.GEO_GEOFENCES_FLAG)
                 ag.require_admin(ctx, 'geofence.create')
                 return _create_geofence(conn, ctx, event)
             if method == 'PUT':
-                ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG)
+                ag.require_geo_enabled(ag.GEO_GEOFENCES_FLAG)
                 ag.require_admin(ctx, 'geofence.alert_settings')
                 return _update_alert_settings(conn, ctx, event)
             if method == 'DELETE':

@@ -258,21 +258,43 @@ LOCATION_MODULES = frozenset({'geolocation'})
 
 
 # ============================================================
-# ВЫКЛЮЧАТЕЛЬ ГЕОЛОКАЦИИ (SEC-2026-001)
+# ВЫКЛЮЧАТЕЛЬ ГЕОЛОКАЦИИ (SEC-2026-001) + РАЗДЕЛЕНИЕ ADULT/MINOR
 # ============================================================
 # Уязвимости закрыты, но геолокация остаётся выключенной до появления
 # отдельного согласия на перемещения и интерфейса управления доступом.
-# Модель данных согласия готова (member_guardianships.location_consent_*),
-# UI — нет. Пока человек не может увидеть и отозвать доступ к своим
-# перемещениям, собирать их мы не вправе.
 #
-# Выключатель живёт в БД (feature_flags), а не в коде фронта: тот, кто
+# После юридического ревью (2026-09) единый флаг разведён на несколько
+# целевых, потому что "включить геолокацию" — это на самом деле НЕСКОЛЬКО
+# разных по риску решений:
+#
+#   geolocation_emergency_kill_switch      — аварийный ВЫКЛЮЧАТЕЛЬ ВСЕГО.
+#       Проверяется первым и важнее любого другого флага. Инвертирован
+#       по смыслу: is_enabled=true ЗДЕСЬ означает "заблокировать всё".
+#   geolocation_collection_enabled         — техническая возможность
+#       вообще писать новые точки (низкоуровневый тумблер).
+#   geolocation_history_enabled            — техническая возможность
+#       отдавать историю (заблокирован до реального теста retention-cron).
+#   geolocation_adult_self_collection_enabled — ЕДИНСТВЕННЫЙ сценарий,
+#       который готовится к первому production-запуску: совершеннолетний
+#       с собственным аккаунтом передаёт СВОЁ местоположение.
+#   geolocation_minor_collection_enabled   — геолокация несовершеннолетних.
+#       Выключен: самодекларация представителя (self_declared) — это
+#       "человек заявил", а не "платформа проверила". Юридической оценки
+#       достаточности такого основания для слежения за ребёнком нет.
+#   geolocation_geofences_enabled          — геозоны/адреса, отдельная
+#       категория чувствительных данных (дом, школа).
+#
+# Все флаги живут в БД (feature_flags), а не в коде фронта: тот, кто
 # соберёт фронт заново, не должен случайно включить сбор координат.
 # Проверка стоит внутри guard-а, то есть на единственном законном входе
 # к геоданным — обойти её, забыв про флаг в новой функции, нельзя.
 
+GEO_KILL_SWITCH_FLAG = 'geolocation_emergency_kill_switch'
 GEO_COLLECTION_FLAG = 'geolocation_collection_enabled'
 GEO_HISTORY_FLAG = 'geolocation_history_enabled'
+GEO_ADULT_SELF_FLAG = 'geolocation_adult_self_collection_enabled'
+GEO_MINOR_FLAG = 'geolocation_minor_collection_enabled'
+GEO_GEOFENCES_FLAG = 'geolocation_geofences_enabled'
 
 # Кеш на процесс: флаг меняется решением человека, а не в ходе запроса.
 _geo_flag_cache: Dict[str, bool] = {}
@@ -283,6 +305,10 @@ def geo_flag_enabled(flag_key: str) -> bool:
     Отсутствие флага, ошибка БД или пустой ответ трактуются как ВЫКЛЮЧЕНО.
     Fail-closed здесь обязателен: недоступность базы не должна быть
     способом снова включить сбор координат.
+
+    Исключение — GEO_KILL_SWITCH_FLAG: он инвертирован (см. require_geo_enabled),
+    и там fail-closed означает противоположное — при нечитаемом флаге
+    считаем, что аварийная блокировка ВКЛЮЧЕНА, а не выключена.
     """
     if flag_key in _geo_flag_cache:
         return _geo_flag_cache[flag_key]
@@ -307,9 +333,72 @@ def geo_flag_enabled(flag_key: str) -> bool:
     return enabled
 
 
+def geo_kill_switch_active() -> bool:
+    """
+    Аварийный общий выключатель. is_enabled=true → блокировать ВСЁ.
+
+    Fail-closed здесь означает "считать блокировку включённой", то есть
+    противоположно обычному geo_flag_enabled: недоступность БД не должна
+    быть способом обойти аварийную остановку.
+    """
+    if GEO_KILL_SWITCH_FLAG in _geo_flag_cache:
+        return _geo_flag_cache[GEO_KILL_SWITCH_FLAG]
+    try:
+        conn = _connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f'SELECT is_enabled FROM {SCHEMA}.feature_flags WHERE flag_key = %s',
+                (GEO_KILL_SWITCH_FLAG,),
+            )
+            row = cur.fetchone()
+            # Флаг отсутствует в БД → трактуем как "не заблокировано"
+            # (нормальный режим до его создания), но ошибка чтения — как
+            # "заблокировано": порча БД не должна отключать защиту.
+            active = bool(row[0]) if row else False
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        print(f'[auth_guard] kill switch unreadable, treating as ACTIVE '
+              f'(fail-closed): {type(exc).__name__}')
+        active = True
+    _geo_flag_cache[GEO_KILL_SWITCH_FLAG] = active
+    return active
+
+
 def require_geo_enabled(flag_key: str = GEO_COLLECTION_FLAG) -> None:
-    """Отказ 503, а не 403: это не «вам нельзя», а «функция приостановлена»."""
+    """
+    Отказ 503, а не 403: это не «вам нельзя», а «функция приостановлена».
+
+    Kill switch проверяется ПЕРВЫМ и безусловно — он должен уметь
+    остановить геолокацию целиком одним изменением в БД, не дожидаясь
+    правок кода и не завися от состояния остальных geo-флагов.
+    """
+    if geo_kill_switch_active():
+        raise AuthError(503, 'GEOLOCATION_DISABLED')
     if not geo_flag_enabled(flag_key):
+        raise AuthError(503, 'GEOLOCATION_DISABLED')
+
+
+def require_geo_scope_for_subject(subject: Optional[Dict[str, Any]]) -> None:
+    """
+    Второй слой выключателя — по ВОЗРАСТУ субъекта, а не только по операции.
+
+    require_geo_enabled(GEO_COLLECTION_FLAG) отвечает на вопрос "сбор
+    вообще включён технически". Этот вызов отвечает на другой вопрос:
+    "включён ли сбор ИМЕННО ДЛЯ ЭТОГО субъекта" — совершеннолетнего или
+    несовершеннолетнего. Их запускают независимо: adult self-tracking
+    может быть в проде, пока minor остаётся выключенным.
+
+    Неизвестный возраст трактуется как несовершеннолетний субъект — то
+    есть строже: пока не установлено, что человек взрослый, доступ
+    идёт через minor-флаг (сейчас всегда выключен). Мягче в другую
+    сторону поступать нельзя: именно так ребёнок получил бы режим взрослого.
+    """
+    age = _member_age(subject)
+    is_adult = age is not None and age >= ADULT_AGE
+    flag = GEO_ADULT_SELF_FLAG if is_adult else GEO_MINOR_FLAG
+    if not geo_flag_enabled(flag):
         raise AuthError(503, 'GEOLOCATION_DISABLED')
 
 
@@ -410,10 +499,15 @@ def load_active_location_consent(subject_member_id: str) -> Optional[Dict[str, A
             cur.close()
             return None
         consent = dict(consent)
+        # status='active' — обязательное условие, а не только revoked_at
+        # IS NULL: получатель, добавленный не самим субъектом (например,
+        # представителем за ребёнка), сначала попадает в 'pending' и НЕ
+        # должен видеть координаты, пока субъект не подтвердит его явно.
         cur.execute(
             f"""SELECT recipient_member_id
                 FROM {SCHEMA}.location_consent_recipients
-                WHERE consent_id = %s AND revoked_at IS NULL""",
+                WHERE consent_id = %s AND status = 'active'
+                  AND revoked_at IS NULL""",
             (consent['id'],),
         )
         consent['recipients'] = [str(r['recipient_member_id']) for r in cur.fetchall()]
@@ -503,6 +597,19 @@ def require_location_consent(ctx: 'AuthContext', subject_member_id: Optional[str
                resource_type='location_consent', resource_id=str(consent['id']),
                subject_member_id=subject_member_id, http_status=403)
         raise AuthError(403, reason)
+
+    # Adult/minor разведены по отдельным флагам (см. блок выше): действующее
+    # согласие само по себе не означает, что этот КОНКРЕТНЫЙ сценарий сейчас
+    # включён в production. Проверяем на каждое обращение, а не один раз при
+    # выдаче согласия: возраст субъекта мог измениться, а флаг мог быть
+    # выключен позже (например, экстренно для minor-сценария).
+    try:
+        require_geo_scope_for_subject(subject)
+    except AuthError:
+        _audit(ctx, 'geolocation', operation, 'denied', 'GEOLOCATION_DISABLED',
+               resource_type='location_consent', resource_id=str(consent['id']),
+               subject_member_id=subject_member_id, http_status=503)
+        raise
 
     # Тумблер выключен: согласие ЖИВО, но сбор остановлен. Это разные
     # вещи, и путать их нельзя — выключение тумблера не отзыв согласия,
@@ -1384,7 +1491,17 @@ def accessible_subject_ids(ctx: AuthContext, module: str = 'health',
             consent = load_active_location_consent(member_id)
             if not consent:
                 continue
-            if not _consent_still_valid(consent, _load_member(member_id))[0]:
+            subject = _load_member(member_id)
+            if not _consent_still_valid(consent, subject)[0]:
+                continue
+            # Adult/minor-флаги: тот же второй слой выключателя, что и в
+            # require_location_consent. Без него списковый путь (карта
+            # маячка) расходился бы с одиночным (require_location_access) —
+            # например, отдавал бы координаты ребёнка при выключенном
+            # GEO_MINOR_FLAG, если бы кто-то вызвал только эту функцию.
+            try:
+                require_geo_scope_for_subject(subject)
+            except AuthError:
                 continue
             if member_id == ctx.member_id or ctx.member_id in (consent.get('recipients') or []):
                 allowed.add(member_id)

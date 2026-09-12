@@ -25,12 +25,30 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import type { LocationConsentStatus } from '@/hooks/useLocationConsent';
 
+export interface RecipientCandidate {
+  id: string;
+  name: string;
+}
+
 interface Props {
   status: LocationConsentStatus | null;
   submitting: boolean;
   onSetCollection: (enabled: boolean) => void;
   onRevoke: () => void;
   onRevokeRecipient?: (memberId: string) => void;
+  /**
+   * Добавление ПОСЛЕ первичной выдачи согласия — отдельное действие
+   * (backend/location-consent PUT add_recipient), а не пересоздание
+   * согласия. Если добавляет не сам субъект, получатель попадёт в
+   * 'pending' и не увидит координат, пока субъект его не подтвердит.
+   */
+  onAddRecipient?: (memberId: string) => void;
+  /** Подтвердить ожидающего получателя — доступно только субъекту. */
+  onConfirmRecipient?: (memberId: string) => void;
+  /** Кого можно предложить в получатели (обычно — остальные участники семьи). */
+  recipientCandidates?: RecipientCandidate[];
+  /** true, если текущий пользователь — сам субъект согласия. */
+  viewerIsSubject?: boolean;
 }
 
 function fmt(value?: string | null) {
@@ -47,8 +65,11 @@ function fmt(value?: string | null) {
 
 export default function LocationAccessPanel({
   status, submitting, onSetCollection, onRevoke, onRevokeRecipient,
+  onAddRecipient, onConfirmRecipient, recipientCandidates = [], viewerIsSubject = true,
 }: Props) {
   const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const [addingRecipient, setAddingRecipient] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState('');
 
   const consent = status?.consent;
   if (!consent) return null;
@@ -130,10 +151,12 @@ export default function LocationAccessPanel({
         </div>
 
         {/* Поимённый список. «Администраторы видят вас» — не ответ на
-            вопрос «кто меня видит». */}
+            вопрос «кто меня видит». Pending-получатели показаны отдельно:
+            субъект должен видеть, что кто-то предложил получателя, и что
+            он ещё НЕ видит координаты, пока это не подтверждено. */}
         <div>
           <p className="mb-2 text-sm font-semibold text-gray-900">
-            Получатели ({recipients.length})
+            Получатели ({recipients.filter((r) => r.status === 'active').length})
           </p>
           {recipients.length === 0 ? (
             <p className="rounded-lg border border-gray-200 p-3 text-sm text-gray-600">
@@ -145,34 +168,135 @@ export default function LocationAccessPanel({
               {recipients.map((r) => (
                 <div
                   key={r.member_id}
-                  className="flex items-start justify-between gap-3 rounded-lg border border-gray-200 p-3"
+                  className={`flex items-start justify-between gap-3 rounded-lg border p-3 ${
+                    r.awaiting_confirmation ? 'border-amber-300 bg-amber-50' : 'border-gray-200'
+                  }`}
                 >
                   <div className="text-sm">
-                    <p className="font-medium text-gray-900">{r.name || 'Участник'}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium text-gray-900">{r.name || 'Участник'}</p>
+                      {r.awaiting_confirmation && (
+                        <Badge className="border border-amber-300 bg-amber-100 text-amber-900">
+                          Ждёт вашего подтверждения
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-600">
-                      Основание: назван получателем в этом согласии
+                      {r.awaiting_confirmation
+                        ? 'Предложен получателем — координаты пока не видит.'
+                        : 'Основание: назван получателем в этом согласии'}
                     </p>
-                    <p className="text-xs text-gray-600">
-                      Может: видеть текущее местоположение
-                    </p>
+                    {!r.awaiting_confirmation && (
+                      <p className="text-xs text-gray-600">
+                        Может: видеть текущее местоположение
+                      </p>
+                    )}
                     <p className="text-xs text-gray-500">
-                      Доступ выдан: {fmt(r.granted_at)}
-                      {r.last_access ? ` · последний просмотр: ${fmt(r.last_access)}` : ' · ещё не смотрел'}
+                      {r.awaiting_confirmation ? 'Предложено' : 'Доступ выдан'}: {fmt(r.granted_at)}
+                      {!r.awaiting_confirmation
+                        && (r.last_access ? ` · последний просмотр: ${fmt(r.last_access)}` : ' · ещё не смотрел')}
                     </p>
                   </div>
-                  {onRevokeRecipient && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => onRevokeRecipient(r.member_id)}
-                      disabled={submitting}
-                    >
-                      Отозвать
-                    </Button>
-                  )}
+                  <div className="flex flex-shrink-0 flex-col gap-1">
+                    {r.awaiting_confirmation && viewerIsSubject && onConfirmRecipient && (
+                      <Button
+                        size="sm"
+                        onClick={() => onConfirmRecipient(r.member_id)}
+                        disabled={submitting}
+                      >
+                        Подтвердить
+                      </Button>
+                    )}
+                    {onRevokeRecipient && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => onRevokeRecipient(r.member_id)}
+                        disabled={submitting}
+                      >
+                        Отозвать
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Добавление получателя — отдельное действие, не пересоздание
+              согласия целиком. Список кандидатов сужен до тех, кто ещё
+              не назван получателем (активным или ожидающим). */}
+          {onAddRecipient && (
+            <div className="mt-3">
+              {addingRecipient ? (
+                (() => {
+                  const existingIds = new Set(recipients.map((r) => r.member_id));
+                  const available = recipientCandidates.filter((c) => !existingIds.has(c.id));
+                  return (
+                    <div className="rounded-lg border border-gray-200 p-3">
+                      {available.length === 0 ? (
+                        <p className="text-sm text-gray-600">
+                          Добавлять некого: все участники семьи уже названы получателями.
+                        </p>
+                      ) : (
+                        <>
+                          <select
+                            className="mb-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                            value={selectedCandidate}
+                            onChange={(e) => setSelectedCandidate(e.target.value)}
+                          >
+                            <option value="">Выберите участника…</option>
+                            {available.map((c) => (
+                              <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                          </select>
+                          {!viewerIsSubject && (
+                            <p className="mb-2 text-xs text-amber-700">
+                              Вы не субъект этого согласия, поэтому добавленный
+                              получатель сначала попадёт в статус «ожидает
+                              подтверждения» — координаты он увидит только
+                              после того, как субъект подтвердит это сам.
+                            </p>
+                          )}
+                        </>
+                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {available.length > 0 && (
+                          <Button
+                            size="sm"
+                            disabled={!selectedCandidate || submitting}
+                            onClick={() => {
+                              onAddRecipient(selectedCandidate);
+                              setSelectedCandidate('');
+                              setAddingRecipient(false);
+                            }}
+                          >
+                            Добавить
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => { setAddingRecipient(false); setSelectedCandidate(''); }}
+                        >
+                          Отмена
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAddingRecipient(true)}
+                  disabled={submitting}
+                >
+                  <Icon name="UserPlus" size={16} className="mr-2" />
+                  Добавить получателя
+                </Button>
+              )}
             </div>
           )}
         </div>

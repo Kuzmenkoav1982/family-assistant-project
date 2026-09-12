@@ -28,9 +28,28 @@ import useFamilyTracker from '@/hooks/useFamilyTracker';
 import RepresentativeDeclarationDialog from '@/components/family-tracker/RepresentativeDeclarationDialog';
 import BirthDateRequiredDialog from '@/components/family-tracker/BirthDateRequiredDialog';
 import LocationConsentDialog from '@/components/family-tracker/LocationConsentDialog';
+import { useFeatureFlag } from '@/hooks/useFeatureFlags';
 import func2url from '../../backend/func2url.json';
 
 const MEMBERS_URL = (func2url as Record<string, string>)['family-members'];
+
+/**
+ * Первая production-версия геолокации разрешает ТОЛЬКО совершеннолетнего,
+ * который включает передачу СВОЕГО местоположения (см. FamilyTracker.tsx).
+ * Детский сценарий сознательно оставлен выключенным: самодекларация
+ * представителя (self_declared, "человек заявил") пока не признана
+ * профильным юристом достаточным основанием для слежения за ребёнком.
+ *
+ * fallback=false у обоих флагов — намеренно fail-closed: если публичный
+ * эндпоинт флагов недоступен, страница должна считать функцию выключенной,
+ * а не молча разрешить прохождение шагов.
+ */
+function useChildGeoSectionEnabled(): boolean {
+  const minorEnabled = useFeatureFlag('geolocation_minor_collection_enabled', false);
+  // Kill switch инвертирован: is_enabled=true означает "всё заблокировано".
+  const killSwitchActive = useFeatureFlag('geolocation_emergency_kill_switch', true);
+  return minorEnabled && !killSwitchActive;
+}
 
 function getToken() {
   return localStorage.getItem('authToken') || localStorage.getItem('auth_token') || '';
@@ -40,6 +59,7 @@ export default function ChildLocationSetup() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const subjectId = params.get('member_id') || '';
+  const sectionEnabled = useChildGeoSectionEnabled();
 
   const rep = useLegalRepresentative(subjectId);
   const consent = useLocationConsent(subjectId || undefined);
@@ -169,7 +189,32 @@ export default function ChildLocationSetup() {
         backPath="/family-tracker"
         backgroundClass="bg-gradient-to-b from-blue-50 via-indigo-50/30 to-white dark:from-gray-950 dark:to-gray-900"
       >
-        {!subjectId && (
+        {!sectionEnabled && (
+          /* Раздел выключен конфигом (geolocation_minor_collection_enabled),
+             а не просто "не готов": честно показываем это первым экраном,
+             вместо того чтобы вести человека по трём шагам, ни один из
+             которых в итоге не приведёт к работающей геолокации ребёнка. */
+          <Card className="border-amber-300 bg-amber-50 shadow-md">
+            <CardContent className="flex items-start gap-4 p-5">
+              <Icon name="PauseCircle" size={22} className="mt-0.5 flex-shrink-0 text-amber-600" />
+              <div className="space-y-2 text-sm text-amber-900">
+                <p className="font-semibold">
+                  Передача местоположения детей пока недоступна
+                </p>
+                <p>
+                  Мы включили передачу местоположения только для взрослых
+                  участников, которые делятся собственными координатами
+                  (раздел «Семейный маячок»). Детский сценарий требует
+                  дополнительной юридической проверки того, что заявление
+                  представителя — достаточное основание для слежения за
+                  ребёнком, и пока не запущен.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {sectionEnabled && !subjectId && (
           <Card>
             <CardContent className="p-5 text-sm text-gray-700">
               Не выбран участник. Вернитесь в «Семейный маячок» и выберите
@@ -178,7 +223,7 @@ export default function ChildLocationSetup() {
           </Card>
         )}
 
-        {subjectId && (
+        {sectionEnabled && subjectId && (
           <>
             <Card className="border-blue-200 bg-blue-50 shadow-md">
               <CardContent className="flex items-start gap-4 p-5">
