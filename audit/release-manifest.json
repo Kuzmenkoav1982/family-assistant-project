@@ -84,6 +84,7 @@
     "health-vitals",
     "home-module",
     "image-optimizer",
+    "legal-representative",
     "leisure-ai",
     "life-road",
     "location-consent",
@@ -136,6 +137,20 @@
     "welcome-analytics",
     "yandex-maps-key"
   ],
+  "excluded_functions": [
+    {
+      "name": "generate-pricing-pdf",
+      "status": "excluded",
+      "reason": "Не входит в текущий релиз (гео-комплаенс). Никогда не была задеплоена (отсутствует в backend/func2url.json). Код остаётся в репозитории, но требует отдельного security-аудита (авторизация запуска, источник тарифных данных, S3 ACL/signed URL, лимиты размера/частоты, зависимости шрифтов) перед деплоем."
+    }
+  ],
+  "manifest_rules": "Каждая папка backend/* обязана попасть РОВНО в одну из трёх категорий: required_functions (deployable, обязана иметь рабочий URL после деплоя), excluded_functions (намеренно не деплоится, URL не требуется) или считается unknown. Категория unknown блокирует релиз — новая папка без явной классификации не может тихо остаться недеплоенной или тихо задеплоиться.",
+  "known_gaps": [
+    {
+      "name": "portfolio-collect",
+      "issue": "Числится в required_functions, но отсутствует в backend/func2url.json и не подхватывается инструментом деплоя (не появляется ни в deployed, ни в skipped при sync). Не вызывается из frontend (grep по src/ пуст) — вероятно, вызывается только вручную/из другой backend-функции по прямому URL, который нигде не сохранён. Требует отдельного решения человека: считать deployable (тогда нужен URL) или переклассифицировать в excluded. Не относится к гео-контуру, не блокирует текущий relise geo-compliance."
+    }
+  ],
   "critical_functions": [
     "admin-users",
     "auth",
@@ -163,7 +178,10 @@
     "health-telemedicine",
     "health-vaccinations",
     "health-vitals",
+    "legal-representative",
+    "location-consent",
     "location-history",
+    "location-retention-cron",
     "medication-intakes",
     "memory",
     "notifications-api",
@@ -173,5 +191,5 @@
     "upload-file",
     "user-management"
   ],
-  "total_expected": 133
+  "total_expected": 134
 }
