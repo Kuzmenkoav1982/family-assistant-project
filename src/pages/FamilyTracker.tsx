@@ -11,6 +11,7 @@ import MapSection from '@/components/family-tracker/MapSection';
 import MembersPanel from '@/components/family-tracker/MembersPanel';
 import AlertsPanel from '@/components/family-tracker/AlertsPanel';
 import LocationConsentDialog from '@/components/family-tracker/LocationConsentDialog';
+import LocationAccessPanel from '@/components/family-tracker/LocationAccessPanel';
 import useLocationConsent from '@/hooks/useLocationConsent';
 
 export default function FamilyTracker() {
@@ -37,11 +38,36 @@ export default function FamilyTracker() {
   };
 
   /**
-   * Отключение — это и остановка сбора, и отзыв согласия.
-   * Остановить сбор на одном устройстве недостаточно: разрешение
-   * обрабатывать данные должно прекратиться на сервере.
+   * ВЫКЛЮЧИТЬ ПЕРЕДАЧУ — не отзыв согласия.
+   *
+   * Раньше этот обработчик делал и то, и другое: тумблер отзывал
+   * согласие. Ошибка в обе стороны. Человек, выключивший передачу на
+   * ночь, разрешения обрабатывать данные не отзывал; а отзыв, спрятанный
+   * за тумблером, нельзя ни найти, ни совершить осознанно.
+   *
+   * Здесь: GPS гасится на устройстве немедленно, сервер помечает сбор
+   * выключенным, юридическая запись согласия остаётся.
    */
-  const handleStopTracking = async () => {
+  const handleStopCollection = async () => {
+    t.stopTracking();
+    await consent.setCollection(false);
+  };
+
+  /** Возобновление по действующему согласию — нового согласия не нужно. */
+  const handleResumeCollection = async () => {
+    const ok = await consent.setCollection(true);
+    if (ok) t.startTrackingAfterConsent(true);
+  };
+
+  const handleSetCollection = (enabled: boolean) =>
+    (enabled ? handleResumeCollection() : handleStopCollection());
+
+  /**
+   * ОТОЗВАТЬ СОГЛАСИЕ — отдельное, полное прекращение обработки.
+   * Сначала гасим сбор на устройстве, затем прекращаем основание
+   * на сервере: порядок важен, чтобы между шагами не ушла ни одна точка.
+   */
+  const handleRevokeConsent = async () => {
     t.stopTracking();
     await consent.revoke();
   };
@@ -129,7 +155,7 @@ export default function FamilyTracker() {
               setNewZoneRadius={t.setNewZoneRadius}
               geofences={t.geofences}
               onRequestTracking={() => setConsentOpen(true)}
-              stopTracking={handleStopTracking}
+              stopTracking={handleStopCollection}
               refreshMap={t.refreshMap}
               deleteGeofence={t.deleteGeofence}
               navigate={navigate}
@@ -137,6 +163,15 @@ export default function FamilyTracker() {
           </div>
 
           <div className="space-y-4">
+            {/* Прозрачность обязательна: пока человек не видит, кто
+                смотрит его перемещения, и не может это прекратить,
+                «управление доступом» существует только на словах. */}
+            <LocationAccessPanel
+              status={consent.status}
+              submitting={consent.submitting}
+              onSetCollection={handleSetCollection}
+              onRevoke={handleRevokeConsent}
+            />
             <MembersPanel familyMembers={t.familyMembers} locations={t.locations} />
             <AlertsPanel
               familyMembers={t.familyMembers}

@@ -63,9 +63,12 @@ export default function MapSection({
               Включить отслеживание
             </Button>
           ) : (
-            <Button onClick={stopTracking} variant="destructive">
+            /* «Выключить передачу» — именно передачу, а не согласие.
+               Отзыв согласия живёт отдельной кнопкой в блоке
+               «Кто видит местоположение»: это разные решения. */
+            <Button onClick={stopTracking} variant="outline">
               <Icon name="Pause" size={18} className="mr-2" />
-              Остановить отслеживание
+              Выключить передачу местоположения
             </Button>
           )}
           {!geolocationDisabled && (

@@ -31,9 +31,12 @@ from auth_guard import AuthError, SCHEMA
 ASSIGNABLE_ACCESS_ROLES = frozenset({'parent', 'guardian', 'viewer', 'child'})
 
 # Поля, которые клиент может изменить у участника.
+# age и birthDate сюда НЕ входят: возраст определяет, кто вправе дать
+# согласие на обработку геоданных, поэтому его правка — привилегированное
+# действие, а не рядовое редактирование карточки (см. _apply_age_change).
 EDITABLE_FIELDS = (
     'name', 'role', 'relationship', 'avatar', 'avatar_type',
-    'photo_url', 'points', 'level', 'workload', 'age', 'member_color',
+    'photo_url', 'points', 'level', 'workload', 'member_color',
 )
 
 # Поля, которые клиент не может задать НИКОГДА: они определяют личность,
@@ -229,7 +232,8 @@ def update_member(ctx, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
-            f"""SELECT id, family_id, user_id, access_role, member_status, profile_data
+            f"""SELECT id, family_id, user_id, access_role, member_status,
+                       profile_data, birth_date, age
                 FROM {SCHEMA}.family_members WHERE id = %s""",
             (member_id,),
         )
@@ -262,9 +266,9 @@ def update_member(ctx, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                 fields.append(f'{field} = %s')
                 params.append(data[field])
 
-        if 'birthDate' in data:
-            fields.append('birth_date = %s')
-            params.append(data['birthDate'] or None)
+        # Возраст и дата рождения: отдельная, защищённая ветка.
+        age_change = _apply_age_change(cur, ctx, target, data, fields, params)
+
         if 'birthTime' in data:
             fields.append('birth_time = %s')
             params.append(data['birthTime'] or None)
@@ -338,12 +342,21 @@ def update_member(ctx, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             f"""UPDATE {SCHEMA}.family_members SET {', '.join(fields)}
                 WHERE id = %s AND family_id = %s
                 RETURNING id, name, role, relationship, avatar, points, level,
-                          workload, birth_date, birth_time, account_type,
+                          workload, age, birth_date, birth_time, account_type,
                           access_role, member_status, permissions, profile_data,
                           member_color""",
             tuple(params),
         )
         member = cur.fetchone()
+
+        # Изменение возраста может выбить почву из-под уже выданного
+        # согласия. Делаем это в ТОЙ ЖЕ транзакции: иначе между записью
+        # новой даты и приостановкой сбора остаётся окно, в котором
+        # данные собираются по основанию, которого больше нет.
+        if age_change:
+            _revalidate_consent_after_age_change(cur, ctx, member_id,
+                                                 target, member, age_change)
+
         conn.commit()
         cur.close()
     except Exception:
@@ -357,6 +370,123 @@ def update_member(ctx, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
                      resource_type='family_member', resource_id=member_id,
                      subject_member_id=member_id)
     return {'success': True, 'member': dict(member)}
+
+
+def _age_band(age: Optional[int]) -> str:
+    """
+    Возрастная категория для модели согласия. Важна не сама дата, а
+    переход через границу: до 14 решает представитель, с 14 — сам субъект.
+    """
+    if age is None:
+        return 'unknown'
+    if age < ag.SELF_CONSENT_AGE:
+        return 'minor'
+    if age < ag.ADULT_AGE:
+        return 'teen'
+    return 'adult'
+
+
+def _apply_age_change(cur, ctx, target, data: Dict[str, Any],
+                      fields: List[str], params: List[Any]) -> Optional[Dict[str, Any]]:
+    """
+    Правка даты рождения и возраста — привилегированное действие.
+
+    Причина простая: возраст решает, кто вправе дать согласие за этого
+    человека. Если взрослый может свободно указать ребёнку «14 лет»,
+    правило о представительстве перестаёт что-либо значить, а если он
+    может занизить возраст подростку — тот теряет право решать сам.
+
+    Поэтому:
+        свою дату правит сам участник;
+        чужую — только тот, у кого есть право управлять участниками,
+        и только если у участника нет собственного аккаунта.
+    Человека с аккаунтом за него «состарить» или «омолодить» нельзя.
+    """
+    wants_birth_date = 'birthDate' in data
+    wants_age = 'age' in data
+    if not wants_birth_date and not wants_age:
+        return None
+
+    member_id = str(target['id'])
+    is_self = bool(ctx.member_id and member_id == ctx.member_id)
+
+    if not is_self:
+        ag.require_permission(ctx, 'family_members', 'update')
+        # У участника есть свой аккаунт — значит, он субъект решений
+        # о себе, и дату рождения за него не переписывают.
+        if target.get('user_id'):
+            ag.audit_denied(ctx, 'family_members', 'update',
+                            'BIRTH_DATE_CHANGE_DENIED',
+                            resource_type='family_member', resource_id=member_id,
+                            http_status=403)
+            raise AuthError(403, 'BIRTH_DATE_CHANGE_DENIED')
+
+    old_age = ag._member_age(dict(target))
+
+    if wants_birth_date:
+        fields.append('birth_date = %s')
+        params.append(data['birthDate'] or None)
+    if wants_age:
+        fields.append('age = %s')
+        params.append(data['age'])
+
+    return {
+        'old_age': old_age,
+        'old_birth_date': target.get('birth_date'),
+        'is_self': is_self,
+    }
+
+
+def _revalidate_consent_after_age_change(cur, ctx, member_id: str, target,
+                                         member, age_change: Dict[str, Any]) -> None:
+    """
+    После изменения возраста перепроверяем возрастную модель.
+
+    При смене возрастной категории действующее согласие приостанавливается
+    (сбор выключается), но НЕ удаляется: запись — доказательство того,
+    что согласие было. Возобновление требует нового решения того, кто
+    теперь вправе его принять.
+    """
+    new_age = ag._member_age(dict(member))
+    old_band = _age_band(age_change['old_age'])
+    new_band = _age_band(new_age)
+    band_changed = old_band != new_band
+
+    suspended = False
+    if band_changed:
+        cur.execute(
+            f"""UPDATE {SCHEMA}.location_consents
+                   SET collection_enabled = false,
+                       collection_disabled_at = NOW(),
+                       collection_disabled_by_user_id = %s,
+                       collection_disabled_reason = 'age_band_changed'
+                 WHERE subject_member_id = %s AND status = 'active'
+                   AND collection_enabled = true
+             RETURNING id""",
+            (ctx.user_id, member_id),
+        )
+        affected = [str(r['id']) for r in cur.fetchall()]
+        suspended = bool(affected)
+        for consent_id in affected:
+            ag.log_consent_event(
+                ctx, 'collection_disabled', consent_id=consent_id,
+                subject_member_id=member_id,
+                details={'reason': 'age_band_changed',
+                         'old_age': age_change['old_age'], 'new_age': new_age,
+                         'old_band': old_band, 'new_band': new_band,
+                         'new_consent_required': True})
+
+    cur.execute(
+        f"""INSERT INTO {SCHEMA}.member_birth_date_changes
+                (family_id, member_id, old_birth_date, new_birth_date,
+                 old_age, new_age, age_band_changed, consent_suspended,
+                 actor_user_id, actor_member_id, request_id, ip_hash)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+        (ctx.family_id, member_id, age_change['old_birth_date'],
+         member.get('birth_date'), age_change['old_age'], new_age,
+         band_changed, suspended, ctx.user_id, ctx.member_id,
+         ctx.request_id, ctx.ip_hash),
+    )
 
 
 def _is_owner_member(cur, target) -> bool:

@@ -23,8 +23,36 @@ export interface LocationConsentInfo {
   update_interval_seconds: number;
   data_scope: Record<string, unknown>;
   recipients: string[];
+  /**
+   * Сбор и согласие — РАЗНЫЕ состояния.
+   * collection_enabled=false означает «передача выключена», но согласие
+   * продолжает действовать. Отозванное согласие сюда вообще не попадает.
+   */
+  collection_enabled: boolean;
+  collection_disabled_at: string | null;
+  representation_id: string | null;
+  next_reminder_at: string | null;
   valid: boolean;
   invalid_reason: string | null;
+}
+
+export interface LocationRecipientDetail {
+  member_id: string;
+  name: string | null;
+  basis: string;
+  capabilities: string[];
+  granted_at: string | null;
+  last_access: string | null;
+}
+
+export interface RepresentationSummary {
+  id: string;
+  representative_member_id: string;
+  representative_name: string | null;
+  status: string;
+  /** Всегда 'self_declared' в первой версии: проверки документов нет. */
+  verification_level: 'self_declared' | 'externally_verified';
+  declared_at: string | null;
 }
 
 export interface LocationConsentStatus {
@@ -38,6 +66,8 @@ export interface LocationConsentStatus {
   retention_options: number[];
   default_retention_days: number;
   consent: LocationConsentInfo | null;
+  recipients_detail?: LocationRecipientDetail[];
+  representations?: RepresentationSummary[];
   recent_views?: Array<{
     viewer_member_id: string;
     access_kind: string;
@@ -123,7 +153,51 @@ export default function useLocationConsent(subjectMemberId?: string) {
     }
   }, [status, subjectMemberId, reload]);
 
-  /** Отзыв: один шаг, без уговоров и дополнительных подтверждений. */
+  /**
+   * Тумблер сбора. ЭТО НЕ ОТЗЫВ СОГЛАСИЯ.
+   *
+   * Выключение останавливает сбор координат, но юридическая запись
+   * согласия остаётся: человек, выключивший передачу, не отзывал
+   * разрешение обрабатывать данные. Для полного прекращения есть
+   * отдельное действие revoke().
+   */
+  const setCollection = useCallback(async (enabled: boolean): Promise<boolean> => {
+    if (!CONSENT_URL) return false;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(CONSENT_URL, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-Auth-Token': getToken() },
+        body: JSON.stringify({
+          subject_member_id: subjectMemberId || status?.subject_member_id,
+          collection_enabled: enabled,
+        }),
+      });
+      if (res.ok) {
+        await reload();
+        return true;
+      }
+      const body = await res.json().catch(() => ({}));
+      setError(body?.error || (enabled
+        ? 'Не удалось включить передачу местоположения.'
+        : 'Не удалось выключить передачу местоположения.'));
+      return false;
+    } catch {
+      setError('Нет соединения с сервером.');
+      return false;
+    } finally {
+      setSubmitting(false);
+    }
+  }, [status, subjectMemberId, reload]);
+
+  /**
+   * Полный отзыв согласия: один шаг, без уговоров.
+   *
+   * В отличие от setCollection(false), здесь прекращается само основание
+   * обработки — получатели теряют доступ, запускается удаление данных,
+   * следующее включение потребует нового согласия.
+   */
   const revoke = useCallback(async (): Promise<boolean> => {
     if (!CONSENT_URL) return false;
     setSubmitting(true);
@@ -152,6 +226,12 @@ export default function useLocationConsent(subjectMemberId?: string) {
   }, [status, subjectMemberId, reload]);
 
   const hasActiveConsent = Boolean(status?.consent?.valid);
+  // Сбор идёт, только когда есть действующее согласие И включён тумблер.
+  const isCollecting = hasActiveConsent && status?.consent?.collection_enabled !== false;
 
-  return { status, loading, submitting, error, hasActiveConsent, reload, grant, revoke };
+  return {
+    status, loading, submitting, error,
+    hasActiveConsent, isCollecting,
+    reload, grant, setCollection, revoke,
+  };
 }

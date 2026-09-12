@@ -1,0 +1,57 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Статус заявления без сессии → 401",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Заявление без сессии → 401 (анонимно представителем не заявишь)",
+      "method": "POST",
+      "path": "/",
+      "body": { "subject_member_id": "00000000-0000-0000-0000-000000000001", "declaration_accepted": true },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Отзыв заявления без сессии → 401",
+      "method": "DELETE",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Мусорный токен → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "X-User-Id не заменяет сессию → 401",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-User-Id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "body": { "subject_member_id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2", "declaration_accepted": true },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Заявление о чужом ребёнке без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "subject_member_id": "00000000-0000-0000-0000-000000000009", "declaration_accepted": true },
+      "expectedStatus": 401
+    },
+    {
+      "name": "PUT не поддерживается → 401 до разбора метода",
+      "method": "PUT",
+      "path": "/",
+      "expectedStatus": 401
+    }
+  ]
+}

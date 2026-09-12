@@ -1,7 +1,16 @@
 """
 Business: согласие на обработку данных о местоположении (152-ФЗ)
-Args: event с httpMethod GET/POST/DELETE, X-Auth-Token
-Returns: GET — статус и условия; POST — выдача согласия; DELETE — отзыв
+Args: event с httpMethod GET/POST/PATCH/DELETE, X-Auth-Token
+Returns: GET — статус; POST — выдача; PATCH — тумблер сбора; DELETE — отзыв
+
+ВЫКЛЮЧИТЬ СБОР ≠ ОТОЗВАТЬ СОГЛАСИЕ — это два разных действия:
+    PATCH  collection_enabled=false — сбор немедленно прекращается,
+           согласие остаётся действующим, включить обратно можно без
+           нового согласия;
+    DELETE — согласие отзывается, получатели теряют доступ, запускается
+           политика удаления, следующее включение требует нового согласия.
+Объединять их в один тумблер нельзя: тогда ни одно из двух решений
+человек не принимает осознанно.
 
 Почему отдельная функция, а не поле в настройках:
 согласие по ч.1.1 ст.9 152-ФЗ не может быть частью другого документа
@@ -56,6 +65,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 return _status(conn, ctx, event)
             if method == 'POST':
                 return _grant(conn, ctx, event)
+            if method == 'PATCH':
+                return _set_collection(conn, ctx, event)
             if method == 'DELETE':
                 return _revoke(conn, ctx, event)
             return ag.json_response({'error': 'Method not allowed'},
@@ -133,9 +144,31 @@ def _status(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
             'update_interval_seconds': consent.get('update_interval_seconds'),
             'data_scope': consent.get('data_scope'),
             'recipients': consent.get('recipients') or [],
+            # Сбор и согласие — разные состояния. Клиент обязан видеть
+            # оба: «выключено» не значит «отозвано».
+            'collection_enabled': bool(consent.get('collection_enabled', True)),
+            'collection_disabled_at': consent.get('collection_disabled_at'),
+            'representation_id': (str(consent['representation_id'])
+                                  if consent.get('representation_id') else None),
+            'next_reminder_at': consent.get('next_reminder_at'),
             'valid': valid,
             'invalid_reason': None if valid else reason,
         }
+        payload['recipients_detail'] = _recipients_detail(conn, str(consent['id']))
+
+    # Заявления о представительстве показываем как ЗАЯВЛЕНИЯ, без
+    # намёка на проверку: платформа их не проверяла.
+    payload['representations'] = [
+        {
+            'id': str(r['id']),
+            'representative_member_id': str(r['representative_member_id']),
+            'representative_name': r.get('representative_name'),
+            'status': r.get('status'),
+            'verification_level': r.get('verification_level'),
+            'declared_at': r.get('declared_at'),
+        }
+        for r in ag.list_representations(subject_id)
+    ]
 
     # Кто видел положение субъекта — показываем самому субъекту.
     # Прозрачность обязательна: без неё «управление доступом» на словах.
@@ -151,6 +184,116 @@ def _status(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
             payload['recent_views'] = [dict(r) for r in cur.fetchall()]
 
     return ag.json_response(payload, event=event)
+
+
+def _recipients_detail(conn, consent_id: str) -> list:
+    """
+    Кто конкретно может видеть местоположение: имя, основание, когда
+    выдано, когда смотрел в последний раз.
+
+    Показываем именно поимённый список, а не роли: «администраторы видят
+    вас» — это не ответ на вопрос «кто меня видит».
+    """
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(
+            f"""SELECT r.recipient_member_id, r.granted_at, m.name,
+                       (SELECT MAX(l.occurred_at)
+                          FROM {SCHEMA}.location_access_log l
+                         WHERE l.viewer_member_id = r.recipient_member_id
+                           AND l.subject_member_id = c.subject_member_id
+                       ) AS last_access
+                  FROM {SCHEMA}.location_consent_recipients r
+                  JOIN {SCHEMA}.location_consents c ON c.id = r.consent_id
+             LEFT JOIN {SCHEMA}.family_members m ON m.id = r.recipient_member_id
+                 WHERE r.consent_id = %s AND r.revoked_at IS NULL
+              ORDER BY r.granted_at""",
+            (consent_id,),
+        )
+        return [
+            {
+                'member_id': str(row['recipient_member_id']),
+                'name': row.get('name'),
+                # Основание всегда одно и то же и названо честно: доступ
+                # дан поимённо этим согласием, а не ролью в семье.
+                'basis': 'named_in_consent',
+                'capabilities': ['geolocation:read_current'],
+                'granted_at': row.get('granted_at'),
+                'last_access': row.get('last_access'),
+            }
+            for row in cur.fetchall()
+        ]
+
+
+def _set_collection(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Тумблер сбора. НЕ отзыв согласия.
+
+    Раньше выключение тумблера отзывало согласие — это ошибка в обе
+    стороны. Человек, выключивший передачу на ночь, не отзывал
+    разрешение обрабатывать данные; а отзыв, спрятанный за тумблером,
+    нельзя ни найти, ни осознанно совершить.
+
+    Здесь: выключение немедленно останавливает сбор, согласие остаётся
+    действующим, повторное включение возможно без нового согласия —
+    если его условия не изменились и оно не отозвано.
+    """
+    data = _body(event)
+    subject_id = str(data.get('subject_member_id') or ctx.member_id or '')
+    enabled = bool(data.get('collection_enabled'))
+
+    subject = ag._load_member(subject_id) if subject_id else None
+    if not subject or str(subject.get('family_id')) != ctx.family_id:
+        raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
+
+    consent = ag.load_active_location_consent(subject_id)
+    if not consent:
+        raise AuthError(403, 'LOCATION_CONSENT_REQUIRED')
+
+    is_self = ctx.member_id == subject_id
+    eligibility = ag.consent_eligibility(subject, ctx.member_id)
+
+    # ВЫКЛЮЧИТЬ вправе шире, чем включить: прекращение обработки не
+    # должно упираться в формальности. Достаточно быть субъектом или
+    # тем, кто это согласие выдал.
+    was_granter = str(consent.get('granted_by_member_id') or '') == str(ctx.member_id or '')
+    if enabled:
+        if not is_self and not eligibility.get('allowed'):
+            raise AuthError(403, eligibility.get('reason') or 'SUBJECT_ACCESS_DENIED')
+        # Возобновление сбора допустимо только по действующему согласию.
+        valid, reason = ag._consent_still_valid(consent, subject)
+        if not valid:
+            raise AuthError(403, reason)
+    elif not is_self and not was_granter and not eligibility.get('allowed'):
+        raise AuthError(403, 'SUBJECT_ACCESS_DENIED')
+
+    consent_id = str(consent['id'])
+    with conn.cursor() as cur:
+        cur.execute(
+            f"""UPDATE {SCHEMA}.location_consents
+                   SET collection_enabled = %s,
+                       collection_disabled_at = CASE WHEN %s THEN NULL ELSE NOW() END,
+                       collection_disabled_by_user_id = CASE WHEN %s THEN NULL ELSE %s END,
+                       collection_disabled_reason = CASE WHEN %s THEN NULL ELSE %s END
+                 WHERE id = %s""",
+            (enabled, enabled, enabled, ctx.user_id, enabled,
+             str(data.get('reason') or 'user_switched_off'), consent_id),
+        )
+
+    ag.log_consent_event(ctx, 'collection_enabled' if enabled else 'collection_disabled',
+                         consent_id=consent_id, subject_member_id=subject_id,
+                         text_version=consent.get('text_version'),
+                         details={'collection_enabled': enabled,
+                                  'reason': str(data.get('reason') or '')})
+
+    return ag.json_response({
+        'success': True,
+        'collection_enabled': enabled,
+        # Явно сообщаем, что согласие НЕ тронуто: вызывающий код не
+        # должен додумывать это сам.
+        'consent_status': 'active',
+        'consent_revoked': False,
+        'subject_member_id': subject_id,
+    }, event=event)
 
 
 def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
@@ -245,15 +388,19 @@ def _grant(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
                      granted_by_member_id, consent_role, subject_age_at_grant,
                      text_version, purpose, data_scope, retention_days,
                      update_interval_seconds, status, next_reminder_at,
+                     representation_id, collection_enabled,
                      ip_hash, user_agent_family)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, %s,
-                        'active', NOW() + {REMINDER_INTERVAL}, %s, %s)
+                        'active', NOW() + {REMINDER_INTERVAL}, %s, true, %s, %s)
                 RETURNING id""",
             (ctx.family_id, subject_id, ctx.user_id, ctx.member_id,
              eligibility.get('required_role') or 'self', age,
              text['version'],
              'Показывать местоположение выбранным участникам семьи',
              json.dumps(data_scope), retention, interval,
+             # Согласие представителя всегда привязано к его заявлению:
+             # отозвал заявление — согласие теряет основание.
+             eligibility.get('representation_id'),
              ctx.ip_hash, ctx.user_agent_family),
         )
         consent_id = str(cur.fetchone()['id'])
@@ -336,7 +483,9 @@ def _revoke(conn, ctx: ag.AuthContext, event: Dict[str, Any]) -> Dict[str, Any]:
         cur.execute(
             f"""UPDATE {SCHEMA}.location_consents
                    SET status = 'revoked', revoked_at = NOW(),
-                       revoked_by_user_id = %s, revoke_reason = %s
+                       revoked_by_user_id = %s, revoke_reason = %s,
+                       collection_enabled = false,
+                       collection_disabled_at = NOW()
                  WHERE id = %s""",
             (ctx.user_id, str(data.get('reason') or 'user_revoked'), consent_id),
         )

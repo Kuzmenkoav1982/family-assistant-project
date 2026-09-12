@@ -139,6 +139,7 @@ const MemberProfile = lazy(() => import("./pages/MemberProfile"));
 const PermissionsManagement = lazy(() => import("./pages/PermissionsManagement"));
 const Community = lazy(() => import("./pages/Community"));
 const LocationHistory = lazy(() => import("./pages/LocationHistory"));
+const ChildLocationSetup = lazy(() => import("./pages/ChildLocationSetup"));
 
 // ─── Family Code / Matrix ──────────────────────────────────────────────────
 const FamilyCode = lazy(() => import("./pages/FamilyCode"));
@@ -592,6 +593,7 @@ const App = () => {
                       {/* SEC-1.2a: HIGH-risk (геолокация, личная аналитика, настройки). */}
                       <Route path="/family-tracker" element={<ProtectedRoute><FamilyTracker /></ProtectedRoute>} />
                       <Route path="/location-history" element={<ProtectedRoute><LocationHistory /></ProtectedRoute>} />
+                      <Route path="/child-location-setup" element={<ProtectedRoute><ChildLocationSetup /></ProtectedRoute>} />
                       <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
                       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                       <Route path="/account-actions" element={<ProtectedRoute><AccountActions /></ProtectedRoute>} />

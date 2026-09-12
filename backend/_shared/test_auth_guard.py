@@ -47,6 +47,9 @@ FAMILY_A = '11111111-1111-1111-1111-111111111111'
 FAMILY_B = '22222222-2222-2222-2222-222222222222'
 MEMBER_SELF = 'aaaaaaaa-0000-0000-0000-000000000001'
 MEMBER_CHILD = 'aaaaaaaa-0000-0000-0000-000000000002'
+# id заявления о представительстве должен быть настоящим UUID:
+# auth_guard отвергает не-UUID до обращения к БД (fail-closed).
+REP_ID = 'bbbbbbbb-0000-0000-0000-000000000001'
 MEMBER_OTHER_ADULT = 'aaaaaaaa-0000-0000-0000-000000000003'
 MEMBER_FOREIGN = 'bbbbbbbb-0000-0000-0000-000000000009'
 MEMBER_DUPLICATE = 'aaaaaaaa-0000-0000-0000-000000000004'
@@ -116,7 +119,26 @@ class FakeCursor:
             recipients = CONSENT_RECIPIENTS.get(params[0], []) if params else []
             self._rows = [{'recipient_member_id': r} for r in recipients]
         elif 'FROM t_p5815085_family_assistant_pro.legal_representatives' in q:
-            self._rows = [{'ok': 1}] if tuple(params) in LEGAL_REPS else []
+            # Заявление о представительстве: самодекларация, не проверка.
+            # verification_level намеренно НЕ 'verified' — платформа
+            # документы не проверяла и не вправе это утверждать.
+            if 'WHERE id = ' in q or 'WHERE r.id' in q:
+                rep_id = params[0] if params else None
+                self._rows = [{'ok': 1}] if (rep_id == REP_ID and LEGAL_REPS) else []
+            else:
+                key = tuple(params) if params else ()
+                self._rows = [{
+                    'id': REP_ID,
+                    'family_id': FAMILY_A,
+                    'representative_member_id': key[0],
+                    'representative_user_id': None,
+                    'dependent_member_id': key[1],
+                    'status': 'declared',
+                    'verification_level': 'self_declared',
+                    'declaration_text_version': '2026-09-12.r1',
+                    'declared_at': None,
+                    'revoked_at': None,
+                }] if key in LEGAL_REPS else []
         elif 'INSERT INTO t_p5815085_family_assistant_pro.location_consent_events' in q:
             CONSENT_EVENTS.append(params)
             self._rows = []
@@ -177,6 +199,13 @@ def give_consent(subject, recipients=(), role='self', retention_days=7,
         'update_interval_seconds': 600,
         'data_scope': {},
         'granted_at': None,
+        # Сбор и согласие — разные состояния: по умолчанию согласие
+        # действует и сбор включён, но одно можно выключить без другого.
+        'collection_enabled': True,
+        'collection_disabled_at': None,
+        'representation_id': None,
+        'next_reminder_at': None,
+        'granted_by_member_id': None,
     }
     CONSENT_RECIPIENTS[consent_id] = list(recipients)
 
@@ -561,19 +590,79 @@ def main():
           lambda: ag.require_location_access(unknown_age_ctx, MEMBER_CHILD), 403)
 
     # 6. Кто вправе давать согласие — решает сервер.
+    # 6a. Роль сама по себе представительства не создаёт.
+    # Это главная защита: access_role в этой БД смешивает семейное
+    # отношение и полномочие, поэтому admin/parent ничего не доказывает.
     MEMBERS[MEMBER_CHILD]['age'] = 9
+    LEGAL_REPS.discard((MEMBER_SELF, MEMBER_CHILD))
     elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
-    ok = not elig['allowed'] and elig['reason'] == 'LEGAL_REPRESENTATIVE_NOT_CONFIRMED'
-    results.append((ok, 'за ребёнка 9 лет: роль admin без подтверждённого представительства → отказ',
+    ok = not elig['allowed'] and elig['reason'] == 'REPRESENTATION_NOT_DECLARED'
+    results.append((ok, 'за ребёнка 9 лет: роль admin без заявления → отказ',
                     'ok' if ok else str(elig)))
 
     LEGAL_REPS.add((MEMBER_SELF, MEMBER_CHILD))
     elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
-    ok = elig['allowed'] and elig['required_role'] == 'legal_representative'
-    results.append((ok, 'за ребёнка 9 лет: подтверждённый представитель → разрешено',
+    ok = (elig['allowed'] and elig['required_role'] == 'legal_representative'
+          and elig['verification_level'] == 'self_declared')
+    results.append((ok, 'за ребёнка 9 лет: заявивший представитель → разрешено, уровень self_declared',
                     'ok' if ok else str(elig)))
 
+    # 6b. Самодекларация НИКОГДА не должна выдавать себя за проверку.
+    ok = elig.get('verification_level') != 'verified'
+    results.append((ok, 'простая галочка не даёт уровень verified',
+                    'ok' if ok else str(elig)))
+
+    # 6c. Несовершеннолетний заявитель не может представлять никого.
+    MEMBERS[MEMBER_SELF]['age'] = 16
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = not elig['allowed'] and elig['reason'] == 'REPRESENTATIVE_NOT_ADULT'
+    results.append((ok, 'несовершеннолетний заявитель → отказ даже при наличии заявления',
+                    'ok' if ok else str(elig)))
+
+    # 6d. Неизвестный возраст заявителя — тоже отказ, а не «наверное взрослый».
+    MEMBERS[MEMBER_SELF].pop('age', None)
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = not elig['allowed'] and elig['reason'] == 'REPRESENTATIVE_AGE_UNKNOWN'
+    results.append((ok, 'неизвестный возраст заявителя → отказ',
+                    'ok' if ok else str(elig)))
+    MEMBERS[MEMBER_SELF]['age'] = 40
+
+    # 6e. Право ЗАЯВИТЬ проверяется отдельно от права дать согласие.
+    rep_elig = ag.representation_eligibility(MEMBERS[MEMBER_SELF], MEMBERS[MEMBER_CHILD])
+    ok = rep_elig['allowed'] and rep_elig['verification_level'] == 'self_declared'
+    results.append((ok, 'взрослый вправе заявить о представительстве ребёнка 9 лет',
+                    'ok' if ok else str(rep_elig)))
+
+    rep_elig = ag.representation_eligibility(MEMBERS[MEMBER_SELF], MEMBERS[MEMBER_SELF])
+    ok = not rep_elig['allowed'] and rep_elig['reason'] == 'REPRESENTATION_SELF_DENIED'
+    results.append((ok, 'нельзя заявить представительство над самим собой',
+                    'ok' if ok else str(rep_elig)))
+
+    rep_elig = ag.representation_eligibility(MEMBERS[MEMBER_SELF], MEMBERS[MEMBER_FOREIGN])
+    ok = not rep_elig['allowed'] and rep_elig['reason'] == 'CROSS_FAMILY_ACCESS'
+    results.append((ok, 'заявление о ребёнке чужой семьи → безопасный отказ',
+                    'ok' if ok else str(rep_elig)))
+
     MEMBERS[MEMBER_CHILD]['age'] = 15
+    rep_elig = ag.representation_eligibility(MEMBERS[MEMBER_SELF], MEMBERS[MEMBER_CHILD])
+    ok = not rep_elig['allowed'] and rep_elig['reason'] == 'SUBJECT_IS_NOT_MINOR'
+    results.append((ok, 'заявление о подростке 15 лет → отказ, он решает сам',
+                    'ok' if ok else str(rep_elig)))
+
+    MEMBERS[MEMBER_CHILD].pop('age', None)
+    rep_elig = ag.representation_eligibility(MEMBERS[MEMBER_SELF], MEMBERS[MEMBER_CHILD])
+    ok = not rep_elig['allowed'] and rep_elig['reason'] == 'SUBJECT_AGE_UNKNOWN'
+    results.append((ok, 'заявление при неизвестном возрасте ребёнка → отказ',
+                    'ok' if ok else str(rep_elig)))
+
+    # 6f. Подросток 14+ решает сам; без своего аккаунта функция не включается.
+    MEMBERS[MEMBER_CHILD]['age'] = 15
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = not elig['allowed'] and elig['reason'] == 'SUBJECT_HAS_NO_ACCOUNT'
+    results.append((ok, 'подросток 15 лет без аккаунта: включить некому → отказ',
+                    'ok' if ok else str(elig)))
+
+    MEMBERS[MEMBER_CHILD]['user_id'] = 'teen-user'
     elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
     ok = not elig['allowed'] and elig['reason'] == 'SELF_CONSENT_ONLY'
     results.append((ok, 'за подростка 15 лет представитель согласие дать не может',
@@ -583,12 +672,80 @@ def main():
     ok = elig['allowed'] and elig['required_role'] == 'self'
     results.append((ok, 'подросток 15 лет вправе дать согласие сам',
                     'ok' if ok else str(elig)))
+    MEMBERS[MEMBER_CHILD]['user_id'] = None
 
     MEMBERS[MEMBER_CHILD].pop('age', None)
     elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
-    ok = not elig['allowed'] and elig['reason'] == 'LOCATION_AGE_UNKNOWN'
+    ok = not elig['allowed'] and elig['reason'] == 'SUBJECT_AGE_UNKNOWN'
     results.append((ok, 'возраст неизвестен → согласие дать нельзя никому',
                     'ok' if ok else str(elig)))
+
+    # 6g. Выключенный тумблер останавливает СБОР, но согласие живо.
+    MEMBERS[MEMBER_CHILD]['age'] = 9
+    clear_consents()
+    give_consent(MEMBER_SELF, recipients=[MEMBER_OTHER_ADULT], role='self')
+    CONSENTS[MEMBER_SELF]['collection_enabled'] = False
+    paused_ctx, _ = ctx_for('tok-admin')
+    check('тумблер выключен: запись новой точки → 403',
+          lambda: ag.require_location_consent(paused_ctx, MEMBER_SELF,
+                                              operation=ag.GEO_OP_COLLECT), 403)
+    valid, reason = ag._consent_still_valid(CONSENTS[MEMBER_SELF],
+                                            MEMBERS[MEMBER_SELF])
+    ok = valid
+    results.append((ok, 'тумблер выключен, но согласие остаётся действующим',
+                    'ok' if ok else reason))
+    CONSENTS[MEMBER_SELF]['collection_enabled'] = True
+
+    # 6h. Заявление о представительстве НИЧЕГО не включает само по себе.
+    # Ни GPS, ни согласия, ни права смотреть координаты: это разные
+    # решения, и объединять их нельзя.
+    clear_consents()
+    LEGAL_REPS.add((MEMBER_SELF, MEMBER_CHILD))
+    MEMBERS[MEMBER_CHILD]['age'] = 9
+    declarer_ctx, _ = ctx_for('tok-admin')
+    check('заявление не создаёт согласия: сбор за ребёнка → 403',
+          lambda: ag.require_location_consent(declarer_ctx, MEMBER_CHILD,
+                                              operation=ag.GEO_OP_COLLECT), 403)
+    check('заявление не даёт права смотреть координаты ребёнка → 403',
+          lambda: ag.require_location_access(declarer_ctx, MEMBER_CHILD), 403)
+    subs = ag.accessible_subject_ids(declarer_ctx, 'geolocation', action='read')
+    ok = MEMBER_CHILD not in subs
+    results.append((ok, 'заявление не добавляет ребёнка в список видимых',
+                    'ok' if ok else str(subs)))
+
+    # 6i. Отзыв заявления обесценивает согласие, стоявшее на нём.
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF],
+                 role='legal_representative')
+    CONSENTS[MEMBER_CHILD]['representation_id'] = REP_ID
+    valid, _ = ag._consent_still_valid(CONSENTS[MEMBER_CHILD], MEMBERS[MEMBER_CHILD])
+    results.append((valid, 'согласие представителя действует, пока заявление живо',
+                    'ok' if valid else 'согласие сочтено недействительным'))
+
+    LEGAL_REPS.discard((MEMBER_SELF, MEMBER_CHILD))
+    valid, reason = ag._consent_still_valid(CONSENTS[MEMBER_CHILD], MEMBERS[MEMBER_CHILD])
+    ok = not valid and reason == 'REPRESENTATION_REVOKED'
+    results.append((ok, 'отзыв заявления прекращает согласие, выданное на его основании',
+                    'ok' if ok else f'{valid} {reason}'))
+
+    # 6j. Взросление: согласие представителя перестаёт действовать в 14,
+    # даже если формально осталось 'active' в БД.
+    LEGAL_REPS.add((MEMBER_SELF, MEMBER_CHILD))
+    MEMBERS[MEMBER_CHILD]['age'] = 14
+    valid, reason = ag._consent_still_valid(CONSENTS[MEMBER_CHILD], MEMBERS[MEMBER_CHILD])
+    ok = not valid and reason == 'LOCATION_CONSENT_AGE_OUTGROWN'
+    results.append((ok, 'ребёнку исполнилось 14: согласие представителя прекращается',
+                    'ok' if ok else f'{valid} {reason}'))
+
+    # 6k. Неизвестный возраст после правки данных — тоже стоп.
+    MEMBERS[MEMBER_CHILD].pop('age', None)
+    valid, reason = ag._consent_still_valid(CONSENTS[MEMBER_CHILD], MEMBERS[MEMBER_CHILD])
+    ok = not valid and reason == 'SUBJECT_AGE_UNKNOWN'
+    results.append((ok, 'возраст стал неизвестен → согласие недействительно',
+                    'ok' if ok else f'{valid} {reason}'))
+
+    MEMBERS[MEMBER_CHILD]['age'] = 9
+    LEGAL_REPS.discard((MEMBER_SELF, MEMBER_CHILD))
+    clear_consents()
 
     # 7. Массовый список фильтруется по согласию так же, как одиночный путь.
     MEMBERS[MEMBER_CHILD]['age'] = 9

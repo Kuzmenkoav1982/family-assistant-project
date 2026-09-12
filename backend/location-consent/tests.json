@@ -52,6 +52,20 @@
       "method": "PUT",
       "path": "/",
       "expectedStatus": 401
+    },
+    {
+      "name": "Выключение сбора без сессии → 401",
+      "method": "PATCH",
+      "path": "/",
+      "body": { "collection_enabled": false },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Включение сбора без сессии → 401 (тумблер не обходит согласие)",
+      "method": "PATCH",
+      "path": "/",
+      "body": { "collection_enabled": true },
+      "expectedStatus": 401
     }
   ]
 }

@@ -337,6 +337,27 @@ def require_geo_enabled(flag_key: str = GEO_COLLECTION_FLAG) -> None:
 
 SELF_CONSENT_AGE = 14
 
+# Заявить о представительстве может только совершеннолетний.
+ADULT_AGE = 18
+
+# Уровни достоверности представительства. Разница между ними —
+# не формальность, а граница того, что платформа вправе утверждать.
+#
+#   self_declared       — человек ЗАЯВИЛ, что он представитель.
+#                         Документы не проверялись. Платформа не знает,
+#                         правда ли это, и не должна говорить, что знает.
+#   externally_verified — зарезервировано под документальную/внешнюю
+#                         проверку. Ни один код сейчас его НЕ выдаёт.
+#
+# Слово 'verified' для простой галочки запрещено намеренно: интерфейс,
+# который называет самодекларацию проверкой, вводит в заблуждение и
+# самого пользователя, и того, кто позже будет разбирать инцидент.
+VERIFICATION_SELF_DECLARED = 'self_declared'
+VERIFICATION_EXTERNAL = 'externally_verified'
+
+# Статусы, при которых заявление действует.
+ACTIVE_REPRESENTATION_STATUSES = ('declared', 'confirmed')
+
 # Операции над геоданными, требующие согласия.
 GEO_OP_COLLECT = 'collect'   # записать новую точку
 GEO_OP_VIEW = 'view'         # посмотреть положение/историю
@@ -376,7 +397,9 @@ def load_active_location_consent(subject_member_id: str) -> Optional[Dict[str, A
         cur.execute(
             f"""SELECT id, family_id, subject_member_id, consent_role,
                        subject_age_at_grant, text_version, retention_days,
-                       update_interval_seconds, data_scope, granted_at
+                       update_interval_seconds, data_scope, granted_at,
+                       collection_enabled, collection_disabled_at,
+                       representation_id, next_reminder_at, granted_by_member_id
                 FROM {SCHEMA}.location_consents
                 WHERE subject_member_id = %s AND status = 'active'
                 LIMIT 1""",
@@ -412,10 +435,40 @@ def _consent_still_valid(consent: Dict[str, Any], subject: Optional[Dict[str, An
     """
     age = _member_age(subject)
     if age is None:
-        return False, 'LOCATION_AGE_UNKNOWN'
-    if consent.get('consent_role') == 'legal_representative' and age >= SELF_CONSENT_AGE:
-        return False, 'LOCATION_CONSENT_AGE_OUTGROWN'
+        return False, 'SUBJECT_AGE_UNKNOWN'
+    if consent.get('consent_role') == 'legal_representative':
+        if age >= SELF_CONSENT_AGE:
+            return False, 'LOCATION_CONSENT_AGE_OUTGROWN'
+        # Отзыв заявления о представительстве обесценивает согласие,
+        # выданное на его основании: оснований решать за ребёнка больше нет.
+        rep_id = consent.get('representation_id')
+        if rep_id and not _representation_active(str(rep_id)):
+            return False, 'REPRESENTATION_REVOKED'
     return True, 'CONSENT_VALID'
+
+
+def _representation_active(representation_id: str) -> bool:
+    """Fail-closed: нечитаемая запись считается недействующей."""
+    if not _is_uuid(representation_id):
+        return False
+    try:
+        conn = _connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f"""SELECT 1 FROM {SCHEMA}.legal_representatives
+                     WHERE id = %s AND revoked_at IS NULL
+                       AND status IN ('declared', 'confirmed')""",
+                (representation_id,),
+            )
+            found = cur.fetchone() is not None
+            cur.close()
+            return found
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        print(f'[auth_guard] representation unreadable: {type(exc).__name__}')
+        return False
 
 
 def require_location_consent(ctx: 'AuthContext', subject_member_id: Optional[str],
@@ -451,6 +504,17 @@ def require_location_consent(ctx: 'AuthContext', subject_member_id: Optional[str
                subject_member_id=subject_member_id, http_status=403)
         raise AuthError(403, reason)
 
+    # Тумблер выключен: согласие ЖИВО, но сбор остановлен. Это разные
+    # вещи, и путать их нельзя — выключение тумблера не отзыв согласия,
+    # а отзыв согласия не «временная пауза». Запись новой точки при
+    # выключенном тумблере запрещена; чтение ранее собранного — нет,
+    # поскольку основание для его хранения не исчезло.
+    if operation == GEO_OP_COLLECT and not consent.get('collection_enabled', True):
+        _audit(ctx, 'geolocation', operation, 'denied', 'LOCATION_COLLECTION_PAUSED',
+               resource_type='location_consent', resource_id=str(consent['id']),
+               subject_member_id=subject_member_id, http_status=403)
+        raise AuthError(403, 'LOCATION_COLLECTION_PAUSED')
+
     # Просмотр чужого положения требует, чтобы субъект назвал смотрящего
     # получателем. Согласие «собирать» не равно согласию «показывать всем».
     if operation == GEO_OP_VIEW and ctx.member_id != subject_member_id:
@@ -463,18 +527,146 @@ def require_location_consent(ctx: 'AuthContext', subject_member_id: Optional[str
     return consent
 
 
+def load_representation(representative_member_id: str,
+                        subject_member_id: str) -> Optional[Dict[str, Any]]:
+    """Действующее заявление конкретного человека о конкретном ребёнке."""
+    if not _is_uuid(representative_member_id) or not _is_uuid(subject_member_id):
+        return None
+    conn = _connect()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""SELECT id, family_id, representative_member_id,
+                       representative_user_id, dependent_member_id,
+                       status, verification_level, declaration_text_version,
+                       declared_at, revoked_at
+                  FROM {SCHEMA}.legal_representatives
+                 WHERE representative_member_id = %s
+                   AND dependent_member_id = %s
+                 LIMIT 1""",
+            (str(representative_member_id), str(subject_member_id)),
+        )
+        row = cur.fetchone()
+        cur.close()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def list_representations(subject_member_id: str) -> List[Dict[str, Any]]:
+    """
+    Все заявления о представительстве этого ребёнка.
+
+    Представителей может быть несколько, и каждый заявляет за себя.
+    Список нужен, чтобы показать это честно и чтобы конфликт между
+    ними разрешался явно, а не тем, кто нажал кнопку последним.
+    """
+    if not _is_uuid(subject_member_id):
+        return []
+    conn = _connect()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""SELECT r.id, r.representative_member_id, r.representative_user_id,
+                       r.status, r.verification_level, r.declaration_text_version,
+                       r.declared_at, r.revoked_at, m.name AS representative_name
+                  FROM {SCHEMA}.legal_representatives r
+             LEFT JOIN {SCHEMA}.family_members m
+                    ON m.id = r.representative_member_id
+                 WHERE r.dependent_member_id = %s
+              ORDER BY r.declared_at DESC NULLS LAST""",
+            (str(subject_member_id),),
+        )
+        rows = [dict(r) for r in cur.fetchall()]
+        cur.close()
+        return rows
+    finally:
+        conn.close()
+
+
+def representation_eligibility(actor: Optional[Dict[str, Any]],
+                               subject: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Вправе ли этот человек СДЕЛАТЬ заявление о представительстве.
+
+    Заявление — не проверка, но и не свободная форма: заявлять может
+    только взрослый активный участник той же семьи о ребёнке младше 14.
+    Роль owner/admin/parent здесь не проверяется вовсе — она ничего
+    не доказывает (V0376 выдала роль 'parent' 12-летнему участнику).
+
+    Возвращает: allowed, reason, verification_level (что получится
+    в результате — всегда self_declared).
+    """
+    result = {'allowed': False, 'reason': 'REPRESENTATION_NOT_DECLARED',
+              'verification_level': VERIFICATION_SELF_DECLARED}
+
+    if not actor or not subject:
+        return result
+
+    actor_id = str(actor.get('id'))
+    subject_id = str(subject.get('id'))
+
+    if actor_id == subject_id:
+        result['reason'] = 'REPRESENTATION_SELF_DENIED'
+        return result
+
+    if str(actor.get('family_id')) != str(subject.get('family_id')):
+        result['reason'] = 'CROSS_FAMILY_ACCESS'
+        return result
+
+    # Запись на разборе дубликатов или помеченная к удалению не может
+    # быть источником юридически значимого заявления.
+    if (actor.get('member_status') or 'active') != 'active':
+        result['reason'] = 'MEMBER_INACTIVE'
+        return result
+    if (subject.get('member_status') or 'active') != 'active':
+        result['reason'] = 'SUBJECT_NOT_ACTIVE'
+        return result
+
+    # Возраст обеих сторон обязателен. Неизвестный возраст — это «не
+    # знаем», а не «взрослый»: именно так ребёнок получает режим взрослого.
+    actor_age = _member_age(actor)
+    if actor_age is None:
+        result['reason'] = 'REPRESENTATIVE_AGE_UNKNOWN'
+        return result
+    if actor_age < ADULT_AGE:
+        result['reason'] = 'REPRESENTATIVE_NOT_ADULT'
+        return result
+
+    subject_age = _member_age(subject)
+    if subject_age is None:
+        result['reason'] = 'SUBJECT_AGE_UNKNOWN'
+        return result
+    if subject_age >= SELF_CONSENT_AGE:
+        # С 14 лет решает сам подросток, представлять его в этом вопросе
+        # не нужно и нельзя.
+        result['reason'] = 'SUBJECT_IS_NOT_MINOR'
+        return result
+
+    return {'allowed': True, 'reason': 'OK',
+            'verification_level': VERIFICATION_SELF_DECLARED}
+
+
 def consent_eligibility(subject: Optional[Dict[str, Any]],
                         actor_member_id: Optional[str]) -> Dict[str, Any]:
     """
     Кто вправе дать согласие за этого субъекта. Используется UI и API
     выдачи согласия, чтобы решение принималось на сервере, а не на клиенте.
 
-    Возвращает: allowed (bool), required_role, reason.
+    Возвращает: allowed, required_role, reason, а также verification_level
+    и representation_id — чтобы вызывающий код мог записать, НА КАКОМ
+    заявлении основано согласие, и чтобы UI не выдавал самодекларацию
+    за проверенный статус.
     """
+    base = {'allowed': False, 'required_role': None, 'reason': 'LOCATION_AGE_UNKNOWN',
+            'verification_level': None, 'representation_id': None}
+
     age = _member_age(subject)
     if age is None:
-        return {'allowed': False, 'required_role': None,
-                'reason': 'LOCATION_AGE_UNKNOWN'}
+        # Возраст неизвестен — не включаем ничего. Следующий шаг для
+        # пользователя: указать дату рождения, а не «попробовать ещё раз».
+        base['reason'] = 'SUBJECT_AGE_UNKNOWN'
+        return base
 
     subject_id = str(subject.get('id')) if subject else None
     is_self = actor_member_id is not None and actor_member_id == subject_id
@@ -482,35 +674,88 @@ def consent_eligibility(subject: Optional[Dict[str, Any]],
     if age >= SELF_CONSENT_AGE:
         # С 14 лет решает только сам субъект. Родитель может прислать
         # запрос, но не подтвердить его за подростка.
-        return {'allowed': is_self, 'required_role': 'self',
-                'reason': 'SELF_CONSENT_ONLY' if not is_self else 'OK'}
+        if is_self:
+            return {'allowed': True, 'required_role': 'self', 'reason': 'OK',
+                    'verification_level': None, 'representation_id': None}
+        # У подростка может вовсе не быть своего аккаунта. Тогда функция
+        # не включается — за него её включить некому.
+        has_account = bool(subject.get('user_id'))
+        base['required_role'] = 'self'
+        base['reason'] = 'SELF_CONSENT_ONLY' if has_account else 'SUBJECT_HAS_NO_ACCOUNT'
+        return base
 
-    # Младше 14: нужен ПОДТВЕРЖДЁННЫЙ законный представитель.
+    # Младше 14: нужно заявление о представительстве.
+    base['required_role'] = 'legal_representative'
     if is_self:
-        return {'allowed': False, 'required_role': 'legal_representative',
-                'reason': 'REPRESENTATIVE_CONSENT_REQUIRED'}
+        base['reason'] = 'REPRESENTATIVE_CONSENT_REQUIRED'
+        return base
     if not actor_member_id or not subject_id:
-        return {'allowed': False, 'required_role': 'legal_representative',
-                'reason': 'REPRESENTATIVE_CONSENT_REQUIRED'}
+        base['reason'] = 'REPRESENTATION_NOT_DECLARED'
+        return base
 
-    conn = _connect()
+    rep = load_representation(actor_member_id, subject_id)
+    if not rep:
+        base['reason'] = 'REPRESENTATION_NOT_DECLARED'
+        return base
+    if rep.get('revoked_at') or rep.get('status') not in ACTIVE_REPRESENTATION_STATUSES:
+        base['reason'] = 'REPRESENTATION_REVOKED'
+        return base
+
+    # Возраст самого заявителя проверяем повторно, а не доверяем моменту
+    # заявления: за год ситуация могла измениться, а запись осталась.
+    actor = _load_member(actor_member_id)
+    actor_age = _member_age(actor)
+    if actor_age is None:
+        base['reason'] = 'REPRESENTATIVE_AGE_UNKNOWN'
+        return base
+    if actor_age < ADULT_AGE:
+        base['reason'] = 'REPRESENTATIVE_NOT_ADULT'
+        return base
+
+    return {'allowed': True, 'required_role': 'legal_representative',
+            'reason': 'OK',
+            'verification_level': rep.get('verification_level'),
+            'representation_id': str(rep['id'])}
+
+
+def log_representation_event(ctx: Optional['AuthContext'], action: str,
+                             representation_id: Optional[str] = None,
+                             subject_member_id: Optional[str] = None,
+                             representative_member_id: Optional[str] = None,
+                             verification_level: Optional[str] = None,
+                             declaration_text_version: Optional[str] = None,
+                             details: Optional[Dict[str, Any]] = None) -> None:
+    """
+    Журнал заявлений о представительстве: declared, revoked, rejected,
+    expired, externally_verified. Пишется всегда, включая отказы.
+    """
     try:
-        cur = conn.cursor()
-        cur.execute(
-            f"""SELECT 1 FROM {SCHEMA}.legal_representatives
-                WHERE representative_member_id = %s
-                  AND dependent_member_id = %s
-                  AND status = 'confirmed'
-                  AND revoked_at IS NULL""",
-            (actor_member_id, subject_id),
-        )
-        confirmed = cur.fetchone() is not None
-        cur.close()
-    finally:
-        conn.close()
-
-    return {'allowed': confirmed, 'required_role': 'legal_representative',
-            'reason': 'OK' if confirmed else 'LEGAL_REPRESENTATIVE_NOT_CONFIRMED'}
+        conn = _connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.legal_representative_events
+                        (representation_id, family_id, subject_member_id,
+                         representative_member_id, action, verification_level,
+                         declaration_text_version, actor_user_id, actor_member_id,
+                         actor_role, details, request_id, ip_hash, user_agent_family)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (representation_id, ctx.family_id if ctx else None,
+                 subject_member_id, representative_member_id, action,
+                 verification_level, declaration_text_version,
+                 ctx.user_id if ctx else None,
+                 ctx.member_id if ctx else None,
+                 ctx.role if ctx else None,
+                 json.dumps(details or {}),
+                 ctx.request_id if ctx else None,
+                 ctx.ip_hash if ctx else None,
+                 ctx.user_agent_family if ctx else None),
+            )
+            cur.close()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 — журнал не должен ломать запрос
+        print(f'[legal-representative] event log failed: {type(exc).__name__}')
 
 
 def log_consent_event(ctx: Optional['AuthContext'], action: str,
@@ -589,7 +834,17 @@ _DEFAULT_MESSAGES = {
     'LOCATION_AGE_UNKNOWN': 'Subject age is unknown, location cannot be enabled',
     'LOCATION_CONSENT_AGE_OUTGROWN': 'Consent given by representative expired: subject is now old enough to decide',
     'LEGAL_REPRESENTATIVE_NOT_CONFIRMED': 'Legal representative is not confirmed',
+    'REPRESENTATION_NOT_DECLARED': 'Legal representation has not been declared',
+    'REPRESENTATION_REVOKED': 'Legal representation declaration was revoked',
+    'REPRESENTATIVE_AGE_UNKNOWN': 'Declaring person age is unknown',
+    'REPRESENTATIVE_NOT_ADULT': 'Only an adult can declare legal representation',
+    'SUBJECT_AGE_UNKNOWN': 'Subject birth date is required before this action',
+    'SUBJECT_IS_NOT_MINOR': 'Subject is old enough to decide, representation does not apply',
+    'REPRESENTATION_SELF_DENIED': 'Cannot declare representation over yourself',
     'SELF_CONSENT_ONLY': 'Only the subject can give this consent',
+    'SUBJECT_HAS_NO_ACCOUNT': 'Subject has no own account and cannot give consent',
+    'LOCATION_COLLECTION_PAUSED': 'Location collection is switched off',
+    'BIRTH_DATE_CHANGE_DENIED': 'You cannot change birth date of this member',
     'DUPLICATE_UNDER_REVIEW': 'Record is under duplicate review',
 }
 
