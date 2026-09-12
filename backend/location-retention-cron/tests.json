@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Запуск очистки без cron-секрета → 403",
+      "method": "POST",
+      "path": "/",
+      "expectedStatus": 403
+    },
+    {
+      "name": "Неверный cron-секрет → 403",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-Cron-Secret": "wrong-secret-value" },
+      "expectedStatus": 403
+    },
+    {
+      "name": "Секрет в query тоже проверяется → 403",
+      "method": "POST",
+      "path": "/?secret=wrong-secret-value",
+      "expectedStatus": 403
+    },
+    {
+      "name": "Сессионный токен не заменяет cron-секрет → 403",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-Auth-Token": "some-session-token" },
+      "expectedStatus": 403
+    },
+    {
+      "name": "GET не поддерживается → 405",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 405
+    }
+  ]
+}

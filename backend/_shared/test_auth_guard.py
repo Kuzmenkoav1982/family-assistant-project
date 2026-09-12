@@ -63,6 +63,17 @@ GUARDIANSHIPS = {}
 
 AUDIT = []
 
+# Согласия на геоданные: subject_member_id -> запись location_consents.
+# Отдельно от GUARDIANSHIPS намеренно: согласие субъекта («собирать
+# можно») и scope опекуна («смотреть можно») — разные вещи, и тесты
+# должны уметь задать их независимо.
+CONSENTS = {}
+# Получатели: consent_id -> [member_id]
+CONSENT_RECIPIENTS = {}
+# Подтверждённое законное представительство: (representative, dependent)
+LEGAL_REPS = set()
+CONSENT_EVENTS = []
+
 
 class FakeCursor:
     def __init__(self):
@@ -97,6 +108,17 @@ class FakeCursor:
             self._rows = [rec] if rec else []
         elif 'INSERT INTO t_p5815085_family_assistant_pro.authz_audit_log' in q:
             AUDIT.append(params)
+            self._rows = []
+        elif 'FROM t_p5815085_family_assistant_pro.location_consents' in q:
+            rec = CONSENTS.get(params[0]) if params else None
+            self._rows = [rec] if rec else []
+        elif 'FROM t_p5815085_family_assistant_pro.location_consent_recipients' in q:
+            recipients = CONSENT_RECIPIENTS.get(params[0], []) if params else []
+            self._rows = [{'recipient_member_id': r} for r in recipients]
+        elif 'FROM t_p5815085_family_assistant_pro.legal_representatives' in q:
+            self._rows = [{'ok': 1}] if tuple(params) in LEGAL_REPS else []
+        elif 'INSERT INTO t_p5815085_family_assistant_pro.location_consent_events' in q:
+            CONSENT_EVENTS.append(params)
             self._rows = []
         else:
             self._rows = []
@@ -141,6 +163,29 @@ def set_geo_flags(enabled: bool):
 set_geo_flags(True)
 
 
+def give_consent(subject, recipients=(), role='self', retention_days=7,
+                 consent_id='consent-1'):
+    """Действующее согласие субъекта с перечнем получателей."""
+    CONSENTS[subject] = {
+        'id': consent_id,
+        'family_id': FAMILY_A,
+        'subject_member_id': subject,
+        'consent_role': role,
+        'subject_age_at_grant': None,
+        'text_version': '2026-09-12.1',
+        'retention_days': retention_days,
+        'update_interval_seconds': 600,
+        'data_scope': {},
+        'granted_at': None,
+    }
+    CONSENT_RECIPIENTS[consent_id] = list(recipients)
+
+
+def clear_consents():
+    CONSENTS.clear()
+    CONSENT_RECIPIENTS.clear()
+
+
 def make_session(token, role, family_id=FAMILY_A, member_id=MEMBER_SELF,
                  is_owner=False, status='active', ownership_confirmed=True,
                  space_status='active'):
@@ -174,12 +219,14 @@ def setup():
     # Сессия в заброшенном пространстве.
     make_session('tok-abandoned', 'admin', space_status='abandoned_empty')
 
+    # Возраст задаётся явно: он определяет, кто вправе давать согласие
+    # на геолокацию (до 14 — представитель, с 14 — сам субъект).
     MEMBERS[MEMBER_SELF] = {'id': MEMBER_SELF, 'family_id': FAMILY_A, 'user_id': USER_SELF,
                             'access_role': 'admin', 'account_type': 'full',
-                            'member_status': 'active'}
+                            'member_status': 'active', 'age': 40}
     MEMBERS[MEMBER_CHILD] = {'id': MEMBER_CHILD, 'family_id': FAMILY_A, 'user_id': None,
                              'access_role': 'child', 'account_type': 'child_profile',
-                             'member_status': 'active'}
+                             'member_status': 'active', 'age': 9}
     MEMBERS[MEMBER_OTHER_ADULT] = {'id': MEMBER_OTHER_ADULT, 'family_id': FAMILY_A,
                                    'user_id': 'other-user', 'access_role': 'parent',
                                    'account_type': 'full', 'member_status': 'active'}
@@ -363,6 +410,12 @@ def main():
     # не даёт НИЧЕГО — ни чтения, ни записи, ни по одному модулю.
     # Раньше здесь было послабление (read по health/medications/children);
     # тесты закрепляют его снятие.
+    #
+    # Согласия на геоданные здесь ЕСТЬ: проверяется именно то, что
+    # неподтверждённая связь не даёт доступа даже при живом согласии
+    # субъекта. Согласие не заменяет права смотреть.
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
+    give_consent(MEMBER_SELF, consent_id='consent-self')
     GUARDIANSHIPS[MEMBER_SELF] = [
         (MEMBER_CHILD, ['health', 'medications', 'children', 'geolocation'],
          'pending_confirmation')
@@ -397,6 +450,12 @@ def main():
     # ---------- ГЕОЛОКАЦИЯ: ОТДЕЛЬНЫЙ ЯВНЫЙ SCOPE ----------
     # Подтверждая опекунство над здоровьем ребёнка, человек не соглашается
     # на слежение за его перемещениями. 'all' геолокацию не покрывает.
+    #
+    # Согласие субъекта в этой секции ЕСТЬ — иначе тесты проверяли бы
+    # наличие согласия, а не модель прав. Отсутствие согласия проверяется
+    # отдельным блоком ниже.
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
+    give_consent(MEMBER_SELF, consent_id='consent-self')
     GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['all'], 'confirmed')]
     all_ctx, _ = ctx_for('tok-guardian-assigned')
     check('scope "all" открывает здоровье подопечного → allow',
@@ -450,6 +509,117 @@ def main():
                  if 'read' in mods.get('geolocation', [])]
     results.append((not role_leak, 'ни одна роль не имеет безадресного geolocation:read',
                     'ok' if not role_leak else f'роли: {role_leak}'))
+
+    # ---------- СОГЛАСИЕ НА ГЕОДАННЫЕ (152-ФЗ) ----------
+    # Согласие субъекта и право смотреть — разные вещи. Ни одно не
+    # заменяет другое, и проверяется это в обе стороны.
+    GUARDIANSHIPS[MEMBER_SELF] = [(MEMBER_CHILD, ['geolocation:read'], 'confirmed')]
+
+    # 1. Нет согласия — нет координат, даже при идеальном scope.
+    clear_consents()
+    no_consent_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('scope есть, согласия нет → 403',
+          lambda: ag.require_location_access(no_consent_ctx, MEMBER_CHILD), 403)
+
+    nc_self, _ = ctx_for('tok-parent')
+    check('свои координаты без своего согласия → 403',
+          lambda: ag.require_location_access(nc_self, MEMBER_SELF), 403)
+
+    # 2. Согласие есть, но смотрящий не назван получателем.
+    # «Разрешил собирать» не равно «разрешил показывать всем».
+    give_consent(MEMBER_CHILD, recipients=[])
+    not_recipient_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('согласие есть, но смотрящий не получатель → 403',
+          lambda: ag.require_location_access(not_recipient_ctx, MEMBER_CHILD), 403)
+
+    # 3. Согласие + получатель + scope — доступ открыт.
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
+    ok_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('согласие + получатель + scope → allow',
+          lambda: ag.require_location_access(ok_ctx, MEMBER_CHILD), None)
+
+    # 4. Ребёнку исполнилось 14: согласие, выданное представителем,
+    # прекращает действие само, без ночной задачи по расписанию.
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF], role='legal_representative')
+    MEMBERS[MEMBER_CHILD]['age'] = 15
+    outgrown_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('ребёнку исполнилось 14 → согласие представителя недействительно',
+          lambda: ag.require_location_access(outgrown_ctx, MEMBER_CHILD), 403)
+
+    # Собственное согласие подростка того же возраста — работает.
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF], role='self')
+    teen_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('подросток 15 лет дал согласие сам → allow',
+          lambda: ag.require_location_access(teen_ctx, MEMBER_CHILD), None)
+
+    # 5. Возраст неизвестен — сбор не начинается вообще.
+    # Неизвестный возраст не должен молча означать «взрослый».
+    MEMBERS[MEMBER_CHILD].pop('age', None)
+    MEMBERS[MEMBER_CHILD].pop('birth_date', None)
+    unknown_age_ctx, _ = ctx_for('tok-guardian-assigned')
+    check('возраст субъекта неизвестен → 403',
+          lambda: ag.require_location_access(unknown_age_ctx, MEMBER_CHILD), 403)
+
+    # 6. Кто вправе давать согласие — решает сервер.
+    MEMBERS[MEMBER_CHILD]['age'] = 9
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = not elig['allowed'] and elig['reason'] == 'LEGAL_REPRESENTATIVE_NOT_CONFIRMED'
+    results.append((ok, 'за ребёнка 9 лет: роль admin без подтверждённого представительства → отказ',
+                    'ok' if ok else str(elig)))
+
+    LEGAL_REPS.add((MEMBER_SELF, MEMBER_CHILD))
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = elig['allowed'] and elig['required_role'] == 'legal_representative'
+    results.append((ok, 'за ребёнка 9 лет: подтверждённый представитель → разрешено',
+                    'ok' if ok else str(elig)))
+
+    MEMBERS[MEMBER_CHILD]['age'] = 15
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = not elig['allowed'] and elig['reason'] == 'SELF_CONSENT_ONLY'
+    results.append((ok, 'за подростка 15 лет представитель согласие дать не может',
+                    'ok' if ok else str(elig)))
+
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_CHILD)
+    ok = elig['allowed'] and elig['required_role'] == 'self'
+    results.append((ok, 'подросток 15 лет вправе дать согласие сам',
+                    'ok' if ok else str(elig)))
+
+    MEMBERS[MEMBER_CHILD].pop('age', None)
+    elig = ag.consent_eligibility(MEMBERS[MEMBER_CHILD], MEMBER_SELF)
+    ok = not elig['allowed'] and elig['reason'] == 'LOCATION_AGE_UNKNOWN'
+    results.append((ok, 'возраст неизвестен → согласие дать нельзя никому',
+                    'ok' if ok else str(elig)))
+
+    # 7. Массовый список фильтруется по согласию так же, как одиночный путь.
+    MEMBERS[MEMBER_CHILD]['age'] = 9
+    clear_consents()
+    give_consent(MEMBER_SELF, consent_id='consent-self')
+    no_child_ctx, _ = ctx_for('tok-guardian-assigned')
+    subs = ag.accessible_subject_ids(no_child_ctx, 'geolocation', action='read')
+    ok = MEMBER_CHILD not in subs
+    results.append((ok, 'список маячка не содержит субъекта без согласия',
+                    'ok' if ok else f'утечка: {subs}'))
+
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
+    with_child_ctx, _ = ctx_for('tok-guardian-assigned')
+    subs = ag.accessible_subject_ids(with_child_ctx, 'geolocation', action='read')
+    ok = MEMBER_CHILD in subs and MEMBER_SELF in subs
+    results.append((ok, 'список маячка содержит субъекта с согласием и получателем',
+                    'ok' if ok else f'получено: {subs}'))
+
+    # Согласие без получателя не показывает субъекта в списке.
+    give_consent(MEMBER_CHILD, recipients=[])
+    silent_ctx, _ = ctx_for('tok-guardian-assigned')
+    subs = ag.accessible_subject_ids(silent_ctx, 'geolocation', action='read')
+    ok = MEMBER_CHILD not in subs
+    results.append((ok, 'согласие без получателей никого не показывает в списке',
+                    'ok' if ok else f'утечка: {subs}'))
+
+    # Возврат к рабочему состоянию для последующих блоков.
+    LEGAL_REPS.discard((MEMBER_SELF, MEMBER_CHILD))
+    clear_consents()
+    give_consent(MEMBER_CHILD, recipients=[MEMBER_SELF])
+    give_consent(MEMBER_SELF, consent_id='consent-self')
 
     # ---------- ВЫКЛЮЧАТЕЛЬ ГЕОЛОКАЦИИ (SEC-2026-001) ----------
     # Права проверены выше при включённой функции. Здесь проверяется,

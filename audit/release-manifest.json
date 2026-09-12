@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T04:13:53.554619+00:00",
+  "generated_at": "2026-09-12T08:00:06.950Z",
   "note": "Ожидаемый состав релиза. Если после деплоя обязательная функция исчезла из backend/func2url.json или её URL опустел — релиз считается неуспешным и подлежит откату. Ручное восстановление карты не является допустимым постоянным решением.",
   "required_functions": [
     "admin-auth",
@@ -86,7 +86,9 @@
     "image-optimizer",
     "leisure-ai",
     "life-road",
+    "location-consent",
     "location-history",
+    "location-retention-cron",
     "max-bot",
     "max-poll-cron",
     "meal-plans",
@@ -171,5 +173,5 @@
     "upload-file",
     "user-management"
   ],
-  "total_expected": 131
+  "total_expected": 133
 }

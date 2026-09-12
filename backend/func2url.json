@@ -129,5 +129,7 @@
   "payments": "https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d",
   "family-invites": "https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d",
   "tasks": "https://functions.poehali.dev/638290a3-bc43-46ef-9ca1-1e80b72544bf",
-  "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0"
+  "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0",
+  "location-consent": "https://functions.poehali.dev/0bce40b4-7ebf-407f-b8df-cfb2da958e4b",
+  "location-retention-cron": "https://functions.poehali.dev/54100376-af9a-4321-a630-8015c72748bc"
 }

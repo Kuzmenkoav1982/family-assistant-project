@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SEOHead from "@/components/SEOHead";
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +10,46 @@ import useFamilyTracker from '@/hooks/useFamilyTracker';
 import MapSection from '@/components/family-tracker/MapSection';
 import MembersPanel from '@/components/family-tracker/MembersPanel';
 import AlertsPanel from '@/components/family-tracker/AlertsPanel';
+import LocationConsentDialog from '@/components/family-tracker/LocationConsentDialog';
+import useLocationConsent from '@/hooks/useLocationConsent';
 
 export default function FamilyTracker() {
   const navigate = useNavigate();
   const t = useFamilyTracker();
+  const consent = useLocationConsent();
+  const [consentOpen, setConsentOpen] = useState(false);
+
+  /**
+   * Последовательность включения (152-ФЗ):
+   *   тумблер → экран согласия → сервер записал согласие → запуск GPS.
+   * Ни один шаг нельзя пропустить: оптимистичного включения нет,
+   * и при ошибке записи согласия сбор не начинается.
+   */
+  const handleAcceptConsent = async (params: {
+    retentionDays: number;
+    recipients: string[];
+    background: boolean;
+  }) => {
+    const saved = await consent.grant(params);
+    if (!saved) return;
+    setConsentOpen(false);
+    t.startTrackingAfterConsent(true);
+  };
+
+  /**
+   * Отключение — это и остановка сбора, и отзыв согласия.
+   * Остановить сбор на одном устройстве недостаточно: разрешение
+   * обрабатывать данные должно прекратиться на сервере.
+   */
+  const handleStopTracking = async () => {
+    t.stopTracking();
+    await consent.revoke();
+  };
+
+  // Получателями могут быть только другие участники семьи.
+  const recipientOptions = t.familyMembers
+    .filter((m) => m.id !== consent.status?.subject_member_id)
+    .map((m) => ({ id: m.id, name: m.name }));
 
   return (
     <>
@@ -91,8 +128,8 @@ export default function FamilyTracker() {
               newZoneRadius={t.newZoneRadius}
               setNewZoneRadius={t.setNewZoneRadius}
               geofences={t.geofences}
-              startTracking={t.startTracking}
-              stopTracking={t.stopTracking}
+              onRequestTracking={() => setConsentOpen(true)}
+              stopTracking={handleStopTracking}
               refreshMap={t.refreshMap}
               deleteGeofence={t.deleteGeofence}
               navigate={navigate}
@@ -132,6 +169,19 @@ export default function FamilyTracker() {
             </div>
           </CardContent>
         </Card>
+
+        <LocationConsentDialog
+          open={consentOpen}
+          subjectName={consent.status?.subject_name || 'участника'}
+          isSelf
+          eligibility={consent.status?.eligibility || null}
+          consentText={consent.status?.consent_text || null}
+          recipientOptions={recipientOptions}
+          submitting={consent.submitting}
+          error={consent.error}
+          onCancel={() => setConsentOpen(false)}
+          onAccept={handleAcceptConsent}
+        />
     </SectionPageFrame>
     </>
   );

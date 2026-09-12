@@ -18,7 +18,8 @@ interface MapSectionProps {
   newZoneRadius: number;
   setNewZoneRadius: (v: number) => void;
   geofences: Geofence[];
-  startTracking: () => void;
+  /** Открывает экран согласия. Сбор начнётся только после его подтверждения. */
+  onRequestTracking: () => void;
   stopTracking: () => void;
   refreshMap: () => void;
   deleteGeofence: (id: number) => void;
@@ -29,7 +30,7 @@ export default function MapSection({
   mapContainer, geolocationDisabled = false,
   isDemoMode, isTracking, isAddingZone, setIsAddingZone,
   newZoneName, setNewZoneName, newZoneRadius, setNewZoneRadius,
-  geofences, startTracking, stopTracking, refreshMap, deleteGeofence, navigate,
+  geofences, onRequestTracking, stopTracking, refreshMap, deleteGeofence, navigate,
 }: MapSectionProps) {
   return (
     <Card className="shadow-xl">
@@ -55,7 +56,9 @@ export default function MapSection({
               Демо-режим — реальное отслеживание доступно после входа
             </Badge>
           ) : !isTracking ? (
-            <Button onClick={startTracking} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
+            /* Кнопка открывает экран согласия, а не начинает сбор:
+               нажатие само по себе согласием не является. */
+            <Button onClick={onRequestTracking} className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700">
               <Icon name="Play" size={18} className="mr-2" />
               Включить отслеживание
             </Button>

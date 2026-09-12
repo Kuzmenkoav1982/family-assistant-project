@@ -319,6 +319,243 @@ def require_geo_enabled(flag_key: str = GEO_COLLECTION_FLAG) -> None:
 
 
 # ============================================================
+# СОГЛАСИЕ НА ОБРАБОТКУ ГЕОДАННЫХ (152-ФЗ)
+# ============================================================
+# Согласие и доступ — РАЗНЫЕ вещи, и путать их нельзя:
+#
+#   согласие субъекта   → системе разрешено СОБИРАТЬ его местоположение
+#   scope 'geolocation' → конкретному человеку разрешено его СМОТРЕТЬ
+#
+# Согласие без получателя не открывает координаты никому. Наличие scope
+# без согласия субъекта — тоже отказ: право смотреть не создаёт права
+# собирать.
+#
+# ВОЗРАСТНАЯ МОДЕЛЬ (требует утверждения юристом):
+#   младше 14  — согласие даёт ПОДТВЕРЖДЁННЫЙ законный представитель;
+#   14 и старше — только сам субъект, представитель может лишь запросить;
+#   возраст неизвестен — сбор не начинается вообще.
+#
+# Почему не доверяем роли: access_role в этой БД смешивает семейное
+# отношение и полномочие — V0376 выдала роль 'parent' 12-летнему
+# участнику. Поэтому законное представительство подтверждается отдельной
+# записью в legal_representatives, а не выводится из строки роли.
+
+SELF_CONSENT_AGE = 14
+
+# Операции над геоданными, требующие согласия.
+GEO_OP_COLLECT = 'collect'   # записать новую точку
+GEO_OP_VIEW = 'view'         # посмотреть положение/историю
+
+
+def _member_age(member: Optional[Dict[str, Any]]) -> Optional[int]:
+    """
+    Возраст по birth_date, иначе по полю age. None = возраст неизвестен.
+
+    Неизвестный возраст — не повод «считать взрослым»: именно так
+    ребёнок и получает режим взрослого. Вызывающий код обязан
+    трактовать None как запрет.
+    """
+    if not member:
+        return None
+    bd = member.get('birth_date')
+    if bd:
+        try:
+            today = datetime.now(timezone.utc).date()
+            return today.year - bd.year - ((today.month, today.day) < (bd.month, bd.day))
+        except (AttributeError, TypeError, ValueError):
+            pass
+    age = member.get('age')
+    try:
+        return int(age) if age is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def load_active_location_consent(subject_member_id: str) -> Optional[Dict[str, Any]]:
+    """Действующее согласие субъекта вместе со списком получателей."""
+    if not _is_uuid(subject_member_id):
+        return None
+    conn = _connect()
+    try:
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            f"""SELECT id, family_id, subject_member_id, consent_role,
+                       subject_age_at_grant, text_version, retention_days,
+                       update_interval_seconds, data_scope, granted_at
+                FROM {SCHEMA}.location_consents
+                WHERE subject_member_id = %s AND status = 'active'
+                LIMIT 1""",
+            (str(subject_member_id),),
+        )
+        consent = cur.fetchone()
+        if not consent:
+            cur.close()
+            return None
+        consent = dict(consent)
+        cur.execute(
+            f"""SELECT recipient_member_id
+                FROM {SCHEMA}.location_consent_recipients
+                WHERE consent_id = %s AND revoked_at IS NULL""",
+            (consent['id'],),
+        )
+        consent['recipients'] = [str(r['recipient_member_id']) for r in cur.fetchall()]
+        cur.close()
+        return consent
+    finally:
+        conn.close()
+
+
+def _consent_still_valid(consent: Dict[str, Any], subject: Optional[Dict[str, Any]]) -> Tuple[bool, str]:
+    """
+    Согласие могло устареть по существу, оставаясь 'active' в БД.
+
+    Главный случай: ребёнку исполнилось 14. Согласие, выданное за него
+    представителем, с этого момента прекращает действие — решение должен
+    принять он сам. Проверяем на каждом обращении, а не раз в сутки
+    по расписанию: иначе между днём рождения и запуском задачи данные
+    собирались бы без действующего основания.
+    """
+    age = _member_age(subject)
+    if age is None:
+        return False, 'LOCATION_AGE_UNKNOWN'
+    if consent.get('consent_role') == 'legal_representative' and age >= SELF_CONSENT_AGE:
+        return False, 'LOCATION_CONSENT_AGE_OUTGROWN'
+    return True, 'CONSENT_VALID'
+
+
+def require_location_consent(ctx: 'AuthContext', subject_member_id: Optional[str],
+                             operation: str = GEO_OP_VIEW) -> Dict[str, Any]:
+    """
+    Проверяет, что на обработку геоданных субъекта есть действующее согласие.
+
+    Вызывается ВНУТРИ require_location_access, то есть на единственном
+    законном входе к геоданным. Новая гео-функция не может обойти
+    согласие, просто забыв о нём.
+
+    operation:
+        GEO_OP_COLLECT — записать новую точку. Достаточно согласия субъекта.
+        GEO_OP_VIEW    — посмотреть. Нужно согласие субъекта И то, что
+                         смотрящий указан получателем (или это сам субъект).
+    """
+    if not subject_member_id:
+        raise AuthError(403, 'LOCATION_CONSENT_REQUIRED')
+    subject_member_id = str(subject_member_id)
+
+    consent = load_active_location_consent(subject_member_id)
+    if not consent:
+        _audit(ctx, 'geolocation', operation, 'denied', 'LOCATION_CONSENT_REQUIRED',
+               resource_type='location_consent', subject_member_id=subject_member_id,
+               http_status=403)
+        raise AuthError(403, 'LOCATION_CONSENT_REQUIRED')
+
+    subject = _load_member(subject_member_id)
+    valid, reason = _consent_still_valid(consent, subject)
+    if not valid:
+        _audit(ctx, 'geolocation', operation, 'denied', reason,
+               resource_type='location_consent', resource_id=str(consent['id']),
+               subject_member_id=subject_member_id, http_status=403)
+        raise AuthError(403, reason)
+
+    # Просмотр чужого положения требует, чтобы субъект назвал смотрящего
+    # получателем. Согласие «собирать» не равно согласию «показывать всем».
+    if operation == GEO_OP_VIEW and ctx.member_id != subject_member_id:
+        if ctx.member_id not in (consent.get('recipients') or []):
+            _audit(ctx, 'geolocation', operation, 'denied', 'LOCATION_RECIPIENT_NOT_ALLOWED',
+                   resource_type='location_consent', resource_id=str(consent['id']),
+                   subject_member_id=subject_member_id, http_status=403)
+            raise AuthError(403, 'LOCATION_RECIPIENT_NOT_ALLOWED')
+
+    return consent
+
+
+def consent_eligibility(subject: Optional[Dict[str, Any]],
+                        actor_member_id: Optional[str]) -> Dict[str, Any]:
+    """
+    Кто вправе дать согласие за этого субъекта. Используется UI и API
+    выдачи согласия, чтобы решение принималось на сервере, а не на клиенте.
+
+    Возвращает: allowed (bool), required_role, reason.
+    """
+    age = _member_age(subject)
+    if age is None:
+        return {'allowed': False, 'required_role': None,
+                'reason': 'LOCATION_AGE_UNKNOWN'}
+
+    subject_id = str(subject.get('id')) if subject else None
+    is_self = actor_member_id is not None and actor_member_id == subject_id
+
+    if age >= SELF_CONSENT_AGE:
+        # С 14 лет решает только сам субъект. Родитель может прислать
+        # запрос, но не подтвердить его за подростка.
+        return {'allowed': is_self, 'required_role': 'self',
+                'reason': 'SELF_CONSENT_ONLY' if not is_self else 'OK'}
+
+    # Младше 14: нужен ПОДТВЕРЖДЁННЫЙ законный представитель.
+    if is_self:
+        return {'allowed': False, 'required_role': 'legal_representative',
+                'reason': 'REPRESENTATIVE_CONSENT_REQUIRED'}
+    if not actor_member_id or not subject_id:
+        return {'allowed': False, 'required_role': 'legal_representative',
+                'reason': 'REPRESENTATIVE_CONSENT_REQUIRED'}
+
+    conn = _connect()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f"""SELECT 1 FROM {SCHEMA}.legal_representatives
+                WHERE representative_member_id = %s
+                  AND dependent_member_id = %s
+                  AND status = 'confirmed'
+                  AND revoked_at IS NULL""",
+            (actor_member_id, subject_id),
+        )
+        confirmed = cur.fetchone() is not None
+        cur.close()
+    finally:
+        conn.close()
+
+    return {'allowed': confirmed, 'required_role': 'legal_representative',
+            'reason': 'OK' if confirmed else 'LEGAL_REPRESENTATIVE_NOT_CONFIRMED'}
+
+
+def log_consent_event(ctx: Optional['AuthContext'], action: str,
+                      consent_id: Optional[str] = None,
+                      subject_member_id: Optional[str] = None,
+                      text_version: Optional[str] = None,
+                      details: Optional[Dict[str, Any]] = None) -> None:
+    """
+    Журнал решений по согласию. Пишется всегда, включая отказы —
+    именно он отвечает на вопрос «докажите, что согласие было».
+    """
+    try:
+        conn = _connect()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                f"""INSERT INTO {SCHEMA}.location_consent_events
+                        (consent_id, subject_member_id, family_id, action,
+                         actor_user_id, actor_member_id, actor_role,
+                         text_version, details, request_id, ip_hash,
+                         user_agent_family)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                (consent_id, subject_member_id,
+                 ctx.family_id if ctx else None, action,
+                 ctx.user_id if ctx else None,
+                 ctx.member_id if ctx else None,
+                 ctx.role if ctx else None,
+                 text_version, json.dumps(details or {}),
+                 ctx.request_id if ctx else None,
+                 ctx.ip_hash if ctx else None,
+                 ctx.user_agent_family if ctx else None),
+            )
+            cur.close()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 — журнал не должен ломать запрос
+        print(f'[location-consent] event log failed: {type(exc).__name__}')
+
+
+# ============================================================
 # ОШИБКИ
 # ============================================================
 
@@ -352,6 +589,12 @@ _DEFAULT_MESSAGES = {
     'GUARDIANSHIP_NOT_CONFIRMED': 'Guardianship must be confirmed before any access',
     'LOCATION_SCOPE_REQUIRED': 'Explicit location scope is required',
     'GEOLOCATION_DISABLED': 'Geolocation is temporarily disabled',
+    'LOCATION_CONSENT_REQUIRED': 'Location consent is required',
+    'LOCATION_RECIPIENT_NOT_ALLOWED': 'You are not a recipient of this location consent',
+    'LOCATION_AGE_UNKNOWN': 'Subject age is unknown, location cannot be enabled',
+    'LOCATION_CONSENT_AGE_OUTGROWN': 'Consent given by representative expired: subject is now old enough to decide',
+    'LEGAL_REPRESENTATIVE_NOT_CONFIRMED': 'Legal representative is not confirmed',
+    'SELF_CONSENT_ONLY': 'Only the subject can give this consent',
     'DUPLICATE_UNDER_REVIEW': 'Record is under duplicate review',
 }
 
@@ -831,8 +1074,14 @@ def require_location_access(ctx: AuthContext, subject_member_id: Optional[str],
     вообще включена. Проверка стоит здесь, а не в каждой geo-функции,
     чтобы новая функция не могла получить доступ к координатам, просто
     забыв спросить про флаг.
+
+    152-ФЗ: добавлено условие 0.5 — на обработку геоданных субъекта есть
+    действующее согласие, а смотрящий указан в нём получателем. Право
+    смотреть (scope) не заменяет основания обрабатывать (согласие):
+    это разные вещи, и наличие одного не создаёт второго.
     """
     require_geo_enabled(GEO_HISTORY_FLAG)
+    require_location_consent(ctx, subject_member_id, operation=GEO_OP_VIEW)
 
     allowed, reason = can_access_subject(ctx, subject_member_id,
                                          module='geolocation', action=action)
@@ -874,6 +1123,23 @@ def accessible_subject_ids(ctx: AuthContext, module: str = 'health',
     # Роль 'parent' НЕ расширяет набор субъектов: см. can_access_subject.
     # Список строится только из себя + адресных опекунств, поэтому
     # list-эндпоинты физически не могут вернуть чужого ребёнка.
+
+    # Геолокация: сверх scope нужно действующее согласие субъекта,
+    # в котором актор назван получателем. Без этой фильтрации списковый
+    # путь отдавал бы координаты тех, кто согласия не давал, — то есть
+    # расходился бы с одиночным путём (require_location_access).
+    if module in LOCATION_MODULES:
+        allowed = set()
+        for member_id in result:
+            consent = load_active_location_consent(member_id)
+            if not consent:
+                continue
+            if not _consent_still_valid(consent, _load_member(member_id))[0]:
+                continue
+            if member_id == ctx.member_id or ctx.member_id in (consent.get('recipients') or []):
+                allowed.add(member_id)
+        return sorted(allowed)
+
     return sorted(result)
 
 
@@ -884,7 +1150,8 @@ def _load_member(member_id: str) -> Optional[Dict[str, Any]]:
     try:
         cur = conn.cursor(cursor_factory=RealDictCursor)
         cur.execute(
-            f"""SELECT id, family_id, user_id, access_role, account_type, member_status
+            f"""SELECT id, family_id, user_id, access_role, account_type,
+                       member_status, birth_date, age, name
                 FROM {SCHEMA}.family_members WHERE id = %s""",
             (member_id,),
         )

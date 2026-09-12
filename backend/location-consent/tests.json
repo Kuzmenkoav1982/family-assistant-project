@@ -1,0 +1,57 @@
+{
+  "tests": [
+    {
+      "name": "OPTIONS CORS",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Статус согласия без сессии → 401",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Выдача согласия без сессии → 401 (нельзя согласиться анонимно)",
+      "method": "POST",
+      "path": "/",
+      "body": { "retention_days": 7, "text_version": "2026-09-12.1" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Отзыв согласия без сессии → 401",
+      "method": "DELETE",
+      "path": "/",
+      "expectedStatus": 401
+    },
+    {
+      "name": "Мусорный токен → 401",
+      "method": "GET",
+      "path": "/",
+      "headers": { "X-Auth-Token": "invalid-token-value" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "X-User-Id не заменяет сессию → 401",
+      "method": "POST",
+      "path": "/",
+      "headers": { "X-User-Id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "body": { "subject_member_id": "40e4eece-5988-4133-a6bb-0aaaee4db0c2" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "Согласие за чужого участника без сессии → 401",
+      "method": "POST",
+      "path": "/",
+      "body": { "subject_member_id": "00000000-0000-0000-0000-000000000001" },
+      "expectedStatus": 401
+    },
+    {
+      "name": "PUT не поддерживается → 401 до разбора метода",
+      "method": "PUT",
+      "path": "/",
+      "expectedStatus": 401
+    }
+  ]
+}

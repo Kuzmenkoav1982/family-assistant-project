@@ -76,9 +76,18 @@ def _post_location(conn, cur, ctx: ag.AuthContext, event: dict) -> dict:
     согласия на перемещения и интерфейса управления доступом. Это самый
     важный отказ во всей волне: пока человек не может увидеть и отозвать
     доступ к своим перемещениям, новых точек мы не накапливаем.
+
+    152-ФЗ: точка не записывается без действующего согласия субъекта.
+    Срок хранения берётся из согласия — человек сам выбрал, как долго
+    хранить его перемещения, и это решение применяется к каждой точке
+    в момент записи, а не «когда-нибудь при очистке».
     """
     ag.require_geo_enabled(ag.GEO_COLLECTION_FLAG)
     ag.require_permission(ctx, 'geolocation', 'update')
+
+    # Субъект сбора — сам актор, поэтому согласие проверяется на него.
+    consent = ag.require_location_consent(ctx, ctx.member_id,
+                                          operation=ag.GEO_OP_COLLECT)
 
     try:
         body = json.loads(event.get('body') or '{}')
@@ -91,11 +100,28 @@ def _post_location(conn, cur, ctx: ag.AuthContext, event: dict) -> dict:
                                 status=400, event=event)
     accuracy = _coord(body.get('accuracy', 0), 1_000_000) or 0
 
+    retention_days = int(consent.get('retention_days') or 0)
+    if retention_days == 0:
+        # «Не хранить историю»: держим только последнюю позицию.
+        # Предыдущие точки этого человека стираются сразу, а не ждут
+        # ночной очистки — иначе выбор «не хранить» ничего не значил бы.
+        cur.execute(
+            f"""UPDATE {SCHEMA}.family_location_tracking
+                   SET usage_status = 'pending_deletion',
+                       purge_after = NOW()
+                 WHERE user_id = %s AND usage_status = 'active'""",
+            (ctx.user_id,),
+        )
+        purge_sql = "NOW()"
+    else:
+        purge_sql = f"NOW() + INTERVAL '{retention_days} days'"
+
     cur.execute(
         f"""INSERT INTO {SCHEMA}.family_location_tracking
-                (user_id, family_id, latitude, longitude, accuracy, created_at)
-            VALUES (%s, %s, %s, %s, %s, NOW())""",
-        (ctx.user_id, ctx.family_id, lat, lng, accuracy),
+                (user_id, family_id, latitude, longitude, accuracy, created_at,
+                 consent_id, purge_after)
+            VALUES (%s, %s, %s, %s, %s, NOW(), %s, {purge_sql})""",
+        (ctx.user_id, ctx.family_id, lat, lng, accuracy, consent['id']),
     )
 
     exit_events = check_geofence_violations(cur, ctx.family_id, ctx.member_id, lat, lng)

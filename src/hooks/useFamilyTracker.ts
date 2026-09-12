@@ -35,17 +35,19 @@ interface AlertSetting {
 export type { FamilyMember, LocationData, Geofence, AlertSetting };
 
 /**
- * SEC-2026-001: геолокация приостановлена.
+ * SEC-2026-001 + 152-ФЗ: геолокация включается только через согласие.
  *
- * Раздел «Семейный маячок» остаётся в интерфейсе, но не собирает координаты
- * и не показывает перемещения. Причина не в том, что уязвимость не закрыта —
- * она закрыта, — а в том, что у человека до сих пор нет способа увидеть,
- * кто имеет доступ к его перемещениям, и отозвать этот доступ. Пока такого
- * экрана нет, собирать координаты мы не вправе.
+ * Раздел остаётся выключенным на этом клиенте до тех пор, пока не пройдены
+ * серверные этапы возврата (guard, согласие, отзыв, автоочистка, тесты) и
+ * не включены флаги geolocation_collection_enabled / *_history_enabled.
  *
- * Выключатель продублирован на сервере (feature_flags) и в service worker.
- * Здесь он нужен, чтобы не запрашивать у пользователя разрешение на GPS
- * ради запроса, который backend всё равно отклонит.
+ * Главное правило, которое нельзя нарушать при включении обратно:
+ * тумблер НЕ является согласием. Тумблер открывает экран согласия, и GPS
+ * запускается только после того, как сервер подтвердил запись согласия.
+ * Оптимистичное включение запрещено — см. startTrackingAfterConsent().
+ *
+ * Выключатель продублирован на сервере (feature_flags) и в service worker:
+ * отказ одного уровня не должен возобновлять сбор.
  */
 export const GEOLOCATION_DISABLED = true;
 export const GEOLOCATION_DISABLED_REASON =
@@ -158,7 +160,22 @@ export default function useFamilyTracker() {
     } catch (err) { console.error('[Tracker] Send location error:', err); }
   };
 
-  const startTracking = () => {
+  /**
+   * Запуск сбора координат.
+   *
+   * ВЫЗЫВАТЬ ТОЛЬКО ПОСЛЕ подтверждённого сервером согласия
+   * (useLocationConsent.grant() вернул true). Функция намеренно
+   * НЕ обращается к экрану согласия сама: иначе со временем появился бы
+   * второй путь запуска GPS в обход согласия.
+   *
+   * Параметр consentConfirmed обязателен и проверяется явно — чтобы
+   * случайный вызов startTracking() из нового кода не начал сбор.
+   */
+  const startTrackingAfterConsent = (consentConfirmed: boolean) => {
+    if (!consentConfirmed) {
+      setError('Сбор местоположения не начат: согласие не подтверждено.');
+      return;
+    }
     // SEC-2026-001: не запрашиваем GPS у пользователя ради запроса,
     // который сервер отклонит. Отказ показываем честной причиной,
     // а не видимостью работающей функции.
@@ -197,12 +214,21 @@ export default function useFamilyTracker() {
     watchId.current = window.setInterval(sendCurrentLocation, 600000);
   };
 
+  /**
+   * Остановка сбора на этом устройстве: таймер, фоновый воркер, состояние.
+   *
+   * Это техническая остановка. ОТЗЫВ СОГЛАСИЯ — отдельное действие
+   * (useLocationConsent.revoke), и вызывающий код обязан сделать его
+   * тоже: остановить сбор на одном телефоне не значит отозвать
+   * разрешение обрабатывать данные.
+   */
   const stopTracking = () => {
     if (watchId.current !== null) { clearInterval(watchId.current); watchId.current = null; }
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'STOP_GEOLOCATION' });
     }
-    setIsTracking(false); localStorage.setItem('isTracking', 'false');
+    setIsTracking(false);
+    localStorage.removeItem('isTracking');
   };
 
   const drawZoneOnMap = (zone: Geofence) => {
@@ -302,10 +328,12 @@ export default function useFamilyTracker() {
     }
   }, [map, familyMembers]);
 
-  useEffect(() => {
-    if (GEOLOCATION_DISABLED) return;
-    if (isTracking && map && !watchId.current) startTracking();
-  }, [map]);
+  // Автовозобновление сбора по флагу в localStorage убрано намеренно.
+  // Раньше сохранённое isTracking=true само запускало GPS при загрузке
+  // страницы — то есть сбор начинался без проверки, что согласие ещё
+  // действует. Согласие может быть отозвано с другого устройства или
+  // прекратиться само (ребёнку исполнилось 14), и локальный флаг об этом
+  // не знает. Возобновление теперь только через экран согласия.
 
   const refreshMap = () => {
     if (mapRef.current) { mapRef.current.geoObjects.removeAll(); loadFamilyLocations(); loadGeofences(); }
@@ -330,7 +358,9 @@ export default function useFamilyTracker() {
     isInstructionOpen, setIsInstructionOpen,
     alertSettings, setAlertSettings, savingSettings,
     mapContainer, mapRef,
-    startTracking, stopTracking, deleteGeofence,
+    // Имя намеренно длинное: оно напоминает, что запуск сбора допустим
+    // только после подтверждённого сервером согласия.
+    startTrackingAfterConsent, stopTracking, deleteGeofence,
     refreshMap, saveAlertSettings,
   };
 }
