@@ -125,14 +125,13 @@ def create_family_with_owner(cur, user_id: str, family_name: str,
     Раньше это были три независимых запроса: families -> family_members,
     а owner_user_id не проставлялся вообще. Сбой между шагами оставлял
     пространство без участников и без владельца — так и появились
-    38 пустых семей. Теперь порядок гарантирован:
-
-        INSERT families -> INSERT family_members -> UPDATE owner_user_id
-
-    внутри одной транзакции вызывающей стороны. Если любой шаг упадёт,
-    вызывающий делает rollback и неконсистентного пространства не остаётся.
-    Инвариант families_active_requires_owner (V0379) дополнительно
-    не даст активной семье существовать без владельца.
+    38 пустых семей. owner_user_id теперь проставляется сразу при
+    INSERT families (см. ниже, почему не отдельным UPDATE), затем
+    добавляется family_members — всё внутри одной транзакции вызывающей
+    стороны. Если любой шаг упадёт, вызывающий делает rollback и
+    неконсистентного пространства не остаётся. Инвариант
+    families_active_requires_owner (V0379) дополнительно не даст активной
+    семье существовать без владельца.
 
     Соединения в этом модуле работают с autocommit=True, то есть каждая
     команда фиксируется отдельно и «транзакции» как таковой нет. Поэтому
@@ -143,11 +142,21 @@ def create_family_with_owner(cur, user_id: str, family_name: str,
     previous_autocommit = conn.autocommit
     conn.autocommit = False
     try:
+        # owner_user_id проставляется сразу в INSERT, а не отдельным UPDATE:
+        # CHECK-ограничения в PostgreSQL не бывают DEFERRABLE и проверяются
+        # немедленно на каждой команде. Раздельные INSERT (owner_user_id NULL)
+        # и UPDATE (owner_user_id = user_id) нарушали
+        # families_active_requires_owner уже на первом шаге — ни одна семья
+        # не могла создаться. user_id уже известен на момент вызова, поэтому
+        # владельца и признаки подтверждения владения указываем сразу.
         cur.execute(
-            f"""INSERT INTO {SCHEMA}.families (name, space_status)
-                VALUES (%s, 'active')
+            f"""INSERT INTO {SCHEMA}.families
+                    (name, space_status, owner_user_id, ownership_source,
+                     ownership_confirmed, ownership_confirmed_at)
+                VALUES (%s, 'active', %s, 'registration', TRUE,
+                        (NOW() AT TIME ZONE 'UTC'))
                 RETURNING id, name, logo_url""",
-            (family_name,),
+            (family_name, user_id),
         )
         family = cur.fetchone()
 
@@ -163,18 +172,6 @@ def create_family_with_owner(cur, user_id: str, family_name: str,
         )
         member = cur.fetchone()
 
-        # Владелец — тот, кто создал пространство. Это единственный случай,
-        # когда владение устанавливается без отдельного подтверждения:
-        # происхождение достоверно, поэтому ownership_confirmed = TRUE.
-        cur.execute(
-            f"""UPDATE {SCHEMA}.families
-                SET owner_user_id = %s,
-                    ownership_source = 'registration',
-                    ownership_confirmed = TRUE,
-                    ownership_confirmed_at = (NOW() AT TIME ZONE 'UTC')
-                WHERE id = %s""",
-            (user_id, family['id']),
-        )
         conn.commit()
     except Exception:
         # Полусозданное пространство хуже отсутствующего: откатываем целиком.
@@ -1251,7 +1248,7 @@ def register_user_email(email: str, password: str, name: str = '',
                 'email': user['email'],
                 'name': user['name'],
                 'family_id': str(family['id']),
-                'family_name': family_name,
+                'family_name': family['name'],
                 'member_id': str(member['id'])
             }
         }
