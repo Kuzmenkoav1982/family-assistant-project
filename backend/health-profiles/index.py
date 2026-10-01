@@ -143,6 +143,27 @@ def _handle_get(event, ctx: AuthContext, cursor) -> Dict[str, Any]:
     if not subjects:
         return json_response([], 200, event)
 
+    # Ленивое создание: у новых пользователей медпрофиля нет, а UI создавать
+    # его не умеет — раздел оставался пустым. Создаём пустой профиль для
+    # субъектов, к которым у актора уже есть подтверждённый доступ.
+    cursor.execute(
+        "SELECT user_id FROM health_profiles WHERE user_id = ANY(%s)",
+        (subjects,),
+    )
+    existing = {r[0] for r in cursor.fetchall()}
+    missing = [s for s in subjects if s not in existing]
+    if missing:
+        for member_id in missing:
+            cursor.execute(
+                """
+                INSERT INTO health_profiles
+                (id, user_id, privacy, shared_with, created_at, updated_at)
+                VALUES (gen_random_uuid()::text, %s, 'private', '{}', NOW(), NOW())
+                """,
+                (member_id,),
+            )
+        cursor.connection.commit()
+
     cursor.execute(
         """
         SELECT id, user_id, blood_type, rh_factor, allergies, chronic_diseases,
@@ -302,4 +323,3 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if conn:
             conn.close()
 # redeploy marker: wave-3 authz
-

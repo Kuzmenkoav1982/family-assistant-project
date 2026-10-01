@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { HealthInstructions } from '@/components/health/HealthInstructions';
 import useHealthNew from '@/hooks/useHealthNew';
 import ProfileSelector from '@/components/health-new/ProfileSelector';
@@ -63,6 +64,18 @@ function HealthNew() {
       backgroundClass="bg-gradient-to-b from-rose-50 via-pink-50/30 to-white dark:from-gray-950 dark:via-gray-900 dark:to-gray-900"
     >
       <HealthInstructions />
+
+      {!h.isDemoMode && h.profiles.length === 0 && (
+        <Card>
+          <CardContent className="py-8 text-center space-y-3">
+            <p className="font-medium">Медицинский профиль ещё не создан</p>
+            <p className="text-sm text-muted-foreground">
+              Обновите страницу — профиль создастся автоматически. Если не помогло, напишите в поддержку.
+            </p>
+            <Button variant="outline" onClick={() => h.refetchProfiles()}>Обновить</Button>
+          </CardContent>
+        </Card>
+      )}
 
       <ProfileSelector
         profiles={h.profiles}
