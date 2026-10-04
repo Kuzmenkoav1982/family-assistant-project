@@ -18,7 +18,8 @@ Returns: JSON со списком лекарств или результатом
 
 import json
 import os
-from datetime import date
+import re
+from datetime import date, datetime, timedelta
 from typing import Any, Dict, Optional
 
 import psycopg2
@@ -39,6 +40,111 @@ from auth_guard import (
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 MODULE = 'medications'
+
+VERSION = 'health-medications-2026-10-05.1'
+_TIME_RE = re.compile(r'^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$')
+
+# Безопасные сообщения: пользователю показываем только их, текст исключений — никогда.
+ERRORS = {
+    'INVALID_JSON': (400, 'Не удалось прочитать данные формы. Обновите страницу и повторите.'),
+    'PROFILE_REQUIRED': (400, 'Не выбран профиль здоровья.'),
+    'NAME_REQUIRED': (400, 'Укажите название препарата.'),
+    'NAME_TOO_LONG': (400, 'Название препарата слишком длинное (не более 200 символов).'),
+    'START_DATE_REQUIRED': (400, 'Укажите дату начала приёма.'),
+    'START_DATE_INVALID': (400, 'Дата начала приёма указана неверно. Формат: ГГГГ-ММ-ДД, не раньше 100 лет назад и не позже чем через 2 года.'),
+    'END_DATE_INVALID': (400, 'Дата окончания указана неверно.'),
+    'END_BEFORE_START': (400, 'Дата окончания не может быть раньше даты начала.'),
+    'TIME_INVALID': (400, 'Время приёма указано неверно. Формат: ЧЧ:ММ.'),
+    'TOO_MANY_TIMES': (400, 'Слишком много времён приёма (не более 12).'),
+    'DUPLICATE_COURSE': (409, 'Такое лекарство с той же дозировкой уже принимается в этот период. Измените даты курса или дозировку.'),
+    'NOT_FOUND': (404, 'Запись не найдена.'),
+    'INTERNAL': (500, 'Не удалось сохранить. Попробуйте ещё раз; если не получится, сообщите в поддержку код: {rid}.'),
+}
+
+
+def _out(ctx, event, status, payload):
+    resp = json_response(payload, status, event)
+    resp['headers']['X-Function-Version'] = VERSION
+    if ctx is not None:
+        resp['headers']['X-Request-Id'] = ctx.request_id
+    return resp
+
+
+def _err(ctx, event, code, extra=None):
+    status, message = ERRORS[code]
+    rid = ctx.request_id if ctx is not None else ''
+    payload = {'error': message.format(rid=rid), 'code': code, 'request_id': rid}
+    if extra:
+        payload.update(extra)
+    return _out(ctx, event, status, payload)
+
+
+class ValidationError(Exception):
+    def __init__(self, code):
+        self.code = code
+
+
+def _parse_date(value, required_code, invalid_code):
+    if value is None or (isinstance(value, str) and not value.strip()):
+        raise ValidationError(required_code) if required_code else ValidationError(invalid_code)
+    try:
+        d = datetime.strptime(str(value).strip(), '%Y-%m-%d').date()
+    except ValueError:
+        raise ValidationError(invalid_code)
+    today = date.today()
+    if d < today - timedelta(days=36525) or d > today + timedelta(days=730 if invalid_code == 'START_DATE_INVALID' else 3650):
+        raise ValidationError(invalid_code)
+    return d
+
+
+def _validate_course(body):
+    name = str(body.get('name') or '').strip()
+    if not name:
+        raise ValidationError('NAME_REQUIRED')
+    if len(name) > 200:
+        raise ValidationError('NAME_TOO_LONG')
+    start = _parse_date(body.get('startDate'), 'START_DATE_REQUIRED', 'START_DATE_INVALID')
+    end_raw = body.get('endDate')
+    end = None
+    if end_raw is not None and str(end_raw).strip():
+        end = _parse_date(end_raw, None, 'END_DATE_INVALID')
+        if end < start:
+            raise ValidationError('END_BEFORE_START')
+    times = body.get('times') or []
+    if not isinstance(times, list) or len(times) > 12:
+        raise ValidationError('TOO_MANY_TIMES')
+    for t in times:
+        if not isinstance(t, str) or not _TIME_RE.match(t.strip()):
+            raise ValidationError('TIME_INVALID')
+    for rem in (body.get('reminders') or []):
+        if not isinstance(rem, dict) or not _TIME_RE.match(str(rem.get('time', '')).strip()):
+            raise ValidationError('TIME_INVALID')
+    return {
+        'name': name,
+        'dosage': str(body.get('dosage') or '').strip(),
+        'frequency': str(body.get('frequency') or '').strip(),
+        'start': start,
+        'end': end,
+    }
+
+
+def _find_duplicate(cursor, profile_id, v, exclude_id=None):
+    """Дубль = тот же профиль + то же название + та же дозировка + пересекающийся
+    период у активного курса. Разные дозировки и непересекающиеся курсы
+    одного препарата — разные записи."""
+    cursor.execute(
+        """SELECT id FROM medications
+           WHERE profile_id = %s AND active = TRUE
+             AND LOWER(TRIM(name)) = LOWER(%s)
+             AND LOWER(TRIM(dosage)) = LOWER(%s)
+             AND start_date <= COALESCE(%s::date, DATE '9999-12-31')
+             AND COALESCE(end_date, DATE '9999-12-31') >= %s::date
+             AND (%s::text IS NULL OR id <> %s::text)
+           LIMIT 1""",
+        (profile_id, v['name'], v['dosage'], v['end'], v['start'], exclude_id, exclude_id),
+    )
+    row = cursor.fetchone()
+    return row[0] if row else None
 
 
 def _connect():
@@ -169,36 +275,33 @@ def _write_reminders(cursor, med_id: str, times, reminders) -> None:
 
 def _handle_post(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
     require_permission(ctx, MODULE, 'create')
-    body = json.loads(event.get('body') or '{}')
+    try:
+        body = json.loads(event.get('body') or '{}')
+    except (ValueError, TypeError):
+        return _err(ctx, event, 'INVALID_JSON')
     profile_id = body.get('profileId')
     if not profile_id:
-        return json_response({'error': 'Profile ID required'}, 400, event)
-    if not body.get('name'):
-        return json_response({'error': 'Name required'}, 400, event)
+        return _err(ctx, event, 'PROFILE_REQUIRED')
+    try:
+        v = _validate_course(body)
+    except ValidationError as ve:
+        return _err(ctx, event, ve.code)
 
     scope = _guard_profile(ctx, cursor, profile_id, 'create')
 
-    cursor.execute(
-        """SELECT id FROM medications
-           WHERE profile_id = %s AND LOWER(name) = LOWER(%s) AND active = TRUE LIMIT 1""",
-        (profile_id, body['name']),
-    )
-    existing = cursor.fetchone()
-    if existing:
-        return json_response(
-            {'error': f'Лекарство «{body["name"]}» уже добавлено', 'existing_id': existing[0]},
-            409, event,
-        )
+    dup = _find_duplicate(cursor, profile_id, v)
+    if dup:
+        return _err(ctx, event, 'DUPLICATE_COURSE', {'existing_id': dup})
 
+    # start_date — медицинская дата курса, задаётся пользователем явно.
+    # Момент создания записи хранится отдельно (created_at).
     cursor.execute(
         """INSERT INTO medications
            (id, profile_id, name, dosage, frequency, start_date, end_date, active, files, created_at)
            VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW())
            RETURNING id""",
-        (profile_id, body['name'], body.get('dosage', ''), body.get('frequency', ''),
-         (body.get('startDate') or '').strip() or date.today().isoformat(),
-         (body.get('endDate') or '').strip() or None,
-         body.get('active', True), json.dumps(body.get('files', []))),
+        (profile_id, v['name'], v['dosage'], v['frequency'], v['start'], v['end'],
+         bool(body.get('active', True)), json.dumps(body.get('files', []))),
     )
     med_id = cursor.fetchone()[0]
     _write_reminders(cursor, med_id, body.get('times', []), body.get('reminders', []))
@@ -206,19 +309,24 @@ def _handle_post(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
 
     audit_allowed(ctx, MODULE, 'create', 'POLICY_ALLOW', resource_type='medication',
                   resource_id=med_id, subject_member_id=scope['subject_member_id'])
-    return json_response({'id': med_id, 'message': 'Medication created'}, 201, event)
+    return _out(ctx, event, 201, {'id': med_id, 'message': 'Medication created',
+                                  'startDate': v['start'].isoformat()})
 
 
 def _handle_put(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
     require_permission(ctx, MODULE, 'update')
-    body = json.loads(event.get('body') or '{}')
+    try:
+        body = json.loads(event.get('body') or '{}')
+    except (ValueError, TypeError):
+        return _err(ctx, event, 'INVALID_JSON')
     med_id = body.get('id')
     if not med_id:
-        return json_response({'error': 'Medication ID required'}, 400, event)
-    if not body.get('name'):
-        return json_response({'error': 'Name required'}, 400, event)
+        return _err(ctx, event, 'NOT_FOUND')
+    try:
+        v = _validate_course(body)
+    except ValidationError as ve:
+        return _err(ctx, event, ve.code)
 
-    # Проверка принадлежности существующего лекарства.
     scope = _load_medication_scope(cursor, med_id)
     if not scope:
         raise AuthError(404, 'CROSS_FAMILY_ACCESS', 'Not found')
@@ -226,30 +334,22 @@ def _handle_put(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
     require_subject_access(ctx, scope['subject_member_id'], MODULE,
                            resource_type='medication', resource_id=med_id)
 
-    # Перенос лекарства в другой профиль допустим только в доступный профиль.
     target_profile = body.get('profileId') or scope['profile_id']
     if str(target_profile) != str(scope['profile_id']):
         _guard_profile(ctx, cursor, target_profile, 'update')
 
-    start_date = body.get('startDate') or None
-    end_date = body.get('endDate') or None
-    if isinstance(start_date, str) and not start_date.strip():
-        start_date = None
-    if start_date is None:
-        # start_date NOT NULL: при пустом значении сохраняем прежнюю дату
-        cursor.execute('SELECT start_date FROM medications WHERE id = %s', (med_id,))
-        prev = cursor.fetchone()
-        start_date = prev[0] if prev and prev[0] else date.today().isoformat()
-    if isinstance(end_date, str) and not end_date.strip():
-        end_date = None
+    active = bool(body.get('active', True))
+    if active:
+        dup = _find_duplicate(cursor, target_profile, v, exclude_id=med_id)
+        if dup:
+            return _err(ctx, event, 'DUPLICATE_COURSE', {'existing_id': dup})
 
     cursor.execute(
         """UPDATE medications
            SET name = %s, dosage = %s, frequency = %s, start_date = %s, end_date = %s,
                active = %s, files = %s::jsonb, profile_id = %s
            WHERE id = %s""",
-        (body['name'], body.get('dosage', ''), body.get('frequency', ''),
-         start_date, end_date, body.get('active', True),
+        (v['name'], v['dosage'], v['frequency'], v['start'], v['end'], active,
          json.dumps(body.get('files', [])), target_profile, med_id),
     )
 
@@ -267,7 +367,8 @@ def _handle_put(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
     conn.commit()
     audit_allowed(ctx, MODULE, 'update', 'POLICY_ALLOW', resource_type='medication',
                   resource_id=med_id, subject_member_id=scope['subject_member_id'])
-    return json_response({'success': True, 'message': 'Medication updated'}, 200, event)
+    return _out(ctx, event, 200, {'success': True, 'message': 'Medication updated',
+                                  'startDate': v['start'].isoformat()})
 
 
 def _handle_delete(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
@@ -312,7 +413,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         cursor = conn.cursor()
 
         if method == 'GET':
-            return _handle_get(event, ctx, cursor)
+            resp = _handle_get(event, ctx, cursor)
+            resp['headers']['X-Function-Version'] = VERSION
+            return resp
         if method == 'POST':
             return _handle_post(event, ctx, cursor, conn)
         if method == 'PUT':
@@ -329,8 +432,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     except Exception as exc:
         if conn:
             conn.rollback()
-        print(f'[ERROR] health-medications: {exc}')
-        return json_response({'error': 'Internal error'}, 500, event)
+        print(f'[ERROR] health-medications rid={ctx.request_id} v={VERSION} type={type(exc).__name__}')
+        return _err(ctx, event, 'INTERNAL')
     finally:
         if conn:
             conn.close()

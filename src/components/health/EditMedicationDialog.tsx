@@ -10,6 +10,15 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import func2url from '../../../backend/func2url.json';
 import { jsonHeaders } from '@/lib/apiHeaders';
 
+/** Времена приёма из сохранённых напоминаний (API отдаёт reminders, а не times). */
+function timesFromMedication(m: any): string[] {
+  if (Array.isArray(m?.times) && m.times.length) return m.times;
+  const fromReminders = Array.isArray(m?.reminders)
+    ? m.reminders.map((r: any) => String(r.time || '').slice(0, 5)).filter(Boolean)
+    : [];
+  return fromReminders.length ? fromReminders : ['09:00'];
+}
+
 interface Medication {
   id: string;
   name: string;
@@ -48,9 +57,9 @@ export function EditMedicationDialog({
     name: medication.name || '',
     dosage: medication.dosage || '',
     frequency: medication.frequency || '',
-    startDate: medication.startDate || new Date().toISOString().split('T')[0],
-    endDate: medication.endDate || '',
-    times: medication.times || ['09:00'],
+    startDate: medication.startDate ? String(medication.startDate).slice(0, 10) : '',
+    endDate: medication.endDate ? String(medication.endDate).slice(0, 10) : '',
+    times: timesFromMedication(medication),
     purpose: medication.purpose || '',
     sideEffects: medication.sideEffects || '',
     prescribedBy: medication.prescribedBy || ''
@@ -65,9 +74,9 @@ export function EditMedicationDialog({
       name: medication.name || '',
       dosage: medication.dosage || '',
       frequency: medication.frequency || '',
-      startDate: medication.startDate || new Date().toISOString().split('T')[0],
-      endDate: medication.endDate || '',
-      times: medication.times || ['09:00'],
+      startDate: medication.startDate ? String(medication.startDate).slice(0, 10) : '',
+      endDate: medication.endDate ? String(medication.endDate).slice(0, 10) : '',
+      times: timesFromMedication(medication),
       purpose: medication.purpose || '',
       sideEffects: medication.sideEffects || '',
       prescribedBy: medication.prescribedBy || ''
@@ -120,6 +129,14 @@ export function EditMedicationDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.startDate) {
+      toast({ title: 'Укажите дату начала приёма', description: 'Дата нужна для курса и напоминаний.', variant: 'destructive' });
+      return;
+    }
+    if (formData.endDate && formData.endDate < formData.startDate) {
+      toast({ title: 'Проверьте даты', description: 'Дата окончания не может быть раньше даты начала.', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
 
     try {
@@ -143,12 +160,13 @@ export function EditMedicationDialog({
         onOpenChange(false);
         onSuccess();
       } else {
-        throw new Error('Ошибка при обновлении лекарства');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(typeof err?.error === 'string' && err?.code ? err.error : 'Не удалось сохранить изменения. Попробуйте ещё раз.');
       }
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось обновить лекарство',
+        description: error instanceof Error && error.message ? error.message : 'Не удалось сохранить изменения.',
         variant: 'destructive'
       });
     } finally {

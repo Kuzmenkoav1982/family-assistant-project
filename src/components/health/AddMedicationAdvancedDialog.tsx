@@ -11,6 +11,14 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import func2url from '../../../backend/func2url.json';
 import { jsonHeaders } from '@/lib/apiHeaders';
 
+/** Сегодняшняя дата в часовом поясе пользователя (toISOString даёт UTC и может сместить день). */
+function todayLocal(): string {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+}
+
 interface AddMedicationAdvancedDialogProps {
   profileId: string;
   onSuccess: () => void;
@@ -29,7 +37,7 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
     name: '',
     dosage: '',
     frequency: '',
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: todayLocal(),
     endDate: '',
     times: ['09:00'],
     purpose: '',
@@ -111,6 +119,14 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.startDate) {
+      toast({ title: 'Укажите дату начала приёма', description: 'Дата нужна для курса и напоминаний.', variant: 'destructive' });
+      return;
+    }
+    if (formData.endDate && formData.endDate < formData.startDate) {
+      toast({ title: 'Проверьте даты', description: 'Дата окончания не может быть раньше даты начала.', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
 
     try {
@@ -120,7 +136,7 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
         body: JSON.stringify({
           profileId,
           ...formData,
-          startDate: formData.startDate || new Date().toISOString().split('T')[0],
+          startDate: formData.startDate,
           endDate: formData.endDate || null,
           status: 'active',
           files: attachedFiles,
@@ -138,7 +154,7 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
           name: '',
           dosage: '',
           frequency: '',
-          startDate: new Date().toISOString().split('T')[0],
+          startDate: todayLocal(),
           endDate: '',
           times: ['09:00'],
           purpose: '',
@@ -149,12 +165,13 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
         onSuccess();
       } else {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error || 'Ошибка при добавлении лекарства');
+        const msg = typeof err?.error === 'string' && err?.code ? err.error : 'Не удалось сохранить лекарство. Попробуйте ещё раз.';
+        throw new Error(msg);
       }
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: error instanceof Error && error.message ? error.message : 'Не удалось добавить лекарство',
+        description: error instanceof Error && error.message ? error.message : 'Не удалось сохранить лекарство. Проверьте соединение.',
         variant: 'destructive'
       });
     } finally {
@@ -191,20 +208,23 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Начало приема</Label>
+                <Label htmlFor="startDate">Начало приёма *</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  required
                 />
+                <p className="text-xs text-muted-foreground">По умолчанию — сегодня. Измените, если курс начался или начнётся в другой день.</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="endDate">Конец приема</Label>
+                <Label htmlFor="endDate">Конец приёма</Label>
                 <Input
                   id="endDate"
                   type="date"
+                  min={formData.startDate || undefined}
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 />
