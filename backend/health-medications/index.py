@@ -18,6 +18,7 @@ Returns: JSON со списком лекарств или результатом
 
 import json
 import os
+from datetime import date
 from typing import Any, Dict, Optional
 
 import psycopg2
@@ -195,7 +196,8 @@ def _handle_post(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
            VALUES (gen_random_uuid()::text, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW())
            RETURNING id""",
         (profile_id, body['name'], body.get('dosage', ''), body.get('frequency', ''),
-         body.get('startDate') or None, body.get('endDate') or None,
+         (body.get('startDate') or '').strip() or date.today().isoformat(),
+         (body.get('endDate') or '').strip() or None,
          body.get('active', True), json.dumps(body.get('files', []))),
     )
     med_id = cursor.fetchone()[0]
@@ -233,6 +235,11 @@ def _handle_put(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
     end_date = body.get('endDate') or None
     if isinstance(start_date, str) and not start_date.strip():
         start_date = None
+    if start_date is None:
+        # start_date NOT NULL: при пустом значении сохраняем прежнюю дату
+        cursor.execute('SELECT start_date FROM medications WHERE id = %s', (med_id,))
+        prev = cursor.fetchone()
+        start_date = prev[0] if prev and prev[0] else date.today().isoformat()
     if isinstance(end_date, str) and not end_date.strip():
         end_date = None
 

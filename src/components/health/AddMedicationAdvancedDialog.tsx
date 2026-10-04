@@ -120,6 +120,7 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
         body: JSON.stringify({
           profileId,
           ...formData,
+          startDate: formData.startDate || new Date().toISOString().split('T')[0],
           endDate: formData.endDate || null,
           status: 'active',
           files: attachedFiles,
@@ -147,12 +148,13 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
         setAttachedFiles([]);
         onSuccess();
       } else {
-        throw new Error('Ошибка при добавлении лекарства');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err?.error || 'Ошибка при добавлении лекарства');
       }
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось добавить лекарство',
+        description: error instanceof Error && error.message ? error.message : 'Не удалось добавить лекарство',
         variant: 'destructive'
       });
     } finally {
