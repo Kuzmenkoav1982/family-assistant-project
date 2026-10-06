@@ -84,12 +84,14 @@ export function AddHealthRecordDialog({ profileId, onSuccess, trigger, open: ope
         });
         onSuccess();
       } else {
-        throw new Error('Ошибка при добавлении записи');
+        const err = await response.json().catch(() => ({}));
+        const msg = typeof err?.error === 'string' && err.error ? err.error : 'Не удалось добавить запись. Попробуйте ещё раз.';
+        throw new Error(msg);
       }
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось добавить запись',
+        description: error instanceof Error && error.message ? error.message : 'Не удалось добавить запись. Проверьте соединение.',
         variant: 'destructive'
       });
     } finally {

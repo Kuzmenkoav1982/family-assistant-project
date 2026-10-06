@@ -118,5 +118,18 @@
   "payments": "https://functions.poehali.dev/a1b737ac-9612-4a1f-8262-c10e4c498d6d",
   "family-invites": "https://functions.poehali.dev/c30902b1-40c9-48c1-9d81-b0fab5788b9d",
   "tasks": "https://functions.poehali.dev/638290a3-bc43-46ef-9ca1-1e80b72544bf",
-  "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0"
+  "auth": "https://functions.poehali.dev/b9b956c8-e2a6-4c20-aef8-b8422e8cb3b0",
+  "ai-assistant": "https://functions.poehali.dev/c0645bee-6667-43ad-9eef-9295acd117fd",
+  "child-assessment": "https://functions.poehali.dev/63148537-9a20-4397-9f79-cc9af652c022",
+  "children-data": "https://functions.poehali.dev/d6f787e2-2e12-4c83-959c-8220442c6203",
+  "family-tracker": "https://functions.poehali.dev/45705c25-441b-4063-8e0b-795feb904533",
+  "family-tracker-members": "https://functions.poehali.dev/2408ee6f-f00b-49c1-9d7a-2d515db9616d",
+  "geofence-notifications": "https://functions.poehali.dev/2f91acee-399c-4a11-a810-a57bdb69e775",
+  "health-medication-reminders": "https://functions.poehali.dev/5403c012-6b78-423d-97b9-aebad8f83edb",
+  "health-medications": "https://functions.poehali.dev/520001f0-b1a0-4150-b221-a38041928a67",
+  "health-records": "https://functions.poehali.dev/a5ea76d6-8fb7-4cfa-89c7-837877a2f996",
+  "health-telemedicine": "https://functions.poehali.dev/51560445-6c6d-40f0-904a-37058c9ccf9d",
+  "health-vaccinations": "https://functions.poehali.dev/6aa2ed01-163f-4d6e-9259-8779f2a0d936",
+  "location-history": "https://functions.poehali.dev/e00d057e-5c17-4a43-ab17-f926d7ab3d7c",
+  "medication-intakes": "https://functions.poehali.dev/354773ba-088d-45d8-8b6d-d6f4f0ae5adc"
 }
