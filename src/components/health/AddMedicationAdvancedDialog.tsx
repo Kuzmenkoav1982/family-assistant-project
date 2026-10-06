@@ -165,7 +165,13 @@ export function AddMedicationAdvancedDialog({ profileId, onSuccess, trigger }: A
         onSuccess();
       } else {
         const err = await response.json().catch(() => ({}));
-        const msg = typeof err?.error === 'string' && err?.code ? err.error : 'Не удалось сохранить лекарство. Попробуйте ещё раз.';
+        // 4xx — понятная причина от сервера (дубль, неверная дата и т.п.), показываем её.
+        const serverMsg = typeof err?.error === 'string' ? err.error : '';
+        const msg = serverMsg && (err?.code || (response.status >= 400 && response.status < 500 && /[а-яё]/i.test(serverMsg)))
+          ? serverMsg
+          : response.status === 401
+            ? 'Сессия истекла. Войдите заново.'
+            : 'Не удалось сохранить лекарство. Попробуйте ещё раз.';
         throw new Error(msg);
       }
     } catch (error) {

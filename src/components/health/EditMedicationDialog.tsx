@@ -161,7 +161,12 @@ export function EditMedicationDialog({
         onSuccess();
       } else {
         const err = await response.json().catch(() => ({}));
-        throw new Error(typeof err?.error === 'string' && err?.code ? err.error : 'Не удалось сохранить изменения. Попробуйте ещё раз.');
+        const serverMsg = typeof err?.error === 'string' ? err.error : '';
+        throw new Error(serverMsg && (err?.code || (response.status >= 400 && response.status < 500 && /[а-яё]/i.test(serverMsg)))
+          ? serverMsg
+          : response.status === 401
+            ? 'Сессия истекла. Войдите заново.'
+            : 'Не удалось сохранить изменения. Попробуйте ещё раз.');
       }
     } catch (error) {
       toast({
