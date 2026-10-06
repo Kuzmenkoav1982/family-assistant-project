@@ -14,7 +14,9 @@ from health_crud import CrudSpec, run_crud
 
 SPEC = CrudSpec(
     table='insurance_policies',
-    module='documents',
+    # Полисы — часть медкарты: права как у модуля health (read_own/create/update).
+    # Модуль 'documents' не содержит действия read_own → всем возвращался 403.
+    module='health',
     resource_type='insurance_policy',
     select_columns=['id', 'profile_id', 'type', 'policy_number', 'provider',
                     'start_date', 'end_date', 'status', 'created_at'],
