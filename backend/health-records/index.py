@@ -165,10 +165,12 @@ def _handle_put(event, ctx: AuthContext, cursor, conn) -> Dict[str, Any]:
 
     cursor.execute(
         """UPDATE health_records
-           SET title = %s, description = %s, doctor = %s, clinic = %s,
+           SET type = COALESCE(NULLIF(%s, ''), type), date = COALESCE(NULLIF(%s, '')::date, date),
+               title = %s, description = %s, doctor = %s, clinic = %s,
                diagnosis = %s, recommendations = %s
            WHERE id = %s""",
-        (body.get('title'), encrypt_data(body.get('description', '')), body.get('doctor'),
+        (body.get('type') or '', body.get('date') or '',
+         body.get('title'), encrypt_data(body.get('description', '')), body.get('doctor'),
          body.get('clinic'), encrypt_data(body.get('diagnosis', '')),
          encrypt_data(body.get('recommendations', '')), record_id),
     )
@@ -237,4 +239,3 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             conn.close()
 
 # redeploy marker: wave-3 authz
-

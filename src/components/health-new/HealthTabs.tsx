@@ -55,6 +55,14 @@ interface HealthTabsProps {
   initialAction?: string | null;
 }
 
+const RECORD_TYPE_LABELS: Record<string, string> = {
+  visit: 'Визит к врачу',
+  analysis: 'Анализы',
+  procedure: 'Процедура',
+  hospitalization: 'Госпитализация',
+  mood: 'Самочувствие',
+};
+
 const ACTION_TO_TAB: Record<string, string> = {
   'add-vaccination': 'vaccinations',
   'add-doctor-visit': 'history',
@@ -185,7 +193,7 @@ export default function HealthTabs({
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-medium">{record.title || record.diagnosis}</h4>
-                        <p className="text-sm text-muted-foreground">{record.doctorName}</p>
+                        <p className="text-sm text-muted-foreground">{record.doctor || record.doctorName}</p>
                       </div>
                       <span className="text-sm text-muted-foreground">{new Date(record.date).toLocaleDateString('ru-RU')}</span>
                     </div>
@@ -214,10 +222,12 @@ export default function HealthTabs({
                     <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="text-base">{record.title || record.diagnosis}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{record.doctorName} {record.clinic && `\u2022 ${record.clinic}`}</p>
+                        <p className="text-sm text-muted-foreground">{[record.doctor || record.doctorName, record.clinic].filter(Boolean).join(' \u2022 ')}</p>
                       </div>
                       <div className="flex gap-1">
-                        <EditHealthRecordDialog record={record} onSuccess={refetchRecords} />
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Редактировать" onClick={() => setEditingRecord(record)}>
+                          <Icon name="Pencil" size={14} />
+                        </Button>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500" onClick={() => onDeleteRecord(record.id)}>
                           <Icon name="Trash2" size={14} />
                         </Button>
@@ -226,14 +236,19 @@ export default function HealthTabs({
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="flex justify-between text-sm"><span className="text-muted-foreground">Дата:</span><span>{new Date(record.date).toLocaleDateString('ru-RU')}</span></div>
-                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">Тип:</span><span>{record.recordType}</span></div>
-                    {record.diagnosis && <div className="flex justify-between text-sm"><span className="text-muted-foreground">Диагноз:</span><span>{record.diagnosis}</span></div>}
-                    {record.prescription && <div className="mt-2 p-2 bg-muted rounded text-sm"><strong>Назначения:</strong> {record.prescription}</div>}
-                    {record.notes && <p className="text-sm text-muted-foreground mt-2">{record.notes}</p>}
+                    <div className="flex justify-between text-sm"><span className="text-muted-foreground">Тип:</span><span>{RECORD_TYPE_LABELS[record.type] || record.type || '—'}</span></div>
+                    {record.diagnosis && <div className="flex justify-between text-sm gap-4"><span className="text-muted-foreground">Диагноз:</span><span className="text-right">{record.diagnosis}</span></div>}
+                    {record.description && <p className="text-sm mt-2">{record.description}</p>}
+                    {record.recommendations && <div className="mt-2 p-2 bg-muted rounded text-sm"><strong>Рекомендации:</strong> {record.recommendations}</div>}
                   </CardContent>
                 </Card>
               ))}
             </div>
+            {editingRecord && (
+              <EditHealthRecordDialog record={editingRecord} profileId={selectedProfile.id}
+                open={!!editingRecord} onOpenChange={(open) => !open && setEditingRecord(null)}
+                onSuccess={refetchRecords} />
+            )}
           </TabsContent>
 
           <TabsContent value="vaccinations" className="space-y-4 pb-32">

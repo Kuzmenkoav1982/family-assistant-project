@@ -90,12 +90,13 @@ export function EditHealthRecordDialog({
         onOpenChange(false);
         onSuccess();
       } else {
-        throw new Error('Ошибка при обновлении записи');
+        const err = await response.json().catch(() => ({}));
+        throw new Error(typeof err?.error === 'string' && /[а-яё]/i.test(err.error) ? err.error : 'Не удалось обновить запись. Попробуйте ещё раз.');
       }
     } catch (error) {
       toast({
         title: 'Ошибка',
-        description: 'Не удалось обновить запись',
+        description: error instanceof Error && error.message ? error.message : 'Не удалось обновить запись',
         variant: 'destructive'
       });
     } finally {
