@@ -58,7 +58,12 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
     }
     let cancelled = false;
     fetch(CONSENT_URL, { method: 'GET', headers: { 'X-Auth-Token': token } })
-      .then((r) => r.json())
+      .then(async (r) => {
+        // Сбой сервера (5xx и т.п.) — это не «нет согласия». Не блокируем пользователя.
+        // Стену показываем только при явном ответе 200 { accepted: false }.
+        if (!r.ok) return { accepted: true };
+        return r.json();
+      })
       .then((data) => {
         if (cancelled) return;
         setState(data?.accepted ? 'ok' : 'need_consent');
@@ -84,6 +89,10 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
         body: JSON.stringify({}),
       });
       if (res.ok) {
+        setState('ok');
+      } else if (res.status >= 500) {
+        // Временный сбой сервера — не запираем пользователя. Согласие будет
+        // запрошено повторно при следующем входе, когда сервер восстановится.
         setState('ok');
       } else {
         setError('Не удалось сохранить согласие. Попробуйте ещё раз.');
