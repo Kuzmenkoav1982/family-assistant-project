@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
+import { storage } from '@/lib/storage';
 
 const INTEREST_OPTIONS = [
   { id: 'tasks', icon: 'CheckSquare', label: 'Задачи и списки дел' },
@@ -31,6 +32,8 @@ const ROLE_OPTIONS = [
 ];
 
 function getAuthToken(): string {
+  const canonical = storage.getItem('authToken');
+  if (canonical) return canonical;
   try {
     const userData = localStorage.getItem('userData');
     if (userData) {

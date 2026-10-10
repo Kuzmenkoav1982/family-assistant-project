@@ -29,11 +29,13 @@ export default function ProfileSelector({ profiles, selectedProfile, onSelect, g
                 </div>
               ) : (
                 <div className="text-3xl md:text-4xl mb-2">
-                  {profile.userAge < 13 ? '\u{1F466}' : profile.userAge < 18 ? '\u{1F467}' : profile.userName === '\u0410\u043d\u0430\u0441\u0442\u0430\u0441\u0438\u044f' ? '\u{1F469}' : '\u{1F468}'}
+                  {!profile.userAge ? '\u{1F642}' : profile.userAge < 13 ? '\u{1F466}' : profile.userAge < 18 ? '\u{1F467}' : profile.userName === '\u0410\u043d\u0430\u0441\u0442\u0430\u0441\u0438\u044f' ? '\u{1F469}' : '\u{1F468}'}
                 </div>
               )}
               <h3 className="font-semibold text-sm md:text-base">{profile.userName}</h3>
-              <p className="text-xs md:text-sm text-muted-foreground">{profile.userAge} лет</p>
+              <p className="text-xs md:text-sm text-muted-foreground">
+                {profile.userAge > 0 ? `${profile.userAge} лет` : 'Возраст не указан'}
+              </p>
               <div className="mt-1 md:mt-2 flex justify-center gap-1">
                 {profile.privacy === 'private' && <Icon name="Lock" size={12} className="text-muted-foreground" />}
                 {profile.privacy === 'parents' && <Icon name="Users" size={12} className="text-muted-foreground" />}

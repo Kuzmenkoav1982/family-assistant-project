@@ -45,7 +45,7 @@ export default function useHealthNew() {
 
   const profiles = useMemo(() => {
     const rawProfiles = isDemoMode && !authToken ? DEMO_HEALTH_PROFILES : apiProfiles;
-    return rawProfiles.filter(p => p.userName && p.userName !== 'Член семьи' && p.userAge > 0);
+    return rawProfiles.filter(p => p.userName && p.userName !== 'Член семьи');
   }, [isDemoMode, authToken, apiProfiles]);
 
   const records = useMemo(() =>

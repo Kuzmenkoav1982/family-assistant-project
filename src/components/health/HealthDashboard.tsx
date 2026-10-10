@@ -247,7 +247,7 @@ export function HealthDashboard({
       <div ref={reportRef} className="space-y-6 p-6 bg-white print:p-0">
         <div className="text-center space-y-2 print:mb-8">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">Медицинский отчёт</h1>
-          <p className="text-base sm:text-xl text-muted-foreground">{profile.userName}, {profile.userAge} лет</p>
+          <p className="text-base sm:text-xl text-muted-foreground">{profile.userName}{profile.userAge > 0 ? `, ${profile.userAge} лет` : ''}</p>
           <p className="text-sm text-muted-foreground">
             Дата формирования: {new Date().toLocaleDateString('ru-RU', { 
               day: 'numeric', 
