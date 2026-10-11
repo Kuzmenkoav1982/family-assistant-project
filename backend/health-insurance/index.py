@@ -47,4 +47,4 @@ SPEC = CrudSpec(
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     return run_crud(event, SPEC)
 
-# redeploy marker: wave-3 authz
+# redeploy marker: wave-4 documents->health fix
