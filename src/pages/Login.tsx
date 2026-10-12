@@ -367,6 +367,10 @@ export default function Login() {
               <a href="/terms-of-service" className="text-purple-600 hover:underline">
                 условиями использования
               </a>
+              {' '}и{' '}
+              <a href="/offer" target="_blank" rel="noreferrer" className="text-purple-600 hover:underline">
+                договором-офертой
+              </a>
             </p>
           </div>
 

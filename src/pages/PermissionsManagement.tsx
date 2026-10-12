@@ -125,7 +125,7 @@ export default function PermissionsManagement() {
                   </div>
                 </div>
                 
-                <PermissionsManager member={selectedMember} />
+                <PermissionsManager key={selectedMember.id} member={selectedMember} />
               </div>
             ) : (
               <div className="text-center text-muted-foreground py-8">

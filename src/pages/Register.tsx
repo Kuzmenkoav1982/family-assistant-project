@@ -297,9 +297,13 @@ export default function Register() {
                 <Link to="/privacy-policy" target="_blank" className="text-purple-600 hover:underline">
                   политику конфиденциальности
                 </Link>
-                {' '}и{' '}
+,{' '}
                 <Link to="/terms-of-service" target="_blank" className="text-purple-600 hover:underline">
                   условия использования
+                </Link>
+                {' '}и{' '}
+                <Link to="/offer" target="_blank" className="text-purple-600 hover:underline">
+                  договор-оферту
                 </Link>
               </span>
             </label>

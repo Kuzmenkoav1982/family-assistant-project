@@ -155,6 +155,9 @@ export default function ConsentGate({ children }: { children: React.ReactNode })
             <a href="/terms-of-service" target="_blank" rel="noreferrer" className="text-primary underline">
               Пользовательское соглашение
             </a>
+            <a href="/offer" target="_blank" rel="noreferrer" className="text-primary underline">
+              Договор-оферта
+            </a>
           </div>
 
           {error && (
