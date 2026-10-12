@@ -81,6 +81,7 @@ import { medicationNotificationService } from "@/services/medicationNotification
 import CookieConsent from "@/components/CookieConsent";
 import PageLoader from "@/components/PageLoader";
 import { ProtectedRoute, AdminRoute } from "@/components/RouteGuards";
+import SectionAccessGate from "@/components/SectionAccessGate";
 
 // Side-effect: глобальный fetch-перехватчик (auth header proxy и т.п.).
 // Должен инициализироваться до первого fetch в приложении, поэтому стоит
@@ -473,7 +474,7 @@ const App = () => {
                       <Route path="/finance/cashflow" element={<ProtectedRoute><FinanceCashflow /></ProtectedRoute>} />
                       <Route path="/education" element={<Education />} />
                       {/* SEC-1.2b: MEDIUM-risk — семейные события */}
-                      <Route path="/events" element={<ProtectedRoute><EventsPage /></ProtectedRoute>} />
+                      <Route path="/events" element={<ProtectedRoute><SectionAccessGate section="calendar"><EventsPage /></SectionAccessGate></ProtectedRoute>} />
                       <Route path="/events/create" element={<ProtectedRoute><CreateEventPage /></ProtectedRoute>} />
                       <Route path="/events/edit/:id" element={<ProtectedRoute><EditEventPage /></ProtectedRoute>} />
                       <Route path="/events/:id" element={<ProtectedRoute><EventDetailsPage /></ProtectedRoute>} />
@@ -481,18 +482,18 @@ const App = () => {
                       <Route path="/pets" element={<ProtectedRoute><Pets /></ProtectedRoute>} />
                       <Route path="/faith" element={<Faith />} />
                       {/* SEC-1.2b: MEDIUM-risk — семейное древо */}
-                      <Route path="/tree" element={<ProtectedRoute><Tree /></ProtectedRoute>} />
+                      <Route path="/tree" element={<ProtectedRoute><SectionAccessGate section="tree"><Tree /></SectionAccessGate></ProtectedRoute>} />
                       <Route path="/family-id" element={<FamilyId />} />
                       <Route path="/memory" element={
                         <ProtectedRoute>
-                          <Memory />
+                          <SectionAccessGate section="album"><Memory /></SectionAccessGate>
                         </ProtectedRoute>
                       } />
                       {/* SEC-1.2b: MEDIUM-risk — личные покупки и питание */}
                       <Route path="/shopping" element={<ProtectedRoute><Shopping /></ProtectedRoute>} />
-                      <Route path="/meals" element={<ProtectedRoute><Meals /></ProtectedRoute>} />
+                      <Route path="/meals" element={<ProtectedRoute><SectionAccessGate section="meals"><Meals /></SectionAccessGate></ProtectedRoute>} />
                       {/* SEC-1.2b: MEDIUM-risk — личный календарь */}
-                      <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+                      <Route path="/calendar" element={<ProtectedRoute><SectionAccessGate section="calendar"><Calendar /></SectionAccessGate></ProtectedRoute>} />
                       <Route path="/purchases" element={<ProtectedRoute><Purchases /></ProtectedRoute>} />
                       <Route path="/permissions" element={<ProtectedRoute><PermissionsManagement /></ProtectedRoute>} />
                       <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
@@ -521,7 +522,7 @@ const App = () => {
                       <Route path="/family-code" element={<FamilyCode />} />
                       {/* SEC-1.2b: MEDIUM-risk — личная переписка */}
                       <Route path="/chat" element={<ProtectedRoute><FamilyChat /></ProtectedRoute>} />
-                      <Route path="/family-chat" element={<ProtectedRoute><FamilyChat /></ProtectedRoute>} />
+                      <Route path="/family-chat" element={<ProtectedRoute><SectionAccessGate section="chat"><FamilyChat /></SectionAccessGate></ProtectedRoute>} />
                       <Route path="/state-support" element={<StateSupport />} />
                       <Route path="/support-navigator" element={<SupportNavigator />} />
                       <Route path="/family-policy" element={<FamilyPolicy />} />
@@ -673,10 +674,10 @@ const App = () => {
                       <Route path="/health-hub" element={<ProtectedRoute><HealthHub /></ProtectedRoute>} />
                       <Route path="/leisure-hub" element={<ProtectedRoute><LeisureHub /></ProtectedRoute>} />
                       <Route path="/values" element={<Values />} />
-                      <Route path="/culture" element={<Culture />} />
+                      <Route path="/culture" element={<SectionAccessGate section="traditions"><Culture /></SectionAccessGate>} />
                       <Route path="/wisdom" element={<Wisdom />} />
                       {/* SEC-1.2b: MEDIUM-risk — задачи и уведомления */}
-                      <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+                      <Route path="/tasks" element={<ProtectedRoute><SectionAccessGate section="tasks"><Tasks /></SectionAccessGate></ProtectedRoute>} />
                       {/* Legacy /goals → redirect на новый Workshop (Goals V1). См. R2 Wave 2. */}
                       <Route path="/goals" element={<Navigate to="/workshop" replace />} />
                       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

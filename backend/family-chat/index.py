@@ -7,6 +7,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 import requests
 from track_event_helper import track_event
+import section_access
 
 SCHEMA = 't_p5815085_family_assistant_pro'
 MESSAGES_TABLE = 'family_chat_messages'
@@ -230,6 +231,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
         family_id = ctx['family_id']
         me_id = ctx['member_id']
+
+        if not section_access.member_can_access(cur, me_id, 'chat'):
+            return section_access.denied_response(cors_headers())
 
         if method == 'GET':
             params = event.get('queryStringParameters') or {}

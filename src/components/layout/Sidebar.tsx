@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/collapsible';
 import { useNotificationCenter } from '@/hooks/useNotificationCenter';
 import { useIsFamilyOwner } from '@/hooks/useIsFamilyOwner';
+import { useSectionAccess, SECTION_BY_MENU_ID } from '@/hooks/useSectionAccess';
 import {
   registerNewBadge,
   applyTopLevelLimit,
@@ -31,6 +32,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
   const location = useLocation();
   const { unreadCount } = useNotificationCenter();
   const isOwner = useIsFamilyOwner();
+  const { canAccess } = useSectionAccess();
   const [openSections, setOpenSections] = useState<string[]>(() => {
     try {
       const raw = localStorage.getItem('sidebarOpenSections');
@@ -266,7 +268,7 @@ export default function Sidebar({ isVisible, onVisibilityChange }: SidebarProps)
                       </div>
 
                       <CollapsibleContent className="mt-0.5 ml-5 space-y-0.5 border-l-2 border-gray-100 dark:border-gray-800 pl-3">
-                        {section.items.filter(item => isOwner || !OWNER_ONLY_FINANCE_ITEMS.includes(item.id)).map((item) => (
+                        {section.items.filter(item => (isOwner || !(OWNER_ONLY_FINANCE_ITEMS as readonly string[]).includes(item.id)) && canAccess(SECTION_BY_MENU_ID[item.id])).map((item) => (
                           <button
                             key={item.id}
                             onClick={() => handleItemClick(item)}

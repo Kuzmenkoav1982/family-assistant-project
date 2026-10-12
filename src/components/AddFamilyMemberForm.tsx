@@ -126,44 +126,19 @@ export function AddFamilyMemberForm({ onSubmit, editingMember, isChild = false }
         </div>
       </div>
 
-      <div className="border rounded-lg p-4 bg-blue-50 border-blue-200">
-        <label className="block text-sm font-medium mb-3">Тип аккаунта</label>
-        <div className="space-y-2">
-          <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors" style={{ borderColor: formData.accountType === 'full' ? 'rgb(59 130 246)' : 'rgb(229 231 235)' }}>
-            <input 
-              type="radio" 
-              name="accountType" 
-              value="full"
-              checked={formData.accountType === 'full'}
-              onChange={(e) => setFormData({ ...formData, accountType: e.target.value as 'full' | 'child_profile' })}
-              className="mt-1"
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium">
-                <Icon name="UserCheck" size={16} className="text-blue-600" />
-                Полноценный аккаунт
-              </div>
-              <p className="text-xs text-gray-600 mt-1">С возможностью входа, участвует в голосованиях и имеет доступ к системе</p>
-            </div>
-          </label>
-
-          <label className="flex items-start gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors" style={{ borderColor: formData.accountType === 'child_profile' ? 'rgb(59 130 246)' : 'rgb(229 231 235)' }}>
-            <input 
-              type="radio" 
-              name="accountType" 
-              value="child_profile"
-              checked={formData.accountType === 'child_profile'}
-              onChange={(e) => setFormData({ ...formData, accountType: e.target.value as 'full' | 'child_profile' })}
-              className="mt-1"
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 font-medium">
-                <Icon name="Baby" size={16} className="text-blue-600" />
-                Профиль ребенка (без входа)
-              </div>
-              <p className="text-xs text-gray-600 mt-1">Только для отслеживания информации, не участвует в голосованиях</p>
-            </div>
-          </label>
+      <div className="border rounded-lg p-4 bg-blue-50 border-blue-200 flex gap-3">
+        <Icon name="Info" size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-blue-900">
+          {editingMember?.account_type === 'full' ? (
+            <p>У этого участника есть свой вход в приложение.</p>
+          ) : (
+            <>
+              <p className="font-medium">Профиль создаётся без входа в приложение</p>
+              <p className="text-xs text-blue-800 mt-1">
+                Чтобы человек мог входить сам, отправьте ему ссылку-приглашение и попросите при вступлении указать имя точно как в этом профиле — тогда профиль привяжется к его аккаунту.
+              </p>
+            </>
+          )}
         </div>
       </div>
 

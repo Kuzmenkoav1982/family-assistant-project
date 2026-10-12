@@ -9,6 +9,7 @@ import os
 from typing import Dict, Any, List, Optional
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import section_access
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
@@ -315,6 +316,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Пользователь не состоит в семье'}),
                 'isBase64Encoded': False
             }
+
+        _sa_conn = get_db_connection()
+        try:
+            _sa_ok = section_access.user_can_access(_sa_conn.cursor(), user_id, 'meals')
+        finally:
+            _sa_conn.close()
+        if not _sa_ok:
+            return section_access.denied_response()
         
         if method == 'GET':
             meals = get_meal_plans(family_id)

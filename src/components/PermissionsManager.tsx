@@ -5,27 +5,30 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import type { FamilyMember } from '@/types/family.types';
 import { useFamilyMembersContext } from '@/contexts/FamilyMembersContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface PermissionsManagerProps {
   member: FamilyMember;
 }
 
 const PERMISSION_CONFIG = [
-  { key: 'tasks', label: 'Задачи', icon: 'CheckSquare', description: 'Создание и управление задачами' },
-  { key: 'calendar', label: 'Календарь', icon: 'Calendar', description: 'Добавление событий в календарь' },
-  { key: 'traditions', label: 'Традиции', icon: 'Sparkles', description: 'Создание и редактирование традиций' },
-  { key: 'blog', label: 'Блог', icon: 'BookOpen', description: 'Публикация записей в блоге' },
-  { key: 'meals', label: 'Меню', icon: 'UtensilsCrossed', description: 'Планирование меню и голосование' },
-  { key: 'education', label: 'Образование', icon: 'GraduationCap', description: 'Доступ к образовательным материалам' },
-  { key: 'tree', label: 'Древо', icon: 'GitBranch', description: 'Редактирование семейного древа' },
-  { key: 'chat', label: 'Чат', icon: 'MessageCircle', description: 'Участие в семейном чате' },
-  { key: 'album', label: 'Альбом', icon: 'Image', description: 'Загрузка фото и видео' }
+  { key: 'tasks', label: 'Задачи', icon: 'CheckSquare', description: 'Просмотр и управление задачами' },
+  { key: 'calendar', label: 'Календарь', icon: 'Calendar', description: 'Семейный календарь и события' },
+  { key: 'traditions', label: 'Традиции', icon: 'Sparkles', description: 'Традиции и культура семьи' },
+  { key: 'meals', label: 'Меню на неделю', icon: 'UtensilsCrossed', description: 'Планирование меню' },
+  { key: 'tree', label: 'Древо', icon: 'GitBranch', description: 'Семейное древо и род' },
+  { key: 'chat', label: 'Чат', icon: 'MessageCircle', description: 'Семейный чат и личные сообщения' },
+  { key: 'album', label: 'Альбом', icon: 'Image', description: 'Альбом поколений: фото и истории' }
 ];
 
 export function PermissionsManager({ member }: PermissionsManagerProps) {
   if (!member) return null;
   
-  const { updateMember } = useFamilyMembersContext();
+  const { updateMember, currentAccessRole, currentIsOwner, currentMemberId } = useFamilyMembersContext();
+  const { toast } = useToast();
+  const canEdit = currentIsOwner || currentAccessRole === 'admin';
+  const isFullAccess = (member as FamilyMember & { access_role?: string }).access_role === 'admin' || (member.role || '').toLowerCase() === 'владелец';
+  const locked = !canEdit || isFullAccess;
   const [permissions, setPermissions] = useState(
     member.permissions || {
       tasks: true,
@@ -50,11 +53,14 @@ export function PermissionsManager({ member }: PermissionsManagerProps) {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await updateMember({
+    const result = await updateMember({
       id: member.id,
       permissions
     });
     setIsSaving(false);
+    toast(result.success
+      ? { title: 'Права сохранены', description: `Изменения для ${member.name} вступили в силу` }
+      : { title: 'Не удалось сохранить', description: result.error || 'Попробуйте ещё раз', variant: 'destructive' });
   };
 
   const enableAll = () => {
@@ -85,12 +91,24 @@ export function PermissionsManager({ member }: PermissionsManagerProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {isFullAccess && (
+          <div className="p-3 rounded-lg bg-blue-50 border border-blue-200 text-sm text-blue-900">
+            У владельца и администраторов всегда полный доступ ко всем разделам — ограничить его нельзя.
+          </div>
+        )}
+        {!canEdit && !isFullAccess && (
+          <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-900">
+            {String(member.id) === String(currentMemberId)
+              ? 'Это ваши права. Изменить их может только администратор семьи.'
+              : 'Менять права может только администратор семьи.'}
+          </div>
+        )}
         <div className="flex gap-2 mb-4">
-          <Button onClick={enableAll} variant="outline" size="sm">
+          <Button onClick={enableAll} variant="outline" size="sm" disabled={locked}>
             <Icon name="CheckSquare" size={16} className="mr-2" />
             Включить все
           </Button>
-          <Button onClick={disableAll} variant="outline" size="sm">
+          <Button onClick={disableAll} variant="outline" size="sm" disabled={locked}>
             <Icon name="Square" size={16} className="mr-2" />
             Выключить все
           </Button>
@@ -98,7 +116,7 @@ export function PermissionsManager({ member }: PermissionsManagerProps) {
 
         <div className="grid gap-4">
           {PERMISSION_CONFIG.map(permission => {
-            const isEnabled = permissions[permission.key as keyof typeof permissions];
+            const isEnabled = isFullAccess || permissions[permission.key as keyof typeof permissions] !== false;
             return (
               <div
                 key={permission.key}
@@ -122,6 +140,7 @@ export function PermissionsManager({ member }: PermissionsManagerProps) {
                 </div>
                 <Button
                   onClick={() => togglePermission(permission.key)}
+                  disabled={locked}
                   variant={isEnabled ? 'default' : 'outline'}
                   size="sm"
                   className="ml-4"
@@ -144,7 +163,7 @@ export function PermissionsManager({ member }: PermissionsManagerProps) {
         </div>
 
         <div className="flex justify-end pt-4 border-t">
-          <Button onClick={handleSave} disabled={isSaving} size="lg">
+          <Button onClick={handleSave} disabled={isSaving || locked} size="lg">
             <Icon name="Save" size={18} className="mr-2" />
             {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
           </Button>

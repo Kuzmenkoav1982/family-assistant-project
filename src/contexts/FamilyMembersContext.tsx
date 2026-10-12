@@ -36,6 +36,7 @@ interface FamilyMembersContextType {
   familyId: string | null;
   currentMemberId: string | null;
   currentAccessRole: string | null;
+  currentIsOwner: boolean;
   fetchMembers: (silent?: boolean) => Promise<void>;
   addMember: (memberData: Partial<FamilyMember>) => Promise<{success: boolean; member?: FamilyMember; error?: string}>;
   updateMember: (memberData: Partial<FamilyMember> & { id?: string; member_id?: string }) => Promise<{success: boolean; error?: string}>;
@@ -59,6 +60,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
   });
   const [currentMemberId, setCurrentMemberId] = useState<string | null>(null);
   const [currentAccessRole, setCurrentAccessRole] = useState<string | null>(null);
+  const [currentIsOwner, setCurrentIsOwner] = useState(false);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const isFetchingRef = useRef(false);
   const hasInitialFetchRef = useRef(false);
@@ -195,6 +197,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
           const me = convertedMembers.find((m: { id?: string; access_role?: string }) => String(m.id) === String(data.current_member_id));
           setCurrentAccessRole(me?.access_role || null);
         }
+        setCurrentIsOwner(Boolean(data.current_is_owner));
         setError(null);
       } else {
         console.warn('[FamilyMembersContext] Failed to load members:', data.error);
@@ -415,6 +418,7 @@ export function FamilyMembersProvider({ children }: { children: React.ReactNode 
         familyId,
         currentMemberId,
         currentAccessRole,
+        currentIsOwner,
         fetchMembers,
         addMember,
         updateMember,

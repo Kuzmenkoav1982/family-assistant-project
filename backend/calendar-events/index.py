@@ -8,6 +8,7 @@ from datetime import datetime, date
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor, Json
+import section_access
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
@@ -393,6 +394,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         family_id = user_data['family_id']
+        _sa_conn = get_db_connection()
+        try:
+            _sa_ok = section_access.member_can_access(_sa_conn.cursor(), str(user_data['member_id']), 'calendar')
+        finally:
+            _sa_conn.close()
+        if not _sa_ok:
+            return section_access.denied_response(cors_headers)
         member_name = user_data['member_name']
         member_avatar = user_data['avatar']
         

@@ -90,7 +90,7 @@ def list_members(ctx) -> Dict[str, Any]:
             SELECT id, user_id, name, role, relationship, avatar, avatar_type,
                    photo_url, points, level, workload, age, birth_date, birth_time,
                    account_type, access_role, member_status, profile_data,
-                   member_color, tree_node_id, created_at, updated_at
+                   member_color, tree_node_id, permissions, created_at, updated_at
             FROM {SCHEMA}.family_members
             WHERE family_id = %s
               AND COALESCE(member_status, 'active') = 'active'
@@ -116,6 +116,7 @@ def list_members(ctx) -> Dict[str, Any]:
         'success': True,
         'family_id': ctx.family_id,
         'current_member_id': ctx.member_id,
+        'current_is_owner': bool(ctx.is_owner),
         'members': members,
     }
 
@@ -315,9 +316,18 @@ def update_member(ctx, member_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
             fields.append('access_role = %s')
             params.append(new_role)
 
-        # permissions JSONB больше не источник истины для доступа:
-        # он сохраняется как пользовательская настройка отображения.
+        # permissions JSONB сужает доступ к разделам (section_access).
+        # Менять его может только управляющий семьёй, в том числе себе:
+        # иначе участник вернёт себе закрытый раздел.
         if 'permissions' in data:
+            if not ag.has_permission(ctx, 'family_members', 'update') and not ctx.is_owner:
+                ag.audit_denied(ctx, 'family_members', 'update', 'SELF_PERMISSIONS_CHANGE_DENIED',
+                                resource_type='family_member', resource_id=member_id,
+                                http_status=403)
+                raise AuthError(403, 'PERMISSION_DENIED',
+                                'Only family admin can change section access')
+            if not isinstance(data['permissions'], dict):
+                raise AuthError(400, 'INVALID_INPUT', 'permissions must be an object')
             fields.append('permissions = %s::jsonb')
             params.append(json.dumps(data['permissions']))
 

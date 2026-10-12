@@ -12,6 +12,7 @@ from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from track_event_helper import track_event
+import section_access
 
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -297,6 +298,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'headers': headers,
                 'body': json.dumps({'error': 'Пользователь не привязан к семье'})
             }
+
+        _sa_conn = get_db_connection()
+        try:
+            _sa_cur = _sa_conn.cursor()
+            _sa_ok = section_access.user_can_access(_sa_cur, user_id, 'tasks')
+        finally:
+            _sa_conn.close()
+        if not _sa_ok:
+            return section_access.denied_response()
         
         if method == 'GET':
             params = event.get('queryStringParameters', {})

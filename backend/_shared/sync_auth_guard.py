@@ -32,6 +32,7 @@ MODULES = {
     'auth_guard': (),
     'health_scope': ('auth_guard',),
     'health_crud': ('health_scope', 'auth_guard'),
+    'section_access': (),
 }
 
 

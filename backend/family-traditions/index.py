@@ -12,6 +12,7 @@ from typing import Any, Dict, List
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import section_access
 from _portfolio_refresh import trigger_portfolio_aggregate
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
@@ -162,6 +163,9 @@ def handler(event: Dict[str, Any], context) -> Dict[str, Any]:
         family_id = get_family_id(user_id, cur)
         if not family_id:
             return err(403, 'family not found for user')
+
+        if not section_access.user_can_access(cur, user_id, 'traditions'):
+            return section_access.denied_response(cors_headers())
 
         if method == 'GET':
             return handle_get(family_id, cur)

@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import section_access
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 SCHEMA = 't_p5815085_family_assistant_pro'
@@ -360,6 +361,14 @@ def handler(event: dict, context) -> dict:
     family_id = get_user_family_id(user_id)
     if not family_id:
         return response(404, {'error': 'Семья не найдена'})
+
+    _sa_conn = get_db_connection()
+    try:
+        _sa_ok = section_access.user_can_access(_sa_conn.cursor(), user_id, 'tree')
+    finally:
+        _sa_conn.close()
+    if not _sa_ok:
+        return section_access.denied_response()
 
     method = event.get('httpMethod', 'GET')
     params = event.get('queryStringParameters') or {}

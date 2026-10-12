@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, date
 import psycopg2
+import section_access
 
 
 def handler(event: dict, context) -> dict:
@@ -62,6 +63,9 @@ def handler(event: dict, context) -> dict:
         if not row:
             return _resp(404, {'error': 'Family not found'})
         family_id = row[0]
+
+        if not section_access.member_can_access(cur, user_id, 'album'):
+            return section_access.denied_response(cors)
 
         if resource == 'entries':
             return _handle_entries(cur, conn, method, family_id, user_id, item_id, qp, body)
